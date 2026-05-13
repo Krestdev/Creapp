@@ -1,4 +1,5 @@
 "use client";
+import { TabBar } from "@/components/base/TabBar";
 import {
   StatisticCard,
   StatisticProps,
@@ -6,24 +7,7 @@ import {
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { XAF } from "@/lib/utils";
-import { bankQ } from "@/queries/bank";
-import { paymentQ } from "@/queries/payment";
-import { purchaseQ } from "@/queries/purchase-order";
-import { requestTypeQ } from "@/queries/requestType";
-import { DateFilter, NavLink } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
-import { payTypeQ } from "@/queries/payType";
-import ExpensesTable from "./expenses-table";
-import { providerQ } from "@/queries/providers";
-import { requestQ } from "@/queries/requestModule";
-import { userQ } from "@/queries/baseModule";
-import { invoiceQ } from "@/queries/invoices";
-import { projectQ } from "@/queries/projectModule";
-import { transactionQ } from "@/queries/transaction";
-import { signatairQ } from "@/queries/signatair";
-import { useMemo } from "react";
-import { vehicleQ } from "@/queries/vehicule";
+import { Button } from "@/components/ui/button";
 import {
   Sheet,
   SheetContent,
@@ -32,13 +16,25 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
+import { queryKeys } from "@/lib/query-keys";
+import { XAF } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
+import { userQ } from "@/queries/baseModule";
+import { paymentQ } from "@/queries/payment";
+import { payTypeQ } from "@/queries/payType";
+import { projectQ } from "@/queries/projectModule";
+import { providerQ } from "@/queries/providers";
+import { requestTypeQ } from "@/queries/requestType";
+import { DateFilter, NavLink } from "@/types/types";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { Settings2 } from "lucide-react";
-import DepenseFilters, { DepenseFiltersProps } from "./depenseFilters";
 import React from "react";
-import { TabBar } from "@/components/base/TabBar";
+import DepenseFilters, { DepenseFiltersProps } from "./depenseFilters";
+import ExpensesTable from "./expenses-table";
 
 function Page() {
+  const { user } = useStore();
+
   const links: Array<NavLink> = [
     {
       title: "Créer une dépense",
@@ -51,11 +47,12 @@ function Page() {
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
     React.useState(false);
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+
   const [customFilters, setCustomFilters] = React.useState<
     DepenseFiltersProps["customFilters"]
   >({
     search: "",
-    tab: "pending",
+    tab: "validated",
     beneficiary: "all",
     amount: 0,
     amountType: "greater",
@@ -72,7 +69,7 @@ function Page() {
   const resetAllFilters = () => {
     setCustomFilters({
       search: "",
-      tab: "pending",
+      tab: "validated",
       beneficiary: "all",
       amount: 0,
       amountType: "greater",
@@ -90,144 +87,113 @@ function Page() {
 
   const tabs = [
     {
-      id: 0,
+      id: "pending",
       title: "Tickets en attente",
       //badge: payments.filter((p) => p.status === "validated").length,
     },
     {
-      id: 1,
+      id: "ongoing",
       title: "Tickets traités",
       //badge: payments.filter((p) => p.status === "pending_depense" || p.status === "signed" || p.status === "simple_signed").length,
     },
     {
-      id: 2,
+      id: "paid",
       title: "Tickets payés",
     },
     {
-      id: 3,
+      id: "canceled",
       title: "Tickets annulés",
     },
   ];
 
+  const [filters, setFilters] = React.useState({
+    pageIndex: 0,
+    pageSize: 15,
+  });
+
   const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: ["payments"],
-    queryFn: () => paymentQ.getAll({}),
+    queryKey: queryKeys.depenses(filters, customFilters, dateFilter),
+    queryFn: () =>
+      paymentQ.getDepenses({
+        pageIndex: filters.pageIndex,
+        pageSize: filters.pageSize,
+        search: customFilters.search || undefined,
+        beneficiary:
+          customFilters.beneficiary !== "all"
+            ? customFilters.beneficiary
+            : undefined,
+        provider:
+          customFilters.provider !== "all" ? customFilters.provider : undefined,
+        tab: customFilters.tab,
+        amount: customFilters.amount || 0,
+        amountType: customFilters.amountType,
+        paymentMethod:
+          customFilters.paymentMethod !== "all"
+            ? customFilters.paymentMethod
+            : undefined,
+        type: customFilters.type !== "all" ? customFilters.type : undefined,
+        date: customFilters.date || undefined,
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
+    enabled: !!user,
+    placeholderData: keepPreviousData,
   });
 
   const getRequestType = useQuery({
-    queryKey: ["requestType"],
+    queryKey: queryKeys.requestTypes,
     queryFn: requestTypeQ.getAll,
   });
 
-  const getInvoices = useQuery({
-    queryKey: ["invoices"],
-    queryFn: invoiceQ.getAll,
-  });
-
   const getPaymentType = useQuery({
-    queryKey: ["paymentTypes"],
+    queryKey: queryKeys.paymentTypes,
     queryFn: payTypeQ.getAll,
   });
 
-  const request = useQuery({
-    queryKey: ["requests"],
-    queryFn: () => {
-      return requestQ.getAll();
-    },
-  });
-
   const getProjects = useQuery({
-    queryKey: ["projects"],
+    queryKey: queryKeys.projects,
     queryFn: () => {
       return projectQ.getAll();
     },
   });
 
   const getUsers = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: () => userQ.getAll(),
   });
 
-  const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
-
-  const getTransactions = useQuery({
-    queryKey: ["transactions"],
-    queryFn: transactionQ.getAll,
-  });
-
   const getProviders = useQuery({
-    queryKey: ["providers"],
+    queryKey: queryKeys.providers,
     queryFn: providerQ.getAll,
   });
 
-  const getSignataires = useQuery({
-    queryKey: ["signataires"],
-    queryFn: signatairQ.getAll,
-  });
-
-  const getVehicles = useQuery({
-    queryKey: ["vehicles"],
-    queryFn: vehicleQ.getAll,
-  });
-
-  const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
-  });
-
-  const filteredData = useMemo(() => {
-    if (!data) return [];
-    return data.data.filter((x) => x.type !== "appro");
-  }, [data]);
-
   if (
     isLoading ||
-    getInvoices.isLoading ||
-    getBanks.isLoading ||
     getRequestType.isLoading ||
     getPaymentType.isLoading ||
-    request.isLoading ||
     getProviders.isLoading ||
     getProjects.isLoading ||
-    getUsers.isLoading ||
-    getTransactions.isLoading ||
-    getSignataires.isLoading ||
-    getVehicles.isLoading ||
-    getPurchases.isLoading
+    getUsers.isLoading
   ) {
     return <LoadingPage />;
   }
   if (
     isError ||
-    getInvoices.isError ||
-    getBanks.isError ||
     getRequestType.isError ||
     getPaymentType.isError ||
-    request.isError ||
     getProviders.isError ||
     getProjects.isError ||
-    getUsers.isError ||
-    getTransactions.isError ||
-    getSignataires.isError ||
-    getVehicles.isError ||
-    getPurchases.isError
+    getUsers.isError
   ) {
     return (
       <ErrorPage
         error={
           error ||
-          getInvoices.error ||
-          getBanks.error ||
           getRequestType.error ||
           getPaymentType.error ||
           getProviders.error ||
-          request.error ||
           getProjects.error ||
           getUsers.error ||
-          getTransactions.error ||
-          getSignataires.error ||
-          getVehicles.error ||
-          getPurchases.error ||
           undefined
         }
       />
@@ -235,28 +201,21 @@ function Page() {
   }
   if (
     isSuccess &&
-    getInvoices.isSuccess &&
-    getBanks.isSuccess &&
     getRequestType.isSuccess &&
     getPaymentType.isSuccess &&
-    request.isSuccess &&
     getProviders.isSuccess &&
     getProjects.isSuccess &&
-    getUsers.isSuccess &&
-    getTransactions.isSuccess &&
-    getSignataires.isSuccess &&
-    getVehicles.isSuccess &&
-    getPurchases.isSuccess
+    getUsers.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
         title: "Tickets en attente de traitement",
-        value: filteredData.filter((p) => p.status === "validated").length,
+        value: data.data.filter((p) => p.status === "validated").length,
         variant: "primary",
         more: {
           title: "Montant total",
           value: XAF.format(
-            filteredData
+            data.data
               .filter((p) => p.status === "validated")
               .reduce((total, el) => total + el.price, 0),
           ),
@@ -264,12 +223,12 @@ function Page() {
       },
       {
         title: "Tickets payés",
-        value: filteredData.filter((p) => p.status === "paid").length,
+        value: data.data.filter((p) => p.status === "paid").length,
         variant: "secondary",
         more: {
           title: "Montant total",
           value: XAF.format(
-            filteredData
+            data.data
               .filter((p) => p.status === "paid")
               .reduce((total, el) => total + el.price, 0),
           ),
@@ -277,14 +236,14 @@ function Page() {
       },
       {
         title: "Tickets traités",
-        value: filteredData.filter(
+        value: data.data.filter(
           (p) => p.status === "signed" || p.status === "simple_signed",
         ).length,
         variant: "default",
         more: {
           title: "Montant total",
           value: XAF.format(
-            filteredData
+            data.data
               .filter(
                 (p) => p.status === "signed" || p.status === "simple_signed",
               )
@@ -335,24 +294,39 @@ function Page() {
         </div>
         <TabBar
           tabs={tabs}
-          setSelectedTab={setSelectedTab}
-          selectedTab={selectedTab}
+          setSelectedTab={(value) => {
+            setCustomFilters({ ...customFilters, tab: value });
+          }}
+          selectedTab={customFilters.tab}
           className="w-fit"
         />
         <ExpensesTable
-          payments={filteredData}
-          banks={getBanks.data.data}
-          invoices={getInvoices.data.data}
+          payments={data.data}
           requestTypes={getRequestType.data.data}
           paymentTypes={getPaymentType.data.data}
           providers={getProviders.data.data}
-          request={request.data.data}
           users={getUsers.data.data}
           projects={getProjects.data.data}
-          transactions={getTransactions.data.data}
-          signataires={getSignataires.data.data}
-          vehicles={getVehicles.data.data}
-          purchases={getPurchases.data.data}
+          activeTab={customFilters.tab}
+          pagination={{
+            pageIndex: filters.pageIndex,
+            pageSize: filters.pageSize,
+          }}
+          paginationOptions={{
+            onPaginationChange: (updater) => {
+              setFilters((prev) => {
+                const nextPagination =
+                  typeof updater === "function"
+                    ? updater({
+                        pageIndex: filters.pageIndex,
+                        pageSize: filters.pageSize,
+                      })
+                    : updater;
+                return { ...prev, ...nextPagination };
+              });
+            },
+            rowCount: data.count,
+          }}
         />
       </div>
     );

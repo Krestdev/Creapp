@@ -1,4 +1,3 @@
-import LoadingPage from "@/components/loading-page";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,17 +14,16 @@ import {
   ProgressLabel,
   ProgressValue,
 } from "@/components/ui/progress";
+import { queryKeys } from "@/lib/query-keys";
 import { cn, getPaymentTypeBadge, XAF } from "@/lib/utils";
+import { paymentQ } from "@/queries/payment";
 import { signatairQ } from "@/queries/signatair";
 import { vehicleQ } from "@/queries/vehicule";
 import {
-  BonsCommande,
-  Invoice,
   PAY_STATUS,
   PaymentRequest,
   PayType,
   ProjectT,
-  RequestModelT,
   RequestType,
   User,
 } from "@/types/types";
@@ -55,7 +53,6 @@ import {
   SquareStackIcon,
   SquareUserRoundIcon,
   TableCellsSplitIcon,
-  TextQuoteIcon,
   User2,
   WalletCardsIcon,
 } from "lucide-react";
@@ -66,13 +63,10 @@ interface Props {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   payment: PaymentRequest;
-  invoices: Array<Invoice>;
   payTypes: PayType[];
   projects: ProjectT[];
   users: User[];
-  requests: RequestModelT[];
   requestTypes: Array<RequestType>;
-  purchases: Array<BonsCommande>;
 }
 
 function getStatusBadge(status: PaymentRequest["status"]): {
@@ -114,49 +108,31 @@ function ViewExpense({
   open,
   openChange,
   payment,
-  invoices,
   payTypes,
   projects,
   users,
-  requests,
   requestTypes,
-  purchases,
 }: Props) {
-  //Utility function to get the total amount paid for a purchase order
-  const getProgress = (
-    purchaseOrder: BonsCommande,
-  ): { progress: number; value: number } => {
-    //To-Do complete this code
-    const data = invoices.filter((i) => i.commandId === purchaseOrder.id);
-    //console.log(data);
+  const request = payment.request;
 
-    const values = data.flatMap((i) =>
-      i.payment.map((p) => {
-        if (p.status !== "paid") return 0;
-        return p.price;
-      }),
-    );
-    return {
-      progress:
-        (values.reduce((acc, i) => acc + i, 0) * 100) / purchaseOrder.netToPay,
-      value: values.reduce((acc, i) => acc + i, 0),
-    };
-  };
-
-  const request = requests.find((r) => r.id === payment.requestId);
-
-  const vehicleData = useQuery({
-    queryKey: ["vehicle", request?.vehiclesId],
+  const getVehicle = useQuery({
+    queryKey: queryKeys.vehicle(request?.vehiclesId!),
     queryFn: () => vehicleQ.getOne(request!.vehiclesId!),
     enabled: !!request?.vehiclesId, // 🔥 clé ici
   });
 
-  const invoice = invoices.find((p) => p.id === payment.invoiceId);
-  const purchase = purchases.find((p) => p.id === invoice?.commandId);
-  const i = purchase ? getProgress(purchase) : { progress: 0, value: 0 };
+  const vehicle = getVehicle.data?.data;
+
+  const getPayment = useQuery({
+    queryKey: queryKeys.payment(payment.id),
+    queryFn: () => paymentQ.getOne(payment.id),
+    enabled: !!payment.id,
+  });
+
+  const paymentData = getPayment.data?.data;
 
   const getSignataire = useQuery({
-    queryKey: ["signataires"],
+    queryKey: queryKeys.signataires,
     queryFn: signatairQ.getAll,
   });
 
@@ -284,14 +260,14 @@ function ViewExpense({
             </div>
           </div>
 
-          {request?.type === "gas" && vehicleData.data?.data && (
+          {request?.type === "gas" && vehicle && (
             <div className="view-group">
               <span className="view-icon">
                 <Car />
               </span>
               <div className="flex flex-col">
                 <p className="view-group-title">{"Véhicule"}</p>
-                <p>{`${vehicleData.data?.data.mark} ${vehicleData.data?.data.label}`}</p>
+                <p>{`${vehicle.mark} ${vehicle.label}`}</p>
               </div>
             </div>
           )}
@@ -401,9 +377,7 @@ function ViewExpense({
                 </span>
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Besoin"}</p>
-                  <p className="font-semibold">
-                    {requests.find((r) => r.id === payment.requestId)?.label}
-                  </p>
+                  <p className="font-semibold">{request?.label}</p>
                 </div>
               </div>
               <div className="view-group">
@@ -421,9 +395,9 @@ function ViewExpense({
           )}
 
           {/* Pour les achats */}
-          {payment.type === "achat" && invoice && (
+          {payment.type === "achat" && payment.facture && (
             <>
-              {hasValue(invoice.command.provider.name) && (
+              {hasValue(payment.facture.command.provider.name) && (
                 <div className="view-group">
                   <span className="view-icon">
                     <SquareUserRoundIcon />
@@ -431,13 +405,13 @@ function ViewExpense({
                   <div className="flex flex-col">
                     <p className="view-group-title">{"Fournisseur"}</p>
                     <p className="font-semibold">
-                      {invoice.command.provider.name}
+                      {payment.facture.command.provider.name}
                     </p>
                   </div>
                 </div>
               )}
 
-              {hasValue(invoice.command.reference) && (
+              {hasValue(payment.facture.command.reference) && (
                 <div className="view-group">
                   <span className="view-icon">
                     <TableCellsSplitIcon />
@@ -445,21 +419,23 @@ function ViewExpense({
                   <div className="flex flex-col">
                     <p className="view-group-title">{"Bon de commande"}</p>
                     <p className="font-semibold">
-                      {invoice.command.devi.commandRequest.title}
+                      {payment.facture.command.reference}
                     </p>
                   </div>
                 </div>
               )}
 
-              {purchase && (
+              {payment.facture && paymentData && (
                 <div className="view-group">
                   <span className="view-icon">
                     <CircleDollarSignIcon />
                   </span>
                   <div className="w-full max-w-40 flex flex-col">
                     <p className="view-group-title">{"État des paiements"}</p>
-                    <Progress value={i.progress} className={"w-full"}>
-                      <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
+                    <Progress value={paymentData.progress} className={"w-full"}>
+                      <ProgressLabel>
+                        {XAF.format(paymentData.totalPaid)}
+                      </ProgressLabel>
                       <ProgressValue />
                     </Progress>
                   </div>

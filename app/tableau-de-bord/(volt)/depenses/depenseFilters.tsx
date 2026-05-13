@@ -37,7 +37,7 @@ export interface DepenseFiltersProps {
     provider: "all" | number;
     priority: "all" | PaymentRequest["priority"];
     paymentMethod: "all" | string;
-    tab: "pending" | "ongoing" | "paid" | "canceled";
+    tab: "validated" | "processed" | "paid" | "cancelled";
     isSelected: "all" | string;
     type: "all" | PaymentRequest["type"];
     date: DateFilter;
@@ -52,7 +52,7 @@ export interface DepenseFiltersProps {
     provider: "all" | number;
     priority: "all" | PaymentRequest["priority"];
     paymentMethod: "all" | string;
-    tab: "pending" | "ongoing" | "paid" | "canceled";
+    tab: "validated" | "processed" | "paid" | "cancelled";
     isSelected: "all" | string;
     type: "all" | PaymentRequest["type"];
     date: DateFilter;

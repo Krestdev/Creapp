@@ -27,22 +27,21 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { queryKeys } from "@/lib/query-keys";
 import { useStore } from "@/providers/datastore";
+import { bankQ } from "@/queries/bank";
+import { signatairQ } from "@/queries/signatair";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
 import {
-  Bank,
-  Invoice,
   PaymentRequest,
   PayType,
   Provider,
-  RequestModelT,
   RequestType,
   Signatair,
-  Transaction,
   User,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -52,14 +51,9 @@ interface Props {
   ticket: PaymentRequest;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  banks: Array<Bank>;
-  requests: RequestModelT[];
   users: Array<User>;
-  invoices: Invoice[];
   requestTypes: Array<RequestType>;
-  transactions: Array<Transaction>;
   payTypes: Array<PayType>;
-  signataires: Array<Signatair>;
   providers: Array<Provider>;
 }
 
@@ -88,22 +82,37 @@ function ShareExpense({
   ticket,
   open,
   onOpenChange,
-  banks,
   users,
-  requests,
-  invoices,
   requestTypes,
-  transactions,
-  signataires,
   payTypes,
   providers,
 }: Props) {
   const { user } = useStore();
 
+  const getBanks = useQuery({
+    queryKey: queryKeys.banks,
+    queryFn: bankQ.getAll,
+  });
+
+  const getTransactions = useQuery({
+    queryKey: queryKeys.transactions,
+    queryFn: transactionQ.getAll,
+  });
+
+  const getSignataires = useQuery({
+    queryKey: queryKeys.signataires,
+    queryFn: signatairQ.getAll,
+  });
+
+  const signataires = getSignataires.data?.data;
+
   const [openDoc, setOpenDoc] = useState(false);
   const [paiement, setPaiement] = useState<PaymentRequest | null>(null);
 
-  const debitTransactions = transactions.filter((t) => t.Type === "DEBIT");
+  const transactions = getTransactions.data?.data;
+
+  const debitTransactions = transactions?.filter((t) => t.Type === "DEBIT");
+  const banks = getBanks.data?.data;
 
   const provider = useMemo(() => {
     return providers.find((x) => x.id === ticket.facture?.command.providerId);
@@ -131,14 +140,12 @@ function ShareExpense({
   //Let's check if the ticket is a facilitation ticket
   const isFacilitation = ticket.type?.toLowerCase() === "facilitation";
   //Let's find the beneficiary of the facilitation ticket
-  const besoinFac = requests.find((x) => x.id === ticket.requestId);
+  const request = ticket.request;
   //Let's find the beneficiary of the facilitation ticket
-  const benef = users.find((x) => x.id === Number(besoinFac?.beneficiary));
+  const benef = users.find((x) => x.id === Number(request?.beneficiary));
 
   //Let's save the user who created the request to use it later on
-  const requestUser = users.find(
-    (u) => u.id === requests.find((r) => r.id === ticket.requestId)?.userId,
-  );
+  const requestUser = users.find((u) => u.id === request?.userId);
 
   // defaultValues — plus de spread conditionnel
   const defaultValues: Partial<FormValues> = {
@@ -232,16 +239,17 @@ function ShareExpense({
 
   // Filtrer les comptes en fonction du type de paiement
   const filteredBanks = useMemo(() => {
+    if (!banks) return [];
     if (!paymentMethod?.type) {
       // Si pas de méthode de paiement définie, afficher tous les comptes actifs
-      return banks.filter((x) => x.type !== null && x.Status === true);
+      return banks?.filter((x) => x.type !== null && x.Status === true);
     }
 
     const paymentType = paymentMethod.type.toLowerCase();
 
     switch (paymentType) {
       case "cash": // Espèces
-        return banks.filter(
+        return banks?.filter(
           (bank) =>
             (bank.type === "CASH_REGISTER" || bank.type === "CASH") &&
             bank.Status === true,
@@ -249,13 +257,13 @@ function ShareExpense({
       case "ov": // Ordre de virement
       case "chq": // Chèque
         // Pour les virements et chèques : banques uniquement
-        return banks.filter(
+        return banks?.filter(
           (bank) => bank.type === "BANK" && bank.Status === true,
         );
 
       default:
         // Par défaut, afficher tous les comptes actifs
-        return banks.filter((x) => x.type !== null && x.Status === true);
+        return banks?.filter((x) => x.type !== null && x.Status === true);
     }
   }, [banks, paymentMethod?.type, ticket.type]);
 
@@ -321,7 +329,7 @@ function ShareExpense({
   });
 
   const transaction = transactions
-    .filter((t) => t.Type === "DEBIT")
+    ?.filter((t) => t.Type === "DEBIT")
     .find((item) => item.id === ticket.transactionId);
 
   // onSubmit — plus de finalMethodId bricolé
@@ -354,7 +362,7 @@ function ShareExpense({
     share.mutate(payload);
   }
 
-  const selectedBank = banks.find((bank) => bank.id === selectedBankId);
+  const selectedBank = banks?.find((bank) => bank.id === selectedBankId);
 
   return (
     <>
@@ -570,7 +578,7 @@ function ShareExpense({
                               <ul className="text-xs text-muted-foreground mt-1 ml-4 list-disc">
                                 <li>
                                   Compte source :{" "}
-                                  {banks.find((b) => b.id === selectedBankId)
+                                  {banks?.find((b) => b.id === selectedBankId)
                                     ?.label || `#${selectedBankId}`}
                                 </li>
                                 <li>
@@ -708,9 +716,7 @@ function ShareExpense({
           paymentRequest={paiement}
           payTypes={payTypes}
           users={users}
-          requests={requests}
           requestTypes={requestTypes}
-          transactions={debitTransactions}
         />
       )}
     </>

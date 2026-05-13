@@ -95,6 +95,7 @@ export type PaymentRequest = {
   //commandId?: number | null;
   invoiceId?: number;
   facture?: Invoice;
+  request?: RequestModelT;
   requestId?: number | null;
   projectId?: number | null;
   createdAt: string;
@@ -103,6 +104,7 @@ export type PaymentRequest = {
   vehiclesId?: number | null;
   bankId?: number | null;
   transactionId?: number | null;
+  transaction?: Transaction;
   methodId?: number | null;
   method?: PayType;
   bank?: Bank;
@@ -215,8 +217,8 @@ export type RequestModelT = {
   period?: DateRange | undefined;
   paytype?: "cash" | "chq" | "ov";
   beficiaryList?:
-  | { id: number; firstName: string; lastName: string; email: string }[]
-  | null;
+    | { id: number; firstName: string; lastName: string; email: string }[]
+    | null;
   state: (typeof REQUEST_STATUS)[number]["value"];
   priority: "medium" | "high" | "low" | "urgent";
   projectId?: number;
@@ -260,7 +262,7 @@ export type RequestModelT = {
   }>;
   decision?: "APPROVED" | "REJECTED" | "PENDING";
   serviceChiefId?: number;
-  user: { firstName: string, lastName: string }
+  user: { firstName: string; lastName: string };
 };
 
 export type TableData = {

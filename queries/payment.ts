@@ -167,7 +167,7 @@ class PaymentQueries {
 
   getDepenses = async (
     params?: Record<string, any>,
-  ): Promise<{ data: PaymentRequest[]; total: number }> => {
+  ): Promise<{ data: PaymentRequest[]; count: number }> => {
     return api
       .get(`${this.route}/expenses/all`, { params })
       .then((response) => {
@@ -178,7 +178,11 @@ class PaymentQueries {
   // --------------------------------------
   // READ (GET ONE)
   // --------------------------------------
-  getOne = async (id: number): Promise<{ data: PaymentRequest }> => {
+  getOne = async (
+    id: number,
+  ): Promise<{
+    data: PaymentRequest & { totalPaid: number; progress: number };
+  }> => {
     return api.get(`${this.route}/${id}`).then((response) => response.data);
   };
 

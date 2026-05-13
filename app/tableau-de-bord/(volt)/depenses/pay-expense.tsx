@@ -17,8 +17,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { queryKeys } from "@/lib/query-keys";
 import { XAF } from "@/lib/utils";
 import { transactionQ } from "@/queries/transaction";
+import { vehicleQ } from "@/queries/vehicule";
 import {
   Bank,
   PaymentRequest,
@@ -27,7 +29,7 @@ import {
   Vehicle,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { CarIcon, DollarSignIcon, LandmarkIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -37,10 +39,6 @@ interface Props {
   ticket: PaymentRequest;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  banks: Array<Bank>;
-  transactions: Array<Transaction>;
-  requests: Array<RequestModelT>;
-  vehicles: Array<Vehicle>;
 }
 
 const formSchema = z.object({
@@ -51,17 +49,16 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function PayExpense({
-  ticket,
-  open,
-  onOpenChange,
-  transactions,
-  requests,
-  vehicles,
-}: Props) {
-  const request = requests.find((r) => r.id === ticket.requestId);
+function PayExpense({ ticket, open, onOpenChange }: Props) {
+  const request = ticket.request;
 
-  const vehicle = vehicles.find((v) => v.id === request?.vehiclesId);
+  const getVehicle = useQuery({
+    queryKey: queryKeys.vehicle(request?.vehiclesId!),
+    queryFn: () => vehicleQ.getOne(request?.vehiclesId!),
+    enabled: !!request?.vehiclesId,
+  });
+
+  const vehicle = getVehicle.data?.data;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -70,9 +67,7 @@ function PayExpense({
     },
   });
 
-  const transaction = transactions
-    .filter((t) => t.Type === "DEBIT")
-    .find((item) => item.id === ticket.transactionId);
+  const transaction = ticket.transaction;
 
   const pay = useMutation({
     mutationFn: async (payload: {
@@ -90,7 +85,11 @@ function PayExpense({
   });
 
   function onSubmit(values: FormValues) {
-    if (transaction && transaction.from.balance >= ticket.price) {
+    if (
+      transaction &&
+      transaction.Type === "DEBIT" &&
+      transaction.from.balance >= ticket.price
+    ) {
       const payload: { id: number; proof: File; paymentId: number } = {
         proof: values.proof[0],
         id: transaction.id,
@@ -121,7 +120,7 @@ function PayExpense({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Compte payeur"}</p>
                 <p className="font-semibold">
-                  {!!transaction && (
+                  {!!transaction && transaction.Type === "DEBIT" && (
                     <span className="flex gap-1.5">
                       {transaction.from.label}
                       <p>{"- Solde :"}</p>

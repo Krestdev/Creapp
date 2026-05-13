@@ -2,6 +2,8 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  PaginationOptions,
+  PaginationState,
   type SortingState,
   type VisibilityState,
   flexRender,
@@ -26,14 +28,12 @@ import {
   Download,
   Eye,
   FilePenLineIcon,
-  Settings2,
   Signature,
   XCircle,
 } from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
-import { TabBar } from "@/components/base/TabBar";
 import DepenseDocument from "@/components/depense/depenseDoc";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -43,26 +43,8 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -73,40 +55,27 @@ import {
 } from "@/components/ui/table";
 import { cn, getRequestTypeBadge, XAF } from "@/lib/utils";
 import {
-  Bank,
-  BonsCommande,
-  DateFilter,
-  Invoice,
   PaymentRequest,
   PayType,
   PRIORITIES,
   ProjectT,
   Provider,
-  RequestModelT,
   RequestType,
-  Signatair,
-  Transaction,
   User,
-  Vehicle,
 } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { VariantProps } from "class-variance-authority";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import AddProove from "./addProove";
+import CancelTicket from "./cancel-ticket";
+import CompleteGas from "./complete-gas";
+import CompleteSettle from "./complete-settle";
+import { DepenseFiltersProps } from "./depenseFilters";
 import { NoticeFile } from "./notice";
 import PayExpense from "./pay-expense";
 import ShareExpense from "./share-expense";
 import ViewExpense from "./view-expense";
-import CompleteGas from "./complete-gas";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import { Calendar } from "@/components/ui/calendar";
-import AddProove from "./addProove";
-import CompleteSettle from "./complete-settle";
-import CancelTicket from "./cancel-ticket";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -164,18 +133,14 @@ const statusConfig = {
 
 interface Props {
   payments: Array<PaymentRequest>;
-  invoices: Array<Invoice>;
-  banks: Array<Bank>;
   requestTypes: Array<RequestType>;
   paymentTypes: PayType[];
   providers: Array<Provider>;
-  request: RequestModelT[];
   users: Array<User>;
   projects: Array<ProjectT>;
-  transactions: Array<Transaction>;
-  signataires: Array<Signatair>;
-  vehicles: Array<Vehicle>;
-  purchases: Array<BonsCommande>;
+  activeTab: DepenseFiltersProps["customFilters"]["tab"];
+  pagination: PaginationState;
+  paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -264,102 +229,15 @@ function isSettleComplete(item: PaymentRequest) {
 
 function ExpensesTable({
   payments,
-  invoices,
-  banks,
   requestTypes,
   paymentTypes,
   providers,
-  request,
   users,
   projects,
-  transactions,
-  signataires,
-  vehicles,
-  purchases,
+  activeTab,
+  pagination,
+  paginationOptions,
 }: Props) {
-  const types = requestTypes
-    .map((x) => {
-      return { value: x.type, label: x.label };
-    })
-    .concat({ value: "CURRENT", label: "Dépenses courantes" });
-
-  // Construction correcte de la liste des bénéficiaires
-  const beneficiairesMap = new Map<string, { value: string; label: string }>();
-
-  // Créer un Set des requestIds qui ont des paiements
-  const requestIdsWithPayments = new Set(
-    payments.filter((x) => x.status === "validated").map((p) => p.requestId),
-  );
-
-  // Filtrer les demandes qui ont au moins un paiement
-  request
-    .filter((req) => requestIdsWithPayments.has(req.id))
-    .forEach((req) => {
-      // Traiter beneficiaryList
-      if (req.beficiaryList?.length) {
-        req.beficiaryList.forEach((benef) => {
-          if (benef?.id && (benef.firstName || benef.lastName)) {
-            const key = benef.id.toString();
-            if (!beneficiairesMap.has(key)) {
-              beneficiairesMap.set(key, {
-                value: key,
-                label:
-                  `${benef.firstName || ""} ${benef.lastName || ""}`.trim(),
-              });
-            }
-          }
-        });
-      }
-
-      // Traiter beneficiary (string)
-      if (req.beneficiary && req.beneficiary !== "me") {
-        const user = users.find((u) => u.id === Number(req.beneficiary));
-        if (user?.id) {
-          const key = user.id.toString();
-          if (!beneficiairesMap.has(key)) {
-            beneficiairesMap.set(key, {
-              value: key,
-              label: `${user.firstName} ${user.lastName}`.trim(),
-            });
-          }
-        }
-      }
-
-      // Pour le cas "me"
-      if (req.beneficiary === "me" && req.userId) {
-        const user = users.find((u) => u.id === req.userId);
-        if (user?.id) {
-          const key = user.id.toString();
-          if (!beneficiairesMap.has(key)) {
-            beneficiairesMap.set(key, {
-              value: key,
-              label: `${user.firstName} ${user.lastName}`.trim(),
-            });
-          }
-        }
-      }
-
-      // Traiter benFac.list pour les facilitations
-      if (req.benFac?.list?.length) {
-        req.benFac.list.forEach((benef) => {
-          if (benef?.id && benef.name) {
-            const key = benef.id.toString();
-            if (!beneficiairesMap.has(key)) {
-              beneficiairesMap.set(key, {
-                value: key,
-                label: benef.name,
-              });
-            }
-          }
-        });
-      }
-    });
-
-  // Convertir la Map en tableau et trier
-  const beneficiaires = Array.from(beneficiairesMap.values()).sort((a, b) =>
-    a.label.localeCompare(b.label),
-  );
-
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -373,9 +251,6 @@ function ExpensesTable({
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [selectedFilter, setSelectedFilter] = React.useState<
-    "true" | "false" | "all"
-  >("all");
   const [selected, setSelected] = React.useState<PaymentRequest | undefined>(
     undefined,
   );
@@ -386,237 +261,6 @@ function ExpensesTable({
   const [showShare, setShowShare] = React.useState<boolean>(false);
   const [showAddFile, setShowAddFile] = React.useState<boolean>(false);
   const [showCancel, setShowCancel] = React.useState<boolean>(false);
-  const [selectedTab, setSelectedTab] = React.useState<number>(0);
-  const [typeFilter, setTypeFilter] = React.useState<
-    "all" | PaymentRequest["type"]
-  >("all");
-  const [beneFilter, setBeneFilter] = React.useState<string>("all");
-  const [priorityFilter, setPriorityFilter] = React.useState<
-    "all" | PaymentRequest["priority"]
-  >("all");
-  const [providerFilter, setProviderFilter] = React.useState<
-    "all" | "no-provider" | string
-  >("all");
-  const [amountTypeFilter, setAmountTypeFilter] = React.useState<
-    "greater" | "inferior" | "equal"
-  >("greater");
-  const [amountFilter, setAmountFilter] = React.useState<number>(0);
-  const [paymentMethodFilter, setPaymentMethodFilter] = React.useState<
-    "all" | string
-  >("all");
-  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
-  const [customDateRange, setCustomDateRange] = React.useState<
-    { from: Date; to: Date } | undefined
-  >();
-  const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
-  // States pour les recherches dans les dropdowns
-  const [typeSearch, setTypeSearch] = React.useState("");
-  const [beneSearch, setBeneSearch] = React.useState("");
-  const [providerSearch, setProviderSearch] = React.useState("");
-  const [paymentMethodSearch, setPaymentMethodSearch] = React.useState("");
-
-  const resetAllFilters = () => {
-    setGlobalFilter("");
-    setPriorityFilter("all");
-    setTypeFilter("all");
-    setBeneFilter("all");
-    setAmountFilter(0);
-    setAmountTypeFilter("greater");
-    setPaymentMethodFilter("all");
-    setProviderFilter("all");
-    setDateFilter(undefined);
-    setCustomDateRange(undefined);
-  };
-
-  const tabs = [
-    {
-      id: 0,
-      title: "Tickets en attente",
-      badge: payments.filter((p) => p.status === "validated").length,
-    },
-    {
-      id: 1,
-      title: "Tickets traités",
-      badge: payments.filter(
-        (p) =>
-          p.status === "pending_depense" ||
-          p.status === "signed" ||
-          p.status === "simple_signed",
-      ).length,
-    },
-    {
-      id: 2,
-      title: "Tickets payés",
-    },
-    {
-      id: 3,
-      title: "Tickets annulés",
-    },
-  ];
-
-  const filteredData = React.useMemo(() => {
-    return payments.filter((p) => {
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
-      // Filter amount
-      const matchAmount =
-        amountTypeFilter === "greater"
-          ? p.price >= amountFilter
-          : amountTypeFilter === "equal"
-            ? p.price === amountFilter
-            : p.price <= amountFilter;
-      //Filter provider
-      const matchProvider =
-        providerFilter === "all"
-          ? true
-          : providerFilter === "no-provider"
-            ? !p.invoiceId
-            : invoices.find((c) => c.id === p.invoiceId)?.command.providerId ===
-              Number(providerFilter);
-      //Filter tab
-      const matchTab =
-        selectedTab === 0
-          ? p.status === "validated" || p.status === "unsigned"
-          : selectedTab === 1
-            ? p.status === "pending_depense" ||
-              p.status === "signed" ||
-              p.status === "simple_signed"
-            : selectedTab === 2
-              ? p.status === "paid"
-              : selectedTab === 3 &&
-                p.status === "cancelled" &&
-                p.type !== "achat";
-      //Filter type
-      const matchType = typeFilter === "all" ? true : p.type === typeFilter;
-      //Filter priority
-      const matchPriority =
-        priorityFilter === "all" ? true : p.priority === priorityFilter;
-      //Filter payment method
-      const matchPaymentMethod =
-        paymentMethodFilter === "all"
-          ? true
-          : String(p.methodId) === paymentMethodFilter;
-
-      // Filter beneficiary - CORRECTION
-      const matchBeneficiary = (() => {
-        if (beneFilter === "all") return true;
-        // Trouver la demande associée à ce paiement
-        const requestItem = request.find((r) => r.id === p.requestId);
-
-        if (!requestItem) return false;
-
-        // Fonction utilitaire pour comparer les IDs (normaliser en string)
-        const compareIds = (
-          id1: string | number | undefined,
-          id2: string | number,
-        ): boolean => {
-          if (id1 === undefined || id2 === undefined) return false;
-          return String(id1) === String(id2);
-        };
-
-        // Cas où beneficiary === "me" - on filtre sur le userId de la demande
-        if (requestItem.beneficiary === "me") {
-          const userId = requestItem.userId;
-          if (compareIds(userId, beneFilter)) return true;
-        }
-
-        // Vérifier si le bénéficiaire est dans beneficiary (string)
-        if (requestItem.beneficiary && requestItem.beneficiary !== "me") {
-          const beneficiaryId = requestItem.beneficiary;
-          if (compareIds(beneficiaryId, beneFilter)) return true;
-        }
-
-        // Vérifier si le bénéficiaire est dans beneficiaryList (array)
-        if (requestItem.beficiaryList && requestItem.beficiaryList.length > 0) {
-          const isInList = requestItem.beficiaryList.some(
-            (b) => b.id && compareIds(b.id, beneFilter),
-          );
-          if (isInList) return true;
-        }
-
-        // Vérifier aussi dans benFac.list pour les facilitations
-        if (requestItem.benFac?.list && requestItem.benFac.list.length > 0) {
-          const isInBenFac = requestItem.benFac.list.some(
-            (b) => b.id && compareIds(b.id, beneFilter),
-          );
-          if (isInBenFac) return true;
-        }
-
-        return false;
-      })();
-
-      //Filter selected (approvisionnés)
-      const matchSelected =
-        selectedFilter === "all"
-          ? true
-          : p.selected === Boolean(selectedFilter);
-      // Filtre par date
-      let matchDate = true;
-      if (dateFilter) {
-        switch (dateFilter) {
-          case "today":
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "week":
-            startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-            );
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "month":
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          case "year":
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
-          case "custom":
-            if (customDateRange?.from && customDateRange?.to) {
-              startDate = customDateRange.from;
-              endDate = customDateRange.to;
-              endDate.setHours(23);
-            }
-            break;
-        }
-
-        if (
-          dateFilter !== "custom" ||
-          (customDateRange?.from && customDateRange?.to)
-        ) {
-          matchDate =
-            new Date(p.updatedAt ?? p.createdAt) >= startDate &&
-            new Date(p.updatedAt ?? p.createdAt) <= endDate;
-        }
-      }
-
-      return (
-        matchTab &&
-        matchType &&
-        matchPriority &&
-        matchAmount &&
-        matchProvider &&
-        matchPaymentMethod &&
-        matchSelected &&
-        matchBeneficiary &&
-        matchDate
-      );
-    });
-  }, [
-    payments,
-    selectedTab,
-    priorityFilter,
-    typeFilter,
-    amountTypeFilter,
-    amountFilter,
-    providerFilter,
-    invoices,
-    paymentMethodFilter,
-    selectedFilter,
-    beneFilter,
-    request,
-    dateFilter,
-    customDateRange,
-  ]);
 
   const columns: ColumnDef<PaymentRequest>[] = [
     {
@@ -672,15 +316,9 @@ function ExpensesTable({
         const value = row.original;
         const isSelected = value.selected === true;
         const transactionStatus = isSelected
-          ? transactions.find(
-              (t) =>
-                t.Type === "TRANSFER" &&
-                t.payments.some((p) => p.id === value.id) &&
-                t.status === "APPROVED",
-            )
+          ? value.transaction?.Type === "TRANSFER" &&
+            value.transaction?.status === "APPROVED"
           : false;
-        const invoice = invoices.find((iv) => iv.id === value.invoiceId);
-        const title = value.title;
         return (
           <div className="max-w-[500px] flex gap-1.5">
             {!!transactionStatus && (
@@ -731,7 +369,7 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const requestItem = request.find((x) => x.id === value.requestId);
+        const requestItem = value.request;
 
         if (!requestItem) return <div>--</div>;
 
@@ -774,8 +412,7 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const invoice = invoices.find((p) => p.id === value.invoiceId);
-        return <div>{invoice?.command.provider.name ?? "--"}</div>;
+        return <div>{value.facture?.command.provider.name ?? "--"}</div>;
       },
     },
     {
@@ -907,9 +544,6 @@ function ExpensesTable({
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
-        const debitTransactions = transactions.filter(
-          (t) => t.Type === "DEBIT",
-        );
 
         return (
           <DropdownMenu>
@@ -955,7 +589,7 @@ function ExpensesTable({
                   {"Compléter le paiement"}
                 </DropdownMenuItem>
               )}
-              {selectedTab === 1 && (
+              {activeTab === "processed" && (
                 <>
                   <DropdownMenuItem
                     disabled={
@@ -978,9 +612,7 @@ function ExpensesTable({
                           getPaymentType={paymentTypes}
                           paymentRequest={item}
                           users={users}
-                          requests={request}
                           requestTypes={requestTypes}
-                          transactions={debitTransactions}
                         />
                       }
                       fileName={`recu-${item.type}-${item.reference}.pdf`}
@@ -1001,7 +633,7 @@ function ExpensesTable({
                   </DropdownMenuItem>
                 </>
               )}
-              {selectedTab === 0 && (
+              {activeTab === "validated" && (
                 <DropdownMenuItem
                   disabled={
                     item.status === "unsigned" ||
@@ -1057,7 +689,7 @@ function ExpensesTable({
   ];
 
   const table = useReactTable({
-    data: filteredData,
+    data: payments,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -1077,685 +709,22 @@ function ExpensesTable({
         return value?.toLowerCase().includes(searchValue);
       });
     },
+    manualPagination: true,
+    ...paginationOptions,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       globalFilter,
+      pagination,
     },
   });
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <TabBar
-          tabs={tabs}
-          setSelectedTab={setSelectedTab}
-          selectedTab={selectedTab}
-          className="w-fit"
-        />
         <div className="flex flex-wrap items-end gap-3">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant={"outline"}>
-                <Settings2 />
-                {"Filtres"}
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>{"Filtres"}</SheetTitle>
-                <SheetDescription>
-                  {"Configurer les filtres pour affiner les données"}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="px-5 grid gap-5 mt-4">
-                {/* Recherche globale */}
-                <div className="grid gap-1.5">
-                  <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-                  <Input
-                    name="search"
-                    type="search"
-                    id="searchCommand"
-                    placeholder="Référence, libellé"
-                    value={globalFilter ?? ""}
-                    onChange={(event) => setGlobalFilter(event.target.value)}
-                    className="w-full"
-                  />
-                </div>
-
-                {/* Type Filter */}
-                <div className="grid gap-1.5">
-                  <Label>{"Type"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {typeFilter === "all"
-                            ? "Tous les types"
-                            : types.find((t) => t.value === typeFilter)
-                                ?.label || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                        <Input
-                          placeholder="Rechercher un type..."
-                          className="h-8"
-                          value={typeSearch}
-                          onChange={(e) => setTypeSearch(e.target.value)}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setTypeFilter("all");
-                          setTypeSearch("");
-                        }}
-                        className={typeFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <span>Tous les types</span>
-                      </DropdownMenuItem>
-                      {types
-                        .filter((t) =>
-                          t.label
-                            .toLowerCase()
-                            .includes(typeSearch.toLowerCase()),
-                        )
-                        .map((t) => (
-                          <DropdownMenuItem
-                            key={t.value}
-                            onClick={() => {
-                              setTypeFilter(
-                                t.value as "all" | PaymentRequest["type"],
-                              );
-                              setTypeSearch("");
-                            }}
-                            className={
-                              typeFilter === t.value ? "bg-accent" : ""
-                            }
-                          >
-                            <span className="truncate">{t.label}</span>
-                          </DropdownMenuItem>
-                        ))}
-                      {types.filter((t) =>
-                        t.label
-                          .toLowerCase()
-                          .includes(typeSearch.toLowerCase()),
-                      ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun type trouvé
-                        </div>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Filtre bénéficiaires */}
-                <div className="grid gap-1.5">
-                  <Label>{"Bénéficiaire"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {beneFilter === "all"
-                            ? "Tous les bénéficiaires"
-                            : beneficiaires.find((b) => b.value === beneFilter)
-                                ?.label || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                        <Input
-                          placeholder="Rechercher un bénéficiaire..."
-                          className="h-8"
-                          value={beneSearch}
-                          onChange={(e) => setBeneSearch(e.target.value)}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setBeneFilter("all");
-                          setBeneSearch("");
-                        }}
-                        className={beneFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <span>Tous les bénéficiaires</span>
-                      </DropdownMenuItem>
-                      {beneficiaires
-                        .filter((b) =>
-                          b.label
-                            .toLowerCase()
-                            .includes(beneSearch.toLowerCase()),
-                        )
-                        .map((b) => (
-                          <DropdownMenuItem
-                            key={b.value}
-                            onClick={() => {
-                              setBeneFilter(b.value);
-                              setBeneSearch("");
-                            }}
-                            className={
-                              beneFilter === b.value ? "bg-accent" : ""
-                            }
-                          >
-                            <span className="truncate">{b.label}</span>
-                          </DropdownMenuItem>
-                        ))}
-                      {beneficiaires.filter((b) =>
-                        b.label
-                          .toLowerCase()
-                          .includes(beneSearch.toLowerCase()),
-                      ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun bénéficiaire trouvé
-                        </div>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Approvisionnés Filter */}
-                <div className="grid gap-1.5">
-                  <Label>{"Approvisionnés"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {selectedFilter === "all"
-                            ? "Tous"
-                            : selectedFilter === "true"
-                              ? "Paiements approvisionnés"
-                              : "Paiements non-approvisionnés"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                      <DropdownMenuItem
-                        onClick={() => setSelectedFilter("all")}
-                        className={selectedFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <span>Tous</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setSelectedFilter("true")}
-                        className={selectedFilter === "true" ? "bg-accent" : ""}
-                      >
-                        <span>Paiements approvisionnés</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setSelectedFilter("false")}
-                        className={
-                          selectedFilter === "false" ? "bg-accent" : ""
-                        }
-                      >
-                        <span>Paiements non-approvisionnés</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Priority Filter */}
-                <div className="grid gap-1.5">
-                  <Label>{"Priorité"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {priorityFilter === "all"
-                            ? "Toutes les priorités"
-                            : PRIORITIES.find((p) => p.value === priorityFilter)
-                                ?.name || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                      <DropdownMenuItem
-                        onClick={() => setPriorityFilter("all")}
-                        className={priorityFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <span>Toutes les priorités</span>
-                      </DropdownMenuItem>
-                      {PRIORITIES.map((p) => (
-                        <DropdownMenuItem
-                          key={p.value}
-                          onClick={() =>
-                            setPriorityFilter(
-                              p.value as PaymentRequest["priority"],
-                            )
-                          }
-                          className={
-                            priorityFilter === p.value ? "bg-accent" : ""
-                          }
-                        >
-                          <span>{p.name}</span>
-                        </DropdownMenuItem>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Provider Filter */}
-                <div className="grid gap-1.5">
-                  <Label>{"Fournisseur"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {providerFilter === "all"
-                            ? "Tous les fournisseurs"
-                            : providerFilter === "no-provider"
-                              ? "Sans fournisseur"
-                              : providers.find(
-                                  (p) => String(p.id) === providerFilter,
-                                )?.name || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                        <Input
-                          placeholder="Rechercher un fournisseur..."
-                          className="h-8"
-                          value={providerSearch}
-                          onChange={(e) => setProviderSearch(e.target.value)}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setProviderFilter("all");
-                          setProviderSearch("");
-                        }}
-                        className={providerFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <span>Tous les fournisseurs</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setProviderFilter("no-provider");
-                          setProviderSearch("");
-                        }}
-                        className={
-                          providerFilter === "no-provider" ? "bg-accent" : ""
-                        }
-                      >
-                        <span>Sans fournisseur</span>
-                      </DropdownMenuItem>
-                      {providers
-                        .filter((p) =>
-                          p.name
-                            .toLowerCase()
-                            .includes(providerSearch.toLowerCase()),
-                        )
-                        .map((p) => (
-                          <DropdownMenuItem
-                            key={p.id}
-                            onClick={() => {
-                              setProviderFilter(String(p.id));
-                              setProviderSearch("");
-                            }}
-                            className={
-                              providerFilter === String(p.id) ? "bg-accent" : ""
-                            }
-                          >
-                            <span className="truncate">{p.name}</span>
-                          </DropdownMenuItem>
-                        ))}
-                      {providers.filter((p) =>
-                        p.name
-                          .toLowerCase()
-                          .includes(providerSearch.toLowerCase()),
-                      ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun fournisseur trouvé
-                        </div>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Payment Method Filter */}
-                <div className="grid gap-1.5">
-                  <Label>{"Moyen de paiement"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {paymentMethodFilter === "all"
-                            ? "Tous les moyens"
-                            : paymentTypes.find(
-                                (p) => String(p.id) === paymentMethodFilter,
-                              )?.label || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                        <Input
-                          placeholder="Rechercher un moyen..."
-                          className="h-8"
-                          value={paymentMethodSearch}
-                          onChange={(e) =>
-                            setPaymentMethodSearch(e.target.value)
-                          }
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setPaymentMethodFilter("all");
-                          setPaymentMethodSearch("");
-                        }}
-                        className={
-                          paymentMethodFilter === "all" ? "bg-accent" : ""
-                        }
-                      >
-                        <span>Tous les moyens</span>
-                      </DropdownMenuItem>
-                      {paymentTypes
-                        .filter((p) =>
-                          p
-                            .label!.toLowerCase()
-                            .includes(paymentMethodSearch.toLowerCase()),
-                        )
-                        .map((p) => (
-                          <DropdownMenuItem
-                            key={p.id}
-                            onClick={() => {
-                              setPaymentMethodFilter(String(p.id));
-                              setPaymentMethodSearch("");
-                            }}
-                            className={
-                              paymentMethodFilter === String(p.id)
-                                ? "bg-accent"
-                                : ""
-                            }
-                          >
-                            <span className="truncate">{p.label}</span>
-                          </DropdownMenuItem>
-                        ))}
-                      {paymentTypes.filter((p) =>
-                        p
-                          .label!.toLowerCase()
-                          .includes(paymentMethodSearch.toLowerCase()),
-                      ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun moyen trouvé
-                        </div>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Comparer le montant */}
-                <div className="grid gap-1.5">
-                  <Label>{"Comparer le montant"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {amountTypeFilter === "greater"
-                            ? "Supérieur"
-                            : amountTypeFilter === "equal"
-                              ? "Égal"
-                              : "Inférieur"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                      <DropdownMenuItem
-                        onClick={() => setAmountTypeFilter("greater")}
-                        className={
-                          amountTypeFilter === "greater" ? "bg-accent" : ""
-                        }
-                      >
-                        <span>Supérieur</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setAmountTypeFilter("equal")}
-                        className={
-                          amountTypeFilter === "equal" ? "bg-accent" : ""
-                        }
-                      >
-                        <span>Égal</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setAmountTypeFilter("inferior")}
-                        className={
-                          amountTypeFilter === "inferior" ? "bg-accent" : ""
-                        }
-                      >
-                        <span>Inférieur</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Montant */}
-                <div className="grid gap-1.5">
-                  <Label>{"Montant"}</Label>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      placeholder="Ex. 250 000"
-                      value={amountFilter ?? 0}
-                      onChange={(e) => setAmountFilter(Number(e.target.value))}
-                      className="w-full pr-12"
-                    />
-                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                      {"FCFA"}
-                    </span>
-                  </div>
-                </div>
-                {/* Filtre par période */}
-                <div className="grid gap-1.5">
-                  <Label>{"Période"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {dateFilter === undefined
-                            ? "Toutes les périodes"
-                            : dateFilter === "today"
-                              ? "Aujourd'hui"
-                              : dateFilter === "week"
-                                ? "Cette semaine"
-                                : dateFilter === "month"
-                                  ? "Ce mois"
-                                  : dateFilter === "year"
-                                    ? "Cette année"
-                                    : dateFilter === "custom"
-                                      ? "Personnalisé"
-                                      : "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter(undefined);
-                          setCustomDateRange(undefined);
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === undefined ? "bg-accent" : ""}
-                      >
-                        <span>Toutes les périodes</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("today");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "today" ? "bg-accent" : ""}
-                      >
-                        <span>Aujourd'hui</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("week");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "week" ? "bg-accent" : ""}
-                      >
-                        <span>Cette semaine</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("month");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "month" ? "bg-accent" : ""}
-                      >
-                        <span>Ce mois</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("year");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "year" ? "bg-accent" : ""}
-                      >
-                        <span>Cette année</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("custom");
-                          setCustomOpen(true);
-                        }}
-                        className={dateFilter === "custom" ? "bg-accent" : ""}
-                      >
-                        <span>Personnalisé</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <Collapsible
-                    open={customOpen}
-                    onOpenChange={setCustomOpen}
-                    disabled={dateFilter !== "custom"}
-                  >
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        {"Plage personnalisée"}
-                        <span className="text-muted-foreground text-xs">
-                          {customDateRange?.from && customDateRange.to
-                            ? `${format(
-                                customDateRange.from,
-                                "dd/MM/yyyy",
-                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
-                            : "Choisir"}
-                        </span>
-                      </Button>
-                    </CollapsibleTrigger>
-
-                    <CollapsibleContent className="space-y-4 pt-4">
-                      <Calendar
-                        mode="range"
-                        selected={customDateRange}
-                        onSelect={(range) => {
-                          if (!range?.from || !range?.to) return;
-                          const from = new Date(range.from);
-                          const to = new Date(range.to);
-                          to.setHours(23, 59, 59, 999);
-                          setCustomDateRange({ from, to });
-                        }}
-                        numberOfMonths={1}
-                        className="rounded-md border w-full"
-                      />
-                      <div className="space-y-1">
-                        <Button
-                          className="w-full"
-                          onClick={() => {
-                            setCustomDateRange(undefined);
-                            setDateFilter(undefined);
-                            setCustomOpen(false);
-                          }}
-                        >
-                          {"Annuler"}
-                        </Button>
-                        <Button
-                          className="w-full"
-                          variant={"outline"}
-                          onClick={() => {
-                            setCustomOpen(false);
-                          }}
-                        >
-                          {"Réduire"}
-                        </Button>
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </div>
-
-                {/* Bouton pour réinitialiser les filtres */}
-                <div className="flex items-end">
-                  <Button
-                    variant="outline"
-                    onClick={resetAllFilters}
-                    className="w-full"
-                  >
-                    {"Réinitialiser"}
-                  </Button>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="bg-transparent">
@@ -1872,13 +841,10 @@ function ExpensesTable({
           open={showDetail}
           openChange={setShowDetail}
           payment={selected}
-          invoices={invoices}
           projects={projects}
           users={users}
           payTypes={paymentTypes}
-          requests={request}
           requestTypes={requestTypes}
-          purchases={purchases}
         />
       )}
       {selected && (
@@ -1887,13 +853,8 @@ function ExpensesTable({
             ticket={selected}
             open={showShare}
             onOpenChange={setShowShare}
-            banks={banks}
             users={users}
-            requests={request}
-            invoices={invoices}
             requestTypes={requestTypes}
-            transactions={transactions}
-            signataires={signataires}
             payTypes={paymentTypes}
             providers={providers}
           />
@@ -1901,28 +862,20 @@ function ExpensesTable({
             ticket={selected}
             open={showPay}
             onOpenChange={setShowPay}
-            banks={banks}
-            transactions={transactions}
-            requests={request}
-            vehicles={vehicles}
           />
           <CompleteGas
             ticket={selected}
             open={showGas}
             onOpenChange={setShowGas}
             users={users}
-            requests={request}
             requestTypes={requestTypes}
-            vehicles={vehicles}
           />
           <CompleteSettle
             ticket={selected}
             open={showSettle}
             onOpenChange={setShowSettle}
             users={users}
-            requests={request}
             requestTypes={requestTypes}
-            vehicles={vehicles}
           />
           <AddProove
             ticket={selected}

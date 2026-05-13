@@ -12,6 +12,7 @@ export const queryKeys = {
   pendingDepenseCount: ["pending-depense-count"] as const,
   paymentsToSignCount: ["payments-to-sign-count"] as const,
   payment: (id: number) => ["payment", id] as const,
+  depenses: (...args: any[]) => ["depenses", ...args] as const,
 
   // ─── Requests ──────────────────────────────────────────────────────────────
   requests: ["requests"] as const,
@@ -22,6 +23,9 @@ export const queryKeys = {
   usableRequestsCount: ["usable-requests-count"] as const,
   requestType: ["requestType"] as const,
   request: (id: number) => ["request", id] as const,
+
+  // ─── Request Types ──────────────────────────────────────────────────────────
+  requestTypes: ["requestTypes"] as const,
 
   // ─── Transactions ──────────────────────────────────────────────────────────
   transactions: ["transactions"] as const,
@@ -71,6 +75,7 @@ export const queryKeys = {
 
   // ─── Vehicles ──────────────────────────────────────────────────────────────
   vehicles: ["vehicles"] as const,
+  vehicle: (id: number) => ["vehicle", id] as const,
 
   // ─── Drivers ───────────────────────────────────────────────────────────────
   drivers: ["drivers"] as const,

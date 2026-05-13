@@ -32,12 +32,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { queryKeys } from "@/lib/query-keys";
 import { getRequestTypeBadge } from "@/lib/utils";
 import {
   PayloadGasCompletion,
   PayloadSettleCompletion,
   paymentQ,
 } from "@/queries/payment";
+import { vehicleQ } from "@/queries/vehicule";
 import {
   PaymentRequest,
   RequestModelT,
@@ -46,7 +48,7 @@ import {
   Vehicle,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
   ArchiveIcon,
@@ -66,9 +68,7 @@ interface Props {
   open: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
   users: Array<User>;
-  requests: Array<RequestModelT>;
   requestTypes: Array<RequestType>;
-  vehicles: Array<Vehicle>;
 }
 
 const formSchema = z.object({
@@ -104,9 +104,7 @@ function CompleteSettle({
   open,
   onOpenChange,
   users,
-  requests,
   requestTypes,
-  vehicles,
 }: Props) {
   //Drivers
   const filteredUsers = useMemo(() => {
@@ -115,12 +113,17 @@ function CompleteSettle({
 
   const [dueDate, setDueDate] = React.useState<boolean>(false);
 
-  const request = requests.find((r) => r.id === ticket.requestId);
+  const request = ticket.request;
   const beneficiaire = filteredUsers.find(
     (u) => u.id === Number(request?.beneficiary),
   );
 
-  const vehicle = vehicles.find((v) => v.id === request?.vehiclesId);
+  const getVehicle = useQuery({
+    queryKey: queryKeys.vehicle(request?.vehiclesId!),
+    queryFn: () => vehicleQ.getOne(request?.vehiclesId!),
+    enabled: !!request?.vehiclesId,
+  });
+  const vehicle = getVehicle.data?.data;
 
   const typeBadge = !!request
     ? getRequestTypeBadge({ type: request.type, requestTypes: requestTypes })
