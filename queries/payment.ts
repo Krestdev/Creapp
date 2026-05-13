@@ -202,6 +202,43 @@ class PaymentQueries {
       });
   };
 
+  getAccountantPayments = async (
+    params?: Record<string, any>,
+  ): Promise<{ data: PaymentRequest[]; count: number }> => {
+    return api
+      .get(`${this.route}/expenses/accountant/`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
+  getAccountantPaymentsStats = async (
+    params?: Record<string, any>,
+  ): Promise<{
+    pending: {
+      count: number;
+      sum: number;
+    };
+    processed: {
+      count: number;
+      sum: number;
+    };
+    paid: {
+      count: number;
+      sum: number;
+    };
+    cancelled: {
+      count: number;
+      sum: number;
+    };
+  }> => {
+    return api
+      .get(`${this.route}/expenses/accountant/stats`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
   // --------------------------------------
   // READ (GET ONE)
   // --------------------------------------

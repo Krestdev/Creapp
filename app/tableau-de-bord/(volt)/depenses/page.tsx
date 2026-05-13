@@ -87,27 +87,6 @@ function Page() {
     setDateFilter(undefined);
   };
 
-  const tabs = [
-    {
-      id: "validated",
-      title: "Tickets en attente",
-      //badge: payments.filter((p) => p.status === "validated").length,
-    },
-    {
-      id: "processed",
-      title: "Tickets traités",
-      //badge: payments.filter((p) => p.status === "pending_depense" || p.status === "signed" || p.status === "simple_signed").length,
-    },
-    {
-      id: "paid",
-      title: "Tickets payés",
-    },
-    {
-      id: "cancelled",
-      title: "Tickets annulés",
-    },
-  ];
-
   const [filters, setFilters] = React.useState({
     pageIndex: 0,
     pageSize: 15,
@@ -193,6 +172,27 @@ function Page() {
     queryKey: queryKeys.providers,
     queryFn: providerQ.getAll,
   });
+
+  const tabs = [
+    {
+      id: "validated",
+      title: "Tickets en attente",
+      badge: getStats.data?.validated.count,
+    },
+    {
+      id: "processed",
+      title: "Tickets traités",
+      badge: getStats.data?.processed.count,
+    },
+    {
+      id: "paid",
+      title: "Tickets payés",
+    },
+    {
+      id: "cancelled",
+      title: "Tickets annulés",
+    },
+  ];
 
   if (
     isLoading ||

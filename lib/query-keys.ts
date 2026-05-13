@@ -7,7 +7,8 @@
 
 export const queryKeys = {
   // ─── Payments ──────────────────────────────────────────────────────────────
-  payments: ["payments"] as const,
+  payments: (...args: any[]) => ["payments", ...args] as const,
+  paymentsStats: (...args: any[]) => ["payments-stats", ...args] as const,
   voltPendingCount: ["volt-pending-count"] as const,
   pendingDepenseCount: ["pending-depense-count"] as const,
   paymentsToSignCount: ["payments-to-sign-count"] as const,

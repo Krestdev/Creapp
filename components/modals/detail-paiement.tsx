@@ -38,12 +38,12 @@ import { XAF } from "@/lib/utils";
 import Link from "next/link";
 import { payTypeQ } from "@/queries/payType";
 import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-keys";
 
 interface Props {
   payment: PaymentRequest;
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
-  invoices: Array<Invoice>;
 }
 
 function getStatusBadge(status: PaymentRequest["status"]): {
@@ -65,11 +65,11 @@ function getStatusBadge(status: PaymentRequest["status"]): {
   }
 }
 
-function DetailPaiement({ payment, open, openChange, invoices }: Props) {
+function DetailPaiement({ payment, open, openChange }: Props) {
   const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
-  const invoice = invoices.find((i) => i.id === payment.invoiceId);
+  const invoice = payment.facture;
   const getPaymentType = useQuery({
-    queryKey: ["paymentTypes"],
+    queryKey: queryKeys.paymentTypes,
     queryFn: payTypeQ.getAll,
   });
 

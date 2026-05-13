@@ -26,18 +26,10 @@ interface Props {
   invoice: Invoice;
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
-  purchases: Array<BonsCommande>;
-  payments: Array<PaymentRequest>;
 }
 
-function ViewInvoicePayment({
-  invoice,
-  open,
-  openChange,
-  purchases,
-  payments,
-}: Props) {
-  const purchase = purchases.find((p) => p.id === invoice.commandId);
+function ViewInvoicePayment({ invoice, open, openChange }: Props) {
+  const purchase = invoice.command;
 
   const styles = (
     status: PaymentRequest["status"],
