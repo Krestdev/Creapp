@@ -13,6 +13,7 @@ export const queryKeys = {
   paymentsToSignCount: ["payments-to-sign-count"] as const,
   payment: (id: number) => ["payment", id] as const,
   depenses: (...args: any[]) => ["depenses", ...args] as const,
+  depensesStats: (...args: any[]) => ["depenses-stats", ...args] as const,
 
   // ─── Requests ──────────────────────────────────────────────────────────────
   requests: ["requests"] as const,

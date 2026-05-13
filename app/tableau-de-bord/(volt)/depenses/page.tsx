@@ -66,6 +66,8 @@ function Page() {
     to: "",
   });
 
+  const { tab, search, ...otherFilters } = customFilters;
+
   const resetAllFilters = () => {
     setCustomFilters({
       search: "",
@@ -87,12 +89,12 @@ function Page() {
 
   const tabs = [
     {
-      id: "pending",
+      id: "validated",
       title: "Tickets en attente",
       //badge: payments.filter((p) => p.status === "validated").length,
     },
     {
-      id: "ongoing",
+      id: "processed",
       title: "Tickets traités",
       //badge: payments.filter((p) => p.status === "pending_depense" || p.status === "signed" || p.status === "simple_signed").length,
     },
@@ -101,7 +103,7 @@ function Page() {
       title: "Tickets payés",
     },
     {
-      id: "canceled",
+      id: "cancelled",
       title: "Tickets annulés",
     },
   ];
@@ -125,6 +127,31 @@ function Page() {
         provider:
           customFilters.provider !== "all" ? customFilters.provider : undefined,
         tab: customFilters.tab,
+        amount: customFilters.amount || 0,
+        amountType: customFilters.amountType,
+        paymentMethod:
+          customFilters.paymentMethod !== "all"
+            ? customFilters.paymentMethod
+            : undefined,
+        type: customFilters.type !== "all" ? customFilters.type : undefined,
+        date: customFilters.date || undefined,
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
+    enabled: !!user,
+    placeholderData: keepPreviousData,
+  });
+
+  const getStats = useQuery({
+    queryKey: queryKeys.depensesStats(otherFilters, dateFilter),
+    queryFn: () =>
+      paymentQ.getDepensesStats({
+        beneficiary:
+          customFilters.beneficiary !== "all"
+            ? customFilters.beneficiary
+            : undefined,
+        provider:
+          customFilters.provider !== "all" ? customFilters.provider : undefined,
         amount: customFilters.amount || 0,
         amountType: customFilters.amountType,
         paymentMethod:
@@ -173,7 +200,8 @@ function Page() {
     getPaymentType.isLoading ||
     getProviders.isLoading ||
     getProjects.isLoading ||
-    getUsers.isLoading
+    getUsers.isLoading ||
+    getStats.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -183,7 +211,8 @@ function Page() {
     getPaymentType.isError ||
     getProviders.isError ||
     getProjects.isError ||
-    getUsers.isError
+    getUsers.isError ||
+    getStats.isError
   ) {
     return (
       <ErrorPage
@@ -194,6 +223,7 @@ function Page() {
           getProviders.error ||
           getProjects.error ||
           getUsers.error ||
+          getStats.error ||
           undefined
         }
       />
@@ -205,50 +235,44 @@ function Page() {
     getPaymentType.isSuccess &&
     getProviders.isSuccess &&
     getProjects.isSuccess &&
-    getUsers.isSuccess
+    getUsers.isSuccess &&
+    getStats.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
         title: "Tickets en attente de traitement",
-        value: data.data.filter((p) => p.status === "validated").length,
+        value: getStats.data.validated.count,
         variant: "primary",
         more: {
           title: "Montant total",
-          value: XAF.format(
-            data.data
-              .filter((p) => p.status === "validated")
-              .reduce((total, el) => total + el.price, 0),
-          ),
+          value: XAF.format(getStats.data.validated.sum),
         },
       },
       {
         title: "Tickets payés",
-        value: data.data.filter((p) => p.status === "paid").length,
-        variant: "secondary",
+        value: getStats.data.paid.count,
+        variant: "success",
         more: {
           title: "Montant total",
-          value: XAF.format(
-            data.data
-              .filter((p) => p.status === "paid")
-              .reduce((total, el) => total + el.price, 0),
-          ),
+          value: XAF.format(getStats.data.paid.sum),
         },
       },
       {
         title: "Tickets traités",
-        value: data.data.filter(
-          (p) => p.status === "signed" || p.status === "simple_signed",
-        ).length,
+        value: getStats.data.processed.count,
+        variant: "secondary",
+        more: {
+          title: "Montant total",
+          value: XAF.format(getStats.data.processed.sum),
+        },
+      },
+      {
+        title: "Tickets annulés",
+        value: getStats.data.cancelled.count,
         variant: "default",
         more: {
           title: "Montant total",
-          value: XAF.format(
-            data.data
-              .filter(
-                (p) => p.status === "signed" || p.status === "simple_signed",
-              )
-              .reduce((total, el) => total + el.price, 0),
-          ),
+          value: XAF.format(getStats.data.cancelled.sum),
         },
       },
     ];

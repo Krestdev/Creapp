@@ -175,6 +175,33 @@ class PaymentQueries {
       });
   };
 
+  getDepensesStats = async (
+    params?: Record<string, any>,
+  ): Promise<{
+    validated: {
+      count: number;
+      sum: number;
+    };
+    processed: {
+      count: number;
+      sum: number;
+    };
+    paid: {
+      count: number;
+      sum: number;
+    };
+    cancelled: {
+      count: number;
+      sum: number;
+    };
+  }> => {
+    return api
+      .get(`${this.route}/expenses/stats`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
   // --------------------------------------
   // READ (GET ONE)
   // --------------------------------------
