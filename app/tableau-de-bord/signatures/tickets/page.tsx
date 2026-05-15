@@ -166,6 +166,7 @@ function Page() {
     getUsers.isSuccess &&
     getStats.isSuccess
   ) {
+    console.log(data);
     const Statistics: Array<StatisticProps> = [
       {
         title: "En attente signature",
