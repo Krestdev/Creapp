@@ -21,13 +21,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { XAF } from "@/lib/utils";
 import { transactionQ } from "@/queries/transaction";
 import { vehicleQ } from "@/queries/vehicule";
-import {
-  Bank,
-  PaymentRequest,
-  RequestModelT,
-  Transaction,
-  Vehicle,
-} from "@/types/types";
+import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { CarIcon, DollarSignIcon, LandmarkIcon } from "lucide-react";
@@ -122,10 +116,10 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
                 <p className="font-semibold">
                   {!!transaction && transaction.Type === "DEBIT" && (
                     <span className="flex gap-1.5">
-                      {transaction.from.label}
+                      {transaction.from?.label}
                       <p>{"- Solde :"}</p>
                       <strong className="text-primary-600">
-                        {`(${XAF.format(transaction.from.balance)})`}
+                        {`(${XAF.format(transaction.from?.balance)})`}
                       </strong>
                     </span>
                   )}

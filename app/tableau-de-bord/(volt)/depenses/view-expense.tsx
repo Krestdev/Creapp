@@ -17,6 +17,7 @@ import {
 import { queryKeys } from "@/lib/query-keys";
 import { cn, getPaymentTypeBadge, XAF } from "@/lib/utils";
 import { paymentQ } from "@/queries/payment";
+import { requestQ } from "@/queries/requestModule";
 import { signatairQ } from "@/queries/signatair";
 import { vehicleQ } from "@/queries/vehicule";
 import {
@@ -113,7 +114,15 @@ function ViewExpense({
   users,
   requestTypes,
 }: Props) {
-  const request = payment.request;
+  const requestId = payment.requestId;
+
+  const getRequest = useQuery({
+    queryKey: queryKeys.request(requestId!),
+    queryFn: () => requestQ.getOne(requestId!),
+    enabled: !!requestId,
+  });
+
+  const request = getRequest.data?.data;
 
   const getVehicle = useQuery({
     queryKey: queryKeys.vehicle(request?.vehiclesId!),
@@ -146,7 +155,6 @@ function ViewExpense({
     );
   }, [getSignataire.data?.data, payment?.bankId, payment?.methodId]);
 
-  const user = users.find((u) => u.id === payment.userId);
   const methodName =
     payTypes.find((p) => p.id === payment.methodId)?.label || "Non défini";
 
@@ -369,7 +377,7 @@ function ViewExpense({
           )}
 
           {/* Demande associée */}
-          {hasValue(payment.requestId) && (
+          {hasValue(payment.requestId) && getRequest.isSuccess && (
             <>
               <div className="view-group">
                 <span className="view-icon">
@@ -387,7 +395,8 @@ function ViewExpense({
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Emetteur du besoin"}</p>
                   <p className="font-semibold">
-                    {initiator?.firstName.concat(" ", initiator.lastName)}
+                    {initiator?.firstName.concat(" ", initiator.lastName) ??
+                      "--"}
                   </p>
                 </div>
               </div>
