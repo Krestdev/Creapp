@@ -186,50 +186,8 @@ function AppSidebar() {
       </Sidebar>
     );
   }
-  if (
-    serviceRequestsCount.isError ||
-    pendingRequestApprovalsCount.isError ||
-    usableRequestsCount.isError ||
-    pendingCommandRequestsCount.isError ||
-    quotationToAssignCount.isError ||
-    purchaseOrdersPendingCount.isError ||
-    voltPendingCount.isError ||
-    pendingApprovalsTransactionsCount.isError ||
-    pendingDepenseCount.isError ||
-    paymentsToSignCount.isError ||
-    pendingToSignTransfersCount.isError ||
-    pendingTransfersCount.isError
-  ) {
-    return (
-      <Sidebar>
-        <SidebarHeader>
-          <Link href={"/tableau-de-bord"}>
-            <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
-          </Link>
-        </SidebarHeader>
-        <SidebarContent className="p-2 flex flex-col gap-2">
-          {[...Array(12)].map((_, i) => (
-            <Skeleton key={i} className="w-full h-10" />
-          ))}
-        </SidebarContent>
-      </Sidebar>
-    );
-  }
-  if (
-    serviceRequestsCount.isSuccess &&
-    pendingRequestApprovalsCount.isSuccess &&
-    usableRequestsCount.isSuccess &&
-    pendingCommandRequestsCount.isSuccess &&
-    quotationToAssignCount.isSuccess &&
-    purchaseOrdersPendingCount.isSuccess &&
-    voltPendingCount.isSuccess &&
-    pendingApprovalsTransactionsCount.isSuccess &&
-    pendingDepenseCount.isSuccess &&
-    paymentsToSignCount.isSuccess &&
-    pendingToSignTransfersCount.isSuccess &&
-    pendingTransfersCount.isSuccess
-  ) {
-    const navLinks: NavigationGroup[] = [
+
+  const navLinks: NavigationGroup[] = [
       {
         pageId: "PG-00-00",
         authorized: ["USER"],
@@ -295,14 +253,14 @@ function AppSidebar() {
             title: "Approbation",
             href: "/tableau-de-bord/besoins/validation",
             authorized: ["SUPERADMIN", "MANAGER"],
-            badgeValue: pendingRequestApprovalsCount.data.data,
+            badgeValue: pendingRequestApprovalsCount.data?.data,
           },
           {
             pageId: "PG-02-05",
             title: "Besoins du Service",
             href: "/tableau-de-bord/besoins/service",
             authorized: ["SUPERADMIN", "USER"],
-            badgeValue: serviceRequestsCount.data.data,
+            badgeValue: serviceRequestsCount.data?.data,
           },
         ],
       },
@@ -317,7 +275,7 @@ function AppSidebar() {
             title: "Demande de cotation",
             href: "/tableau-de-bord/commande/cotation",
             authorized: ["SUPERADMIN", "SALES"],
-            badgeValue: usableRequestsCount.data.data,
+            badgeValue: usableRequestsCount.data?.data,
           },
           {
             pageId: "PG-03-02",
@@ -330,21 +288,21 @@ function AppSidebar() {
             title: "Approbation Devis",
             href: "/tableau-de-bord/commande/devis/approbation",
             authorized: ["SUPERADMIN", "SALES_MANAGER"],
-            badgeValue: pendingCommandRequestsCount.data.data,
+            badgeValue: pendingCommandRequestsCount.data?.data,
           },
           {
             pageId: "PG-03-5",
             title: "Bons de commande",
             href: "/tableau-de-bord/commande/bon-de-commande",
             authorized: ["SUPERADMIN", "SALES"],
-            badgeValue: quotationToAssignCount.data.data,
+            badgeValue: quotationToAssignCount.data?.data,
           },
           {
             pageId: "PG-03-44",
             title: "Approbation BC",
             href: "/tableau-de-bord/commande/bon-de-commande/approbation",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
-            badgeValue: purchaseOrdersPendingCount.data.data,
+            badgeValue: purchaseOrdersPendingCount.data?.data,
           },
           {
             pageId: "PG-03-065897",
@@ -388,7 +346,7 @@ function AppSidebar() {
             title: "Paiements",
             href: "/tableau-de-bord/ticket",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
-            badgeValue: voltPendingCount.data.data,
+            badgeValue: voltPendingCount.data?.data,
           },
           {
             pageId: "PG-04-02",
@@ -396,7 +354,7 @@ function AppSidebar() {
             icon: ArrowLeftRightIcon,
             href: "/tableau-de-bord/ticket/transferts",
             authorized: ["SUPERADMIN", "VOLT_MANAGER"],
-            badgeValue: pendingApprovalsTransactionsCount.data.data,
+            badgeValue: pendingApprovalsTransactionsCount.data?.data,
           },
           /* {
             pageId: "PG-04-04",
@@ -423,7 +381,7 @@ function AppSidebar() {
             title: "Dépenses",
             icon: BadgeDollarSignIcon,
             href: "/tableau-de-bord/depenses",
-            badgeValue: pendingDepenseCount.data.data,
+            badgeValue: pendingDepenseCount.data?.data,
             authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
           },
           /* {
@@ -446,7 +404,7 @@ function AppSidebar() {
             icon: SignatureIcon,
             href: "/tableau-de-bord/signatures/tickets",
             authorized: [],
-            badgeValue: paymentsToSignCount.data.data,
+            badgeValue: paymentsToSignCount.data?.data,
           },
           {
             pageId: "PG-0000551-02",
@@ -454,7 +412,7 @@ function AppSidebar() {
             icon: VoteIcon,
             href: "/tableau-de-bord/signatures/transferts",
             authorized: [],
-            badgeValue: pendingToSignTransfersCount.data.data,
+            badgeValue: pendingToSignTransfersCount.data?.data,
           },
         ],
       },
@@ -484,7 +442,7 @@ function AppSidebar() {
             icon: ArrowRightLeftIcon,
             href: "/tableau-de-bord/banques/transactions/transferts",
             authorized: ["SUPERADMIN", "VOLT"],
-            badgeValue: pendingTransfersCount.data.data,
+            badgeValue: pendingTransfersCount.data?.data,
           },
         ],
       },
@@ -639,7 +597,6 @@ function AppSidebar() {
         </SidebarFooter>
       </Sidebar>
     );
-  }
 }
 
 export default AppSidebar;
