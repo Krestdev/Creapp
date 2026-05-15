@@ -10,68 +10,52 @@ import PageTitle from "@/components/pageTitle";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { bankQ } from "@/queries/bank";
+import { userQ } from "@/queries/baseModule";
 import { invoiceQ } from "@/queries/invoices";
 import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
+import { projectQ } from "@/queries/projectModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { signatairQ } from "@/queries/signatair";
-import { transactionQ } from "@/queries/transaction";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import ExpensesTableSign from "./expenses-table-sign";
-import { userQ } from "@/queries/baseModule";
-import { projectQ } from "@/queries/projectModule";
-import { requestQ } from "@/queries/requestModule";
-import { purchaseQ } from "@/queries/purchase-order";
+import { queryKeys } from "@/lib/query-keys";
 
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: ["payments"],
-    queryFn: () => paymentQ.getAll(),
+    queryKey: queryKeys.payments,
+    queryFn: paymentQ.getAll,
   });
 
   const signatair = useQuery({
-    queryKey: ["signataires"],
+    queryKey: queryKeys.signataires,
     queryFn: signatairQ.getAll,
   });
   const getRequestType = useQuery({
-    queryKey: ["requestType"],
+    queryKey: queryKeys.requestTypes,
     queryFn: requestTypeQ.getAll,
   });
   const getInvoices = useQuery({
-    queryKey: ["invoices"],
+    queryKey: queryKeys.invoices,
     queryFn: invoiceQ.getAll,
   });
   const getBanks = useQuery({
-    queryKey: ["banks"],
+    queryKey: queryKeys.banks,
     queryFn: bankQ.getAll,
   });
   const getPayType = useQuery({
-    queryKey: ["paymentTypes"],
+    queryKey: queryKeys.paymentTypes,
     queryFn: payTypeQ.getAll,
   });
-  const getTransaction = useQuery({
-    queryKey: ["transactions"],
-    queryFn: transactionQ.getAll,
-  });
+
   const getUsers = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
   const getProjects = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => {
-      return projectQ.getAll();
-    },
-  });
-  const getRequests = useQuery({
-    queryKey: ["requests"],
-    queryFn: requestQ.getAll,
-  });
-
-  const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: purchaseQ.getAll,
+    queryKey: queryKeys.projects,
+    queryFn: projectQ.getAll,
   });
 
   const [selectedTab, setSelectedTab] = useState(0);
@@ -201,12 +185,9 @@ function Page() {
     getBanks.isLoading ||
     getRequestType.isLoading ||
     getPayType.isLoading ||
-    getTransaction.isLoading ||
     signatair.isLoading ||
     getProjects.isLoading ||
-    getUsers.isLoading ||
-    getRequests.isLoading ||
-    getPurchases.isLoading
+    getUsers.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -217,12 +198,9 @@ function Page() {
     getBanks.isError ||
     getRequestType.isError ||
     getPayType.isError ||
-    getTransaction.isError ||
     signatair.isError ||
     getProjects.isError ||
-    getUsers.isError ||
-    getRequests.isError ||
-    getPurchases.isError
+    getUsers.isError
   ) {
     return (
       <ErrorPage
@@ -287,11 +265,8 @@ function Page() {
             requestTypes={getRequestType.data.data}
             signatair={signatair.data.data}
             payType={getPayType.data.data}
-            transactions={getTransaction.data.data}
             projects={getProjects.data.data}
             users={getUsers.data.data}
-            requests={getRequests.data.data}
-            purchases={getPurchases.data.data}
           />
         ) : (
           <ExpensesTableSign
@@ -303,11 +278,8 @@ function Page() {
             requestTypes={getRequestType.data.data}
             signatair={signatair.data.data}
             payType={getPayType.data.data}
-            transactions={getTransaction.data.data}
             projects={getProjects.data.data}
             users={getUsers.data.data}
-            requests={getRequests.data.data}
-            purchases={getPurchases.data.data}
           />
         )}
       </div>

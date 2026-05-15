@@ -10,21 +10,15 @@ import {
   DialogFooter,
   DialogHeader,
 } from "@/components/ui/dialog";
-import { cn, getRequestTypeBadge, getUserName, XAF } from "@/lib/utils";
+import { queryKeys } from "@/lib/query-keys";
+import { cn, getRequestTypeBadge, XAF } from "@/lib/utils";
 import { categoryQ } from "@/queries/categoryModule";
 import { paymentQ } from "@/queries/payment";
 import { projectQ } from "@/queries/projectModule";
+import { purchaseQ } from "@/queries/purchase-order";
+import { receptionQ } from "@/queries/reception";
 import { requestQ } from "@/queries/requestModule";
-import {
-  BonsCommande,
-  Category,
-  PaymentRequest,
-  ProjectT,
-  Reception,
-  RequestModelT,
-  RequestType,
-  User,
-} from "@/types/types";
+import { RequestModelT, RequestType, User } from "@/types/types";
 import { DialogTitle } from "@radix-ui/react-dialog";
 import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
@@ -61,8 +55,6 @@ interface ViewRequestProps {
   reqId: number;
   users: Array<User>;
   requestTypes: RequestType[];
-  receptions: Array<Reception>;
-  purchaseOrders: Array<BonsCommande>;
 }
 
 function ViewRequest({
@@ -71,9 +63,17 @@ function ViewRequest({
   reqId,
   users,
   requestTypes,
-  receptions,
-  purchaseOrders,
 }: ViewRequestProps) {
+  const getReceptions = useQuery({
+    queryKey: queryKeys.receptions,
+    queryFn: () => receptionQ.getAll(),
+  });
+
+  const getPurchases = useQuery({
+    queryKey: queryKeys.purchaseOrders,
+    queryFn: () => purchaseQ.getAll(),
+  });
+
   const getStatusBadge = (
     status: RequestModelT["state"],
   ): {
@@ -117,25 +117,25 @@ function ViewRequest({
   };
 
   const request = useQuery({
-    queryKey: ["request", reqId],
+    queryKey: queryKeys.request(reqId),
     queryFn: () => requestQ.getOne(reqId),
   });
 
   const projectData = useQuery({
-    queryKey: ["project", reqId],
+    queryKey: queryKeys.project(reqId),
     queryFn: async () => {
       return projectQ.getProjectByRequestId(reqId as number);
     },
   });
   const category = useQuery({
-    queryKey: ["category", reqId],
+    queryKey: queryKeys.category(reqId),
     queryFn: async () => {
       return categoryQ.getCategoryForRequest(reqId as number);
     },
   });
 
   const paiements = useQuery({
-    queryKey: ["payment", reqId],
+    queryKey: queryKeys.payment(reqId),
     queryFn: async () => paymentQ.getAllByRequestId(reqId as number),
   });
 
@@ -476,7 +476,6 @@ function ViewRequest({
                 </p>
                 {request.data?.data.type === "facilitation" ? (
                   <p className="font-semibold capitalize">
-                    hello1
                     {users.find(
                       (u) => u.id === Number(request.data?.data.beneficiary),
                     )?.firstName +
@@ -489,14 +488,12 @@ function ViewRequest({
                   <div className="flex flex-col">
                     {request.data?.data.beneficiary === "me" ? (
                       <p className="font-semibold capitalize">
-                        hello2
                         {request.data?.data.user.firstName +
                           " " +
                           request.data?.data.user.lastName}
                       </p>
                     ) : (
                       <div className="flex flex-col">
-                        hello3
                         {request.data?.data.beficiaryList?.map((ben) => {
                           const beneficiary = users.find(
                             (x) => x.id === ben.id,
@@ -582,14 +579,16 @@ function ViewRequest({
 
           {/* Request parours */}
           <div className="col-span-full w-full mt-4">
-            {paiements.isSuccess && (
-              <RequestStepper
-                request={request.data?.data}
-                bonCommandes={purchaseOrders}
-                ticket={paiements?.data.data}
-                receptions={receptions}
-              />
-            )}
+            {paiements.isSuccess &&
+              getPurchases.isSuccess &&
+              getReceptions.isSuccess && (
+                <RequestStepper
+                  request={request.data?.data}
+                  bonCommandes={getPurchases.data.data}
+                  ticket={paiements.data.data}
+                  receptions={getReceptions.data.data}
+                />
+              )}
           </div>
         </div>
         {/* Boutons du footer */}

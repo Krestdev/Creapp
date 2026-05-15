@@ -640,7 +640,7 @@ export function ApprovedTable({ data, users }: Props) {
           {table.getFilteredSelectedRowModel().rows.length} sur{" "}
           {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s)
         </div>
-        {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
+        {table.getPageCount() > 1 && <Pagination table={table} />}
       </div>
 
       {/* VIEW */}

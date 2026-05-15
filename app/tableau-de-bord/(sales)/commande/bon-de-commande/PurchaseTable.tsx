@@ -73,7 +73,6 @@ import {
   User,
 } from "@/types/types";
 import { format } from "date-fns";
-import Link from "next/link";
 import AddSignedFile from "./add-signed-file";
 import EditPurchase from "./editPurchase";
 import ViewPurchase from "./viewPurchase";
@@ -1076,7 +1075,7 @@ export function PurchaseTable({
       </div>
 
       {/* PAGINATION */}
-      {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
+      {table.getPageCount() > 1 && <Pagination table={table} />}
       {selectedValue && (
         <ViewPurchase
           open={view}

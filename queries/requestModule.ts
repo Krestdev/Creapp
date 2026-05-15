@@ -12,6 +12,7 @@ export type newRequestOthers = Omit<
   | "state"
   | "userId"
   | "beneficiary"
+  | "user"
 > & {
   amount: number;
   benef: Array<number>;
@@ -29,6 +30,7 @@ export type newRequestSettle = Omit<
   | "state"
   | "userId"
   | "beneficiary"
+  | "user"
 > & {
   amount?: number;
   description?: string;
@@ -48,6 +50,7 @@ export type RequestTaxes = Omit<
   | "validators"
   | "state"
   | "beneficiary"
+  | "user"
 > & {
   amount: number;
   benef: Array<number>;
@@ -66,6 +69,7 @@ export type newRequestTransport = Omit<
   | "state"
   | "userId"
   | "beneficiary"
+  | "user"
 > & {
   amount: number;
   benef: Array<number>;
@@ -86,6 +90,7 @@ export type newRequestGas = Omit<
   | "beneficiary"
   | "liters"
   | "km"
+  | "user"
 > & {
   benef: Array<number>;
   vehiclesId: number;
@@ -104,6 +109,7 @@ export type newRequestApprovisionement = Omit<
   | "liters"
   | "km"
   | "state"
+  | "user"
 >;
 
 class RequestQueries {
@@ -141,6 +147,7 @@ class RequestQueries {
       | "createdAt"
       | "beneficiary"
       | "state"
+      | "user"
     >,
   ) => {
     return api.post(`${this.route}/approvisionement`, data).then((response) => {

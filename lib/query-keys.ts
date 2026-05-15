@@ -38,12 +38,14 @@ export const queryKeys = {
   ] as const,
   pendingToSignTransfersCount: ["pending-to-sign-transfers-count"] as const,
   pendingTransfersCount: ["pending-transfers-count"] as const,
+  transaction: (id: number) => ["transaction", id] as const,
 
   // ─── Commands / Purchase Orders ────────────────────────────────────────────
   commands: ["commands"] as const,
   pendingCommandRequestsCount: ["pending-commandRequests-count"] as const,
   purchaseOrders: ["purchaseOrders"] as const,
   purchaseOrdersPendingCount: ["purchaseOrders-pending-count"] as const,
+  purchaseOrder: (id: number) => ["purchaseOrder", id] as const,
 
   // ─── Quotations ────────────────────────────────────────────────────────────
   quotations: ["quotations"] as const,
@@ -51,24 +53,31 @@ export const queryKeys = {
 
   // ─── Banks ─────────────────────────────────────────────────────────────────
   banks: ["banks"] as const,
+  bank: (id: number) => ["bank", id] as const,
 
   // ─── Payment Types ─────────────────────────────────────────────────────────
   paymentTypes: ["paymentTypes"] as const,
+  paymentType: (id: number) => ["paymentType", id] as const,
 
   // ─── Providers ─────────────────────────────────────────────────────────────
   providers: ["providers"] as const,
+  provider: (id: number) => ["provider", id] as const,
 
   // ─── Projects ──────────────────────────────────────────────────────────────
   projects: ["projects"] as const,
+  project: (id: number) => ["project", id] as const,
 
   // ─── Categories ────────────────────────────────────────────────────────────
   categories: ["categories"] as const,
+  category: (id: number) => ["category", id] as const,
 
   // ─── Signataires ───────────────────────────────────────────────────────────
   signataires: ["signataires"] as const,
+  signataire: (id: number) => ["signataire", id] as const,
 
   // ─── Receptions ────────────────────────────────────────────────────────────
   receptions: ["receptions"] as const,
+  reception: (id: number) => ["reception", id] as const,
 
   // ─── Users ─────────────────────────────────────────────────────────────────
   users: ["users"] as const,
@@ -86,9 +95,11 @@ export const queryKeys = {
 
   // ─── Invoices ──────────────────────────────────────────────────────────────
   invoices: ["invoices"] as const,
+  invoice: (id: number) => ["invoice", id] as const,
 
   // ─── Services ──────────────────────────────────────────────────────────────
   services: ["services"] as const,
+  service: (id: number) => ["service", id] as const,
 
   // ─── Departments ───────────────────────────────────────────────────────────
   departmentList: ["departmentList"] as const,

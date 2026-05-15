@@ -37,11 +37,8 @@ import {
 } from "@/components/ui/table";
 import { cn, getRequestTypeBadge, subText } from "@/lib/utils";
 import {
-  BonsCommande,
   Category,
-  PaymentRequest,
   ProjectT,
-  Reception,
   REQUEST_STATUS,
   RequestModelT,
   RequestType,
@@ -56,11 +53,8 @@ interface Props {
   data: Array<RequestModelT>;
   categories: Array<Category>;
   projects: Array<ProjectT>;
-  // payments: Array<PaymentRequest>;
   requestTypes: Array<RequestType>;
   users: Array<User>;
-  receptions: Array<Reception>;
-  purchaseOrders: Array<BonsCommande>;
   pagination: PaginationState;
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
 }
@@ -69,11 +63,8 @@ export function RequestsTable({
   data,
   categories,
   projects,
-  // payments,
   requestTypes,
   users,
-  receptions,
-  purchaseOrders,
   paginationOptions,
   pagination,
 }: Props) {
@@ -490,8 +481,6 @@ export function RequestsTable({
           users={users}
           reqId={selectedItem.id}
           requestTypes={requestTypes}
-          purchaseOrders={purchaseOrders}
-          receptions={receptions}
         />
       )}
     </div>

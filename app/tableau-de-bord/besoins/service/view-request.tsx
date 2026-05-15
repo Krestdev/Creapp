@@ -693,7 +693,6 @@ export function DetailBesoin({
           <RequestStepper
             request={data}
             bonCommandes={purchaseOrders}
-            tickets={payments}
             receptions={receptions}
           />
         </div>

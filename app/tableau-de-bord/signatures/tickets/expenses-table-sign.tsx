@@ -72,7 +72,6 @@ import { cn, getPaymentTypeBadge, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
   Bank,
-  BonsCommande,
   DateFilter,
   Invoice,
   PAY_STATUS,
@@ -81,10 +80,8 @@ import {
   PayType,
   PRIORITIES,
   ProjectT,
-  RequestModelT,
   RequestType,
   Signatair,
-  Transaction,
   User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
@@ -155,11 +152,8 @@ interface Props {
   requestTypes: Array<RequestType>;
   signatair: Array<Signatair>;
   payType: Array<PayType>;
-  transactions: Array<Transaction>;
   users: Array<User>;
   projects: Array<ProjectT>;
-  requests: Array<RequestModelT>;
-  purchases: Array<BonsCommande>;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -226,11 +220,8 @@ function ExpensesTableSign({
   requestTypes,
   signatair,
   payType,
-  transactions,
   users,
   projects,
-  requests,
-  purchases,
 }: Props) {
   const { user } = useStore();
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
@@ -524,10 +515,7 @@ function ExpensesTableSign({
         },
         cell: ({ row }) => {
           const value = row.original;
-          const transaction = transactions.find(
-            (t) => t.id === value.transactionId,
-          );
-          return <div>{transaction?.docNumber ?? "--"}</div>;
+          return <div>{value.transaction?.docNumber ?? "--"}</div>;
         },
       },
       {
@@ -1113,13 +1101,10 @@ function ExpensesTableSign({
           open={showDetail}
           openChange={setShowDetail}
           payment={selected}
-          invoices={invoices}
           projects={projects}
           users={users}
-          requests={requests}
           payTypes={payType}
           requestTypes={requestTypes}
-          purchases={purchases}
         />
       )}
       {selected && (

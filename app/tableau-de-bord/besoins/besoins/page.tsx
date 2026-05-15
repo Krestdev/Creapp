@@ -7,28 +7,8 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -37,30 +17,22 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { getUserName } from "@/lib/utils";
+import { queryKeys } from "@/lib/query-keys";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
-import { paymentQ } from "@/queries/payment";
+import { useFilters } from "@/queries/filters/standard-filter";
 import { projectQ } from "@/queries/projectModule";
 import { purchaseQ } from "@/queries/purchase-order";
 import { receptionQ } from "@/queries/reception";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
-import {
-  DateFilter,
-  PAYMENT_TYPES,
-  REQUEST_STATUS,
-  RequestModelT,
-} from "@/types/types";
+import { DateFilter } from "@/types/types";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { ChevronDown, Settings2 } from "lucide-react";
+import { Settings2 } from "lucide-react";
 import React, { useState } from "react";
-import { RequestsTable } from "./table-besoins";
-import { useFilters } from "@/queries/filters/standard-filter";
 import Filters from "./filters";
-import { queryKeys } from "@/lib/query-keys";
+import { RequestsTable } from "./table-besoins";
 
 function Page() {
   const { user } = useStore();
@@ -167,11 +139,6 @@ function Page() {
     },
   });
 
-  // const paymentsData = useQuery({
-  //   queryKey: ["payments"],
-  //   queryFn: async () => paymentQ.getAll(),
-  // });
-
   const requestTypes = useQuery({
     queryKey: queryKeys.requestType,
     queryFn: requestTypeQ.getAll,
@@ -180,16 +147,6 @@ function Page() {
   const usersData = useQuery({
     queryKey: queryKeys.users,
     queryFn: async () => userQ.getAll(),
-  });
-
-  const getReceptions = useQuery({
-    queryKey: queryKeys.receptions,
-    queryFn: receptionQ.getAll,
-  });
-
-  const getPurchases = useQuery({
-    queryKey: queryKeys.purchaseOrders,
-    queryFn: purchaseQ.getAll,
   });
 
   // Réinitialiser tous les filtres
@@ -240,11 +197,8 @@ function Page() {
     isLoading ||
     categoryData.isLoading ||
     projectsData.isLoading ||
-    // paymentsData.isLoading ||
     requestTypes.isLoading ||
-    usersData.isLoading ||
-    getReceptions.isLoading ||
-    getPurchases.isLoading
+    usersData.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -252,11 +206,8 @@ function Page() {
     isError ||
     categoryData.isError ||
     projectsData.isError ||
-    // paymentsData.isError ||
     requestTypes.isError ||
-    usersData.isError ||
-    getReceptions.isError ||
-    getPurchases.isError
+    usersData.isError
   ) {
     return (
       <ErrorPage
@@ -264,11 +215,8 @@ function Page() {
           error ||
           categoryData.error ||
           projectsData.error ||
-          // paymentsData.error ||
           requestTypes.error ||
           usersData.error ||
-          getReceptions.error ||
-          getPurchases.error ||
           undefined
         }
       />
@@ -278,11 +226,8 @@ function Page() {
     isSuccess &&
     categoryData.isSuccess &&
     projectsData.isSuccess &&
-    // paymentsData.isSuccess &&
     requestTypes.isSuccess &&
-    usersData.isSuccess &&
-    getReceptions.isSuccess &&
-    getPurchases.isSuccess
+    usersData.isSuccess
   ) {
     const Statistics: Array<StatisticProps> = [
       {
@@ -379,8 +324,6 @@ function Page() {
           // payments={paymentsData.data.data}
           requestTypes={requestTypes.data.data}
           users={usersData.data.data}
-          receptions={getReceptions.data.data}
-          purchaseOrders={getPurchases.data.data}
           paginationOptions={{
             onPaginationChange: (updater) => {
               setFilters((prev) => {
