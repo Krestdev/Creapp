@@ -734,9 +734,7 @@ export function CommandeTable({
       </div>
 
       {/* Pagination */}
-      {table.getRowModel().rows?.length > 0 && (
-        <Pagination table={table} pageSize={15} />
-      )}
+      {table.getRowModel().rows?.length > 0 && <Pagination table={table} />}
       {/* Modale pour modifier le besoin */}
 
       {selectedCommand && (

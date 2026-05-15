@@ -130,6 +130,7 @@ class RequestQueries {
       | "project"
       | "validators"
       | "type"
+      | "user"
     >,
   ): Promise<{ data: RequestModelT }> => {
     return api.post(this.route, data).then((res) => res.data);
@@ -158,7 +159,7 @@ class RequestQueries {
   special = async (
     data: Omit<
       RequestModelT,
-      "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+      "id" | "createdAt" | "updatedAt" | "ref" | "validators" | "user"
     >,
   ): Promise<{ data: RequestModelT }> => {
     const formData = new FormData();

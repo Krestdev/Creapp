@@ -9,79 +9,47 @@ import React from "react";
 import NotPaidRequestsTable from "./table-requests-not-paid";
 import { projectQ } from "@/queries/projectModule";
 import { categoryQ } from "@/queries/categoryModule";
+import { queryKeys } from "@/lib/query-keys";
 
 function Page() {
-  const getRequests = useQuery({
-    queryKey: ["requests"],
-    queryFn: requestQ.getAll,
-  });
   const getUsers = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
 
-  const getPayments = useQuery({
-    queryKey: ["payments"],
-    queryFn: () => paymentQ.getAll(),
-  });
-
   const getCategories = useQuery({
-    queryKey: ["categories"],
+    queryKey: queryKeys.categories,
     queryFn: categoryQ.getCategories,
   });
 
   const getProjects = useQuery({
-    queryKey: ["projects"],
+    queryKey: queryKeys.projects,
     queryFn: projectQ.getAll,
   });
 
-  const payments = React.useMemo(() => {
-    if (!getPayments.data) return [];
-    return getPayments.data.data.filter((p) => p.method?.type === "cash");
-  }, [getPayments.data]);
-
-  if (
-    getRequests.isLoading ||
-    getUsers.isLoading ||
-    getPayments.isLoading ||
-    getCategories.isLoading ||
-    getProjects.isLoading
-  )
+  if (getUsers.isLoading || getCategories.isLoading || getProjects.isLoading)
     return <LoadingPage />;
-  if (
-    getRequests.isError ||
-    getUsers.isError ||
-    getPayments.isError ||
-    getCategories.isError ||
-    getProjects.isError
-  )
+  if (getUsers.isError || getCategories.isError || getProjects.isError)
     return (
       <ErrorPage
         error={
-          getRequests.error ||
           getUsers.error ||
-          getPayments.error ||
           getCategories.error ||
           getProjects.error ||
           undefined
         }
       />
     );
-  if (
-    getRequests.isSuccess &&
-    getUsers.isSuccess &&
-    getPayments.isSuccess &&
-    getCategories.isSuccess &&
-    getProjects.isSuccess
-  ) {
+  if (getUsers.isSuccess && getCategories.isSuccess && getProjects.isSuccess) {
     return (
-      <NotPaidRequestsTable
+      <></>
+      /* <NotPaidRequestsTable
         requests={getRequests.data.data}
         users={getUsers.data.data}
         tickets={payments}
         categories={getCategories.data.data}
         projects={getProjects.data.data}
-      />
+      /> */
     );
   }
 }

@@ -94,7 +94,6 @@ interface UpdateFacilitationRequestProps {
   onSuccess?: () => void;
   projects: ProjectT[];
   users: User[];
-  payments: PaymentRequest[];
   categories: Category[];
 }
 
@@ -105,7 +104,6 @@ export default function BesoinFacLastVal({
   onSuccess,
   projects,
   users,
-  payments,
   categories,
 }: UpdateFacilitationRequestProps) {
   const { user } = useStore();
@@ -140,8 +138,6 @@ export default function BesoinFacLastVal({
   // INITIALISATION DES DONNÉES
   // ----------------------------------------------------------------------
 
-  const paiement = payments.find((x) => x.requestId === requestData?.id);
-
   useEffect(() => {
     if (requestData && open && USERS.length > 0) {
       const initializeForm = async () => {
@@ -157,16 +153,6 @@ export default function BesoinFacLastVal({
             );
           }
 
-          // Formater la preuve si elle existe
-          let proofValue: any[] = [];
-          if (paiement?.proof) {
-            if (typeof paiement?.proof === "string") {
-              proofValue = [paiement?.proof];
-            } else if (Array.isArray(paiement?.proof)) {
-              proofValue = paiement?.proof;
-            }
-          }
-
           // Réinitialiser le formulaire avec les valeurs
           form.reset({
             beneficiaire: requestData.beneficiary?.toString() || "",
@@ -176,7 +162,7 @@ export default function BesoinFacLastVal({
             delai: requestData.dueDate
               ? new Date(requestData.dueDate)
               : new Date(),
-            justificatif: proofValue,
+            justificatif: requestData.proof,
             title: requestData.label || "",
             description: requestData.description || "",
             priority: requestData.priority || "medium",

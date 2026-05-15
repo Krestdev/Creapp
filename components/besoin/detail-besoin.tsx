@@ -50,12 +50,13 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { RequestStepper } from "../stepper";
+import { queryKeys } from "@/lib/query-keys";
+import { paymentQ } from "@/queries/payment";
 
 interface DetailModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   data: RequestModelT;
-  payments: PaymentRequest[];
   users: User[];
   projects: ProjectT[];
   receptions: Array<Reception>;
@@ -67,13 +68,16 @@ export function DetailBesoin({
   onOpenChange,
   data,
   users,
-  payments,
   projects,
   receptions,
   purchaseOrders,
 }: DetailModalProps) {
   const { user } = useStore();
-  const userId = user?.id;
+
+  const paiements = useQuery({
+    queryKey: queryKeys.payment(data.id),
+    queryFn: async () => paymentQ.getAllByRequestId(data.id),
+  });
 
   //Get old values
   const initialValues = data.requestOlds?.find((r) => r.userId !== user?.id);
@@ -94,8 +98,6 @@ export function DetailBesoin({
     const user = users.find((u) => u.id === Number(userId));
     return user?.lastName + " " + user?.firstName || userId;
   };
-
-  const paiement = payments.find((x) => x.requestId === data?.id);
 
   const getStatusBadge = (
     status: RequestModelT["state"],
@@ -376,11 +378,11 @@ export function DetailBesoin({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Justificatif"}</p>
                 <div className="space-y-1">
-                  {!!paiement?.proof ? (
+                  {paiements.isSuccess && !!paiements.data.data?.proof ? (
                     <Link
                       href={`${
                         process.env.NEXT_PUBLIC_API
-                      }/${paiement?.proof as string}`}
+                      }/${paiements.data.data?.proof as string}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -698,12 +700,14 @@ export function DetailBesoin({
         </div>
         {/* Request parours */}
         <div className="col-span-full w-full mt-4">
-          <RequestStepper
-            request={data}
-            bonCommandes={purchaseOrders}
-            tickets={payments}
-            receptions={receptions}
-          />
+          {paiements.isSuccess && (
+            <RequestStepper
+              request={data}
+              bonCommandes={purchaseOrders}
+              ticket={paiements.data.data}
+              receptions={receptions}
+            />
+          )}
         </div>
         {/* Boutons du footer - fixe en bas */}
         <DialogFooter className="px-6 py-4 border-t shrink-0">

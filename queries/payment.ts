@@ -272,6 +272,35 @@ class PaymentQueries {
       });
   };
 
+  getSignatureRequests = async (
+    params?: Record<string, any>,
+  ): Promise<{ data: PaymentRequest[]; count: number }> => {
+    return api
+      .get(`${this.route}/paymentToSign/all`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
+  getSignatureRequestsStats = async (
+    params?: Record<string, any>,
+  ): Promise<{
+    pending: {
+      count: number;
+      sum: number;
+    };
+    signed: {
+      count: number;
+      sum: number;
+    };
+  }> => {
+    return api
+      .get(`${this.route}/paymentToSign/stats`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
   // --------------------------------------
   // READ (GET ONE)
   // --------------------------------------

@@ -122,7 +122,7 @@ export default function MyForm({ categories, users, projects }: Props) {
     mutationFn: async (
       data: Omit<
         RequestModelT,
-        "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+        "id" | "createdAt" | "updatedAt" | "ref" | "validators" | "user"
       >,
     ) => requestQ.create(data),
 
@@ -142,7 +142,7 @@ export default function MyForm({ categories, users, projects }: Props) {
     // Préparation des données
     const requestData: Omit<
       RequestModelT,
-      "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+      "id" | "createdAt" | "updatedAt" | "ref" | "validators" | "user"
     > = {
       label: values.titre,
       description: values.description,

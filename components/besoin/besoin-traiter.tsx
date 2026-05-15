@@ -32,7 +32,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { queryKeys } from "@/lib/query-keys";
+import { useStore } from "@/providers/datastore";
+import { userQ } from "@/queries/baseModule";
+import { projectQ } from "@/queries/projectModule";
+import { purchaseQ } from "@/queries/purchase-order";
+import { receptionQ } from "@/queries/reception";
 import { Category, RequestModelT } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Pagination } from "../base/pagination";
@@ -45,14 +52,6 @@ import {
   SelectValue,
 } from "../ui/select";
 import { DetailBesoin } from "./detail-besoin";
-import { useQuery } from "@tanstack/react-query";
-import { categoryQ } from "@/queries/categoryModule";
-import { projectQ } from "@/queries/projectModule";
-import { userQ } from "@/queries/baseModule";
-import { paymentQ } from "@/queries/payment";
-import { receptionQ } from "@/queries/reception";
-import { purchaseQ } from "@/queries/purchase-order";
-import { useStore } from "@/providers/datastore";
 
 interface Request {
   id: number;
@@ -76,32 +75,24 @@ export function BesoinsTraiter({
   isHome,
 }: BesoinsTraiterTableProps) {
   const { user } = useStore();
-  const categoriesData = useQuery({
-    queryKey: ["categories"],
-    queryFn: categoryQ.getCategories,
-  });
+
   const projectsData = useQuery({
-    queryKey: ["projects"],
+    queryKey: queryKeys.projects,
     queryFn: projectQ.getAll,
   });
 
   const usersData = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
 
-  const paymentsData = useQuery({
-    queryKey: ["payments"],
-    queryFn: () => paymentQ.getAll(),
-  });
-
   const getReceptions = useQuery({
-    queryKey: ["receptions"],
+    queryKey: queryKeys.receptions,
     queryFn: receptionQ.getAll,
   });
 
   const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
+    queryKey: queryKeys.purchaseOrders,
     queryFn: purchaseQ.getAll,
   });
 
@@ -617,9 +608,7 @@ export function BesoinsTraiter({
       </div>
 
       {/* Pagination */}
-      {table.getRowModel().rows?.length > 0 && (
-        <Pagination table={table} pageSize={15} />
-      )}
+      <Pagination table={table} />
 
       {select && (
         <>
@@ -634,7 +623,6 @@ export function BesoinsTraiter({
             data={select}
             projects={projectsData.data?.data!}
             users={usersData.data?.data!}
-            payments={paymentsData.data?.data!}
             receptions={getReceptions.data?.data!}
             purchaseOrders={getPurchases.data?.data!}
           />

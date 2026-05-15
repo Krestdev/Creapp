@@ -76,7 +76,6 @@ interface UpdateFacilitationRequestProps {
   requestData: RequestModelT;
   users: Array<User>;
   projects: Array<ProjectT>;
-  payments: Array<PaymentRequest>;
 }
 
 export default function UpdateRequestFac({
@@ -85,7 +84,6 @@ export default function UpdateRequestFac({
   requestData,
   users,
   projects,
-  payments,
 }: UpdateFacilitationRequestProps) {
   const { user } = useStore();
 
@@ -114,8 +112,6 @@ export default function UpdateRequestFac({
   // INITIALISATION DES DONNÉES
   // ----------------------------------------------------------------------
 
-  const paiement = payments.find((x) => x.requestId === requestData?.id);
-
   useEffect(() => {
     if (open && users.length > 0) {
       const initializeForm = async () => {
@@ -131,16 +127,6 @@ export default function UpdateRequestFac({
             );
           }
 
-          // Formater la preuve si elle existe
-          let proofValue: any[] = [];
-          if (paiement?.proof) {
-            if (typeof paiement?.proof === "string") {
-              proofValue = [paiement?.proof];
-            } else if (Array.isArray(paiement?.proof)) {
-              proofValue = paiement?.proof;
-            }
-          }
-
           // Réinitialiser le formulaire avec les valeurs
           form.reset({
             beneficiaire: requestData.beneficiary?.toString() || "",
@@ -148,9 +134,9 @@ export default function UpdateRequestFac({
             delai: requestData.dueDate
               ? new Date(requestData.dueDate)
               : new Date(),
-            justificatif: proofValue,
             title: requestData.label || "",
             description: requestData.description || "",
+            justificatif: requestData.proof,
           });
 
           setIsFormInitialized(true);

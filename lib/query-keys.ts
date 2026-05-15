@@ -17,10 +17,14 @@ export const queryKeys = {
   depensesStats: (...args: any[]) => ["depenses-stats", ...args] as const,
   tickets: (...args: any[]) => ["tickets", ...args] as const,
   ticketsStats: (...args: any[]) => ["tickets-stats", ...args] as const,
+  signatureRequests: (...args: any[]) =>
+    ["signatureRequests", ...args] as const,
+  signatureRequestsStats: (...args: any[]) =>
+    ["signatureRequests-stats", ...args] as const,
 
   // ─── Requests ──────────────────────────────────────────────────────────────
   requests: ["requests"] as const,
-  requestsUser: ["requests-user"] as const,
+  requestsUser: (...args: any[]) => ["requests-user", ...args] as const,
   requestsForApproval: ["requests-for-approval"] as const,
   pendingRequestApprovalsCount: ["pending-request-approvals-count"] as const,
   serviceRequestsCount: ["service-requests-count"] as const,

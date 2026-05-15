@@ -2,15 +2,15 @@
 
 import {
   type ColumnDef,
-  Row,
-  type SortingState,
-  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  Row,
+  type SortingState,
   useReactTable,
+  type VisibilityState,
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
@@ -40,13 +40,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Table,
   TableBody,
   TableCell,
@@ -67,7 +60,6 @@ import {
   BonsCommande,
   Category,
   DateFilter,
-  PaymentRequest,
   ProjectT,
   Reception,
   RequestModelT,
@@ -80,9 +72,13 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
 import { DetailBesoin } from "../besoin/detail-besoin";
+import BesoinLastApproVall from "../modals/BesoinApproValid";
 import BesoinFacLastVal from "../modals/BesoinFacLastVal";
 import { BesoinLastVal } from "../modals/BesoinLastVal";
+import BesoinLastValOther from "../modals/BesoinLastValOther";
+import BesoinLastValSettle from "../modals/BesoinLastValSettle";
 import BesoinRHLastVal from "../modals/BesoinRHLastVal";
+import UpdatePaymentMethod from "../modals/UpdatePaymentMethod";
 import { ValidationModal } from "../modals/ValidationModal";
 import { Badge, badgeVariants } from "../ui/badge";
 import { Calendar } from "../ui/calendar";
@@ -112,10 +108,6 @@ import { Textarea } from "../ui/textarea";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { TabBar } from "./TabBar";
-import BesoinLastApproVall from "../modals/BesoinApproValid";
-import UpdatePaymentMethod from "../modals/UpdatePaymentMethod";
-import BesoinLastValOther from "../modals/BesoinLastValOther";
-import BesoinLastValSettle from "../modals/BesoinLastValSettle";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -131,7 +123,6 @@ interface DataTableProps {
   categoriesData: Category[];
   projectsData: ProjectT[];
   usersData: User[];
-  paymentsData: PaymentRequest[];
   requestTypeData: RequestType[];
   pending: number;
   cleared: number;
@@ -147,7 +138,6 @@ export function DataVal({
   categoriesData,
   projectsData,
   usersData,
-  paymentsData,
   requestTypeData,
   pending,
   cleared,
@@ -966,10 +956,7 @@ export function DataVal({
 
         const validationInfo = getValidationInfo(item);
         const userHasValidated = hasUserAlreadyValidated(item);
-        const paiement = paymentsData?.find((x) => x.requestId === item?.id);
-        const isAttach =
-          (item.type === "facilitation" || item.type === "ressource_humaine") &&
-          paiement?.proof !== null;
+
         return (
           <div className="flex items-center gap-2">
             <DropdownMenu>
@@ -1055,7 +1042,6 @@ export function DataVal({
                   )}
               </DropdownMenuContent>
             </DropdownMenu>
-            {isAttach ? <Paperclip size={16} /> : ""}
           </div>
         );
       },
@@ -1749,7 +1735,7 @@ export function DataVal({
         <Empty message={empty} />
       )}
 
-      {filteredData.length > 0 && <Pagination table={table} pageSize={15} />}
+      {filteredData.length > 0 && <Pagination table={table} />}
 
       {/* Dialog pour les actions de groupe */}
       {isCheckable && (
@@ -1849,7 +1835,6 @@ export function DataVal({
           data={selectedItem}
           projects={projectsData}
           users={usersData}
-          payments={paymentsData}
           receptions={receptions}
           purchaseOrders={purchaseOrders}
         />
@@ -1914,13 +1899,11 @@ export function DataVal({
             categories={categoriesData}
             users={usersData}
             projects={projectsData}
-            payments={paymentsData}
           />
           <BesoinRHLastVal
             open={isUpdateRHModalOpen}
             setOpen={setIsUpdateRHModalOpen}
             requestData={selectedItem}
-            payments={paymentsData}
             users={usersData}
             categories={categoriesData}
             projects={projectsData}
@@ -1940,7 +1923,6 @@ export function DataVal({
             categories={categoriesData}
             users={usersData}
             projects={projectsData}
-            payments={paymentsData}
             onSuccess={() => {
               // Rafraîchir les données si nécessaire
               // Vous pouvez ajouter un callback pour revalider les requêtes

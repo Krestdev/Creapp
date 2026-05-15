@@ -42,7 +42,6 @@ import {
   Quotation,
   QuotationElement,
   QuotationStatus,
-  RequestModelT,
   User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
@@ -431,7 +430,7 @@ export function DevisTable({
       {/* Pagination */}
       {table.getRowModel().rows?.length > 0 && (
         <div className="mt-4">
-          <Pagination table={table} pageSize={15} />
+          <Pagination table={table} />
         </div>
       )}
 
