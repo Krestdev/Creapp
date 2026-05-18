@@ -12,6 +12,7 @@ export interface NewInvoice extends Omit<
   | "payment"
   | "userId"
   | "command"
+  | "rest"
 > {
   proof: File;
   commandId: number;
