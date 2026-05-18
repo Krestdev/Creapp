@@ -26,13 +26,7 @@ import {
 } from "@/components/ui/select";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
-import {
-  Category,
-  PaymentRequest,
-  ProjectT,
-  RequestModelT,
-  User,
-} from "@/types/types";
+import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { LoaderIcon } from "lucide-react";
@@ -59,7 +53,6 @@ interface UpdatePaymentMethodProps {
   categories: Category[];
   users: User[];
   projects: ProjectT[];
-  payments: PaymentRequest[];
 }
 
 export default function UpdatePaymentMethod({
@@ -203,14 +196,19 @@ export default function UpdatePaymentMethod({
               {/* Informations du besoin */}
               <div className="bg-gray-50 p-4 rounded-lg space-y-2">
                 <p className="text-sm font-medium text-gray-700">
-                  Besoin: <span className="font-normal">{requestData?.label}</span>
+                  Besoin:{" "}
+                  <span className="font-normal">{requestData?.label}</span>
                 </p>
                 <p className="text-sm font-medium text-gray-700">
-                  Montant: <span className="font-normal">{requestData?.amount?.toLocaleString()} FCFA</span>
+                  Montant:{" "}
+                  <span className="font-normal">
+                    {requestData?.amount?.toLocaleString()} FCFA
+                  </span>
                 </p>
                 {requestData?.dueDate && (
                   <p className="text-sm font-medium text-gray-700">
-                    Date limite: <span className="font-normal">
+                    Date limite:{" "}
+                    <span className="font-normal">
                       {new Date(requestData.dueDate).toLocaleDateString()}
                     </span>
                   </p>

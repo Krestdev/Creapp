@@ -12,6 +12,7 @@ export type newRequestOthers = Omit<
   | "state"
   | "userId"
   | "beneficiary"
+  | "user"
 > & {
   amount: number;
   benef: Array<number>;
@@ -29,6 +30,7 @@ export type newRequestSettle = Omit<
   | "state"
   | "userId"
   | "beneficiary"
+  | "user"
 > & {
   amount?: number;
   description?: string;
@@ -48,6 +50,7 @@ export type RequestTaxes = Omit<
   | "validators"
   | "state"
   | "beneficiary"
+  | "user"
 > & {
   amount: number;
   benef: Array<number>;
@@ -66,6 +69,7 @@ export type newRequestTransport = Omit<
   | "state"
   | "userId"
   | "beneficiary"
+  | "user"
 > & {
   amount: number;
   benef: Array<number>;
@@ -86,6 +90,7 @@ export type newRequestGas = Omit<
   | "beneficiary"
   | "liters"
   | "km"
+  | "user"
 > & {
   benef: Array<number>;
   vehiclesId: number;
@@ -104,6 +109,7 @@ export type newRequestApprovisionement = Omit<
   | "liters"
   | "km"
   | "state"
+  | "user"
 >;
 
 class RequestQueries {
@@ -124,6 +130,7 @@ class RequestQueries {
       | "project"
       | "validators"
       | "type"
+      | "user"
     >,
   ): Promise<{ data: RequestModelT }> => {
     return api.post(this.route, data).then((res) => res.data);
@@ -141,6 +148,7 @@ class RequestQueries {
       | "createdAt"
       | "beneficiary"
       | "state"
+      | "user"
     >,
   ) => {
     return api.post(`${this.route}/approvisionement`, data).then((response) => {
@@ -151,7 +159,7 @@ class RequestQueries {
   special = async (
     data: Omit<
       RequestModelT,
-      "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+      "id" | "createdAt" | "updatedAt" | "ref" | "validators" | "user"
     >,
   ): Promise<{ data: RequestModelT }> => {
     const formData = new FormData();
@@ -243,8 +251,41 @@ class RequestQueries {
   };
 
   // Récupérer toutes les demandes
-  getAll = async (): Promise<{ data: RequestModelT[] }> => {
-    return api.get(this.route).then((res) => res.data);
+  getAll = async (
+    params?: Record<string, any>,
+  ): Promise<{ data: { data: RequestModelT[]; total?: number } }> => {
+    return api.get(this.route, { params }).then((res) => res.data);
+  };
+
+  // ============================
+  //       BÉNÉFICIAIRES
+  // ============================
+
+  // Récupérer toutes les demandes
+  getAllRequestsHavingPayment = async (): Promise<RequestModelT[]> => {
+    return api.get(`${this.route}/requestsWithPayment`).then((res) => res.data);
+  };
+
+  // Récupérer toutes les demandes
+  getForQuotation = async (): Promise<{ data: RequestModelT[] }> => {
+    console.log("getForQuotation");
+    return api.get(`${this.route}/quotation`).then((res) => res.data);
+  };
+
+  // Récupérer toutes les demandes
+  getStats = async (
+    params?: Record<string, any>,
+  ): Promise<{
+    data: {
+      awaiting: number;
+      rejected: number;
+      validated: number;
+      fromStore: number;
+      cancelled: number;
+      sent: number;
+    };
+  }> => {
+    return api.get(`${this.route}/stats`, { params }).then((res) => res.data);
   };
 
   // Récupérer une demande par ID
@@ -277,9 +318,30 @@ class RequestQueries {
     return api.get(`${this.route}/validator/${userId}`).then((res) => res.data);
   };
 
+  // Notification Requests to approve/reject for
+  getPendingCount = async (): Promise<{ data: number }> => {
+    return api
+      .get(`${this.route}/pendingRequests/count`)
+      .then((res) => res.data);
+  };
+
   //Service head requests
   getServiceRequests = async (): Promise<{ data: Array<RequestModelT> }> => {
     return api.get(`${this.route}/chief/requests`).then((res) => res.data);
+  };
+
+  //Service head requests count
+  getServiceRequestsCount = async (): Promise<{ data: number }> => {
+    return api
+      .get(`${this.route}/chief/requests/count`)
+      .then((res) => res.data);
+  };
+
+  //usableRequests
+  getUsableRequestsCount = async (): Promise<{ data: number }> => {
+    return api
+      .get(`${this.route}/usableRequests/count`)
+      .then((res) => res.data);
   };
 
   // ============================

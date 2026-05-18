@@ -7,258 +7,187 @@ import {
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { queryKeys } from "@/lib/query-keys";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { bankQ } from "@/queries/bank";
-import { invoiceQ } from "@/queries/invoices";
+import { userQ } from "@/queries/baseModule";
 import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
-import { requestTypeQ } from "@/queries/requestType";
-import { signatairQ } from "@/queries/signatair";
-import { transactionQ } from "@/queries/transaction";
-import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import ExpensesTableSign from "./expenses-table-sign";
-import { userQ } from "@/queries/baseModule";
 import { projectQ } from "@/queries/projectModule";
-import { requestQ } from "@/queries/requestModule";
-import { purchaseQ } from "@/queries/purchase-order";
+import { requestTypeQ } from "@/queries/requestType";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { Settings2 } from "lucide-react";
+import React from "react";
+import ExpensesTableSign from "./expenses-table-sign";
+import PaymentSignatureFilters, {
+  PaymentSignatureFiltersProps,
+} from "./payment-signature-filters";
 
 function Page() {
-  const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: ["payments"],
-    queryFn: paymentQ.getAll,
+  const { user } = useStore();
+
+  const [customFilters, setCustomFilters] = React.useState<
+    PaymentSignatureFiltersProps["customFilters"]
+  >({
+    search: "",
+    amount: 0,
+    amountType: "greater",
+    priority: "all",
+    tab: "pending",
   });
 
-  const signatair = useQuery({
-    queryKey: ["signatairs"],
-    queryFn: signatairQ.getAll,
+  const { tab, search, ...otherFilters } = customFilters;
+
+  const resetAllFilters = () => {
+    setCustomFilters({
+      search: "",
+      amount: 0,
+      amountType: "greater",
+      priority: "all",
+      tab: "pending",
+    });
+  };
+
+  const [filters, setFilters] = React.useState({
+    pageIndex: 0,
+    pageSize: 15,
   });
+
+  const { data, isSuccess, isError, error, isLoading } = useQuery({
+    queryKey: queryKeys.signatureRequests(filters, customFilters),
+    queryFn: () =>
+      paymentQ.getSignatureRequests({
+        pageIndex: filters.pageIndex,
+        pageSize: filters.pageSize,
+        search: customFilters.search || undefined,
+        tab: customFilters.tab,
+        amount: customFilters.amount || 0,
+        amountType: customFilters.amountType,
+        priority:
+          customFilters.priority !== "all" ? customFilters.priority : undefined,
+      }),
+    enabled: !!user,
+    placeholderData: keepPreviousData,
+  });
+
+  const getStats = useQuery({
+    queryKey: queryKeys.signatureRequestsStats(otherFilters),
+    queryFn: () =>
+      paymentQ.getSignatureRequestsStats({
+        amount: customFilters.amount || 0,
+        amountType: customFilters.amountType,
+        priority:
+          customFilters.priority !== "all" ? customFilters.priority : undefined,
+      }),
+    enabled: !!user,
+    placeholderData: keepPreviousData,
+  });
+
   const getRequestType = useQuery({
-    queryKey: ["requestType"],
+    queryKey: queryKeys.requestTypes,
     queryFn: requestTypeQ.getAll,
   });
-  const getInvoices = useQuery({
-    queryKey: ["invoices"],
-    queryFn: invoiceQ.getAll,
-  });
-  const getBanks = useQuery({
-    queryKey: ["banks"],
-    queryFn: bankQ.getAll,
-  });
+
   const getPayType = useQuery({
-    queryKey: ["payType"],
+    queryKey: queryKeys.paymentTypes,
     queryFn: payTypeQ.getAll,
   });
-  const getTransaction = useQuery({
-    queryKey: ["transactions"],
-    queryFn: transactionQ.getAll,
-  });
+
   const getUsers = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
   const getProjects = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => {
-      return projectQ.getAll();
+    queryKey: queryKeys.projects,
+    queryFn: projectQ.getAll,
+  });
+
+  const tabs = [
+    {
+      id: "pending",
+      title: "Tickets en attente",
+      badge: getStats.data?.pending?.count || 0,
     },
-  });
-  const getRequests = useQuery({
-    queryKey: ["requests"],
-    queryFn: requestQ.getAll,
-  });
-
-  const getPurchases = useQuery({
-    queryKey: ["purchases"],
-    queryFn: purchaseQ.getAll,
-  });
-
-  const [selectedTab, setSelectedTab] = useState(0);
-  const { user } = useStore();
-
-  // Calculs mémoïsés pour éviter les recalculs inutiles
-  const filteredData = useMemo(() => {
-    if (!data?.data || !signatair.data?.data || !user) {
-      return {
-        unsignedPayments: [],
-        signedPayments: [],
-        statistics: [],
-      };
-    }
-
-    const allPayments = data.data;
-    const allSignatair = signatair.data.data;
-    const currentUserId = user.id;
-
-    // Pré-calculer les signataires autorisés par banque et type de paiement
-    const authorizedSigners = new Map<string, Set<number>>();
-
-    allSignatair.forEach((signer) => {
-      const key = `${signer.bankId}_${signer.payTypeId}`;
-      const userIds = new Set(signer.user?.map((u) => u.id) || []);
-      authorizedSigners.set(key, userIds);
-    });
-
-    // Fonction optimisée pour vérifier si l'utilisateur peut signer
-    const userCanSign = (bankId: number | null, methodId: number | null) => {
-      if (bankId == null || methodId == null) return false;
-      const key = `${bankId}_${methodId}`;
-      const userIds = authorizedSigners.get(key);
-      return userIds ? userIds.has(currentUserId) : false;
-    };
-
-    // Filtrer les paiements selon les permissions - version optimisée
-    const authorizedPayments = allPayments.filter((p) =>
-      userCanSign(p.bankId!, p.methodId!),
-    );
-
-    // Séparation des paiements par statut
-    const pendingDepensePayments = authorizedPayments.filter(
-      (p) =>
-        p.signer?.flatMap((u) => u.id)?.includes(currentUserId) &&
-        p.status === "pending_depense",
-    );
-
-    const unsignedPayments = authorizedPayments.filter(
-      (p) =>
-        !p.signer?.flatMap((u) => u.id)?.includes(currentUserId) &&
-        p.status === "unsigned",
-    );
-
-    const signedPayments = authorizedPayments.filter(
-      (p) => p.status === "signed" || p.status === "paid",
-    );
-
-    // Tous les paiements en attente (pour l'onglet)
-    const allPendingPayments = [...pendingDepensePayments, ...unsignedPayments];
-
-    // Calcul des statistiques détaillées
-    const pendingDepenseTotal = pendingDepensePayments.reduce(
-      (total, el) => total + (el.price || 0),
-      0,
-    );
-
-    const unsignedTotal = unsignedPayments.reduce(
-      (total, el) => total + (el.price || 0),
-      0,
-    );
-
-    const signedTotal = signedPayments.reduce(
-      (total, el) => total + (el.price || 0),
-      0,
-    );
-
-    const statistics: Array<StatisticProps> = [
-      {
-        title: "En attente signature",
-        value: unsignedPayments.length,
-        variant: "secondary",
-        more: {
-          title: "Montant total",
-          value: XAF.format(unsignedTotal),
-        },
-      },
-      {
-        title: "Signés",
-        value: signedPayments.length,
-        variant: "success",
-        more: {
-          title: "Montant total",
-          value: XAF.format(signedTotal),
-        },
-      },
-    ];
-
-    return {
-      pendingDepensePayments,
-      unsignedPayments,
-      signedPayments,
-      allPendingPayments,
-      statistics,
-      allPayments,
-    };
-  }, [data?.data, signatair.data?.data, user]);
-
-  const tabs = useMemo(
-    () => [
-      {
-        id: 0,
-        title: "Tickets en attente",
-        badge: filteredData.unsignedPayments.length,
-      },
-      {
-        id: 1,
-        title: "Tickets signés",
-      },
-    ],
-    [filteredData.unsignedPayments.length, filteredData.signedPayments.length],
-  );
+    {
+      id: "signed",
+      title: "Tickets signés",
+      badge: getStats.data?.signed?.count || 0,
+    },
+  ];
 
   if (
     isLoading ||
-    getInvoices.isLoading ||
-    getBanks.isLoading ||
     getRequestType.isLoading ||
     getPayType.isLoading ||
-    getTransaction.isLoading ||
-    signatair.isLoading ||
     getProjects.isLoading ||
     getUsers.isLoading ||
-    getRequests.isLoading ||
-    getPurchases.isLoading
+    getStats.isLoading
   ) {
     return <LoadingPage />;
   }
 
   if (
     isError ||
-    getInvoices.isError ||
-    getBanks.isError ||
     getRequestType.isError ||
     getPayType.isError ||
-    getTransaction.isError ||
-    signatair.isError ||
     getProjects.isError ||
     getUsers.isError ||
-    getRequests.isError ||
-    getPurchases.isError
+    getStats.isError
   ) {
     return (
       <ErrorPage
         error={
           error ||
-          getInvoices.error ||
-          getBanks.error ||
           getRequestType.error ||
           getPayType.error ||
-          getTransaction.error ||
-          signatair.error ||
           getProjects.error ||
           getUsers.error ||
-          getRequests.error ||
-          getPurchases.error ||
+          getStats.error ||
           undefined
         }
       />
     );
   }
 
-  console.log(filteredData);
-
   if (
     isSuccess &&
-    getInvoices.isSuccess &&
-    getBanks.isSuccess &&
     getRequestType.isSuccess &&
     getPayType.isSuccess &&
-    getTransaction.isSuccess &&
-    signatair.isSuccess &&
     getProjects.isSuccess &&
     getUsers.isSuccess &&
-    getRequests.isSuccess &&
-    getPurchases.isSuccess
+    getStats.isSuccess
   ) {
+    console.log(data);
+    const Statistics: Array<StatisticProps> = [
+      {
+        title: "En attente signature",
+        value: getStats.data.pending.count || 0,
+        variant: "secondary",
+        more: {
+          title: "Montant total",
+          value: XAF.format(getStats.data.pending.sum || 0),
+        },
+      },
+      {
+        title: "Signés",
+        value: getStats.data.signed.count || 0,
+        variant: "success",
+        more: {
+          title: "Montant total",
+          value: XAF.format(getStats.data.signed.sum || 0),
+        },
+      },
+    ];
+
     return (
       <div className="content">
         <PageTitle
@@ -267,49 +196,66 @@ function Page() {
           color="blue"
         />
 
+        <Sheet>
+          <SheetTrigger asChild className="w-fit">
+            <Button variant={"outline"}>
+              <Settings2 />
+              {"Filtres"}
+            </Button>
+          </SheetTrigger>
+          <SheetContent className="px-3">
+            <SheetHeader>
+              <SheetTitle>{"Filtres"}</SheetTitle>
+              <SheetDescription>
+                {"Configurer les filtres pour affiner les données"}
+              </SheetDescription>
+            </SheetHeader>
+            <div className="px-2 mt-4 space-y-4">
+              <PaymentSignatureFilters
+                customFilters={customFilters}
+                setCustomFilters={setCustomFilters}
+                resetAllFilters={resetAllFilters}
+              />
+            </div>
+          </SheetContent>
+        </Sheet>
+
         <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
-          {filteredData.statistics.map((data, id) => (
+          {Statistics.map((data, id) => (
             <StatisticCard key={id} {...data} className="h-full" />
           ))}
         </div>
         <TabBar
           tabs={tabs}
-          setSelectedTab={setSelectedTab}
-          selectedTab={selectedTab}
+          setSelectedTab={(value) => {
+            setCustomFilters({
+              ...customFilters,
+              tab: value as "pending" | "signed",
+            });
+            setFilters((prev) => ({ ...prev, pageIndex: 0 }));
+          }}
+          selectedTab={customFilters.tab}
+          className="w-fit"
         />
-        {selectedTab === 0 ? (
-          <ExpensesTableSign
-            key="pending-table"
-            payments={filteredData.unsignedPayments}
-            banks={getBanks.data.data}
-            type="pending"
-            invoices={getInvoices.data.data}
-            requestTypes={getRequestType.data.data}
-            signatair={signatair.data.data}
-            payType={getPayType.data.data}
-            transactions={getTransaction.data.data}
-            projects={getProjects.data.data}
-            users={getUsers.data.data}
-            requests={getRequests.data.data}
-            purchases={getPurchases.data.data}
-          />
-        ) : (
-          <ExpensesTableSign
-            key="signed-table"
-            payments={filteredData.signedPayments}
-            type="validated"
-            banks={getBanks.data.data}
-            invoices={getInvoices.data.data}
-            requestTypes={getRequestType.data.data}
-            signatair={signatair.data.data}
-            payType={getPayType.data.data}
-            transactions={getTransaction.data.data}
-            projects={getProjects.data.data}
-            users={getUsers.data.data}
-            requests={getRequests.data.data}
-            purchases={getPurchases.data.data}
-          />
-        )}
+
+        <ExpensesTableSign
+          payments={data.data}
+          requestTypes={getRequestType.data.data}
+          payType={getPayType.data.data}
+          projects={getProjects.data.data}
+          users={getUsers.data.data}
+          pagination={filters}
+          paginationOptions={{
+            onPaginationChange: (updater) => {
+              setFilters((prev) => {
+                const nextPagination =
+                  typeof updater === "function" ? updater(prev) : updater;
+                return { ...prev, ...nextPagination };
+              });
+            },
+            rowCount: data.count,
+          }}
+        />
       </div>
     );
   }

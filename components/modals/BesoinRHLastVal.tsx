@@ -27,13 +27,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
-import {
-  Category,
-  PaymentRequest,
-  ProjectT,
-  RequestModelT,
-  User,
-} from "@/types/types";
+import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -104,7 +98,6 @@ interface BesoinRHLastValProps {
   onSuccess?: () => void;
   projects: ProjectT[];
   users: User[];
-  payments: PaymentRequest[];
   categories: Category[];
 }
 
@@ -115,7 +108,6 @@ export default function BesoinRHLastVal({
   onSuccess,
   projects,
   users,
-  payments,
   categories,
 }: BesoinRHLastValProps) {
   const { user } = useStore();
@@ -155,8 +147,6 @@ export default function BesoinRHLastVal({
   // INITIALISATION DES DONNÉES
   // ----------------------------------------------------------------------
 
-  const paiement = payments.find((x) => x.requestId === requestData?.id);
-
   useEffect(() => {
     if (requestData && open && USERS.length > 0) {
       const initializeForm = async () => {
@@ -176,16 +166,6 @@ export default function BesoinRHLastVal({
                 ? new Date(requestData.period.to)
                 : undefined,
             };
-          }
-
-          // Formater la preuve si elle existe
-          let proofValue: any[] = [];
-          if (paiement?.proof) {
-            if (typeof paiement?.proof === "string") {
-              proofValue = [paiement?.proof];
-            } else if (Array.isArray(paiement?.proof)) {
-              proofValue = paiement?.proof;
-            }
           }
 
           // Récupérer les bénéficiaires
@@ -209,7 +189,7 @@ export default function BesoinRHLastVal({
               ? new Date(requestData.dueDate)
               : new Date(),
             beneficiaire: beneficiaireIds,
-            justificatif: proofValue,
+            justificatif: requestData.proof,
             priority: requestData.priority || "medium",
           });
 

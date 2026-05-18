@@ -8,11 +8,11 @@ import {
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
+import { queryKeys } from "@/lib/query-keys";
 import { approbatorRequests } from "@/lib/requests-helpers";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
-import { paymentQ } from "@/queries/payment";
 import { projectQ } from "@/queries/projectModule";
 import { purchaseQ } from "@/queries/purchase-order";
 import { receptionQ } from "@/queries/reception";
@@ -25,42 +25,37 @@ import { useMemo } from "react";
 const Page = () => {
   const { user } = useStore();
   const categoriesData = useQuery({
-    queryKey: ["categories"],
+    queryKey: queryKeys.categories,
     queryFn: categoryQ.getCategories,
   });
   const projectsData = useQuery({
-    queryKey: ["projects"],
+    queryKey: queryKeys.projects,
     queryFn: projectQ.getAll,
   });
 
   const usersData = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
 
-  const paymentsData = useQuery({
-    queryKey: ["payments"],
-    queryFn: paymentQ.getAll,
-  });
-
   const requestData = useQuery({
-    queryKey: ["requests-for-approval"],
+    queryKey: queryKeys.requestsForApproval,
     queryFn: async () => requestQ.getValidatorRequests(user?.id ?? 0),
     enabled: !!user,
   });
 
   const getRequestType = useQuery({
-    queryKey: ["requestType"],
+    queryKey: queryKeys.requestTypes,
     queryFn: requestTypeQ.getAll,
   });
 
   const getReceptions = useQuery({
-    queryKey: ["receptions"],
+    queryKey: queryKeys.receptions,
     queryFn: receptionQ.getAll,
   });
 
   const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
+    queryKey: queryKeys.purchaseOrders,
     queryFn: purchaseQ.getAll,
   });
 
@@ -117,7 +112,6 @@ const Page = () => {
   if (
     projectsData.isPending ||
     usersData.isPending ||
-    paymentsData.isPending ||
     categoriesData.isPending ||
     requestData.isPending ||
     getRequestType.isPending ||
@@ -130,7 +124,6 @@ const Page = () => {
   if (
     projectsData.isError ||
     usersData.isError ||
-    paymentsData.isError ||
     categoriesData.isError ||
     requestData.isError ||
     getRequestType.isError ||
@@ -142,7 +135,6 @@ const Page = () => {
         error={
           projectsData.error ||
           usersData.error ||
-          paymentsData.error ||
           categoriesData.error ||
           requestData.error ||
           getRequestType.error ||
@@ -157,7 +149,6 @@ const Page = () => {
   if (
     projectsData.data &&
     usersData.data &&
-    paymentsData.data &&
     categoriesData.data &&
     requestData.data &&
     getRequestType.data &&
@@ -185,7 +176,6 @@ const Page = () => {
           categoriesData={categoriesData.data.data}
           projectsData={projectsData.data.data}
           usersData={usersData.data.data}
-          paymentsData={paymentsData.data.data}
           requestTypeData={getRequestType.data.data}
           pending={pending}
           cleared={approved + rejected}

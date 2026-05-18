@@ -13,19 +13,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
+import { userQ } from "@/queries/baseModule";
 import { requestQ } from "@/queries/requestModule";
 import { Category, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { CalendarIcon, LoaderIcon } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { SearchableSelect } from "../base/searchableSelect";
 import { Calendar } from "../ui/calendar";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import {
   Select,
   SelectContent,
@@ -33,8 +35,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
-import { SearchableSelect } from "../base/searchableSelect";
-import { userQ } from "@/queries/baseModule";
 
 interface Props {
   categories: Array<Category>;
@@ -109,7 +109,7 @@ export default function SpecialRequestForm({ categories }: Props) {
     mutationFn: async (
       data: Omit<
         RequestModelT,
-        "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+        "id" | "createdAt" | "updatedAt" | "ref" | "validators" | "user"
       >,
     ) => requestQ.special(data),
 
@@ -129,7 +129,7 @@ export default function SpecialRequestForm({ categories }: Props) {
     // Préparation des données
     const requestData: Omit<
       RequestModelT,
-      "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+      "id" | "createdAt" | "updatedAt" | "ref" | "validators" | "user"
     > = {
       label: values.titre,
       amount: Number(values.montant),

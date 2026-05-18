@@ -118,7 +118,7 @@ function EditPaymentForm({ payment, invoices, openChange }: Props) {
   });
 
   const getPaymentType = useQuery({
-    queryKey: ["paymentType"],
+    queryKey: ["paymentTypes"],
     queryFn: payTypeQ.getAll,
   });
 

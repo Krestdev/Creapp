@@ -33,7 +33,7 @@ function Page() {
   });
 
   const methods = useQuery({
-    queryKey: ["paymentType"],
+    queryKey: ["paymentTypes"],
     queryFn: payTypeQ.getAll,
   });
 

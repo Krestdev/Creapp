@@ -59,6 +59,27 @@ class TransactionQuery {
     });
   };
 
+  //Pending for validation count
+  getApprovePendingCount = async (): Promise<{ data: number }> => {
+    return api.get(`${this.route}/appro/count`).then((response) => {
+      return response.data;
+    });
+  };
+
+  //Pending to Sign transfers count
+  getPendingToSignCount = async (): Promise<{ data: number }> => {
+    return api.get(`${this.route}/appro/by`).then((response) => {
+      return response.data;
+    });
+  };
+
+  //Pending transfers count
+  getPendingTransfersCount = async (): Promise<{ data: number }> => {
+    return api.get(`${this.route}/accepted/count`).then((response) => {
+      return response.data;
+    });
+  };
+
   create = async (
     payload: TransactionProps,
   ): Promise<{ data: Transaction }> => {

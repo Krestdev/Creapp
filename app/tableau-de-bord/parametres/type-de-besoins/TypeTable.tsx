@@ -15,6 +15,7 @@ import {
 import { ArrowUpDown, ChevronDown, Eye, Pen } from "lucide-react";
 import * as React from "react";
 
+import { Pagination } from "@/components/base/pagination";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -32,7 +33,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { RequestModelT, RequestType } from "@/types/types";
-import { Pagination } from "@/components/base/pagination";
 import { ShowRequestType } from "./ShowRequestType";
 import { UpdateRequestType } from "./UpdateRequestType";
 
@@ -249,9 +249,7 @@ export function TypeTable({ data }: BesoinsTraiterTableProps) {
       </div>
 
       {/* Pagination */}
-      {table.getRowModel().rows?.length > 0 && (
-        <Pagination table={table} pageSize={15} />
-      )}
+      {table.getRowModel().rows?.length > 0 && <Pagination table={table} />}
 
       <ShowRequestType
         open={isOpenModal}

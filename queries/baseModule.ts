@@ -91,6 +91,12 @@ class UserQueries {
     });
   };
 
+  getUserInitiatedRequest = async (id: number): Promise<{ data: User }> => {
+    return api.get(`${this.route}/userInitiatedRequest/${id}`).then((response) => {
+      return response.data;
+    });
+  };
+
   update = async (id: number, data: Partial<User>): Promise<{ data: User }> => {
     return api.put(`${this.route}/${id}`, data).then((response) => {
       return response.data;

@@ -3,28 +3,24 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
+  PaginationOptions,
+  PaginationState,
   type SortingState,
   type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-  getPaginationRowModel,
+
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  ChevronDown,
-  Eye,
-  LucidePen,
-  Settings2,
-  Trash,
-} from "lucide-react";
+import { ArrowUpDown, ChevronDown, Eye, LucidePen, Trash } from "lucide-react";
 import * as React from "react";
 
+import EditPayment from "@/app/tableau-de-bord/(accounting)/factures/paiements/edit-payment";
+import EditPaymentMethod from "@/app/tableau-de-bord/(accounting)/factures/paiements/edit-payment-method";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -34,14 +30,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -51,39 +39,20 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, subText, XAF } from "@/lib/utils";
-import {
-  BonsCommande,
-  Invoice,
-  PAY_STATUS,
-  PaymentRequest,
-  PRIORITIES,
-  Provider,
-} from "@/types/types";
+import { paymentQ } from "@/queries/payment";
+import { PAY_STATUS, PaymentRequest, PRIORITIES } from "@/types/types";
+import { useMutation } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
+import { format } from "date-fns";
+import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
-import { Label } from "../ui/label";
-import EditPayment from "@/app/tableau-de-bord/(accounting)/factures/paiements/edit-payment";
-import { format } from "date-fns";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "../ui/sheet";
-import { toast } from "sonner";
-import { paymentQ } from "@/queries/payment";
-import { useMutation } from "@tanstack/react-query";
 import { ModalWarning } from "../modals/modal-warning";
-import EditPaymentMethod from "@/app/tableau-de-bord/(accounting)/factures/paiements/edit-payment-method";
 
 interface Props {
   payments: Array<PaymentRequest>;
-  purchases: Array<BonsCommande>;
-  invoices: Array<Invoice>;
-  providers: Array<Provider>;
+  pagination: PaginationState;
+  paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
 }
 
 const getPriorityBadge = (
@@ -162,9 +131,8 @@ function getStatusBadge(status: PaymentRequest["status"]): {
 
 export function PaiementsTable({
   payments,
-  purchases,
-  invoices,
-  providers,
+  pagination,
+  paginationOptions,
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -185,16 +153,6 @@ export function PaiementsTable({
   const [showUpdateModal, setShowUpdateModal] = React.useState<boolean>(false);
   const [openRejectModal, setOpenRejectModal] = React.useState<boolean>(false);
   const [updateMethod, setUpdateMethod] = React.useState<boolean>(false);
-  const [statusFilter, setStatusFilter] = React.useState<
-    "all" | PaymentRequest["status"]
-  >("all");
-  const [priorityFilter, setPriorityFilter] = React.useState<
-    "all" | PaymentRequest["priority"]
-  >("all");
-  const [providerFilter, setProviderFilter] = React.useState<string>("all");
-  const [prioritySearch, setPrioritySearch] = React.useState("");
-  const [statusSearch, setStatusSearch] = React.useState("");
-  const [providerSearch, setProviderSearch] = React.useState("");
 
   const toReject = useMutation({
     mutationFn: async (data: PaymentRequest) =>
@@ -208,31 +166,7 @@ export function PaiementsTable({
     },
   });
 
-  // Filtrer les données par statut et priorité
-  const filteredByStatusAndPriority: Array<PaymentRequest> =
-    React.useMemo(() => {
-      let filtered = payments;
-
-      if (statusFilter !== "all") {
-        filtered = filtered.filter((p) => p.status === statusFilter);
-      }
-
-      if (priorityFilter !== "all") {
-        filtered = filtered.filter((p) => p.priority === priorityFilter);
-      }
-
-      if (providerFilter !== "all") {
-        filtered = filtered.filter(
-          (p) => p.facture?.command.providerId === Number(providerFilter),
-        );
-      }
-
-      return filtered;
-    }, [payments, statusFilter, priorityFilter, providerFilter]);
-
-  const columns: ColumnDef<
-    PaymentRequest & { providerName: string; bonCommandeTitle: string }
-  >[] = [
+  const columns: ColumnDef<PaymentRequest>[] = [
     {
       accessorKey: "reference",
       header: ({ column }) => {
@@ -264,11 +198,16 @@ export function PaiementsTable({
         );
       },
       cell: ({ row }) => {
-        const value = row.original.invoiceId;
-        const purchase =
-          invoices.find((i) => i.id === value)?.command.devi.commandRequest
-            .title ?? "Non défini";
-        return <div>{subText({ text: purchase, length: 21 })}</div>;
+        const value = row.original;
+        const purchase = value.facture?.command;
+        return (
+          <div>
+            {subText({
+              text: purchase?.devi.commandRequest.title ?? "--",
+              length: 21,
+            })}
+          </div>
+        );
       },
     },
     {
@@ -285,10 +224,8 @@ export function PaiementsTable({
         );
       },
       cell: ({ row }) => {
-        const value = row.original.invoiceId;
-        const providerName =
-          invoices.find((i) => i.id === value)?.command.provider.name ??
-          "Créaconsult";
+        const value = row.original;
+        const providerName = value.facture?.command.provider.name ?? "--";
         return <div>{providerName}</div>;
       },
     },
@@ -436,23 +373,26 @@ export function PaiementsTable({
   ];
 
   const table = useReactTable({
-    data: filteredByStatusAndPriority,
+    data: payments,
     columns: columns as any,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
+
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
+    manualPagination: true,
+    ...paginationOptions,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       globalFilter,
+      pagination,
     },
     // Configuration du filtrage global
     globalFilterFn: (row, columnId, filterValue) => {
@@ -477,313 +417,9 @@ export function PaiementsTable({
     },
   });
 
-  const resetAllFilters = () => {
-    setGlobalFilter("");
-    setPriorityFilter("all");
-    setStatusFilter("all");
-    // Réinitialiser les recherches
-    setPrioritySearch("");
-    setStatusSearch("");
-    setProviderFilter("all");
-    setProviderSearch("");
-  };
-
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant="outline">
-              <Settings2 className="mr-2 h-4 w-4" />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
-
-          <SheetContent className="overflow-y-auto">
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les filtres pour affiner vos données"}
-              </SheetDescription>
-            </SheetHeader>
-
-            <div className="space-y-5 px-5">
-              <div className="space-y-3">
-                <Label htmlFor="searchPO">{"Recherche globale"}</Label>
-                <Input
-                  id="searchPO"
-                  type="search"
-                  placeholder="Référence, fournisseur, bon de commande..."
-                  value={globalFilter ?? ""}
-                  onChange={(e) => setGlobalFilter(e.target.value)}
-                />
-              </div>
-
-              {/* Provider Filter */}
-              <div className="space-y-3">
-                <Label>{"Fournisseur"}</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="w-full justify-between gap-2">
-                    <span className="w-full line-clamp-1 text-start">
-                      {providerFilter === "all"
-                        ? "Tous les fournisseurs"
-                        : providers.find((p) => p.id === Number(providerFilter))
-                            ?.name || "Sélectionner"}
-                    </span>
-                    <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                      <Input
-                        placeholder="Rechercher un fournisseur"
-                        className="h-8"
-                        value={providerSearch}
-                        onChange={(e) => setProviderSearch(e.target.value)}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        autoFocus
-                      />
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setProviderFilter("all");
-                        setProviderSearch("");
-                      }}
-                      className={providerFilter === "all" ? "bg-accent" : ""}
-                    >
-                      <span>Tous les fournisseurs</span>
-                    </DropdownMenuItem>
-                    {providers
-                      .filter((p) =>
-                        p.name
-                          .toLowerCase()
-                          .includes(providerSearch.toLowerCase()),
-                      )
-                      .map((p) => (
-                        <DropdownMenuItem
-                          key={p.id}
-                          onClick={() => {
-                            setProviderFilter(p.id.toString());
-                            setProviderSearch("");
-                          }}
-                          className={cn(
-                            providerFilter === p.id.toString() && "bg-accent",
-                          )}
-                        >
-                          <span>{p.name}</span>
-                        </DropdownMenuItem>
-                      ))}
-                    {providers.filter((p) =>
-                      p.name
-                        .toLowerCase()
-                        .includes(providerSearch.toLowerCase()),
-                    ).length === 0 && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Aucun fournisseur trouvé
-                      </div>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Filtre par priorité avec recherche */}
-              <div className="space-y-3">
-                <Label>{"Priorité"}</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="w-full justify-between">
-                    {priorityFilter === "all"
-                      ? "Toutes les priorités"
-                      : PRIORITIES.find((p) => p.value === priorityFilter)
-                          ?.name || "Sélectionner"}
-                    <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                      <Input
-                        placeholder="Rechercher une priorité..."
-                        className="h-8"
-                        value={prioritySearch}
-                        onChange={(e) => setPrioritySearch(e.target.value)}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        autoFocus
-                      />
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setPriorityFilter("all");
-                        setPrioritySearch("");
-                      }}
-                      className={priorityFilter === "all" ? "bg-accent" : ""}
-                    >
-                      <span>Toutes les priorités</span>
-                    </DropdownMenuItem>
-                    {PRIORITIES.filter((p) =>
-                      p.name
-                        .toLowerCase()
-                        .includes(prioritySearch.toLowerCase()),
-                    ).map((p) => (
-                      <DropdownMenuItem
-                        key={p.value}
-                        onClick={() => {
-                          setPriorityFilter(p.value);
-                          setPrioritySearch("");
-                        }}
-                        className={
-                          priorityFilter === p.value ? "bg-accent" : ""
-                        }
-                      >
-                        <span>{p.name}</span>
-                      </DropdownMenuItem>
-                    ))}
-                    {PRIORITIES.filter((p) =>
-                      p.name
-                        .toLowerCase()
-                        .includes(prioritySearch.toLowerCase()),
-                    ).length === 0 && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Aucune priorité trouvée
-                      </div>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Filtre par statut avec recherche */}
-              <div className="space-y-3">
-                <Label>{"Statut"}</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger className="w-full justify-between">
-                    {statusFilter === "all"
-                      ? "Tous les statuts"
-                      : PAY_STATUS.find((s) => s.value === statusFilter)
-                          ?.name || "Sélectionner"}
-                    <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                  </DropdownMenuTrigger>
-
-                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                      <Input
-                        placeholder="Rechercher un statut..."
-                        className="h-8"
-                        value={statusSearch}
-                        onChange={(e) => setStatusSearch(e.target.value)}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        autoFocus
-                      />
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setStatusFilter("all");
-                        setStatusSearch("");
-                      }}
-                      className={statusFilter === "all" ? "bg-accent" : ""}
-                    >
-                      <span>Tous les statuts</span>
-                    </DropdownMenuItem>
-                    {PAY_STATUS.filter((s) =>
-                      payments.some((d) => d.status === s.value),
-                    )
-                      .filter((s) =>
-                        s.name
-                          .toLowerCase()
-                          .includes(statusSearch.toLowerCase()),
-                      )
-                      .map((s) => (
-                        <DropdownMenuItem
-                          key={s.value}
-                          onClick={() => {
-                            setStatusFilter(s.value);
-                            setStatusSearch("");
-                          }}
-                          className={
-                            statusFilter === s.value ? "bg-accent" : ""
-                          }
-                        >
-                          <span>{s.name}</span>
-                        </DropdownMenuItem>
-                      ))}
-                    {PAY_STATUS.filter((s) =>
-                      payments.some((d) => d.status === s.value),
-                    ).filter((s) =>
-                      s.name.toLowerCase().includes(statusSearch.toLowerCase()),
-                    ).length === 0 && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Aucun statut trouvé
-                      </div>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={resetAllFilters}
-                  className="flex-1"
-                >
-                  {"Réinitialiser"}
-                </Button>
-                <Button
-                  variant="outline"
-                  className="flex-1"
-                  onClick={() => {
-                    // Fermer le sheet
-                    document.dispatchEvent(
-                      new KeyboardEvent("keydown", { key: "Escape" }),
-                    );
-                  }}
-                >
-                  {"Appliquer"}
-                </Button>
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
-
-        {/* Indicateur de filtres actifs */}
-        {(statusFilter !== "all" ||
-          priorityFilter !== "all" ||
-          globalFilter.trim() !== "") && (
-          <div className="flex items-center gap-2 text-sm text-muted-foreground mr-auto">
-            <span className="font-medium">Filtres actifs:</span>
-            {statusFilter !== "all" && (
-              <Badge variant="outline" className="text-xs">
-                Statut:{" "}
-                {PAY_STATUS.find((s) => s.value === statusFilter)?.name ||
-                  statusFilter}
-              </Badge>
-            )}
-            {priorityFilter !== "all" && (
-              <Badge variant="outline" className="text-xs">
-                Priorité:{" "}
-                {PRIORITIES.find((p) => p.value === priorityFilter)?.name ||
-                  priorityFilter}
-              </Badge>
-            )}
-            {globalFilter.trim() !== "" && (
-              <Badge variant="outline" className="text-xs">
-                Recherche: {globalFilter}
-              </Badge>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={resetAllFilters}
-              className="h-6 text-xs"
-            >
-              Tout effacer
-            </Button>
-          </div>
-        )}
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">
@@ -886,16 +522,7 @@ export function PaiementsTable({
           </TableBody>
         </Table>
       </div>
-
-      {/* Afficher le nombre de résultats filtrés */}
-      <div className="flex items-center justify-end gap-4 text-sm text-muted-foreground">
-        <div>
-          {table.getFilteredRowModel().rows.length} résultat
-          {table.getFilteredRowModel().rows.length > 1 ? "s" : ""} sur{" "}
-          {payments.length}
-        </div>
-        <Pagination table={table} />
-      </div>
+      <Pagination table={table} />
 
       {selected && (
         <>
@@ -903,13 +530,11 @@ export function PaiementsTable({
             payment={selected}
             open={showDetail}
             openChange={setShowDetail}
-            invoices={invoices}
           />
           <EditPayment
             open={showUpdateModal}
             openChange={setShowUpdateModal}
             payment={selected}
-            invoices={invoices}
           />
           <ModalWarning
             open={openRejectModal}
@@ -924,7 +549,6 @@ export function PaiementsTable({
             open={updateMethod}
             openChange={setUpdateMethod}
             payment={selected}
-            invoices={invoices}
           />
         </>
       )}

@@ -1,11 +1,5 @@
-import {
-  DebitTransaction,
-  PaymentRequest,
-  PayType,
-  RequestModelT,
-  RequestType,
-  User,
-} from "@/types/types";
+import { CrossPlatformPDFViewer } from "@/components/cross-view-pdf";
+import { PaymentRequest, PayType, RequestType, User } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import React, { Dispatch, SetStateAction } from "react";
 import { Button } from "../ui/button";
@@ -18,7 +12,6 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import DepenseDocument from "./depenseDoc";
-import { CrossPlatformPDFViewer } from "@/components/cross-view-pdf";
 
 interface Props {
   open: boolean;
@@ -26,9 +19,7 @@ interface Props {
   paymentRequest: PaymentRequest;
   payTypes: Array<PayType>;
   users: Array<User>;
-  requests: Array<RequestModelT>;
   requestTypes: Array<RequestType>;
-  transactions: Array<DebitTransaction>;
 }
 
 const PaymentReceipt: React.FC<Props> = ({
@@ -37,9 +28,7 @@ const PaymentReceipt: React.FC<Props> = ({
   paymentRequest,
   payTypes,
   users,
-  requests,
   requestTypes,
-  transactions,
 }) => {
   return (
     <div>
@@ -61,9 +50,7 @@ const PaymentReceipt: React.FC<Props> = ({
                   getPaymentType={payTypes}
                   paymentRequest={paymentRequest}
                   users={users}
-                  requests={requests}
                   requestTypes={requestTypes}
-                  transactions={transactions}
                 />
               }
               fileName={`Depense_${paymentRequest.reference}.pdf`}
@@ -79,9 +66,7 @@ const PaymentReceipt: React.FC<Props> = ({
                   getPaymentType={payTypes}
                   paymentRequest={paymentRequest}
                   users={users}
-                  requests={requests}
                   requestTypes={requestTypes}
-                  transactions={transactions}
                 />
               }
               fileName={`recu-transport-${paymentRequest.reference}.pdf`}

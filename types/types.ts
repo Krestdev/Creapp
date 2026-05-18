@@ -95,6 +95,7 @@ export type PaymentRequest = {
   //commandId?: number | null;
   invoiceId?: number;
   facture?: Invoice;
+  request?: RequestModelT;
   requestId?: number | null;
   projectId?: number | null;
   createdAt: string;
@@ -103,6 +104,7 @@ export type PaymentRequest = {
   vehiclesId?: number | null;
   bankId?: number | null;
   transactionId?: number | null;
+  transaction?: Transaction;
   methodId?: number | null;
   method?: PayType;
   bank?: Bank;
@@ -243,6 +245,10 @@ export type RequestModelT = {
     amount?: number;
     createdAt: Date;
     userId: number;
+    user?: {
+      firstName: string;
+      lastName: string;
+    };
   }>;
   validators: Array<{
     id: number;
@@ -256,6 +262,7 @@ export type RequestModelT = {
   }>;
   decision?: "APPROVED" | "REJECTED" | "PENDING";
   serviceChiefId?: number;
+  user: { firstName: string; lastName: string };
 };
 
 export type TableData = {
@@ -386,6 +393,10 @@ export type QuotationElementStatus =
 export type QuotationElement = {
   id: number;
   requestModelId: number;
+  request?: {
+    id: number;
+    label: string;
+  };
   title: string;
   quantity: number;
   unit: string;
@@ -837,4 +848,20 @@ export type Service = {
   headId?: number | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type modification = {
+  id: number;
+  action: "edit" | "cancel";
+  description: string | null;
+  requestId?: number | null;
+  devisId?: number | null;
+  commandId?: number | null;
+  paymentId?: number | null;
+  transactionId?: number | null;
+  validatorId?: number | null;
+  requestorId?: number | null;
+  decision?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 };

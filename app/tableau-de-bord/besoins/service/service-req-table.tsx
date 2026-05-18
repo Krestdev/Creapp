@@ -498,14 +498,9 @@ function ServiceRequestsTable({
           <ViewRequest
             open={view}
             openChange={setView}
-            request={selected}
-            payments={payments}
+            reqId={selected.id}
             users={users}
-            projects={projects}
-            categories={categories}
             requestTypes={requestTypes}
-            receptions={receptions}
-            purchaseOrders={purchaseOrders}
           />
           <TerminateRequest
             open={decide}

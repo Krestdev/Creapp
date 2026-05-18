@@ -19,12 +19,10 @@ import {
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
-import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -142,7 +140,7 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
     mutationFn: async (
       data: Omit<
         RequestModelT,
-        "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+        "id" | "createdAt" | "updatedAt" | "ref" | "validators" | "user"
       >,
     ) => requestQ.special(data),
 
@@ -162,7 +160,7 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
     // Préparation des données
     const requestData: Omit<
       RequestModelT,
-      "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+      "id" | "createdAt" | "updatedAt" | "ref" | "validators" | "user"
     > = {
       label: values.titre,
       dueDate: values.date_limite,

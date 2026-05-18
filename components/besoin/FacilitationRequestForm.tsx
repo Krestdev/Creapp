@@ -26,16 +26,6 @@ import { z } from "zod";
 import { SearchableSelect } from "../base/searchableSelect";
 import FilesUpload from "../comp-547";
 import { Calendar } from "../ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { Textarea } from "../ui/textarea";
-import BeneficiairesList from "./AddBenef";
 import {
   Combobox,
   ComboboxContent,
@@ -44,6 +34,9 @@ import {
   ComboboxItem,
   ComboboxList,
 } from "../ui/combobox";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
+import { Textarea } from "../ui/textarea";
+import BeneficiairesList from "./AddBenef";
 
 interface Props {
   users: Array<User>;
@@ -116,7 +109,7 @@ export default function FacilitationRequestForm({
     mutationFn: async (
       data: Omit<
         RequestModelT,
-        "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+        "id" | "createdAt" | "updatedAt" | "ref" | "validators" | "user"
       >,
     ) => requestQ.special(data),
 
@@ -140,7 +133,7 @@ export default function FacilitationRequestForm({
     // Préparation des données
     const requestData: Omit<
       RequestModelT,
-      "id" | "createdAt" | "updatedAt" | "ref" | "validators"
+      "id" | "createdAt" | "updatedAt" | "ref" | "validators" | "user"
     > = {
       label: values.title,
       description: values.description ?? "",

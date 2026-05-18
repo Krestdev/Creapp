@@ -24,7 +24,7 @@ function Page() {
   });
 
   const signatair = useQuery({
-    queryKey: ["signatairs"],
+    queryKey: ["signataires"],
     queryFn: signatairQ.getAll,
   });
   const getBanks = useQuery({
@@ -32,7 +32,7 @@ function Page() {
     queryFn: bankQ.getAll,
   });
   const getPayType = useQuery({
-    queryKey: ["payType"],
+    queryKey: ["paymentTypes"],
     queryFn: payTypeQ.getAll,
   });
 
@@ -64,12 +64,12 @@ function Page() {
       });
   }, [data, signatair.data, user?.id]);
 
-  console.log(filteredData);
+  //console.log(filteredData);
   const unsigned = filteredData.filter(
     (t) =>
       t.isSigned === false && !t.signers.find((s) => s.userId === user?.id),
   );
-  console.log(unsigned);
+  //console.log(unsigned);
   const signed = filteredData.filter(
     (t) => !!t.signers?.find((s) => s.userId === user?.id),
   );

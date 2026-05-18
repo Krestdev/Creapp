@@ -43,26 +43,62 @@ import { useState } from "react";
 import { DownloadFile } from "../base/downLoadFile";
 import ShowFile from "../base/show-file";
 import Link from "next/link";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-keys";
+import { paymentQ } from "@/queries/payment";
+import { Skeleton } from "../ui/skeleton";
+import { requestQ } from "@/queries/requestModule";
+import { userQ } from "@/queries/baseModule";
 
 interface DetailTicketProps {
+  id: number;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  data: PaymentRequest;
   invoice?: Invoice;
-  requests: RequestModelT[];
-  users: User[];
   types: PayType[];
 }
 
 export function DetailTicket({
   open,
+  id,
   onOpenChange,
-  data,
   invoice,
-  users,
   types,
-  requests,
 }: DetailTicketProps) {
+  //Get Payment
+  const getPayment = useQuery({
+    queryKey: queryKeys.payment(id),
+    queryFn: () => paymentQ.getOne(id),
+  });
+
+  const data = getPayment.data?.data;
+
+  //Get Request
+  const getRequest = useQuery({
+    queryKey: queryKeys.request(data?.requestId!),
+    queryFn: () => requestQ.getOne(data?.requestId!),
+    enabled: !!data?.requestId,
+  });
+  const request = getRequest.data?.data;
+
+  //Get emitter
+  const getEmitter = useQuery({
+    queryKey: queryKeys.user(request?.userId!),
+    queryFn: () => userQ.getOne(request?.userId!),
+    enabled: !!request?.userId,
+  });
+
+  const emitter = getEmitter.data?.data;
+
+  //Get Beneficiary
+  const getBeneficiary = useQuery({
+    queryKey: queryKeys.user(Number(request?.beneficiary)!),
+    queryFn: () => userQ.getOne(Number(request?.beneficiary!)),
+    enabled: !!request?.beneficiary,
+  });
+
+  const beneficiary = getBeneficiary.data?.data;
+
   // Fonction pour formater le montant
   const formatMontant = (montant: number | undefined) => {
     if (!montant) return "0 FCFA";
@@ -72,12 +108,6 @@ export function DetailTicket({
 
   const [page, setPage] = useState(1);
   const [file, setFile] = useState<string | File | undefined>(undefined);
-
-  const request = requests.find((req) => req.id === data.requestId);
-  const emitter = users.find((u) => u.id === request?.userId);
-
-  const beneficiary = users.find((u) => u.id === Number(request?.beneficiary));
-  console.log("beneficiary", beneficiary?.firstName);
 
   // Fonction pour obtenir la couleur du badge selon la priorité
   const getPrioriteColor = (priorite: string | undefined) => {
@@ -185,329 +215,291 @@ export function DetailTicket({
               : `Justificatif du ticket ${data?.title}`}
           </DialogDescription>
         </DialogHeader>
-
-        {/* Contenu - SCROLLABLE */}
-        {page === 1 ? (
-          <div className="grid gap-3">
-            <div className="space-y-4 pb-4">
-              {/* Référence */}
-              <div className="view-group">
-                <span className="view-icon">
-                  <Hash />
-                </span>
-                <div className="flex flex-col">
-                  <p className="view-group-title">{"Référence"}</p>
-                  <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
-                    <p className="text-primary text-sm">
-                      {data?.reference ?? "N/A"}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* Description */}
-              {data?.description && (
-                <div className="view-group">
-                  <span className="view-icon">
-                    <FileText />
-                  </span>
-                  <div className="flex flex-col">
-                    <p className="view-group-title">{"Description"}</p>
-                    <p>{data?.description ?? "N/A"}</p>
-                  </div>
-                </div>
-              )}
-
-              {/* Periode */}
-              {data?.type === "ressource_humaine" && (
-                <>
+        {getPayment.isLoading ? (
+          <Skeleton className="w-full h-20" />
+        ) : getPayment.isError ? (
+          <div className="flex flex-col gap-3 items-center justify-center">
+            <p className="text-destructive">
+              {
+                "Une erreur est survenue pendant la récupération de votre requête."
+              }
+            </p>
+            <Button onClick={() => getPayment.refetch()}>{"Réessayer"}</Button>
+          </div>
+        ) : (
+          <>
+            {/* Contenu - SCROLLABLE */}
+            {page === 1 ? (
+              <div className="grid gap-3">
+                <div className="space-y-4 pb-4">
+                  {/* Référence */}
                   <div className="view-group">
-                    <span className="view-cion">
-                      <CalendarClock />
+                    <span className="view-icon">
+                      <Hash />
                     </span>
                     <div className="flex flex-col">
-                      <p className="view-group-title">{"Période"}</p>
-                      <p className="font-semibold">
-                        {request?.period ? (
-                          <p className="font-semibold">{`Du ${format(
-                            request?.period.from!,
-                            "PPP",
-                            { locale: fr },
-                          )} au ${format(request?.period.to!, "PPP", {
-                            locale: fr,
-                          })}`}</p>
-                        ) : (
-                          <p>{"Non renseigné"}</p>
-                        )}
-                      </p>
+                      <p className="view-group-title">{"Référence"}</p>
+                      <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
+                        <p className="text-primary text-sm">
+                          {data?.reference ?? "N/A"}
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Bénéficiaires */}
-                  {
+                  {/* Description */}
+                  {data?.description && (
+                    <div className="view-group">
+                      <span className="view-icon">
+                        <FileText />
+                      </span>
+                      <div className="flex flex-col">
+                        <p className="view-group-title">{"Description"}</p>
+                        <p>{data?.description ?? "N/A"}</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Periode */}
+                  {data?.type === "ressource_humaine" && (
+                    <>
+                      <div className="view-group">
+                        <span className="view-cion">
+                          <CalendarClock />
+                        </span>
+                        <div className="flex flex-col">
+                          <p className="view-group-title">{"Période"}</p>
+                          <p className="font-semibold">
+                            {request?.period ? (
+                              <p className="font-semibold">{`Du ${format(
+                                request?.period.from!,
+                                "PPP",
+                                { locale: fr },
+                              )} au ${format(request?.period.to!, "PPP", {
+                                locale: fr,
+                              })}`}</p>
+                            ) : (
+                              <p>{"Non renseigné"}</p>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Bénéficiaires */}
+                      {
+                        <div className="view-group">
+                          <span className="view-icon">
+                            <Users />
+                          </span>
+                          <div className="flex flex-col">
+                            <p className="view-group-title">
+                              {"Bénéficiaires"}
+                            </p>
+                            <div className="flex flex-col">
+                              {request?.beneficiary === "me" ? (
+                                <p className="font-semibold capitalize">
+                                  {emitter?.firstName.concat(
+                                    " " + emitter?.lastName,
+                                  )}
+                                </p>
+                              ) : (
+                                <div className="flex flex-col">
+                                  {request?.beficiaryList?.map((ben) => {
+                                    return (
+                                      <p
+                                        key={ben.id}
+                                        className="font-semibold capitalize"
+                                      >{`${
+                                        ben.firstName + " " + ben.lastName ||
+                                        ben.id
+                                      }`}</p>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      }
+                    </>
+                  )}
+
+                  {data?.type !== "ressource_humaine" && (
                     <div className="view-group">
                       <span className="view-icon">
                         <Users />
                       </span>
                       <div className="flex flex-col">
                         <p className="view-group-title">{"Bénéficiaires"}</p>
-                        <div className="flex flex-col">
-                          {request?.beneficiary === "me" ? (
-                            <p className="font-semibold capitalize">
-                              {users.find(
-                                (x) => x.id === Number(request?.beneficiary),
-                              )?.lastName +
-                                " " +
-                                users.find(
-                                  (x) => x.id === Number(request?.beneficiary),
-                                )?.firstName}
-                            </p>
-                          ) : (
+                        {request?.beneficiary ? (
+                          <p className="font-semibold capitalize">
+                            {beneficiary?.firstName.concat(
+                              " " + beneficiary?.lastName,
+                            )}
+                          </p>
+                        ) : (
+                          <div className="flex flex-col">
+                            {request?.beneficiary === "me" ? (
+                              <p className="font-semibold capitalize">
+                                {emitter?.lastName + " " + emitter?.firstName}
+                              </p>
+                            ) : (
+                              <div className="flex flex-col">
+                                {request?.beficiaryList?.map((ben) => {
+                                  return (
+                                    <p
+                                      key={ben.id}
+                                      className="font-semibold capitalize"
+                                    >{`${ben.firstName.concat(" " + ben.lastName)}`}</p>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {data?.type === "facilitation" && (
+                    <div className="view-group">
+                      <div className="view-icon">
+                        <Users />
+                      </div>
+                      <div className="flex flex-col">
+                        <p className="view-group-title">
+                          {"Pour le compte de"}
+                        </p>
+                        {
+                          <div className="flex flex-col">
                             <div className="flex flex-col">
-                              {request?.beficiaryList?.map((ben) => {
-                                const beneficiary = users.find(
-                                  (x) => x.id === ben.id,
-                                );
+                              {request?.benFac?.list?.map((ben) => {
                                 return (
                                   <p
                                     key={ben.id}
                                     className="font-semibold capitalize"
-                                  >{`${beneficiary?.firstName +
-                                    " " +
-                                    beneficiary?.lastName || ben.id
-                                    }`}</p>
+                                  >{`${ben?.name} - ${XAF.format(ben?.amount)}`}</p>
                                 );
                               })}
                             </div>
-                          )}
-                        </div>
+                          </div>
+                        }
                       </div>
                     </div>
-                  }
-                </>
-              )}
-
-              {data?.type !== "ressource_humaine" && (
-                <div className="view-group">
-                  <span className="view-icon">
-                    <Users />
-                  </span>
-                  <div className="flex flex-col">
-                    <p className="view-group-title">
-                      {"Bénéficiaires"}
-                    </p>
-                    {request?.beneficiary ? (
-                      <p className="font-semibold capitalize">
-                        {users.find(
-                          (u) => u.id === Number(request?.beneficiary),
-                        )?.firstName +
-                          " " +
-                          users.find(
-                            (u) => u.id === Number(request?.beneficiary),
-                          )?.lastName}
-                      </p>
-                    ) : (
-                      <div className="flex flex-col">
-                        {request?.beneficiary === "me" ? (
-                          <p className="font-semibold capitalize">
-                            {user?.lastName + " " + user?.firstName}
-                          </p>
-                        ) : (
-                          <div className="flex flex-col">
-                            {request?.beficiaryList?.map((ben) => {
-                              const beneficiary = users.find(
-                                (x) => x.id === ben.id,
-                              );
-                              return (
-                                <p
-                                  key={ben.id}
-                                  className="font-semibold capitalize"
-                                >{`${beneficiary?.firstName +
-                                  " " +
-                                  beneficiary?.lastName || ben.id
-                                  }`}</p>
-                              );
-                            })}
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-
-              {data?.type === "facilitation" && (
-                <div className="view-group">
-                  <div className="view-icon">
-                    <Users />
-                  </div>
-                  <div className="flex flex-col">
-                    <p className="view-group-title">{"Pour le compte de"}</p>
-                    {
-                      <div className="flex flex-col">
-                        <div className="flex flex-col">
-                          {request?.benFac?.list?.map((ben) => {
-                            return (
-                              <p
-                                key={ben.id}
-                                className="font-semibold capitalize"
-                              >{`${ben?.name} - ${XAF.format(ben?.amount)}`}</p>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    }
-                  </div>
-                </div>
-              )}
-
-              <div className="view-group">
-                <div className="view-icon">
-                  <FolderOpen />
-                </div>
-                <div className="flex flex-col">
-                  <p className="view-group-title">{"Montant"}</p>
-                  <p className="font-semibold text-primary-700">
-                    {formatMontant(data?.price || 0)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Justificatifs */}
-              {/* <Button
-                variant={"ghost"}
-                className="w-full h-fit px-0 flex flex-row items-center text-start justify-start gap-2"
-                disabled={!data?.proof}
-                onClick={() => {
-                  setPage(2);
-                  setFile(data?.proof);
-                }}
-              >
-                <span className="view-icon">
-                  <LucideFile />
-                </span>
-                <div className="flex flex-col">
-                  <p className="view-group-title">{"Justificatifs"}</p>
-                  <div className="flex gap-1.5 items-center">
-                    {data?.proof ? (
-                      <>
-                        <img
-                          src="/images/pdf.png"
-                          alt="justificatif"
-                          className="h-8 w-auto aspect-square"
-                        />
-                        <p className="text-[#2F2F2F] text-[12px] font-medium">
-                          {data.proof
-                            ? "Document justificatif"
-                            : "Aucun justificatif"}
-                        </p>
-                      </>
-                    ) : (
-                      <p className="text-sm text-gray-500">
-                        {"Aucun justificatif"}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              </Button> */}
-              {/**Justificatif */}
-              <div className="view-group">
-                <span className="view-icon">
-                  <FileIcon />
-                </span>
-                <div className="flex flex-col">
-                  <p className="view-group-title">{"Justificatif"}</p>
-                  {!!data.justification ? (
-                    <Link
-                      href={`${process.env.NEXT_PUBLIC_API
-                        }/${data.justification}`}
-                      target="_blank"
-                      className="flex gap-0.5 items-center"
-                    >
-                      <img
-                        src="/images/pdf.png"
-                        alt="justificatif"
-                        className="h-7 w-auto aspect-square"
-                      />
-                      <p className="text-foreground font-medium">
-                        {data.justification
-                          ? "Document justificatif"
-                          : "Aucun justificatif"}
-                      </p>
-                    </Link>
-                  ) : !!data.proof ? (
-                    <Link
-                      href={`${process.env.NEXT_PUBLIC_API}/${data.proof}`}
-                      target="_blank"
-                      className="flex gap-0.5 items-center"
-                    >
-                      <img
-                        src="/images/pdf.png"
-                        alt="justificatif"
-                        className="h-7 w-auto aspect-square"
-                      />
-                      <p className="text-foreground font-medium">
-                        {data.proof
-                          ? "Document justificatif"
-                          : "Aucun justificatif"}
-                      </p>
-                    </Link>
-                  ) : (
-                    <p className="italic">{"Aucun justificatif"}</p>
                   )}
-                </div>
-              </div>
 
-              {/* Fournisseur */}
-              {data?.type === "achat" && (
-                <div className="view-group">
-                  <span className="view-icon">
-                    <Building />
-                  </span>
-                  <div className="flex flex-col">
-                    <p className="view-group-title">{"Fournisseur"}</p>
-                    <p className="font-semibold">
-                      {invoice?.command.provider.name ?? "N/A"}
-                    </p>
+                  <div className="view-group">
+                    <div className="view-icon">
+                      <FolderOpen />
+                    </div>
+                    <div className="flex flex-col">
+                      <p className="view-group-title">{"Montant"}</p>
+                      <p className="font-semibold text-primary-700">
+                        {formatMontant(data?.price || 0)}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              )}
-
-              {/* Bon de commande */}
-              {data?.type === "achat" && (
-                <div className="view-group">
-                  <span className="view-icon">
-                    <Receipt />
-                  </span>
-                  <div className="flex flex-col">
-                    <p className="view-group-title">{"Bon de commande"}</p>
-                    <p className="font-semibold">
-                      {invoice?.command.reference ?? "N/A"}
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              {/* Moyen de paiement */}
-              {data?.type === "achat" && (
-                <div className="view-group">
-                  <span className="view-icon">
-                    <CreditCard />
-                  </span>
-                  <div className="flex flex-col">
-                    <p className="view-group-title">{"Moyen de paiement"}</p>
-                    <p className="font-semibold">
-                      {translateMoyenPaiement(
-                        types.find((p) => p.id === data.methodId)?.label ||
-                        "N/A",
+                  {/**Justificatif */}
+                  <div className="view-group">
+                    <span className="view-icon">
+                      <FileIcon />
+                    </span>
+                    <div className="flex flex-col">
+                      <p className="view-group-title">{"Justificatif"}</p>
+                      {!!data?.justification ? (
+                        <Link
+                          href={`${
+                            process.env.NEXT_PUBLIC_API
+                          }/${data.justification}`}
+                          target="_blank"
+                          className="flex gap-0.5 items-center"
+                        >
+                          <img
+                            src="/images/pdf.png"
+                            alt="justificatif"
+                            className="h-7 w-auto aspect-square"
+                          />
+                          <p className="text-foreground font-medium">
+                            {data.justification
+                              ? "Document justificatif"
+                              : "Aucun justificatif"}
+                          </p>
+                        </Link>
+                      ) : !!data?.proof ? (
+                        <Link
+                          href={`${process.env.NEXT_PUBLIC_API}/${data.proof}`}
+                          target="_blank"
+                          className="flex gap-0.5 items-center"
+                        >
+                          <img
+                            src="/images/pdf.png"
+                            alt="justificatif"
+                            className="h-7 w-auto aspect-square"
+                          />
+                          <p className="text-foreground font-medium">
+                            {data.proof
+                              ? "Document justificatif"
+                              : "Aucun justificatif"}
+                          </p>
+                        </Link>
+                      ) : (
+                        <p className="italic">{"Aucun justificatif"}</p>
                       )}
-                    </p>
+                    </div>
                   </div>
-                </div>
-              )}
 
-              {/* Compte Payeur */}
-              {/* <div className="flex items-start gap-3">
+                  {/* Fournisseur */}
+                  {data?.type === "achat" && (
+                    <div className="view-group">
+                      <span className="view-icon">
+                        <Building />
+                      </span>
+                      <div className="flex flex-col">
+                        <p className="view-group-title">{"Fournisseur"}</p>
+                        <p className="font-semibold">
+                          {invoice?.command.provider.name ?? "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Bon de commande */}
+                  {data?.type === "achat" && (
+                    <div className="view-group">
+                      <span className="view-icon">
+                        <Receipt />
+                      </span>
+                      <div className="flex flex-col">
+                        <p className="view-group-title">{"Bon de commande"}</p>
+                        <p className="font-semibold">
+                          {invoice?.command.reference ?? "N/A"}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Moyen de paiement */}
+                  {data?.type === "achat" && (
+                    <div className="view-group">
+                      <span className="view-icon">
+                        <CreditCard />
+                      </span>
+                      <div className="flex flex-col">
+                        <p className="view-group-title">
+                          {"Moyen de paiement"}
+                        </p>
+                        <p className="font-semibold">
+                          {translateMoyenPaiement(
+                            types.find((p) => p.id === data.methodId)?.label ||
+                              "N/A",
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Compte Payeur */}
+                  {/* <div className="flex items-start gap-3">
               <div className="mt-1">
                 <FolderTree className="h-5 w-5 text-muted-foreground" />
               </div>
@@ -519,140 +511,137 @@ export function DetailTicket({
               </div>
             </div> */}
 
-              {/* Statut */}
-              <div className="view-group">
-                <span className="view-icon">
-                  <AlertCircle />
-                </span>
-                <div className="flex flex-col">
-                  <p className="view-group-title">{"Statut"}</p>
-                  <Badge className={getStateColor(data?.status)}>
-                    {translateState(data?.status)}
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Priorité */}
-              <div className="view-group">
-                <span className="view-icon">
-                  <ChevronsUp />
-                </span>
-                <div className="flex flex-col">
-                  <p className="view-group-title">{"Priorité"}</p>
-                  <Badge className={getPrioriteColor(data?.priority)}>
-                    {translatePriorite(data?.priority)}
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Date limite de paiement */}
-              <div className="view-group">
-                <span className="view-icon">
-                  <Calendar />
-                </span>
-                <div className="flex flex-col">
-                  <p className="view-group-title">
-                    {"Date limite de paiement"}
-                  </p>
-                  <p className="font-semibold">
-                    {data?.createdAt
-                      ? format(new Date(data.deadline), "PPP", { locale: fr })
-                      : "N/A"}
-                  </p>
-                </div>
-              </div>
-
-              {/**Besoin associé */}
-              {!!data.requestId && (
-                <>
+                  {/* Statut */}
                   <div className="view-group">
                     <span className="view-icon">
-                      <ScrollIcon />
+                      <AlertCircle />
                     </span>
                     <div className="flex flex-col">
-                      <p className="view-group-title">{"Besoin associé"}</p>
-                      <p className="font-semibold">{request?.label}</p>
+                      <p className="view-group-title">{"Statut"}</p>
+                      <Badge className={getStateColor(data?.status)}>
+                        {translateState(data?.status)}
+                      </Badge>
                     </div>
                   </div>
+
+                  {/* Priorité */}
                   <div className="view-group">
                     <span className="view-icon">
-                      <UserRoundIcon />
+                      <ChevronsUp />
                     </span>
                     <div className="flex flex-col">
-                      <p className="view-group-title">{"Emetteur du besoin"}</p>
+                      <p className="view-group-title">{"Priorité"}</p>
+                      <Badge className={getPrioriteColor(data?.priority)}>
+                        {translatePriorite(data?.priority)}
+                      </Badge>
+                    </div>
+                  </div>
+
+                  {/* Date limite de paiement */}
+                  <div className="view-group">
+                    <span className="view-icon">
+                      <Calendar />
+                    </span>
+                    <div className="flex flex-col">
+                      <p className="view-group-title">
+                        {"Date limite de paiement"}
+                      </p>
                       <p className="font-semibold">
-                        {emitter?.firstName.concat(" ", emitter.lastName)}
+                        {data?.createdAt
+                          ? format(new Date(data.deadline), "PPP", {
+                              locale: fr,
+                            })
+                          : "N/A"}
                       </p>
                     </div>
                   </div>
-                </>
-              )}
 
-              {/* Date de création */}
-              <div className="view-group">
-                <span className="view-icon">
-                  <Calendar />
-                </span>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    {"Créé le"}
-                  </p>
-                  <p className="font-semibold">
-                    {data?.createdAt
-                      ? format(
-                        new Date(data.createdAt),
-                        "dd MMMM yyyy à kk:mm",
-                        { locale: fr },
-                      )
-                      : "N/A"}
-                  </p>
+                  {/**Besoin associé */}
+                  {!!data?.requestId && (
+                    <>
+                      <div className="view-group">
+                        <span className="view-icon">
+                          <ScrollIcon />
+                        </span>
+                        <div className="flex flex-col">
+                          <p className="view-group-title">{"Besoin associé"}</p>
+                          <p className="font-semibold">{request?.label}</p>
+                        </div>
+                      </div>
+                      <div className="view-group">
+                        <span className="view-icon">
+                          <UserRoundIcon />
+                        </span>
+                        <div className="flex flex-col">
+                          <p className="view-group-title">
+                            {"Emetteur du besoin"}
+                          </p>
+                          <p className="font-semibold">
+                            {emitter?.firstName.concat(" ", emitter.lastName)}
+                          </p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+
+                  {/* Date de création */}
+                  <div className="view-group">
+                    <span className="view-icon">
+                      <Calendar />
+                    </span>
+                    <div className="flex-1">
+                      <p className="text-sm text-muted-foreground mb-1">
+                        {"Créé le"}
+                      </p>
+                      <p className="font-semibold">
+                        {data?.createdAt
+                          ? format(
+                              new Date(data.createdAt),
+                              "dd MMMM yyyy à kk:mm",
+                              { locale: fr },
+                            )
+                          : "N/A"}
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Date de modification */}
+                  <div className="view-group">
+                    <span className="view-icon">
+                      <Calendar />
+                    </span>
+                    <div className="flex flex-col">
+                      <p className="view-group-title">{"Modifié le"}</p>
+                      <p className="font-semibold">
+                        {data?.updatedAt
+                          ? format(
+                              new Date(data.updatedAt),
+                              "dd MMMM yyyy à kk:mm",
+                              { locale: fr },
+                            )
+                          : "N/A"}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
+            ) : (
+              <ShowFile
+                file={file}
+                setPage={setPage}
+                title={`Justificatif du ticket ${data?.title}`}
+              />
+            )}
 
-              {/* Date de modification */}
-              <div className="view-group">
-                <span className="view-icon">
-                  <Calendar />
-                </span>
-                <div className="flex flex-col">
-                  <p className="view-group-title">{"Modifié le"}</p>
-                  <p className="font-semibold">
-                    {data?.updatedAt
-                      ? format(
-                        new Date(data.updatedAt),
-                        "dd MMMM yyyy à kk:mm",
-                        { locale: fr },
-                      )
-                      : "N/A"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <ShowFile
-            file={file}
-            setPage={setPage}
-            title={`Justificatif du ticket ${data?.title}`}
-          />
+            {/* Boutons du footer - FIXE */}
+            <DialogFooter>
+              {page === 2 && file && <DownloadFile file={file} />}
+              <DialogClose asChild>
+                <Button variant="outline">{"Fermer"}</Button>
+              </DialogClose>
+            </DialogFooter>
+          </>
         )}
-
-        {/* Boutons du footer - FIXE */}
-        <DialogFooter>
-          {page === 2 && file && <DownloadFile file={file} />}
-          {/* {user?.role.flatMap((x) => x.label).includes("VOLT") && (
-            <Button
-              onClick={action}
-              className="bg-[#003D82] hover:bg-[#002D62] text-white"
-              disabled={!data || data.status === "paid"}
-            >
-              {data?.status === "paid" ? "Déjà payé" : "Payer"}
-            </Button>
-          )} */}
-          <DialogClose asChild>
-            <Button variant="outline">{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

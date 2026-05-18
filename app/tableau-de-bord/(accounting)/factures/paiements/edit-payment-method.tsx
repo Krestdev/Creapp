@@ -26,6 +26,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { queryKeys } from "@/lib/query-keys";
 import { useStore } from "@/providers/datastore";
 import { paymentQ, UpdatePayment } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
@@ -42,7 +43,6 @@ interface Props {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   payment: PaymentRequest;
-  invoices: Array<Invoice>;
 }
 
 const formSchema = z.object({
@@ -60,7 +60,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function EditPaymentMethod({ open, openChange, payment, invoices }: Props) {
+function EditPaymentMethod({ open, openChange, payment }: Props) {
   const { user } = useStore();
 
   const [dueDate, setDueDate] = React.useState<boolean>(false);
@@ -92,12 +92,12 @@ function EditPaymentMethod({ open, openChange, payment, invoices }: Props) {
   });
 
   const getPaymentType = useQuery({
-    queryKey: ["paymentType"],
+    queryKey: queryKeys.paymentTypes,
     queryFn: payTypeQ.getAll,
   });
 
   function onSubmit(values: FormValues) {
-    const invoice = invoices.find((p) => p.id === payment.invoiceId);
+    const invoice = payment.facture;
 
     const payload: Partial<UpdatePayment> = {
       methodId: Number(values.methodId),

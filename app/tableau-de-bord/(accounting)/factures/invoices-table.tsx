@@ -23,6 +23,7 @@ import {
 import * as React from "react";
 
 import { Pagination } from "@/components//base/pagination";
+import { SearchableSelect } from "@/components/base/searchableSelect";
 import { badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -70,13 +71,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { subText, XAF } from "@/lib/utils";
+import { XAF, subText } from "@/lib/utils";
 import {
   BonsCommande,
   DateFilter,
   INVOICE_STATUS,
   Invoice,
-  PaymentRequest,
   Provider,
   User,
 } from "@/types/types";
@@ -84,17 +84,15 @@ import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import Link from "next/link";
 import CancelInvoice from "./cancel-invoice";
+import EditInvoice from "./EditInvoice";
 import ViewInvoice from "./view-invoice";
 import ViewInvoicePayment from "./view-invoice-payment";
-import EditInvoice from "./EditInvoice";
-import { SearchableSelect } from "@/components/base/searchableSelect";
 
 interface Props {
   invoices: Array<Invoice>;
-  purchases: Array<BonsCommande>;
-  payments: Array<PaymentRequest>;
   providers: Array<Provider>;
   users: Array<User>;
+  purchases: Array<BonsCommande>;
 }
 
 export function getInvoiceStatusBadge(status: Invoice["status"]): {
@@ -129,10 +127,9 @@ function getProgress(invoice: Invoice): { progress: number; value: number } {
 
 export function InvoicesTable({
   invoices,
-  purchases,
-  payments,
   users,
   providers,
+  purchases,
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -325,8 +322,7 @@ export function InvoicesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchases.find((p) => p.id === value.commandId);
-        return <div>{purchase?.provider?.name ?? "Inconnu"}</div>;
+        return <div>{value.command.provider.name ?? "Inconnu"}</div>;
       },
     },
     {
@@ -344,7 +340,7 @@ export function InvoicesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const purchase = purchases.find((p) => p.id === value.commandId);
+        const purchase = value.command;
         return (
           <div>
             {subText({
@@ -954,21 +950,13 @@ export function InvoicesTable({
             invoice={selected}
             open={showPayments}
             openChange={setShowPayments}
-            purchases={purchases}
-            payments={payments}
           />
           <CancelInvoice
             invoice={selected}
             open={cancel}
             openChange={setCancel}
-            purchases={purchases}
           />
-          <EditInvoice
-            invoice={selected}
-            open={edit}
-            openChange={setEdit}
-            purchases={purchases}
-          />
+          <EditInvoice invoice={selected} open={edit} openChange={setEdit} />
         </>
       )}
     </div>

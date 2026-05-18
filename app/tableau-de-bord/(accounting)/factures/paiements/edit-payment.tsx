@@ -50,7 +50,6 @@ interface Props {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   payment: PaymentRequest;
-  invoices: Array<Invoice>;
 }
 
 const PAY_PRIORITY = PRIORITIES.map((m) => m.value) as [
@@ -83,7 +82,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function EditPayment({ open, openChange, payment, invoices }: Props) {
+function EditPayment({ open, openChange, payment }: Props) {
   const { user } = useStore();
 
   const [dueDate, setDueDate] = React.useState<boolean>(false);
@@ -117,12 +116,12 @@ function EditPayment({ open, openChange, payment, invoices }: Props) {
   });
 
   const getPaymentType = useQuery({
-    queryKey: ["paymentType"],
+    queryKey: ["paymentTypes"],
     queryFn: payTypeQ.getAll,
   });
 
   function onSubmit(values: FormValues) {
-    const invoice = invoices.find((p) => p.id === payment.invoiceId);
+    const invoice = payment.facture;
 
     if (!invoice) {
       toast.error("Facture invalide");
@@ -131,8 +130,7 @@ function EditPayment({ open, openChange, payment, invoices }: Props) {
     if (!values.isPartial && values.price !== invoice.amount) {
       toast.error("Montant incorrect !");
       return form.setError("price", {
-        message:
-          "Le montant doit être égale au montant total de la Facture",
+        message: "Le montant doit être égale au montant total de la Facture",
       });
     }
     if (

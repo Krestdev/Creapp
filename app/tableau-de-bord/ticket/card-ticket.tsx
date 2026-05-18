@@ -1,3 +1,5 @@
+import { DetailTicket } from "@/components/modals/detail-ticket";
+import { ModalWarning } from "@/components/modals/modal-warning";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,45 +16,25 @@ import {
   getPaymentTypeBadge,
   XAF,
 } from "@/lib/utils";
-import {
-  Invoice,
-  RequestModelT,
-  RequestType,
-  User,
-  PaymentRequest,
-} from "@/types/types";
+import { paymentQ, UpdatePayment } from "@/queries/payment";
+import { PaymentRequest, RequestType, User } from "@/types/types";
+import { useMutation } from "@tanstack/react-query";
 import { BanIcon, ChevronDown, Eye, LucideCheck } from "lucide-react";
 import React from "react";
-import RejectTicket from "./reject-ticket";
-import { DetailTicket } from "@/components/modals/detail-ticket";
-import { ModalWarning } from "@/components/modals/modal-warning";
-import { useMutation } from "@tanstack/react-query";
-import { paymentQ, UpdatePayment } from "@/queries/payment";
 import { toast } from "sonner";
+import RejectTicket from "./reject-ticket";
 
 interface Props {
   data: PaymentRequest;
   requestTypeData: RequestType[];
-  invoices: Array<Invoice>;
-  users: Array<User>;
-  requests: Array<RequestModelT>;
 }
 
-function CardTicket({
-  data,
-  requestTypeData,
-  requests,
-  invoices,
-  users,
-}: Props) {
+function CardTicket({ data, requestTypeData }: Props) {
   const [message, setMessage] = React.useState<string>("");
   const [openDetailModal, setOpenDetailModal] = React.useState(false);
   const [openRejectModal, setOpenRejectModal] = React.useState(false);
   const [openValidationModal, setOpenValidationModal] = React.useState(false);
   const [selectedTicket, setSelectedTicket] = React.useState<PaymentRequest>();
-  const [selectedInvoice, setSelectedInvoice] = React.useState<Invoice>();
-
-  const invoice = invoices.find((item) => item.id === Number(data.invoiceId));
 
   const validateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdatePayment }) => {
@@ -171,7 +153,6 @@ function CardTicket({
             <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
             <DropdownMenuItem
               onClick={() => {
-                setSelectedInvoice(invoice);
                 setSelectedTicket(data);
                 setOpenDetailModal(true);
               }}
@@ -223,11 +204,8 @@ function CardTicket({
         <DetailTicket
           open={openDetailModal}
           onOpenChange={setOpenDetailModal}
-          data={selectedTicket}
-          invoice={selectedInvoice}
-          users={users}
+          id={selectedTicket.id}
           types={requestTypeData}
-          requests={requests}
         />
       )}
 
@@ -261,7 +239,6 @@ function CardTicket({
           payment={selectedTicket}
           open={openRejectModal}
           openChange={setOpenRejectModal}
-          invoices={invoices}
         />
       )}
     </div>

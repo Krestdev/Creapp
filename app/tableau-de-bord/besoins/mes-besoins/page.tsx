@@ -14,15 +14,15 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -31,20 +31,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
 import { paymentQ } from "@/queries/payment";
 import { projectQ } from "@/queries/projectModule";
+import { purchaseQ } from "@/queries/purchase-order";
+import { receptionQ } from "@/queries/reception";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { DateFilter, REQUEST_STATUS } from "@/types/types";
@@ -53,8 +46,7 @@ import { format } from "date-fns";
 import { ChevronDown, Settings2 } from "lucide-react";
 import React from "react";
 import { TableMyRequests } from "./table-my-requests";
-import { receptionQ } from "@/queries/reception";
-import { purchaseQ } from "@/queries/purchase-order";
+import { queryKeys } from "@/lib/query-keys";
 
 const Page = () => {
   const { user } = useStore();
@@ -75,51 +67,38 @@ const Page = () => {
 
   // Récupérer les besoins de l'utilisateur
   const { data, isSuccess, isLoading, isError, error } = useQuery({
-    queryKey: ["requests-user", user?.id],
-    queryFn: () => {
-      if (!user?.id) {
-        throw new Error("ID utilisateur non disponible");
-      }
-      return requestQ.getMine(user.id);
-    },
+    queryKey: queryKeys.requestsUser(user?.id),
+    queryFn: () => requestQ.getMine(user?.id!),
+    enabled: !!user?.id,
   });
 
   const categoryData = useQuery({
-    queryKey: ["categories"],
-    queryFn: async () => {
-      return categoryQ.getCategories();
-    },
+    queryKey: queryKeys.categories,
+    queryFn: categoryQ.getCategories,
   });
 
   const projectsData = useQuery({
-    queryKey: ["projects"],
-    queryFn: async () => {
-      return projectQ.getAll();
-    },
-  });
-
-  const paymentsData = useQuery({
-    queryKey: ["payments"],
-    queryFn: async () => paymentQ.getAll(),
+    queryKey: queryKeys.projects,
+    queryFn: projectQ.getAll,
   });
 
   const requestTypes = useQuery({
-    queryKey: ["requestType"],
+    queryKey: queryKeys.requestTypes,
     queryFn: requestTypeQ.getAll,
   });
 
   const getUsers = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
 
   const getReceptions = useQuery({
-    queryKey: ["receptions"],
+    queryKey: queryKeys.receptions,
     queryFn: receptionQ.getAll,
   });
 
   const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
+    queryKey: queryKeys.purchaseOrders,
     queryFn: purchaseQ.getAll,
   });
 
@@ -252,7 +231,6 @@ const Page = () => {
     categoryData.isLoading ||
     projectsData.isLoading ||
     requestTypes.isLoading ||
-    paymentsData.isLoading ||
     getUsers.isLoading ||
     getReceptions.isLoading ||
     getPurchases.isLoading
@@ -264,7 +242,6 @@ const Page = () => {
     categoryData.isError ||
     projectsData.isError ||
     requestTypes.isError ||
-    paymentsData.isError ||
     getUsers.isError ||
     getReceptions.isError ||
     getPurchases.isError
@@ -275,7 +252,6 @@ const Page = () => {
           error ||
           categoryData.error ||
           projectsData.error ||
-          paymentsData.error ||
           requestTypes.error ||
           getUsers.error ||
           getReceptions.error ||
@@ -289,7 +265,6 @@ const Page = () => {
     isSuccess &&
     categoryData.isSuccess &&
     projectsData.isSuccess &&
-    paymentsData.isSuccess &&
     requestTypes.isSuccess &&
     getUsers.isSuccess &&
     getReceptions.isSuccess &&
@@ -778,7 +753,6 @@ const Page = () => {
           data={filteredData}
           categories={categoryData.data.data}
           projects={projectsData.data.data}
-          payments={paymentsData.data.data}
           requestTypes={requestTypes.data.data}
           users={getUsers.data.data}
           receptions={getReceptions.data.data}

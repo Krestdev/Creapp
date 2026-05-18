@@ -63,7 +63,6 @@ import {
 import {
   BonsCommande,
   CommandRequestT,
-  PURCHASE_ORDER_STATUS,
   Quotation,
   Reception,
   RECEPTION_STATUS,
@@ -595,7 +594,7 @@ export function ReceptionTable({ data, devis, cmdReqst, purchases }: Props) {
           {table.getFilteredRowModel().rows.length} ligne(s) sélectionnée(s)
         </div>
 
-        {table.getPageCount() > 1 && <Pagination table={table} pageSize={15} />}
+        {table.getPageCount() > 1 && <Pagination table={table} />}
       </div>
       {selectedValue && (
         <ViewReception

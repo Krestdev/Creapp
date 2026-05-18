@@ -58,7 +58,7 @@ export default function CreateSignatairForm() {
   });
 
   const paytypeData = useQuery({
-    queryKey: ["payementType"],
+    queryKey: ["paymentTypes"],
     queryFn: () => payTypeQ.getAll(),
   });
 

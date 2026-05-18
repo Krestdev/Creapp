@@ -1,5 +1,6 @@
 "use client";
 import FilesUpload from "@/components/comp-547";
+import { queryKeys } from "@/lib/query-keys";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -41,8 +42,8 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 function SignExpense({ ticket, open, onOpenChange }: Props) {
-
-  const { user } = useStore()
+  const { user } = useStore();
+  const queryClient = useQueryClient();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,6 +59,9 @@ function SignExpense({ ticket, open, onOpenChange }: Props) {
     }) => paymentQ.validate(payload),
     onSuccess: () => {
       toast.success("Votre signature a été enregistrée avec succès !");
+      queryClient.invalidateQueries({ queryKey: queryKeys.signatureRequests() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.signatureRequestsStats() });
+      queryClient.invalidateQueries({ queryKey: queryKeys.paymentsToSignCount });
       onOpenChange(false);
     },
     onError: (error: Error) => {

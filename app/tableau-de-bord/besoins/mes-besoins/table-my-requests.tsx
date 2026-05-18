@@ -23,7 +23,6 @@ import {
   Eye,
   LucideBan,
   LucidePen,
-  Paperclip,
   XCircle,
 } from "lucide-react";
 import * as React from "react";
@@ -31,6 +30,8 @@ import * as React from "react";
 import Empty from "@/components/base/empty";
 import { Pagination } from "@/components/base/pagination";
 import { DetailBesoin } from "@/components/besoin/detail-besoin";
+import EditTypeOthers from "@/components/besoin/EditTypeOthers";
+import EditTypeSettle from "@/components/besoin/EditTypeSettle";
 import UpdateRequest from "@/components/besoin/UpdateRequest";
 import UpdateRequestFac from "@/components/besoin/UpdateRequestFac";
 import UpdateRHRequest from "@/components/besoin/UpdateRequestRH";
@@ -60,7 +61,6 @@ import { requestQ } from "@/queries/requestModule";
 import {
   BonsCommande,
   Category,
-  PaymentRequest,
   ProjectT,
   Reception,
   RequestModelT,
@@ -71,8 +71,6 @@ import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
-import EditTypeOthers from "@/components/besoin/EditTypeOthers";
-import EditTypeSettle from "@/components/besoin/EditTypeSettle";
 
 const statusConfig = {
   pending: {
@@ -117,7 +115,6 @@ interface Props {
   data: Array<RequestModelT>;
   categories: Array<Category>;
   projects: Array<ProjectT>;
-  payments: Array<PaymentRequest>;
   requestTypes: Array<RequestType>;
   users: Array<User>;
   receptions: Array<Reception>;
@@ -128,7 +125,6 @@ export function TableMyRequests({
   data,
   categories,
   projects,
-  payments,
   requestTypes,
   users,
   receptions,
@@ -392,10 +388,6 @@ export function TableMyRequests({
       header: () => <span className="tablehead">{"Actions"}</span>,
       cell: ({ row }) => {
         const item = row.original;
-        const paiement = payments.find((x) => x.requestId === item?.id);
-        const isAttach =
-          (item.type === "facilitation" || item.type === "ressource_humaine") &&
-          paiement?.proof !== null;
 
         return (
           <div className="flex items-center gap-2">
@@ -454,7 +446,6 @@ export function TableMyRequests({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
-            {isAttach ? <Paperclip size={16} /> : ""}
           </div>
         );
       },
@@ -628,9 +619,7 @@ export function TableMyRequests({
       )}
 
       {/* Pagination */}
-      {table.getRowModel().rows?.length > 0 && (
-        <Pagination table={table} pageSize={15} />
-      )}
+      {table.getRowModel().rows?.length > 0 && <Pagination table={table} />}
 
       {/* Modals existants */}
       {selectedItem && (
@@ -641,7 +630,6 @@ export function TableMyRequests({
             data={selectedItem}
             users={users}
             projects={projects}
-            payments={payments}
             receptions={receptions}
             purchaseOrders={purchaseOrders}
           />
@@ -658,7 +646,6 @@ export function TableMyRequests({
             requestData={selectedItem}
             users={users.filter((u) => !!u.verified && u.verified === true)}
             projects={projects}
-            payments={payments}
           />
           <UpdateRHRequest
             open={isUpdateRHModalOpen}

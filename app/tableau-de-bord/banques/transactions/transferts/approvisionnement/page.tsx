@@ -19,7 +19,7 @@ function Page() {
 
   const getPayments = useQuery({
     queryKey: ["payments"],
-    queryFn: paymentQ.getAll,
+    queryFn: () => paymentQ.getAll(),
   });
 
   const filteredBanks = React.useMemo(() => {

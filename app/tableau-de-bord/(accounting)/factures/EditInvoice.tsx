@@ -30,7 +30,6 @@ interface Props {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   invoice: Invoice;
-  purchases: Array<BonsCommande>;
 }
 
 const formSchema = z.object({
@@ -39,7 +38,7 @@ const formSchema = z.object({
     .min(5, { message: "Le titre doit comporter au moins 5 caractères" }),
 });
 
-function CancelInvoice({ open, openChange, invoice, purchases }: Props) {
+function EditInvoice({ open, openChange, invoice }: Props) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -124,8 +123,7 @@ function CancelInvoice({ open, openChange, invoice, purchases }: Props) {
                 <div className="flex justify-between">
                   <span className="text-gray-500">Bon de commande :</span>
                   <span className="font-medium">
-                    {purchases.find((p) => p.id === invoice.commandId)?.devi
-                      .commandRequest.title || "N/A"}
+                    {invoice.command.devi.commandRequest.title || "N/A"}
                   </span>
                 </div>
                 <div className="flex justify-between">
@@ -136,7 +134,9 @@ function CancelInvoice({ open, openChange, invoice, purchases }: Props) {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Statut :</span>
-                  <span className="font-medium capitalize">{invoice.status}</span>
+                  <span className="font-medium capitalize">
+                    {invoice.status}
+                  </span>
                 </div>
               </div>
             </div>
@@ -148,7 +148,9 @@ function CancelInvoice({ open, openChange, invoice, purchases }: Props) {
                 disabled={updateInvoice.isPending}
                 isLoading={updateInvoice.isPending}
               >
-                {updateInvoice.isPending ? "Modification..." : "Modifier le titre"}
+                {updateInvoice.isPending
+                  ? "Modification..."
+                  : "Modifier le titre"}
               </Button>
               <Button
                 type="button"
@@ -169,4 +171,4 @@ function CancelInvoice({ open, openChange, invoice, purchases }: Props) {
   );
 }
 
-export default CancelInvoice;
+export default EditInvoice;

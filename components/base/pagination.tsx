@@ -7,26 +7,18 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import React from "react";
 
 interface PaginationProps<TData> {
   table: Table<TData>;
-  pageSize?: number;
-  pageSizeOptions?: number[];
   showPageInfo?: boolean;
   className?: string;
 }
 
 export function Pagination<TData>({
   table,
-  pageSize = 15, // Valeur par défaut à 15
   showPageInfo = true,
   className = "",
 }: PaginationProps<TData>) {
-  // Initialiser la taille de page au montage
-  React.useEffect(() => {
-    table.setPageSize(pageSize);
-  }, [pageSize, table]);
 
   return (
     <div className={`flex items-center justify-end px-2 py-4 gap-2 ${className}`}>

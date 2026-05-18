@@ -46,6 +46,18 @@ export default function SocketProvider({
         queryKey: ["payments"],
         refetchType: "active",
       });
+      queryClient.invalidateQueries({
+        queryKey: ["volt-pending-count"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["pending-depense-count"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["payments-to-sign-count"],
+        refetchType: "active",
+      });
     });
 
     socket.on("payment:update", () => {
@@ -53,11 +65,35 @@ export default function SocketProvider({
         queryKey: ["payments"],
         refetchType: "active",
       });
+      queryClient.invalidateQueries({
+        queryKey: ["volt-pending-count"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["pending-depense-count"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["payments-to-sign-count"],
+        refetchType: "active",
+      });
     });
 
     socket.on("payment:delete", () => {
       queryClient.invalidateQueries({
         queryKey: ["payments"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["volt-pending-count"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["pending-depense-count"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["payments-to-sign-count"],
         refetchType: "active",
       });
     });
@@ -102,6 +138,14 @@ export default function SocketProvider({
         refetchType: "active",
       });
       queryClient.invalidateQueries({
+        queryKey: ["pending-request-approvals-count"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["service-requests-count"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
         queryKey: ["requests", user?.id],
         refetchType: "active",
       });
@@ -135,6 +179,14 @@ export default function SocketProvider({
         queryKey: ["payments"],
         refetchType: "active",
       });
+      queryClient.invalidateQueries({
+        queryKey: ["pending-approvals-transactions-count"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["pending-to-sign-transfers-count"],
+        refetchType: "active",
+      });
     });
 
     socket.on("transaction:update", () => {
@@ -146,11 +198,31 @@ export default function SocketProvider({
         queryKey: ["payments"],
         refetchType: "active",
       });
+      queryClient.invalidateQueries({
+        queryKey: ["pending-approvals-transactions-count"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["pending-to-sign-transfers-count"],
+        refetchType: "active",
+      });
     });
 
     socket.on("transaction:delete", () => {
       queryClient.invalidateQueries({
         queryKey: ["transactions"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["payments"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["pending-approvals-transactions-count"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["pending-to-sign-transfers-count"],
         refetchType: "active",
       });
     });
@@ -193,6 +265,10 @@ export default function SocketProvider({
         queryKey: ["purchaseOrders"],
         refetchType: "active",
       });
+      queryClient.invalidateQueries({
+        queryKey: ["purchaseOrders-pending-count"],
+        refetchType: "active",
+      });
     });
 
     socket.on("purchaseOrder:update", () => {
@@ -201,11 +277,19 @@ export default function SocketProvider({
         queryKey: ["purchaseOrders"],
         refetchType: "active",
       });
+      queryClient.invalidateQueries({
+        queryKey: ["purchaseOrders-pending-count"],
+        refetchType: "active",
+      });
     });
 
     socket.on("purchaseOrder:delete", () => {
       queryClient.invalidateQueries({
         queryKey: ["purchaseOrders"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["purchaseOrders-pending-count"],
         refetchType: "active",
       });
     });
@@ -252,7 +336,15 @@ export default function SocketProvider({
         refetchType: "active",
       });
       queryClient.invalidateQueries({
+        queryKey: ["pending-commandRequests-count"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
         queryKey: ["commands"],
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["quotation-to-assign-count"],
         refetchType: "active",
       });
     });
@@ -280,10 +372,6 @@ export default function SocketProvider({
         queryKey: ["providers"],
         refetchType: "active",
       });
-      queryClient.invalidateQueries({
-        queryKey: ["providersList"],
-        refetchType: "active",
-      });
     });
 
     socket.on("provider:delete", () => {
@@ -309,10 +397,6 @@ export default function SocketProvider({
         queryKey: ["projects"],
         refetchType: "active",
       });
-      queryClient.invalidateQueries({
-        queryKey: ["projectsList"],
-        refetchType: "active",
-      });
     });
 
     socket.on("project:delete", () => {
@@ -328,22 +412,21 @@ export default function SocketProvider({
 
     socket.on("category:new", () => {
       queryClient.invalidateQueries({
-        queryKey: ["categoryList"],
+        queryKey: ["categories"],
         refetchType: "active",
       });
     });
 
     socket.on("category:update", () => {
       queryClient.invalidateQueries({
-        queryKey: ["categoryList"],
+        queryKey: ["categories"],
         refetchType: "active",
       });
-      queryClient.invalidateQueries({ queryKey: ["categoryies"] });
     });
 
     socket.on("category:delete", () => {
       queryClient.invalidateQueries({
-        queryKey: ["categoryList"],
+        queryKey: ["categories"],
         refetchType: "active",
       });
     });
@@ -354,33 +437,21 @@ export default function SocketProvider({
 
     socket.on("signatair:new", () => {
       queryClient.invalidateQueries({
-        queryKey: ["signatairs"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["SignatairList"],
+        queryKey: ["signataires"],
         refetchType: "active",
       });
     });
 
     socket.on("signatair:update", () => {
       queryClient.invalidateQueries({
-        queryKey: ["signatairs"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["SignatairList"],
+        queryKey: ["signataires"],
         refetchType: "active",
       });
     });
 
     socket.on("signatair:delete", () => {
       queryClient.invalidateQueries({
-        queryKey: ["signatairs"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["SignatairList"],
+        queryKey: ["signataires"],
         refetchType: "active",
       });
     });

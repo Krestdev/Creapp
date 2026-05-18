@@ -11,30 +11,12 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  AlertCircle,
-  ArrowUpDown,
-  Ban,
-  CheckCircle,
-  ChevronDown,
-  Clock,
-  Coins,
-  Eye,
-  PenTool,
-  Settings2Icon,
-  XCircle,
-} from "lucide-react";
+import { ArrowUpDown, ChevronDown, Eye, PenTool } from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -43,23 +25,6 @@ import {
   DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -69,27 +34,16 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, getPaymentTypeBadge, XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
 import {
-  Bank,
-  BonsCommande,
-  DateFilter,
-  Invoice,
   PAY_STATUS,
-  PAYMENT_TYPES,
   PaymentRequest,
   PayType,
   PRIORITIES,
   ProjectT,
-  RequestModelT,
   RequestType,
-  Signatair,
-  Transaction,
   User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
-import { format } from "date-fns";
-import { useMemo } from "react";
 import ViewExpense from "../../(volt)/depenses/view-expense";
 import SignExpense from "./sign-expense";
 
@@ -113,53 +67,17 @@ const priorityConfig = {
   },
 };
 
-// Configuration des statuts (gardé pour les badges si besoin)
-const statusConfig = {
-  pending: {
-    label: "Pending",
-    icon: Clock,
-    badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600",
-  },
-  validated: {
-    label: "Validated",
-    icon: CheckCircle,
-    badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
-  },
-  rejected: {
-    label: "Rejected",
-    icon: XCircle,
-    badgeClassName: "bg-red-200 text-red-500 outline outline-red-600",
-  },
-  paid: {
-    label: "paid",
-    icon: Coins,
-    badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
-  },
-  pending_depense: {
-    label: "en attente",
-    icon: AlertCircle,
-    badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600 ",
-  },
-  cancel: {
-    label: "ghost",
-    icon: Ban,
-    badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
-  },
-};
-
 interface Props {
   payments: Array<PaymentRequest>;
-  invoices: Array<Invoice>;
-  type: "pending" | "validated";
-  banks: Array<Bank>;
   requestTypes: Array<RequestType>;
-  signatair: Array<Signatair>;
   payType: Array<PayType>;
-  transactions: Array<Transaction>;
   users: Array<User>;
   projects: Array<ProjectT>;
-  requests: Array<RequestModelT>;
-  purchases: Array<BonsCommande>;
+  pagination: { pageIndex: number; pageSize: number };
+  paginationOptions: {
+    onPaginationChange: (updater: any) => void;
+    rowCount: number;
+  };
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -220,82 +138,13 @@ function getStatusBadge(status: PaymentRequest["status"]): {
 
 function ExpensesTableSign({
   payments,
-  invoices,
-  type,
-  banks,
   requestTypes,
-  signatair,
   payType,
-  transactions,
   users,
   projects,
-  requests,
-  purchases,
+  pagination,
+  paginationOptions,
 }: Props) {
-  const { user } = useStore();
-  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
-  const [searchFilter, setSearchFilter] = React.useState<string>("");
-  const [amountFilter, setAmountFilter] = React.useState<number>(0);
-  const [bankFilter, setBankFilter] = React.useState<string>("all");
-  const [typeFilter, setTypeFilter] = React.useState<
-    "all" | PaymentRequest["type"]
-  >("all");
-  const [amountTypeFilter, setAmountTypeFilter] = React.useState<
-    "greater" | "inferior" | "equal"
-  >("greater");
-  const [customDateRange, setCustomDateRange] = React.useState<
-    { from: Date; to: Date } | undefined
-  >();
-  const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
-
-  // Réinitialiser tous les filtres
-  const resetAllFilters = () => {
-    setDateFilter(undefined);
-    if (setCustomDateRange) {
-      setCustomDateRange(undefined);
-    }
-    setAmountFilter(0);
-    setAmountTypeFilter("greater");
-    setGlobalFilter("");
-    setSearchFilter("");
-    setTypeFilter("all");
-    setBankFilter("all");
-  };
-
-  // OPTIMISATION: Pré-calculer les autorisations avec useMemo
-  const authorizedPayments = useMemo(() => {
-    if (!user || !signatair.length) {
-      return [];
-    }
-
-    const currentUserId = user.id;
-
-    // Créer une Map pour un accès rapide O(1)
-    const signerMap = new Map<string, boolean>();
-
-    signatair.forEach((signer) => {
-      const key = `${signer.bankId}_${signer.payTypeId}`;
-      const hasPermission =
-        signer.user?.some((u) => u.id === currentUserId) || false;
-      signerMap.set(key, hasPermission);
-    });
-
-    // Filtrer les paiements une seule fois
-    return payments.filter((payment) => {
-      const key = `${payment.bankId}_${payment.methodId}`;
-      return signerMap.get(key) || false;
-    });
-  }, [payments, signatair, user]);
-
-  // OPTIMISATION: Créer une Map pour les achats pour un accès rapide
-  const invoicesMap = useMemo(() => {
-    const map = new Map<number, Invoice>();
-    invoices.forEach((invoice) => {
-      map.set(invoice.id, invoice);
-    });
-    return map;
-  }, [invoices]);
-
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -315,396 +164,267 @@ function ExpensesTableSign({
   const [showDetail, setShowDetail] = React.useState<boolean>(false);
   const [showPay, setShowPay] = React.useState<boolean>(false);
 
-  // OPTIMISATION: Fonction canSign mémoïsée
-  const canSign = useMemo(() => {
-    if (!user || !signatair.length) {
-      return () => false;
-    }
+  const columns: ColumnDef<PaymentRequest>[] = [
+    {
+      accessorKey: "reference",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Référence"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("reference")}</div>
+      ),
+    },
+    {
+      accessorKey: "type",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Type"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const type = getPaymentTypeBadge({
+          type: value.type,
+          typeList: requestTypes,
+        });
+        return <Badge variant={type.variant}>{type.label}</Badge>;
+      },
+    },
+    {
+      accessorKey: "payType",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Type de document"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        return (
+          <div>
+            {payType.find((t) => t.id === value.methodId)?.label ?? "--"}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "bank",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Banque"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        return <div>{value.bank?.label ?? "--"}</div>;
+      },
+    },
+    {
+      accessorKey: "docNumber",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Numéro de document"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        return <div>{value.transaction?.docNumber ?? "--"}</div>;
+      },
+    },
+    {
+      id: "provider",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Fournisseur"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        return (
+          <div>{value.facture?.command.provider?.name ?? "Creaconsult"}</div>
+        );
+      },
+    },
+    {
+      accessorKey: "price",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Montant"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.getValue("price");
+        return <div className="font-medium">{XAF.format(Number(value))}</div>;
+      },
+    },
+    {
+      accessorKey: "priority",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead cursor-pointer"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Priorité"}
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const priority = getPriorityBadge(value.priority);
+        return <Badge variant={priority.variant}>{priority.label}</Badge>;
+      },
+      sortingFn: (rowA, rowB, columnId) => {
+        const priorityOrder = {
+          low: 1,
+          medium: 2,
+          high: 3,
+          urgent: 4,
+        };
 
-    const currentUserId = user.id;
-    const signerMap = new Map<string, boolean>();
+        const priorityA =
+          priorityOrder[
+            rowA.getValue(columnId) as keyof typeof priorityOrder
+          ] || 0;
+        const priorityB =
+          priorityOrder[
+            rowB.getValue(columnId) as keyof typeof priorityOrder
+          ] || 0;
 
-    signatair.forEach((signer) => {
-      const key = `${signer.bankId}_${signer.payTypeId}`;
-      const hasPermission =
-        signer.user?.some((u) => u.id === currentUserId) || false;
-      signerMap.set(key, hasPermission);
-    });
+        return priorityA - priorityB;
+      },
+      filterFn: (row, id, value) => {
+        return value === "" || value === "all" || row.getValue(id) === value;
+      },
+    },
+    {
+      accessorKey: "createdAt",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Date de création"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => (
+        <div className="font-medium">{row.getValue("createdAt")}</div>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Statut"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const status = getStatusBadge(value.status);
+        return <Badge variant={status.variant}>{status.label}</Badge>;
+      },
+      filterFn: (row, id, value) => {
+        return value.includes(row.getValue(id));
+      },
+    },
+    {
+      id: "actions",
+      header: () => <span className="tablehead">{"Actions"}</span>,
+      enableHiding: false,
+      cell: ({ row }) => {
+        const item = row.original;
 
-    return (bankId: number | null, methodId: number | null) => {
-      if (bankId == null || methodId == null) {
-        return false;
-      }
-      const key = `${bankId}_${methodId}`;
-      return signerMap.get(key) || false;
-    };
-  }, [signatair, user]);
-
-  const filteredData = React.useMemo(() => {
-    return authorizedPayments.filter((p) => {
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
-      const search = searchFilter.toLowerCase();
-      //Search Filter
-      const matchSearch =
-        search.trim() === ""
-          ? true
-          : p.id.toString().toLocaleLowerCase().includes(search) ||
-            p.account?.toLocaleLowerCase().includes(search) ||
-            p.price.toString().includes(search) ||
-            p.reference.toLocaleLowerCase().includes(search) ||
-            p.title.toLocaleLowerCase().includes(search);
-      // Filter amount
-      const matchAmount =
-        amountTypeFilter === "greater"
-          ? p.price >= amountFilter
-          : amountTypeFilter === "equal"
-            ? p.price === amountFilter
-            : p.price <= amountFilter;
-      // Bank Filter - selon le type de transaction
-      const matchBank =
-        bankFilter === "all" ? true : p.bankId?.toString() === bankFilter;
-      // TypeFilter
-      const matchType = typeFilter === "all" ? true : p.type === typeFilter;
-      // Filtre par date
-      let matchDate = true;
-      if (dateFilter) {
-        switch (dateFilter) {
-          case "today":
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "week":
-            startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-            );
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "month":
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          case "year":
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
-          case "custom":
-            if (customDateRange?.from && customDateRange?.to) {
-              startDate = customDateRange.from;
-              endDate = customDateRange.to;
-            }
-            break;
-        }
-
-        if (
-          dateFilter !== "custom" ||
-          (customDateRange?.from && customDateRange?.to)
-        ) {
-          matchDate =
-            new Date(p.createdAt) >= startDate &&
-            new Date(p.createdAt) <= endDate;
-        }
-      }
-      return matchSearch && matchDate && matchBank && matchType && matchAmount;
-    });
-  }, [
-    authorizedPayments,
-    searchFilter,
-    customDateRange,
-    dateFilter,
-    bankFilter,
-    typeFilter,
-    amountFilter,
-    amountTypeFilter,
-  ]);
-
-  const columns: ColumnDef<PaymentRequest>[] = React.useMemo(
-    () => [
-      {
-        accessorKey: "reference",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Référence"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("reference")}</div>
-        ),
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild className="w-fit">
+              <Button variant="ghost">
+                {"Actions"}
+                <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelected(item);
+                  setShowDetail(true);
+                }}
+              >
+                <Eye />
+                {"Voir"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                disabled={item.status !== "unsigned"}
+                onClick={() => {
+                  setSelected(item);
+                  setShowPay(true);
+                }}
+              >
+                <PenTool />
+                {"Signer"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
       },
-      {
-        accessorKey: "type",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Type"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original;
-          const type = getPaymentTypeBadge({
-            type: value.type,
-            typeList: requestTypes,
-          });
-          return <Badge variant={type.variant}>{type.label}</Badge>;
-        },
-      },
-      {
-        accessorKey: "payType",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Type de document"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original;
-          return (
-            <div>
-              {payType.find((t) => t.id === value.methodId)?.label ?? "--"}
-            </div>
-          );
-        },
-      },
-      {
-        accessorKey: "bank",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Banque"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original;
-          const bank =
-            banks.find((b) => b.id === value.bankId)?.label ?? "Non défini";
-          return <div>{bank}</div>;
-        },
-      },
-      {
-        accessorKey: "docNumber",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Numéro de document"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original;
-          const transaction = transactions.find(
-            (t) => t.id === value.transactionId,
-          );
-          return <div>{transaction?.docNumber ?? "--"}</div>;
-        },
-      },
-      {
-        id: "provider",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Fournisseur"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original;
-          const invoice = invoicesMap.get(value.invoiceId || -1);
-          return <div>{invoice?.command.provider?.name ?? "Creaconsult"}</div>;
-        },
-      },
-      {
-        accessorKey: "price",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Montant"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.getValue("price");
-          return <div className="font-medium">{XAF.format(Number(value))}</div>;
-        },
-      },
-      {
-        accessorKey: "priority",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead cursor-pointer"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Priorité"}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original;
-          const priority = getPriorityBadge(value.priority);
-          return <Badge variant={priority.variant}>{priority.label}</Badge>;
-        },
-        sortingFn: (rowA, rowB, columnId) => {
-          const priorityOrder = {
-            low: 1,
-            medium: 2,
-            high: 3,
-            urgent: 4,
-          };
-
-          const priorityA =
-            priorityOrder[
-              rowA.getValue(columnId) as keyof typeof priorityOrder
-            ] || 0;
-          const priorityB =
-            priorityOrder[
-              rowB.getValue(columnId) as keyof typeof priorityOrder
-            ] || 0;
-
-          return priorityA - priorityB;
-        },
-        filterFn: (row, id, value) => {
-          return value === "" || value === "all" || row.getValue(id) === value;
-        },
-      },
-      {
-        accessorKey: "createdAt",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Date de création"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("createdAt")}</div>
-        ),
-      },
-      {
-        accessorKey: "status",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Statut"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const value = row.original;
-          const status = getStatusBadge(value.status);
-          return <Badge variant={status.variant}>{status.label}</Badge>;
-        },
-        filterFn: (row, id, value) => {
-          return value.includes(row.getValue(id));
-        },
-      },
-      {
-        id: "actions",
-        header: () => <span className="tablehead">{"Actions"}</span>,
-        enableHiding: false,
-        cell: ({ row }) => {
-          const item = row.original;
-          const cansign = canSign(item.bankId ?? -1, item.methodId ?? -1);
-
-          return (
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild className="w-fit">
-                <Button variant="ghost">
-                  {"Actions"}
-                  <ChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelected(item);
-                    setShowDetail(true);
-                  }}
-                >
-                  <Eye />
-                  {"Voir"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  disabled={!(item.status === "unsigned" && cansign)}
-                  onClick={() => {
-                    setSelected(item);
-                    setShowPay(true);
-                  }}
-                >
-                  <PenTool />
-                  {"Signer"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          );
-        },
-      },
-    ],
-    [canSign, invoicesMap],
-  );
+    },
+  ];
 
   const table = useReactTable({
-    data: filteredData, // Utiliser les paiements pré-filtrés
+    data: payments,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -724,275 +444,21 @@ function ExpensesTableSign({
         return value?.toLowerCase().includes(searchValue);
       });
     },
+    manualPagination: true,
+    ...paginationOptions,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       globalFilter,
+      pagination,
     },
   });
 
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-wrap items-end gap-3">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant={"outline"}>
-                <Settings2Icon />
-                {"Filtres"}
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>{"Filtres"}</SheetTitle>
-                <SheetDescription>
-                  {"Configurer les fitres pour affiner les données"}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="px-5 grid gap-5">
-                {/**Global Filter (Search) */}
-                <div className="grid gap-1.5">
-                  <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-                  <Input
-                    name="search"
-                    type="search"
-                    id="searchCommand"
-                    placeholder="Référence, libellé"
-                    value={searchFilter}
-                    onChange={(event) => setSearchFilter(event.target.value)}
-                    className="max-w-sm"
-                  />
-                </div>
-                {/* Filter by type */}
-                <div className="grid gap-1.5">
-                  <Label>{"Type"}</Label>
-                  <Select
-                    value={typeFilter}
-                    onValueChange={(v) => setTypeFilter(v as typeof typeFilter)}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner un Type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      {PAYMENT_TYPES.map((type) => (
-                        <SelectItem key={type.value} value={type.value}>
-                          {type.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {/* Filter par Compte(Bank) */}
-                <div className="grid gap-1.5">
-                  <Label>{"Compte"}</Label>
-                  <Select value={bankFilter} onValueChange={setBankFilter}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner un Compte" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      {banks
-                        .filter((b) => !!b.type)
-                        .map((bank) => (
-                          <SelectItem key={bank.id} value={String(bank.id)}>
-                            {bank.label}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {/* Filter by amount */}
-                <div className="grid gap-1.5">
-                  <Label>{"Montant"}</Label>
-                  <Select
-                    value={amountTypeFilter}
-                    onValueChange={(v) =>
-                      setAmountTypeFilter(v as "greater" | "inferior" | "equal")
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner une période" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="greater">{"Supérieur"}</SelectItem>
-                      <SelectItem value="equal">{"Égal"}</SelectItem>
-                      <SelectItem value="inferior">{"Inférieur"}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-1.5">
-                  <Label>{"Montant"}</Label>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      placeholder="Ex. 250 000"
-                      value={amountFilter ?? 0}
-                      onChange={(e) => setAmountFilter(Number(e.target.value))}
-                      className="w-full pr-12"
-                    />
-                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                      {"FCFA"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Filter by Date */}
-                <div className="grid gap-1.5">
-                  <Label>{"Période"}</Label>
-                  <Select
-                    onValueChange={(v) => {
-                      if (v !== "custom") {
-                        setCustomDateRange(undefined);
-                        setCustomOpen(false);
-                      }
-                      if (v === "all") return setDateFilter(undefined);
-                      setDateFilter(v as Exclude<DateFilter, undefined>);
-                      setCustomOpen(v === "custom");
-                    }}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner une période" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">
-                        {"Toutes les périodes"}
-                      </SelectItem>
-                      <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
-                      <SelectItem value="week">{"Cette semaine"}</SelectItem>
-                      <SelectItem value="month">{"Ce mois"}</SelectItem>
-                      <SelectItem value="year">{"Cette année"}</SelectItem>
-                      <SelectItem value="custom">{"Personnalisé"}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Collapsible
-                    open={customOpen}
-                    onOpenChange={setCustomOpen}
-                    disabled={dateFilter !== "custom"}
-                  >
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        {"Plage personnalisée"}
-                        <span className="text-muted-foreground text-xs">
-                          {customDateRange?.from && customDateRange.to
-                            ? `${format(
-                                customDateRange.from,
-                                "dd/MM/yyyy",
-                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
-                            : "Choisir"}
-                        </span>
-                      </Button>
-                    </CollapsibleTrigger>
-
-                    <CollapsibleContent className="space-y-4 pt-4">
-                      <Calendar
-                        mode="range"
-                        selected={customDateRange}
-                        onSelect={(range) => {
-                          if (!range?.from || !range?.to) return;
-                          const from = new Date(range.from);
-                          const to = new Date(range.to);
-                          to.setHours(23, 59, 59, 999);
-                          setCustomDateRange({ from, to });
-                        }}
-                        numberOfMonths={1}
-                        className="rounded-md border w-full"
-                      />
-                      <div className="space-y-1">
-                        <Button
-                          className="w-full"
-                          onClick={() => {
-                            setCustomDateRange(undefined);
-                            setDateFilter(undefined);
-                            setCustomOpen(false);
-                          }}
-                        >
-                          {"Annuler"}
-                        </Button>
-                        <Button
-                          className="w-full"
-                          variant={"outline"}
-                          onClick={() => {
-                            setCustomOpen(false);
-                          }}
-                        >
-                          {"Réduire"}
-                        </Button>
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </div>
-
-                {/* Bouton pour réinitialiser les filtres */}
-                <div className="flex items-end">
-                  <Button
-                    variant="outline"
-                    onClick={resetAllFilters}
-                    className="w-full"
-                  >
-                    {"Réinitialiser"}
-                  </Button>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
-          <div className="grid gap-1.5">
-            <Label>{"Type de ticket"}</Label>
-            <Select
-              value={
-                (table.getColumn("type")?.getFilterValue() as string) ?? "all"
-              }
-              onValueChange={(value) =>
-                table
-                  .getColumn("type")
-                  ?.setFilterValue(value === "all" ? "" : value)
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filtrer par type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Tous les types"}</SelectItem>
-                {requestTypes.map((p) => (
-                  <SelectItem key={p.type} value={p.type}>
-                    {p.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-1.5">
-            <Label>{"Priorité"}</Label>
-            <Select
-              value={
-                (table.getColumn("priority")?.getFilterValue() as string) ??
-                "all"
-              }
-              onValueChange={(value) =>
-                table
-                  .getColumn("priority")
-                  ?.setFilterValue(value === "all" ? "" : value)
-              }
-            >
-              <SelectTrigger className="w-[180px]">
-                <SelectValue placeholder="Filtrer par priorité" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">{"Toutes"}</SelectItem>
-                {PRIORITIES.map((p) => (
-                  <SelectItem key={p.value} value={p.value}>
-                    {p.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">
@@ -1041,9 +507,6 @@ function ExpensesTableSign({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Tickets ${type === "pending" ? "en attente" : "payés"} (${
-        authorizedPayments.length
-      })`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>
@@ -1113,13 +576,10 @@ function ExpensesTableSign({
           open={showDetail}
           openChange={setShowDetail}
           payment={selected}
-          invoices={invoices}
           projects={projects}
           users={users}
-          requests={requests}
           payTypes={payType}
           requestTypes={requestTypes}
-          purchases={purchases}
         />
       )}
       {selected && (

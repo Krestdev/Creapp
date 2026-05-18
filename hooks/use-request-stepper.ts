@@ -301,7 +301,7 @@ function circuitAchat(
 
 export interface UseRequestStepperOptions {
   request: RequestModelT;
-  tickets?: PaymentRequest[];
+  ticket?: PaymentRequest;
   bonCommandes?: BonsCommande[];
   receptions?: Reception[];
 }
@@ -322,11 +322,10 @@ export interface UseRequestStepperOptions {
  */
 export function useRequestStepper({
   request,
-  tickets = [],
+  ticket,
   bonCommandes = [],
   receptions = [],
 }: UseRequestStepperOptions): RequestStepperData {
-  const ticket = findLinkedTicket(request.id, tickets);
 
   switch (request.type) {
     case "facilitation":

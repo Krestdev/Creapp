@@ -69,7 +69,6 @@ interface TicketsTableProps {
   requestTypeData: RequestType[];
   users: Array<User>;
   requests: Array<RequestModelT>;
-  payTypes: Array<PayType>;
 }
 
 const getPriorityBadge = (
@@ -141,7 +140,6 @@ export function TicketsTable({
   requestTypeData,
   users,
   requests,
-  payTypes,
 }: TicketsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -617,11 +615,9 @@ export function TicketsTable({
         <DetailTicket
           open={openDetailModal}
           onOpenChange={setOpenDetailModal}
-          data={selectedTicket}
+          id={selectedTicket.id}
           invoice={selectedInvoice}
-          users={users}
           types={requestTypeData}
-          requests={requests}
         />
       )}
 

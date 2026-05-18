@@ -47,6 +47,18 @@ export type PaymentCancelPayload = {
   reason: string;
 };
 
+export interface PaymentQueryOptions {
+  state?: "validated" | "pending" | "rejected";
+  userId?: string;
+  paymentType?: string;
+  excludeType?: "deposit" | "expense" | "transport" | "gas";
+  requestId?: string;
+  page?: number;
+  limit?: number;
+  type?: "deposit" | "expense" | "transport" | "gas";
+  date?: string;
+}
+
 class PaymentQueries {
   route = "/request/payment";
 
@@ -144,15 +156,188 @@ class PaymentQueries {
   // --------------------------------------
   // READ (GET ALL)
   // --------------------------------------
-  getAll = async (): Promise<{ data: PaymentRequest[] }> => {
-    return api.get(this.route).then((response) => response.data);
+
+  getAll = async (
+    params?: PaymentQueryOptions,
+  ): Promise<{ data: PaymentRequest[]; total: number }> => {
+    return api.get(this.route, { params }).then((response) => {
+      return response.data.data;
+    });
+  };
+
+  getDepenses = async (
+    params?: Record<string, any>,
+  ): Promise<{ data: PaymentRequest[]; count: number }> => {
+    return api
+      .get(`${this.route}/expenses/all`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
+  getDepensesStats = async (
+    params?: Record<string, any>,
+  ): Promise<{
+    validated: {
+      count: number;
+      sum: number;
+    };
+    processed: {
+      count: number;
+      sum: number;
+    };
+    paid: {
+      count: number;
+      sum: number;
+    };
+    cancelled: {
+      count: number;
+      sum: number;
+    };
+  }> => {
+    return api
+      .get(`${this.route}/expenses/stats`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
+  getAccountantPayments = async (
+    params?: Record<string, any>,
+  ): Promise<{ data: PaymentRequest[]; count: number }> => {
+    return api
+      .get(`${this.route}/expenses/accountant/`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
+  getAccountantPaymentsStats = async (
+    params?: Record<string, any>,
+  ): Promise<{
+    pending: {
+      count: number;
+      sum: number;
+    };
+    processed: {
+      count: number;
+      sum: number;
+    };
+    paid: {
+      count: number;
+      sum: number;
+    };
+    cancelled: {
+      count: number;
+      sum: number;
+    };
+  }> => {
+    return api
+      .get(`${this.route}/expenses/accountant/stats`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
+  getTickets = async (
+    params?: Record<string, any>,
+  ): Promise<{ data: PaymentRequest[]; count: number }> => {
+    return api
+      .get(`${this.route}/expenses/dg/`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
+  getTicketsStats = async (
+    params?: Record<string, any>,
+  ): Promise<{
+    pending: {
+      count: number;
+      sum: number;
+    };
+    processed: {
+      count: number;
+      sum: number;
+    };
+    paid: {
+      count: number;
+      sum: number;
+    };
+  }> => {
+    return api
+      .get(`${this.route}/expenses/dg/stats`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
+  getSignatureRequests = async (
+    params?: Record<string, any>,
+  ): Promise<{ data: PaymentRequest[]; count: number }> => {
+    return api
+      .get(`${this.route}/paymentToSign/all`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
+  getSignatureRequestsStats = async (
+    params?: Record<string, any>,
+  ): Promise<{
+    pending: {
+      count: number;
+      sum: number;
+    };
+    signed: {
+      count: number;
+      sum: number;
+    };
+  }> => {
+    return api
+      .get(`${this.route}/paymentToSign/stats`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
   };
 
   // --------------------------------------
   // READ (GET ONE)
   // --------------------------------------
-  getOne = async (id: number): Promise<{ data: PaymentRequest }> => {
+  getOne = async (
+    id: number,
+  ): Promise<{
+    data: PaymentRequest & { totalPaid: number; progress: number };
+  }> => {
     return api.get(`${this.route}/${id}`).then((response) => response.data);
+  };
+
+  getAllByRequestId = async (
+    requestId: number,
+  ): Promise<{ data: PaymentRequest }> => {
+    return api
+      .get(`${this.route}/request/${requestId}`)
+      .then((response) => response.data);
+  };
+  //Pending for validation count
+  getVoltPendingCount = async (): Promise<{ data: number }> => {
+    return api.get(`${this.route}/tickets-pending/count`).then((response) => {
+      return response.data;
+    });
+  };
+
+  //Pending depense count
+  getPendingDepenseCount = async (): Promise<{ data: number }> => {
+    return api.get(`${this.route}/paymentToTreat/count`).then((response) => {
+      return response.data;
+    });
+  };
+
+  //To sign count
+  getPendingToSignCount = async (): Promise<{ data: number }> => {
+    return api.get(`${this.route}/paymentToSign/count`).then((response) => {
+      return response.data;
+    });
   };
 
   // --------------------------------------

@@ -16,6 +16,8 @@ import { paymentQ } from "@/queries/payment";
 import { userQ } from "@/queries/baseModule";
 import { XAF } from "@/lib/utils";
 import { providerQ } from "@/queries/providers";
+import { queryKeys } from "@/lib/query-keys";
+import { purchaseQ } from "@/queries/purchase-order";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -25,18 +27,14 @@ function Page() {
     },
   ];
 
-  const getInvoices = useQuery({
-    queryKey: ["invoices"],
-    queryFn: invoiceQ.getAll,
-  });
   const getPurchases = useQuery({
-    queryKey: ["purchaseOrders"],
-    queryFn: commadQ.getAll,
+    queryKey: queryKeys.purchaseOrders,
+    queryFn: purchaseQ.getAll,
   });
 
-  const getPayments = useQuery({
-    queryKey: ["payments"],
-    queryFn: paymentQ.getAll,
+  const getInvoices = useQuery({
+    queryKey: queryKeys.invoices,
+    queryFn: invoiceQ.getAll,
   });
 
   const getProviders = useQuery({
@@ -57,29 +55,26 @@ function Page() {
 
   if (
     getInvoices.isLoading ||
-    getPurchases.isLoading ||
-    getPayments.isLoading ||
     getUsers.isLoading ||
-    getProviders.isLoading
+    getProviders.isLoading ||
+    getPurchases.isLoading
   ) {
     return <LoadingPage />;
   }
 
   if (
     getInvoices.isError ||
-    getPurchases.isError ||
-    getPayments.isError ||
     getUsers.isError ||
-    getProviders.isError
+    getProviders.isError ||
+    getPurchases.isError
   ) {
     return (
       <ErrorPage
         error={
           getInvoices.error ||
-          getPurchases.error ||
-          getPayments.error ||
           getUsers.error ||
           getProviders.error ||
+          getPurchases.error ||
           undefined
         }
       />
@@ -88,10 +83,9 @@ function Page() {
 
   if (
     getInvoices.isSuccess &&
-    getPurchases.isSuccess &&
-    getPayments.isSuccess &&
     getUsers.isSuccess &&
-    getProviders.isSuccess
+    getProviders.isSuccess &&
+    getPurchases.isSuccess
   ) {
     const statistics: Array<StatisticProps> = [
       {
@@ -138,10 +132,9 @@ function Page() {
         </div>
         <InvoicesTable
           invoices={invoices}
-          purchases={getPurchases.data.data}
-          payments={getPayments.data.data}
           users={getUsers.data.data}
           providers={getProviders.data.data}
+          purchases={getPurchases.data.data}
         />
       </div>
     );

@@ -268,18 +268,14 @@ interface ReceiptPDFProps {
   paymentRequest: PaymentRequest;
   getPaymentType: PayType[];
   users: Array<User>;
-  requests: Array<RequestModelT>;
   requestTypes: Array<RequestType>;
-  transactions: Array<DebitTransaction>;
 }
 
 const DepenseDocument: React.FC<ReceiptPDFProps> = ({
   paymentRequest,
   getPaymentType,
   users,
-  requests,
   requestTypes,
-  transactions,
 }) => {
   const formatDate = (dateString: string | Date) => {
     const date = new Date(dateString);
@@ -296,7 +292,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
     return undefined;
   };
 
-  const request = requests.find((r) => r.id === paymentRequest.requestId);
+  const request = paymentRequest.request;
 
   const emitter = request?.beficiaryList?.[0]
     ? `${request.beficiaryList[0].firstName} ${request.beficiaryList[0].lastName}`
@@ -306,9 +302,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
 
   const beneficiaryName = getBeneficiaryName();
 
-  const transaction = transactions.find(
-    (t) => t.payement && t.payement.id === paymentRequest.id,
-  );
+  const transaction = paymentRequest.transaction;
 
   const paymentEmitter = users.find((u) => u.id === paymentRequest.userId);
 

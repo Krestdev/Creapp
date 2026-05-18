@@ -35,6 +35,12 @@ class CommandRqstQueries {
     });
   };
 
+  getPendingCount = async (): Promise<{ data: number }> => {
+    return api.get(`${this.route}/to-treat`).then((response) => {
+      return response.data;
+    });
+  };
+
   // --------------------------------------
   // UPDATE (PUT)
   // --------------------------------------

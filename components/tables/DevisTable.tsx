@@ -42,7 +42,6 @@ import {
   Quotation,
   QuotationElement,
   QuotationStatus,
-  RequestModelT,
   User,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
@@ -55,7 +54,6 @@ interface DevisTableProps {
   data: Quotation[];
   providers: Array<Provider>;
   commands: Array<CommandRequestT>;
-  requests: Array<RequestModelT>;
   users: Array<User>;
 }
 
@@ -63,7 +61,6 @@ export function DevisTable({
   data,
   providers,
   commands,
-  requests,
   users,
 }: DevisTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -433,7 +430,7 @@ export function DevisTable({
       {/* Pagination */}
       {table.getRowModel().rows?.length > 0 && (
         <div className="mt-4">
-          <Pagination table={table} pageSize={15} />
+          <Pagination table={table} />
         </div>
       )}
 
@@ -444,7 +441,6 @@ export function DevisTable({
           data={selectedDevis}
           title={selectedQuotation}
           users={users}
-          requests={requests}
           providers={providers}
         />
       )}

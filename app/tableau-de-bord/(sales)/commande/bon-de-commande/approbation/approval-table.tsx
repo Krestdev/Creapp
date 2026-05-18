@@ -829,7 +829,7 @@ export function PurchaseApprovalTable({ data, users }: Props) {
       </div>
 
       {/* PAGINATION */}
-      <Pagination table={table} pageSize={10} />
+      <Pagination table={table} />
 
       {/* VIEW */}
       {selectedValue && (

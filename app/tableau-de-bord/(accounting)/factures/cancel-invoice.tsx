@@ -18,10 +18,9 @@ interface Props {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   invoice: Invoice;
-  purchases: Array<BonsCommande>;
 }
 
-function CancelInvoice({ open, openChange, invoice, purchases }: Props) {
+function CancelInvoice({ open, openChange, invoice }: Props) {
   const toCancel = useMutation({
     mutationFn: async () => invoiceQ.cancel(invoice.id),
     onSuccess: () => {
