@@ -7,39 +7,28 @@ import { paymentQ } from "@/queries/payment";
 import { useQuery } from "@tanstack/react-query";
 import CreatePaiement from "./create";
 import { projectQ } from "@/queries/projectModule";
+import { queryKeys } from "@/lib/query-keys";
 
 function Page() {
   const getInvoices = useQuery({
-    queryKey: ["invoices"],
+    queryKey: queryKeys.invoices,
     queryFn: invoiceQ.getAll,
   });
 
-  const getPayments = useQuery({
-    queryKey: ["payments"],
-    queryFn: () => paymentQ.getAll(),
-  });
-
   const getProjects = useQuery({
-    queryKey: ["projects"],
+    queryKey: queryKeys.projects,
     queryFn: projectQ.getAll,
   });
 
-  if (getInvoices.isLoading || getPayments.isLoading || getProjects.isLoading) {
+  if (getInvoices.isLoading || getProjects.isLoading) {
     return <LoadingPage />;
   }
-  if (getInvoices.isError || getPayments.isError || getProjects.isError) {
+  if (getInvoices.isError || getProjects.isError) {
     return (
-      <ErrorPage
-        error={
-          getInvoices.error ||
-          getPayments.error ||
-          getProjects.error ||
-          undefined
-        }
-      />
+      <ErrorPage error={getInvoices.error || getProjects.error || undefined} />
     );
   }
-  if (getInvoices.isSuccess && getPayments.isSuccess && getProjects.isSuccess)
+  if (getInvoices.isSuccess && getProjects.isSuccess)
     return (
       <div className="content">
         <PageTitle
@@ -49,7 +38,6 @@ function Page() {
         />
         <CreatePaiement
           invoices={getInvoices.data.data.filter((x) => x.status === "UNPAID")}
-          payments={getPayments.data.data}
           projects={getProjects.data.data}
         />
       </div>

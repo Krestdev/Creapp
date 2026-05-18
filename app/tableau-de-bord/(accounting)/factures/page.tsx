@@ -6,18 +6,16 @@ import {
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { commadQ } from "@/queries/command";
+import { queryKeys } from "@/lib/query-keys";
+import { XAF } from "@/lib/utils";
+import { userQ } from "@/queries/baseModule";
 import { invoiceQ } from "@/queries/invoices";
+import { providerQ } from "@/queries/providers";
+import { purchaseQ } from "@/queries/purchase-order";
 import { Invoice, NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { InvoicesTable } from "./invoices-table";
-import { paymentQ } from "@/queries/payment";
-import { userQ } from "@/queries/baseModule";
-import { XAF } from "@/lib/utils";
-import { providerQ } from "@/queries/providers";
-import { queryKeys } from "@/lib/query-keys";
-import { purchaseQ } from "@/queries/purchase-order";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -38,11 +36,14 @@ function Page() {
   });
 
   const getProviders = useQuery({
-    queryKey: ["providers"],
+    queryKey: queryKeys.providers,
     queryFn: providerQ.getAll,
   });
 
-  const getUsers = useQuery({ queryKey: ["users"], queryFn: userQ.getAll });
+  const getUsers = useQuery({
+    queryKey: queryKeys.users,
+    queryFn: userQ.getAll,
+  });
 
   const invoices: Array<Invoice> = useMemo(() => {
     if (!getInvoices.data) return [];

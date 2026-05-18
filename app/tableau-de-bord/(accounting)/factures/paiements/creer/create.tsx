@@ -36,7 +36,7 @@ import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { NewPayment, paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
-import { Invoice, PaymentRequest, PRIORITIES, ProjectT } from "@/types/types";
+import { Invoice, PRIORITIES, ProjectT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -106,15 +106,18 @@ type FormValues = z.infer<typeof formSchema>;
 
 interface Props {
   invoices: Array<Invoice>;
-  payments: Array<PaymentRequest>;
   projects: Array<ProjectT>;
 }
 
-function CreatePaiement({ invoices, payments, projects }: Props) {
+function CreatePaiement({ invoices, projects }: Props) {
   /**Data states */
   const { user } = useStore();
 
   const router = useRouter();
+
+  const filteredInvoices = React.useMemo(() => {
+    return invoices.filter((invoice) => invoice.rest > 0);
+  }, [invoices]);
 
   const [searchProject, setSearchProject] = React.useState<string>("");
   const filteredProjects = React.useMemo(() => {
@@ -180,20 +183,10 @@ function CreatePaiement({ invoices, payments, projects }: Props) {
   }, [getPaymentType.data, methodValue, form]);
 
   const invoice = React.useMemo(() => {
-    return invoices.find((p) => p.id === invoiceId);
-  }, [invoices, invoiceId]);
+    return filteredInvoices.find((p) => p.id === invoiceId);
+  }, [filteredInvoices, invoiceId]);
 
-  const toPay =
-    invoice &&
-    invoice.amount -
-      payments
-        .filter(
-          (p) =>
-            p.invoiceId === invoice?.id &&
-            p.status !== "rejected" &&
-            p.status !== "cancelled",
-        )
-        .reduce((total, e) => total + e.price, 0);
+  const toPay = invoice?.rest;
 
   const rest = !!toPay && toPay >= 0 ? toPay : 0;
 
@@ -289,41 +282,16 @@ function CreatePaiement({ invoices, payments, projects }: Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {invoices.length === 0 ? (
+                    {filteredInvoices.length === 0 ? (
                       <SelectItem value="no-option" disabled>
                         {"Aucune facture enregistrée"}
                       </SelectItem>
                     ) : (
-                      invoices.map((request) => {
-                        const pay = React.useMemo(() => {
-                          return payments
-                            ?.filter(
-                              (payment) => payment.invoiceId === request.id,
-                            )
-                            .filter(
-                              (c) =>
-                                c.status !== "rejected" &&
-                                c.status !== "cancelled",
-                            );
-                        }, [payments, request]);
-                        const paid =
-                          pay
-                            ?.flatMap((x) => x.price)
-                            .reduce((a, b) => a + b, 0) ?? 0;
-                        const total = request.amount;
-
-                        const diff = total - paid;
-                        return (
-                          diff > 0 && (
-                            <SelectItem
-                              key={request.id}
-                              value={String(request.id)}
-                            >
-                              {`${request.title} - ${request.command.provider.name}`}
-                            </SelectItem>
-                          )
-                        );
-                      })
+                      filteredInvoices.map((request) => (
+                        <SelectItem key={request.id} value={String(request.id)}>
+                          {`${request.title} - ${request.command.provider.name}`}
+                        </SelectItem>
+                      ))
                     )}
                   </SelectContent>
                 </Select>

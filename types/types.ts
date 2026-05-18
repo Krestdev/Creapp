@@ -550,6 +550,7 @@ export type Invoice = {
   title: string;
   reference: string;
   amount: number;
+  rest: number;
   proof?: string;
   isPartial: boolean;
   deadline: Date;
