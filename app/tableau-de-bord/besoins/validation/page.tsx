@@ -155,7 +155,6 @@ const Page = () => {
     getPurchases.isSuccess &&
     getReceptions.isSuccess
   ) {
-    console.log(data);
     return (
       <div className="content">
         {/* page title */}

@@ -117,13 +117,6 @@ export default function BesoinLastValSettle({
   const { user } = useStore();
   const [openDate, setOpenDate] = useState(false);
 
-  const payments = useQuery({
-    queryKey: ["payments"],
-    queryFn: () => paymentQ.getAll(),
-  });
-
-  const paiement = payments.data?.data.find((x) => x.requestId === request?.id);
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -143,15 +136,6 @@ export default function BesoinLastValSettle({
 
   // Réinitialiser le formulaire quand la requête change ou à l'ouverture
   useEffect(() => {
-    let proofValue: any[] = [];
-    if (paiement?.proof) {
-      if (typeof paiement?.proof === "string") {
-        proofValue = [paiement?.proof];
-      } else if (Array.isArray(paiement?.proof)) {
-        proofValue = paiement?.proof;
-      }
-    }
-
     if (open) {
       form.reset({
         label: request.label,
@@ -164,10 +148,10 @@ export default function BesoinLastValSettle({
         categoryId: request.categoryId,
         dueDate: request.dueDate ? new Date(request.dueDate) : new Date(),
         paytype: undefined,
-        proof: proofValue,
+        proof: request.proof,
       });
     }
-  }, [open, request, form, paiement]);
+  }, [open, request, form]);
 
   const validator = categories
     .find((cat) => cat.id === request?.categoryId)
