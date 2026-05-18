@@ -28,6 +28,23 @@ import { useRouter } from "next/navigation";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { Pagination } from "@/components/base/pagination";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Table as TableComponent,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  ColumnDef,
+  flexRender,
+  getCoreRowModel,
+  getPaginationRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
 import z from "zod";
 import PaymentsList from "./payments-list";
 
@@ -80,14 +97,81 @@ function CashRequestForm({ banks, payments }: Props) {
   const fromValue = form.watch("fromBankId");
   const paymentValue = form.watch("payments");
 
-  const onSelectedChange = (id: number) => {
-    const selected = paymentValue.find((v) => v === id);
-    if (!selected) return form.setValue("payments", [...paymentValue, id]);
-    return form.setValue(
-      "payments",
-      paymentValue.filter((r) => r !== id),
-    );
-  };
+  const rowSelection = React.useMemo(() => {
+    const selection: Record<string, boolean> = {};
+    paymentValue.forEach((id) => {
+      selection[String(id)] = true;
+    });
+    return selection;
+  }, [paymentValue]);
+
+  const columns: ColumnDef<PaymentRequest>[] = React.useMemo(
+    () => [
+      {
+        id: "select",
+        header: ({ table }) => (
+          <Checkbox
+            checked={
+              table.getIsAllPageRowsSelected() ||
+              (table.getIsSomePageRowsSelected() && "indeterminate")
+            }
+            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            aria-label="Select all"
+          />
+        ),
+        cell: ({ row }) => (
+          <Checkbox
+            checked={row.getIsSelected()}
+            onCheckedChange={(value) => row.toggleSelected(!!value)}
+            aria-label="Select row"
+          />
+        ),
+        enableSorting: false,
+        enableHiding: false,
+      },
+      {
+        accessorKey: "title",
+        header: "Libellé",
+        cell: ({ row }) => (
+          <div className="line-clamp-1 text-base">{row.original.title}</div>
+        ),
+      },
+      {
+        accessorKey: "price",
+        header: "Montant",
+        cell: ({ row }) => (
+          <div className="font-semibold text-gray-800">
+            {XAF.format(row.original.price ?? 0)}
+          </div>
+        ),
+      },
+    ],
+    []
+  );
+
+  const table = useReactTable({
+    data: payments,
+    columns,
+    getCoreRowModel: getCoreRowModel(),
+    getPaginationRowModel: getPaginationRowModel(),
+    getRowId: (row) => String(row.id),
+    state: {
+      rowSelection,
+    },
+    onRowSelectionChange: (updater) => {
+      const newSelection =
+        typeof updater === "function" ? updater(rowSelection) : updater;
+      const newPayments = Object.keys(newSelection)
+        .filter((k) => newSelection[k])
+        .map(Number);
+      form.setValue("payments", newPayments);
+    },
+    initialState: {
+      pagination: {
+        pageSize: 10,
+      },
+    },
+  });
 
   useEffect(() => {
     const paymentList = payments.filter((p) =>
@@ -273,36 +357,68 @@ function CashRequestForm({ banks, payments }: Props) {
             </Button>
           </div>
         </div>
-        <div className="flex flex-col max-h-[70vh] overflow-y-auto gap-2">
-          {payments.length === 0 ? (
-            <span className="text-muted-foreground px-3 py-2">
-              {"Aucun besoin disponible."}
-            </span>
-          ) : (
-            payments.map((i) => {
-              const status = paymentValue.some((e) => e === i.id);
-              return (
-                <span
-                  key={i.id}
-                  className={cn(
-                    "px-3 py-2 flex flex-col gap-1 border rounded bg-white cursor-pointer",
-                    status &&
-                      "border-primary-600 text-primary-600 bg-primary-50",
-                  )}
-                  onClick={() => onSelectedChange(i.id)}
-                >
-                  <span className="flex items-center gap-2">
-                    <p className="text-base line-clamp-1">{i.title}</p>
-                    {status && (
-                      <CheckCheckIcon size={16} className="text-primary-600" />
-                    )}
-                  </span>
-                  <span className="text-sm font-semibold text-gray-800">
-                    {XAF.format(i.price ?? 0)}
-                  </span>
-                </span>
-              );
-            })
+        <div className="flex flex-col border rounded bg-white overflow-hidden max-h-[70vh]">
+          <div className="overflow-y-auto">
+            <TableComponent>
+              <TableHeader>
+                {table.getHeaderGroups().map((headerGroup) => (
+                  <TableRow key={headerGroup.id}>
+                    {headerGroup.headers.map((header) => (
+                      <TableHead key={header.id} className="h-10 py-2 px-4 text-xs font-semibold">
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
+                      </TableHead>
+                    ))}
+                  </TableRow>
+                ))}
+              </TableHeader>
+              <TableBody>
+                {table.getRowModel().rows?.length ? (
+                  table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      data-state={row.getIsSelected() && "selected"}
+                      className={cn(
+                        "cursor-pointer transition-colors",
+                        row.getIsSelected() ? "bg-primary-50 hover:bg-primary-50/80" : "hover:bg-gray-50"
+                      )}
+                      onClick={() => row.toggleSelected()}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id} className="py-2 px-4" onClick={(e) => {
+                          if ((e.target as HTMLElement).closest('button[role="checkbox"]')) {
+                            e.stopPropagation();
+                          }
+                        }}>
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext()
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={columns.length}
+                      className="h-24 text-center text-muted-foreground"
+                    >
+                      Aucun besoin disponible.
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </TableComponent>
+          </div>
+          {table.getPageCount() > 1 && (
+            <div className="border-t bg-gray-50/50 mt-auto">
+              <Pagination table={table} className="py-2" showPageInfo={true} />
+            </div>
           )}
         </div>
       </form>
