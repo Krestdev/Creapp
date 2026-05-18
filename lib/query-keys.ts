@@ -23,6 +23,8 @@ export const queryKeys = {
     ["signatureRequests-stats", ...args] as const,
   dashboardPaidData: (...args: any[]) =>
     ["dashboardPaidData", ...args] as const,
+  approvisionnement: (...args: any[]) =>
+    ["approvisionnement", ...args] as const,
 
   // ─── Requests ──────────────────────────────────────────────────────────────
   requests: ["requests"] as const,

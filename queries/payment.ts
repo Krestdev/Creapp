@@ -354,6 +354,15 @@ class PaymentQueries {
       });
   };
 
+  //Appro data
+  getApproData = async (
+    params?: Record<string, any>,
+  ): Promise<{ data: PaymentRequest[]; count: number }> => {
+    return api.get(`${this.route}/appro/data`, { params }).then((response) => {
+      return response.data.data;
+    });
+  };
+
   // --------------------------------------
   // UPDATE (PUT)
   // --------------------------------------

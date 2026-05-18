@@ -7,6 +7,7 @@ import { paymentQ } from "@/queries/payment";
 import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import CashRequestForm from "./cash-request-form";
+import { queryKeys } from "@/lib/query-keys";
 
 function Page() {
   const {
@@ -18,27 +19,14 @@ function Page() {
   } = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
 
   const getPayments = useQuery({
-    queryKey: ["payments"],
-    queryFn: () => paymentQ.getAll(),
+    queryKey: queryKeys.approvisionnement(),
+    queryFn: () => paymentQ.getApproData(),
   });
 
   const filteredBanks = React.useMemo(() => {
     if (!banks) return [];
     return banks.data.filter((c) => !!c.type);
   }, [banks]);
-
-  const filteredPayments = React.useMemo(() => {
-    if (!getPayments.data) return [];
-    return getPayments.data.data.filter(
-      (r) =>
-        r.method?.type === "cash" &&
-        r.type !== "transport" &&
-        r.type !== "gas" &&
-        r.type !== "settle" &&
-        r.status === "validated" &&
-        r.selected === false,
-    ); //To-Do Complete this
-  }, [getPayments.data]);
 
   if (isLoading || getPayments.isLoading) {
     return <LoadingPage />;
@@ -54,7 +42,10 @@ function Page() {
           subtitle="Initier une demande de transfert de fonds vers la caisse"
           color="blue"
         />
-        <CashRequestForm banks={filteredBanks} payments={filteredPayments} />
+        <CashRequestForm
+          banks={filteredBanks}
+          payments={getPayments.data.data}
+        />
       </div>
     );
 }
