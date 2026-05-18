@@ -12,7 +12,7 @@ import { queryKeys } from "@/lib/query-keys";
 function Page() {
   const [pagination, setPagination] = React.useState({
     pageIndex: 0,
-    pageSize: 15,
+    pageSize: 45,
   });
 
   const {
