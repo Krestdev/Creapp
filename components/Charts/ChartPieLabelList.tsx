@@ -19,22 +19,13 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { XAF } from "@/lib/utils";
-import {
-  Invoice,
-  PAYMENT_TYPES,
-  PaymentRequest,
-  PayType,
-  ProjectT,
-  RequestType,
-} from "@/types/types";
+import { PaymentRequest, RequestType } from "@/types/types";
 
 interface ChartPieLabelListProps {
-  data?: PaymentRequest[];
+  data?: Array<PaymentRequest & { project?: string; provider?: string }>;
   chartType: "type" | "project" | "fournisseur";
   title?: string;
   description?: string;
-  projects?: ProjectT[];
-  invoices?: Invoice[];
   requestType?: RequestType[];
 }
 
@@ -64,8 +55,6 @@ const CHART_COLORS = [
 export function ChartPieLabelList({
   data = [],
   chartType,
-  invoices = [],
-  projects = [],
   requestType = [],
   title = "Répartition des dépenses",
 }: ChartPieLabelListProps) {
@@ -89,14 +78,13 @@ export function ChartPieLabelList({
           break;
 
         case "project":
-          const project = projects.find((p) => p.id === payment.projectId);
-          key = project ? `Projet ${project.label}` : "N/A";
+          const project = payment.project;
+          key = project || "N/A";
           break;
 
         case "fournisseur":
           // Utilisation de == pour comparer string/number si nécessaire
-          const invoice = invoices.find((inv) => inv.id == payment.invoiceId);
-          const providerName = invoice?.command?.provider?.name;
+          const providerName = payment.provider;
           key = providerName || "Fournisseur inconnu";
           break;
       }
@@ -130,7 +118,7 @@ export function ChartPieLabelList({
     }
 
     return result;
-  }, [data, chartType, invoices, projects]);
+  }, [data, chartType]);
 
   const totalAmount = React.useMemo(
     () => chartData.reduce((sum, item) => sum + item.amount, 0),

@@ -340,6 +340,20 @@ class PaymentQueries {
     });
   };
 
+  //Dashboard Paid data
+  getDashboardPaidData = async (
+    params?: Record<string, any>,
+  ): Promise<{
+    total: number;
+    payments: Array<PaymentRequest & { project?: string; provider?: string }>;
+  }> => {
+    return api
+      .get(`${this.route}/board/payments/chart`, { params })
+      .then((response) => {
+        return response.data.data;
+      });
+  };
+
   // --------------------------------------
   // UPDATE (PUT)
   // --------------------------------------

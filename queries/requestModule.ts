@@ -288,6 +288,37 @@ class RequestQueries {
     return api.get(`${this.route}/stats`, { params }).then((res) => res.data);
   };
 
+  //Statistiques tableau de bord
+  getDashboardStats = async (
+    params?: Record<string, any>,
+  ): Promise<{
+    data: {
+      awaiting: number;
+      rejected: number;
+      submited: number;
+      approved: number;
+      approvedTotal: number;
+      total: number;
+    };
+  }> => {
+    return api
+      .get(`${this.route}/board/requests/stats`, { params })
+      .then((res) => res.data);
+  };
+
+  //Graphiques Tableau de bord
+  getDashboardGraph = async (
+    params?: Record<string, any>,
+  ): Promise<{
+    submited: RequestModelT[];
+    validator: RequestModelT[];
+    all: RequestModelT[];
+  }> => {
+    return api
+      .get(`${this.route}/board/requests/graph`, { params })
+      .then((res) => res.data);
+  };
+
   // Récupérer une demande par ID
   getOne = async (id: number): Promise<{ data: RequestModelT }> => {
     return api.get(`${this.route}/${id}`).then((res) => res.data);

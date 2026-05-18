@@ -7,7 +7,6 @@ import { ChartPieLabelList } from "@/components/Charts/ChartPieLabelList";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
@@ -16,48 +15,53 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Label } from "@/components/ui/label";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { cn, isRole, XAF } from "@/lib/utils";
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { queryKeys } from "@/lib/query-keys";
+import { isRole, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { bankQ } from "@/queries/bank";
-import { invoiceQ } from "@/queries/invoices";
-import { paymentQ } from "@/queries/payment";
-import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
-import { transactionQ } from "@/queries/transaction";
-import { PaymentRequest, RequestModelT, TableFilters } from "@/types/types";
-import { useQuery, UseQueryResult } from "@tanstack/react-query";
+import { DateFilter } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import { Settings2 } from "lucide-react";
+import React from "react";
+import DashboardFilters, { DashboardFiltersProps } from "./dashboardFilters";
 import {
-  CalendarDays,
-  CalendarIcon,
-  ChevronDown,
-  ChevronRight,
-} from "lucide-react";
-import React, { useMemo, useState } from "react";
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
+import { paymentQ } from "@/queries/payment";
 
 const DashboardPage = () => {
+  const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
+    React.useState(false);
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+
+  const [customFilters, setCustomFilters] = React.useState<
+    DashboardFiltersProps["customFilters"]
+  >({
+    date: undefined,
+    from: "",
+    to: "",
+  });
+
+  const resetAllFilters = () => {
+    setCustomFilters({
+      date: undefined,
+      from: "",
+      to: "",
+    });
+    setDateFilter(undefined);
+  };
+
   const { user } = useStore();
   const volt = isRole({ roleList: user?.role ?? [], role: "trésorier" });
   const accountant = isRole({ roleList: user?.role ?? [], role: "comptable" });
@@ -71,414 +75,56 @@ const DashboardPage = () => {
     role: "SUPERADMIN",
   });
 
-  // Récupérer les paiements
-  const {
-    data: paymentsData,
-    isSuccess,
-    isLoading,
-    isError,
-    error,
-  } = useQuery({
-    queryKey: ["paymentsAll"],
-    queryFn: () => paymentQ.getAll(),
-    enabled: volt_manager || accountant || volt,
-  });
-
-  // My requests (Mes besoins)
-  const myRequestsData = useQuery({
-    queryKey: ["requests-user", user?.id],
-    queryFn: () => {
-      if (!user?.id) {
-        throw new Error("ID utilisateur non disponible");
-      }
-      return requestQ.getMine(user.id);
-    },
+  const getRequestsStats = useQuery({
+    queryKey: queryKeys.dashboardStats(dateFilter, customFilters),
+    queryFn: () =>
+      requestQ.getDashboardStats({
+        date: customFilters.date || undefined,
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
     enabled: !!user?.id,
   });
 
-  // Requests to Approve (Approbation des besoins)
-  const requestToApprove = useQuery({
-    queryKey: ["requests-for-approval"],
-    queryFn: async () => requestQ.getValidatorRequests(user?.id ?? 0),
-    enabled: !!user,
+  const getRequestsGraph = useQuery({
+    queryKey: queryKeys.dashboardGraph(dateFilter, customFilters),
+    queryFn: () =>
+      requestQ.getDashboardGraph({
+        date: customFilters.date || undefined,
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
+    enabled: volt_manager || volt || super_admin,
   });
 
-  // All request
-  const allRequests = useQuery({
-    queryKey: ["requests"],
-    queryFn: async () => requestQ.getAll(),
-    enabled: !!user,
-  });
-
-  const getTransactions = useQuery({
-    queryKey: ["transactions"],
-    queryFn: transactionQ.getAll,
-    enabled: volt_manager || accountant || volt,
-  });
-  const getBanks = useQuery({
-    queryKey: ["banks"],
-    queryFn: bankQ.getAll,
-    enabled: volt_manager || accountant || volt,
-  });
-
-  const getProjects = useQuery({
-    queryKey: ["projects"],
-    queryFn: projectQ.getAll,
+  const dashboardPaidData = useQuery({
+    queryKey: queryKeys.dashboardPaidData(dateFilter, customFilters),
+    queryFn: () =>
+      paymentQ.getDashboardPaidData({
+        date: customFilters.date || undefined,
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
+    enabled: !!user?.id,
   });
 
   const requestType = useQuery({
-    queryKey: ["paymentTypes"],
+    queryKey: queryKeys.requestTypes,
     queryFn: requestTypeQ.getAll,
   });
 
-  const getInvoices = useQuery({
-    queryKey: ["invoices"],
-    queryFn: invoiceQ.getAll,
-    enabled: volt_manager || accountant || volt,
-  });
-
-  const [filters, setFilters] = useState<TableFilters>({
-    globalFilter: "",
-    statusFilter: "all",
-    categoryFilter: "all",
-    projectFilter: "all",
-    userFilter: "all",
-    dateFilter: undefined,
-    customDateRange: undefined,
-  });
-
-  const [isCustomDateModalOpen, setIsCustomDateModalOpen] = useState(false);
-  const [tempCustomDateRange, setTempCustomDateRange] = useState<{
-    from: Date;
-    to: Date;
-  } | null>(null);
-
-  // Fonction pour obtenir le texte d'affichage du filtre de date
-  const getDateFilterText = () => {
-    if (filters.dateFilter === "custom" && filters.customDateRange) {
-      const { from, to } = filters.customDateRange;
-      return `${format(from, "dd/MM/yyyy", { locale: fr })} - ${format(
-        to,
-        "dd/MM/yyyy",
-        { locale: fr },
-      )}`;
-    }
-
-    switch (filters.dateFilter) {
-      case "today":
-        return "Aujourd'hui";
-      case "week":
-        return "Cette semaine";
-      case "month":
-        return "Ce mois";
-      case "year":
-        return "Cette année";
-      default:
-        return "Toutes les périodes";
-    }
-  };
-
-  // Gérer le clic sur "Personnaliser"
-  const handleCustomDateClick = () => {
-    if (filters.customDateRange) {
-      setTempCustomDateRange(filters.customDateRange);
-    } else {
-      const today = new Date();
-      const oneMonthAgo = new Date();
-      oneMonthAgo.setMonth(today.getMonth() - 1);
-      setTempCustomDateRange({
-        from: oneMonthAgo,
-        to: today,
-      });
-    }
-    setIsCustomDateModalOpen(true);
-  };
-
-  // Appliquer la plage de dates personnalisée
-  const applyCustomDateRange = () => {
-    if (tempCustomDateRange) {
-      setFilters((prev) => ({
-        ...prev,
-        dateFilter: "custom",
-        customDateRange: {
-          from: tempCustomDateRange.from,
-          to: tempCustomDateRange.to,
-        },
-      }));
-    }
-    setIsCustomDateModalOpen(false);
-  };
-
-  // Effacer la plage de dates personnalisée
-  const clearCustomDateRange = () => {
-    setFilters((prev) => ({
-      ...prev,
-      dateFilter: undefined,
-      customDateRange: undefined,
-    }));
-  };
-
-  // Hook personnalisé pour filtrer les besoins
-  const useFilteredRequests = (
-    requestData: UseQueryResult<{ data: RequestModelT[] }, Error>,
-    filters: TableFilters,
-  ) => {
-    return React.useMemo(() => {
-      if (!requestData.data?.data) {
-        return [];
-      }
-
-      let filtered: RequestModelT[] = requestData.data.data.filter(
-        (r) => r.state !== "cancel" && r.state !== "pending",
-      );
-
-      // Filtrer par date
-      if (filters.dateFilter) {
-        const now = new Date();
-        let startDate = new Date();
-        let endDate = now;
-
-        switch (filters.dateFilter) {
-          case "today":
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "week":
-            startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-            );
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "month":
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          case "year":
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
-          case "custom":
-            if (filters.customDateRange?.from && filters.customDateRange?.to) {
-              startDate = filters.customDateRange.from;
-              endDate = filters.customDateRange.to;
-              endDate.setHours(23, 59, 59, 999);
-            }
-            break;
-        }
-
-        filtered = filtered.filter((item) => {
-          const itemDate = new Date(item.createdAt);
-          return itemDate >= startDate && itemDate <= endDate;
-        });
-      }
-
-      // Filtrer par statut
-      if (filters.statusFilter && filters.statusFilter !== "all") {
-        filtered = filtered.filter(
-          (item) => item.state === filters.statusFilter,
-        );
-      }
-
-      // Filtrer par catégorie
-      if (filters.categoryFilter && filters.categoryFilter !== "all") {
-        filtered = filtered.filter(
-          (item) => String(item.categoryId) === String(filters.categoryFilter),
-        );
-      }
-
-      // Filtrer par recherche globale
-      if (filters.globalFilter) {
-        const searchValue = filters.globalFilter.toLowerCase();
-        filtered = filtered.filter((item) => {
-          const searchText = [item.label || "", item.ref || ""]
-            .join(" ")
-            .toLowerCase();
-          return searchText.includes(searchValue);
-        });
-      }
-
-      // Filtrer par projet
-      if (filters.projectFilter && filters.projectFilter !== "all") {
-        filtered = filtered.filter(
-          (item) => String(item.projectId) === String(filters.projectFilter),
-        );
-      }
-
-      // Filtrer par utilisateur (si nécessaire)
-      if (filters.userFilter && filters.userFilter !== "all") {
-        filtered = filtered.filter(
-          (item) => String(item.userId) === String(filters.userFilter),
-        );
-      }
-
-      return filtered;
-    }, [requestData.data?.data, filters]);
-  };
-
-  const useFilteredAllRequests = (
-    requestData: UseQueryResult<{ data: { data: RequestModelT[] } }, Error>,
-    filters: TableFilters,
-  ) => {
-    return React.useMemo(() => {
-      if (!requestData.data?.data) {
-        return [];
-      }
-
-      let filtered: RequestModelT[] = requestData.data.data.data;
-
-      // Filtrer par date
-      if (filters.dateFilter) {
-        const now = new Date();
-        let startDate = new Date();
-        let endDate = now;
-
-        switch (filters.dateFilter) {
-          case "today":
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "week":
-            startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-            );
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "month":
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          case "year":
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
-          case "custom":
-            if (filters.customDateRange?.from && filters.customDateRange?.to) {
-              startDate = filters.customDateRange.from;
-              endDate = filters.customDateRange.to;
-              endDate.setHours(23, 59, 59, 999);
-            }
-            break;
-        }
-
-        filtered = filtered.filter((item) => {
-          const itemDate = new Date(item.createdAt);
-          return itemDate >= startDate && itemDate <= endDate;
-        });
-      }
-
-      // Filtrer par statut
-      if (filters.statusFilter && filters.statusFilter !== "all") {
-        filtered = filtered.filter(
-          (item) => item.state === filters.statusFilter,
-        );
-      }
-
-      // Filtrer par catégorie
-      if (filters.categoryFilter && filters.categoryFilter !== "all") {
-        filtered = filtered.filter(
-          (item) => String(item.categoryId) === String(filters.categoryFilter),
-        );
-      }
-
-      // Filtrer par recherche globale
-      if (filters.globalFilter) {
-        const searchValue = filters.globalFilter.toLowerCase();
-        filtered = filtered.filter((item) => {
-          const searchText = [item.label || "", item.ref || ""]
-            .join(" ")
-            .toLowerCase();
-          return searchText.includes(searchValue);
-        });
-      }
-
-      // Filtrer par projet
-      if (filters.projectFilter && filters.projectFilter !== "all") {
-        filtered = filtered.filter(
-          (item) => String(item.projectId) === String(filters.projectFilter),
-        );
-      }
-
-      // Filtrer par utilisateur (si nécessaire)
-      if (filters.userFilter && filters.userFilter !== "all") {
-        filtered = filtered.filter(
-          (item) => String(item.userId) === String(filters.userFilter),
-        );
-      }
-
-      return filtered;
-    }, [requestData.data?.data, filters]);
-  };
-
-  // Utiliser le hook avec tous les filtres pour "Mes besoins"
-  const getMyFilteredData = useFilteredRequests(myRequestsData, filters);
-
-  // Utiliser le hook avec tous les filtres pour "Besoins reçus" (tous les besoins)
-  const getrequestToApprove = useFilteredRequests(requestToApprove, filters);
-
-  // Utiliser le hook avec tous les filtres pour "Besoins reçus" (tous les besoins)
-  const getAllFilteredData = useFilteredAllRequests(allRequests, filters);
-
-  // Filtrer les données des paiements (dépenses payées)
-  const getFilteredPayments = useMemo((): PaymentRequest[] => {
-    if (!paymentsData?.data) {
-      return [];
-    }
-
-    // Filtrer uniquement les paiements payés
-    let filtered: PaymentRequest[] = paymentsData.data.filter(
-      (p: PaymentRequest) => p.status === "paid",
-    );
-
-    // Filtrer par date si un filtre est appliqué
-    if (filters.dateFilter) {
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
-
-      switch (filters.dateFilter) {
-        case "today":
-          startDate.setHours(0, 0, 0, 0);
-          break;
-        case "week":
-          startDate.setDate(
-            now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-          );
-          startDate.setHours(0, 0, 0, 0);
-          break;
-        case "month":
-          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-          break;
-        case "year":
-          startDate = new Date(now.getFullYear(), 0, 1);
-          break;
-        case "custom":
-          if (filters.customDateRange?.from && filters.customDateRange?.to) {
-            startDate = filters.customDateRange.from;
-            endDate = filters.customDateRange.to;
-            endDate.setHours(23, 59, 59, 999);
-          } else {
-            break;
-          }
-          break;
-        default:
-          break;
-      }
-
-      filtered = filtered.filter((payment) => {
-        const paymentDate = new Date(payment.createdAt);
-        return paymentDate >= startDate && paymentDate <= endDate;
-      });
-    }
-
-    return filtered;
-  }, [paymentsData?.data, filters.dateFilter, filters.customDateRange]);
-
   const getSubtitle = () => {
-    if (filters.dateFilter === "custom" && filters.customDateRange) {
-      const fromStr = format(filters.customDateRange.from, "dd/MM/yyyy", {
+    if (dateFilter === "custom" && customFilters.from && customFilters.to) {
+      const fromStr = format(customFilters.from, "dd/MM/yyyy", {
         locale: fr,
       });
-      const toStr = format(filters.customDateRange.to, "dd/MM/yyyy", {
+      const toStr = format(customFilters.to, "dd/MM/yyyy", {
         locale: fr,
       });
       return `Consulter mes besoins du ${fromStr} au ${toStr}`;
     }
 
-    switch (filters.dateFilter) {
+    switch (dateFilter) {
       case "today":
         return "Consulter mes besoins d'aujourd'hui";
       case "week":
@@ -493,17 +139,17 @@ const DashboardPage = () => {
   };
 
   const getReceivedSubtitle = () => {
-    if (filters.dateFilter === "custom" && filters.customDateRange) {
-      const fromStr = format(filters.customDateRange.from, "dd/MM/yyyy", {
+    if (dateFilter === "custom" && customFilters.from && customFilters.to) {
+      const fromStr = format(customFilters.from, "dd/MM/yyyy", {
         locale: fr,
       });
-      const toStr = format(filters.customDateRange.to, "dd/MM/yyyy", {
+      const toStr = format(customFilters.to, "dd/MM/yyyy", {
         locale: fr,
       });
       return `Consulter les besoins reçus du ${fromStr} au ${toStr}`;
     }
 
-    switch (filters.dateFilter) {
+    switch (dateFilter) {
       case "today":
         return "Consulter les besoins reçus d'aujourd'hui";
       case "week":
@@ -518,17 +164,17 @@ const DashboardPage = () => {
   };
 
   const getAllSubtitle = () => {
-    if (filters.dateFilter === "custom" && filters.customDateRange) {
-      const fromStr = format(filters.customDateRange.from, "dd/MM/yyyy", {
+    if (dateFilter === "custom" && customFilters.from && customFilters.to) {
+      const fromStr = format(customFilters.from, "dd/MM/yyyy", {
         locale: fr,
       });
-      const toStr = format(filters.customDateRange.to, "dd/MM/yyyy", {
+      const toStr = format(customFilters.to, "dd/MM/yyyy", {
         locale: fr,
       });
       return `Consulter tous les besoins du ${fromStr} au ${toStr}`;
     }
 
-    switch (filters.dateFilter) {
+    switch (dateFilter) {
       case "today":
         return "Consulter tous les besoins d'aujourd'hui";
       case "week":
@@ -542,80 +188,63 @@ const DashboardPage = () => {
     }
   };
 
-  // Calcul des statistiques des besoins de l'utilisateur
-  const mySoumis = getMyFilteredData.length || 0;
-  const myAttentes =
-    getMyFilteredData.filter((item) => item.state === "pending").length ?? 0;
-  const myRejetes =
-    getMyFilteredData.filter((item) => item.state === "rejected").length ?? 0;
-  const myValidés = mySoumis - myAttentes - myRejetes;
-
-  // Calcul des statistiques de tous les besoins a approuver (reçus)
-  const allSoumisApproves = getrequestToApprove.length || 0;
-  const allAttentesApproves =
-    getrequestToApprove.filter((item) => item.state === "pending").length ?? 0;
-  const allRejetesApproves =
-    getrequestToApprove.filter((item) => item.state === "rejected").length ?? 0;
-  const allValidésApproves =
-    allSoumisApproves - allAttentesApproves - allRejetesApproves;
-
-  // Calcul des statistiques de tous les besoins
-  const allSoumis = getAllFilteredData.length || 0;
-  const allAttentes =
-    getAllFilteredData.filter((item) => item.state === "pending").length ?? 0;
-  const allRejetes =
-    getAllFilteredData.filter((item) => item.state === "rejected").length ?? 0;
-  const allValidés = allSoumis - allAttentes - allRejetes;
-
-  // Calcul des statistiques des dépenses
-  const totalDepenses = getFilteredPayments.reduce(
-    (sum, payment) => sum + (payment.price || 0),
-    0,
-  );
-  const nombreDepenses = getFilteredPayments.length;
-
   if (
-    isLoading ||
-    myRequestsData.isLoading ||
-    requestToApprove.isLoading ||
-    getTransactions.isLoading ||
-    getBanks.isLoading ||
-    getInvoices.isLoading ||
-    getProjects.isLoading
+    getRequestsStats.isLoading ||
+    requestType.isLoading ||
+    getRequestsGraph.isLoading
   )
     return <LoadingPage />;
   if (
-    isError ||
-    myRequestsData.isError ||
-    requestToApprove.isError ||
-    getTransactions.isError ||
-    getBanks.isError ||
-    getInvoices.isError ||
-    getProjects.isError
+    getRequestsStats.isError ||
+    requestType.isError ||
+    getRequestsGraph.isError
   )
     return (
       <ErrorPage
         error={
-          error ||
-          myRequestsData.error ||
-          requestToApprove.error ||
-          getTransactions.error ||
-          getBanks.error ||
-          getInvoices.error ||
-          getProjects.error ||
+          getRequestsStats.error ||
+          requestType.error ||
+          getRequestsGraph.error ||
           undefined
         }
       />
     );
   if (
-    isSuccess ||
-    myRequestsData.isSuccess ||
-    requestToApprove.isSuccess ||
-    getTransactions.isSuccess ||
-    getBanks.isSuccess ||
-    getInvoices.isSuccess ||
-    getProjects.isSuccess
+    getRequestsStats.isSuccess &&
+    requestType.isSuccess &&
+    user &&
+    getRequestsGraph.isSuccess
   ) {
+    const statistics: Array<StatisticProps> = [
+      {
+        title: "En attente de validation",
+        value: String(getRequestsStats.data.data.awaiting),
+        variant: "primary",
+        more: {
+          title: "Besoins rejetés",
+          value: String(getRequestsStats.data.data.rejected),
+        },
+      },
+      {
+        title: "Mes besoins soumis",
+        value: String(getRequestsStats.data.data.submited),
+        variant: "secondary",
+        more: {
+          title: "Mes besoins approuvés",
+          value: String(getRequestsStats.data.data.approved),
+        },
+      },
+      {
+        title: "Total besoins soumis",
+        value: String(getRequestsStats.data.data.total),
+        variant: "default",
+        more: {
+          title: "Total besoins approuvés",
+          value: String(getRequestsStats.data.data.approvedTotal),
+        },
+      },
+    ];
+
     return (
       <div className="content">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -625,297 +254,78 @@ const DashboardPage = () => {
           </div>
 
           {/* Filtre de période */}
-          <DropdownMenu>
-            <DropdownMenuTrigger className="h-10 inline-flex gap-2 flex-row items-center text-base border border-input px-5 rounded-md shadow-xs bg-background hover:bg-accent hover:text-accent-foreground">
-              <CalendarIcon />
-              {getDateFilterText()}
-              <ChevronDown
-                className="text-muted-foreground opacity-50"
-                size={16}
-              />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem
-                onClick={clearCustomDateRange}
-                className={cn(
-                  "flex items-center justify-between",
-                  !filters.dateFilter && "bg-accent",
-                )}
-              >
-                <span>Toutes les périodes</span>
-                {!filters.dateFilter && <ChevronRight className="h-4 w-4" />}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={() =>
-                  setFilters((prev) => ({ ...prev, dateFilter: "today" }))
-                }
-                className={cn(
-                  "flex items-center justify-between",
-                  filters.dateFilter === "today" && "bg-accent",
-                )}
-              >
-                <span>Aujourd'hui</span>
-                {filters.dateFilter === "today" && (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  setFilters((prev) => ({ ...prev, dateFilter: "week" }))
-                }
-                className={cn(
-                  "flex items-center justify-between",
-                  filters.dateFilter === "week" && "bg-accent",
-                )}
-              >
-                <span>Cette semaine</span>
-                {filters.dateFilter === "week" && (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  setFilters((prev) => ({ ...prev, dateFilter: "month" }))
-                }
-                className={cn(
-                  "flex items-center justify-between",
-                  filters.dateFilter === "month" && "bg-accent",
-                )}
-              >
-                <span>Ce mois</span>
-                {filters.dateFilter === "month" && (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() =>
-                  setFilters((prev) => ({ ...prev, dateFilter: "year" }))
-                }
-                className={cn(
-                  "flex items-center justify-between",
-                  filters.dateFilter === "year" && "bg-accent",
-                )}
-              >
-                <span>Cette année</span>
-                {filters.dateFilter === "year" && (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                onClick={handleCustomDateClick}
-                className={cn(
-                  "flex items-center justify-between",
-                  filters.dateFilter === "custom" && "bg-accent",
-                )}
-              >
-                <span className="flex items-center">
-                  <CalendarDays className="mr-2 h-4 w-4" />
-                  Personnaliser
-                </span>
-                {filters.dateFilter === "custom" && (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-
-        {/* Modal pour la sélection de dates personnalisées */}
-        <Dialog
-          open={isCustomDateModalOpen}
-          onOpenChange={setIsCustomDateModalOpen}
-        >
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>{"Sélectionner une plage de dates"}</DialogTitle>
-              <DialogDescription>
-                {"Choisissez la période que vous souhaitez filtrer"}
-              </DialogDescription>
-            </DialogHeader>
-
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="date-from">Date de début</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !tempCustomDateRange?.from && "text-muted-foreground",
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {tempCustomDateRange?.from ? (
-                          format(tempCustomDateRange.from, "PPP", {
-                            locale: fr,
-                          })
-                        ) : (
-                          <span>Sélectionner une date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={tempCustomDateRange?.from}
-                        onSelect={(date) =>
-                          setTempCustomDateRange((prev) => ({
-                            from: date || prev?.from || new Date(),
-                            to: prev?.to || new Date(),
-                          }))
-                        }
-                        initialFocus
-                        locale={fr}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="date-to">Date de fin</Label>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !tempCustomDateRange?.to && "text-muted-foreground",
-                        )}
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {tempCustomDateRange?.to ? (
-                          format(tempCustomDateRange.to, "PPP", { locale: fr })
-                        ) : (
-                          <span>Sélectionner une date</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0">
-                      <Calendar
-                        mode="single"
-                        selected={tempCustomDateRange?.to}
-                        onSelect={(date) =>
-                          setTempCustomDateRange((prev) => ({
-                            from: prev?.from || new Date(),
-                            to: date || prev?.to || new Date(),
-                          }))
-                        }
-                        initialFocus
-                        locale={fr}
-                      />
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
-
-              <div className="rounded-md border p-4">
-                <Calendar
-                  mode="range"
-                  selected={tempCustomDateRange || undefined}
-                  onSelect={(range) =>
-                    setTempCustomDateRange(range as { from: Date; to: Date })
-                  }
-                  numberOfMonths={1}
-                  className="rounded-md border"
-                  locale={fr}
-                />
-              </div>
-            </div>
-
-            <DialogFooter>
-              <Button
-                variant="outline"
-                onClick={() => setIsCustomDateModalOpen(false)}
-              >
-                Annuler
+          <Sheet>
+            <SheetTrigger asChild className="w-fit">
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
               </Button>
-              <Button onClick={applyCustomDateRange}>Appliquer</Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+            </SheetTrigger>
+            <SheetContent className="px-3">
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les filtres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <DashboardFilters
+                customFilters={customFilters}
+                setCustomFilters={setCustomFilters}
+                isCustomDateModalOpen={isCustomDateModalOpen}
+                setIsCustomDateModalOpen={setIsCustomDateModalOpen}
+                resetAllFilters={resetAllFilters}
+                setDateFilter={setDateFilter}
+              />
+            </SheetContent>
+          </Sheet>
+        </div>
 
         {/* Cartes de statistiques */}
         <div className="grid-stats-4">
-          <StatsCard
-            titleColor="text-[#E4E4E7]"
-            title="En attente de validation"
-            value={String(myAttentes)}
-            description="Besoins rejetés :"
-            descriptionValue={String(myRejetes)}
-            descriptionColor="red"
-            dividerColor="bg-[#2262A2]"
-            className="bg-[#013E7B] text-[#ffffff] border-[#2262A2]"
-            dvalueColor="text-[#DC2626]"
-          />
-          <StatsCard
-            title="Total besoins soumis"
-            titleColor="text-[#52525B]"
-            value={String(mySoumis)}
-            description="Besoins Approuvés :"
-            descriptionValue={String(myValidés)}
-            descriptionColor="text-[#A1A1AA]"
-            dividerColor="bg-[#DFDFDF]"
-            className="bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"
-            dvalueColor="text-green-600"
-          />
-          <StatsCard
-            title="Total besoins"
-            titleColor="text-[#52525B]"
-            value={String(allSoumis)}
-            description="Besoins approuvés :"
-            descriptionValue={String(allValidés)}
-            descriptionColor="text-[#A1A1AA]"
-            dividerColor="bg-[#DFDFDF]"
-            className="bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"
-            dvalueColor="text-green-600"
-          />
+          {statistics
+            .filter((item) => {
+              if (
+                user.role.some(
+                  (r) =>
+                    r.label === "VOLT_MANAGER" ||
+                    r.label === "ADMIN" ||
+                    r.label === "SUPERADMIN",
+                )
+              ) {
+                return true;
+              }
+              if (user.validators && user.validators.length > 0) {
+                return item.title !== "Total besoins soumis";
+              }
+              return item.title === "Mes besoins soumis";
+            })
+            .map((item) => (
+              <StatisticCard key={item.title} {...item} />
+            ))}
         </div>
 
         {/* Graphique 1: Mes besoins */}
         <ChartAreaInteractive
-          filteredData={getMyFilteredData}
-          dateFilter={filters.dateFilter}
-          customDateRange={filters.customDateRange}
+          filteredData={getRequestsGraph.data.submited}
+          dateFilter={dateFilter}
+          customDateRange={{
+            from: new Date(customFilters.from),
+            to: new Date(customFilters.to),
+          }}
           title="Mes besoins"
           description={getSubtitle()}
           type="my"
         />
 
-        {/* <div className="flex flex-row flex-wrap md:grid md:grid-cols-4 gap-2 md:gap-5">
-          <StatsCard
-            titleColor="text-[#E4E4E7]"
-            title="En attente de validation"
-            value={String(allAttentes)}
-            description="Besoins rejetés :"
-            descriptionValue={String(allRejetes)}
-            descriptionColor="red"
-            dividerColor="bg-[#2262A2]"
-            className="bg-[#013E7B] text-[#ffffff] border-[#2262A2]"
-            dvalueColor="text-[#DC2626]"
-          />
-          <StatsCard
-            title="Besoins reçus"
-            titleColor="text-[#52525B]"
-            value={String(allSoumis)}
-            description="Besoins reçus approuvés :"
-            descriptionValue={String(allValidés)}
-            descriptionColor="text-[#A1A1AA]"
-            dividerColor="bg-[#DFDFDF]"
-            className="bg-[#FFFFFF] text-[#000000] border-[#DFDFDF]"
-            dvalueColor="text-blue-600"
-          />
-        </div> */}
-
         {/* Graphique 2: Besoins reçus */}
         {manager && (
           <ChartAreaInteractive
-            filteredData={getrequestToApprove}
-            dateFilter={filters.dateFilter}
-            customDateRange={filters.customDateRange}
+            filteredData={getRequestsGraph.data.validator}
+            dateFilter={dateFilter}
+            customDateRange={{
+              from: new Date(customFilters.from),
+              to: new Date(customFilters.to),
+            }}
             title="Besoins reçus"
             description={getReceivedSubtitle()}
             type="all"
@@ -924,55 +334,48 @@ const DashboardPage = () => {
 
         {super_admin && (
           <ChartAreaInteractiveAll
-            filteredData={getAllFilteredData}
-            dateFilter={filters.dateFilter}
-            customDateRange={filters.customDateRange}
+            filteredData={getRequestsGraph.data.all}
+            dateFilter={dateFilter}
+            customDateRange={{
+              from: new Date(customFilters.from),
+              to: new Date(customFilters.to),
+            }}
             title="Tous les besoins"
             description={getAllSubtitle()}
             type="all"
           />
         )}
 
-        {paymentsData?.data && (
+        {dashboardPaidData.data && (
           <Card className="py-4">
             <CardHeader className="flex flex-col items-stretch border-b sm:flex-row">
               <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
                 <CardTitle>{"Dépenses"}</CardTitle>
                 <CardDescription>
-                  {`Dépenses totales: ${XAF.format(totalDepenses)}`}
+                  {`Dépenses totales: ${XAF.format(dashboardPaidData.data.total)}`}
                 </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Dépense par type */}
               <ChartPieLabelList
-                data={getFilteredPayments}
+                data={dashboardPaidData.data.payments}
                 chartType="type"
                 title="Répartition par type"
                 description="Répartition par type de paiement"
-                projects={getProjects.data?.data}
-                invoices={getInvoices.data?.data}
-                requestType={requestType.data?.data}
+                requestType={requestType.data.data}
               />
               {/* Dépense par fournisseur */}
               <ChartPieLabelList
-                data={getFilteredPayments}
+                data={dashboardPaidData.data.payments}
                 chartType="fournisseur"
                 title="Répartition par fournisseur"
                 description="Répartition par fournisseur"
-                projects={getProjects.data?.data}
-                invoices={getInvoices.data?.data}
-                requestType={requestType.data?.data}
+                requestType={requestType.data.data}
               />
             </CardContent>
           </Card>
         )}
-        {/* {
-          !!getTransactions.data && !!getBanks.data &&
-          <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 gap-4">
-            <TransactionChart transactions={getTransactions.data.data.filter(t=> t.Type !== "TRANSFER")} banks={getBanks.data.data} />
-          </div>
-        } */}
       </div>
     );
   }

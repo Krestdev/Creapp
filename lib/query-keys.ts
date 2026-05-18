@@ -21,6 +21,8 @@ export const queryKeys = {
     ["signatureRequests", ...args] as const,
   signatureRequestsStats: (...args: any[]) =>
     ["signatureRequests-stats", ...args] as const,
+  dashboardPaidData: (...args: any[]) =>
+    ["dashboardPaidData", ...args] as const,
 
   // ─── Requests ──────────────────────────────────────────────────────────────
   requests: ["requests"] as const,
@@ -31,6 +33,8 @@ export const queryKeys = {
   usableRequestsCount: ["usable-requests-count"] as const,
   requestType: ["requestType"] as const,
   request: (id: number) => ["request", id] as const,
+  dashboardStats: (...args: any[]) => ["dashboardStats", ...args] as const,
+  dashboardGraph: (...args: any[]) => ["dashboardGraph", ...args] as const,
 
   // ─── Request Types ──────────────────────────────────────────────────────────
   requestTypes: ["requestTypes"] as const,
