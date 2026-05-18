@@ -10,6 +10,11 @@ import CashRequestForm from "./cash-request-form";
 import { queryKeys } from "@/lib/query-keys";
 
 function Page() {
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0,
+    pageSize: 15,
+  });
+
   const {
     data: banks,
     isSuccess,
@@ -19,8 +24,12 @@ function Page() {
   } = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
 
   const getPayments = useQuery({
-    queryKey: queryKeys.approvisionnement(),
-    queryFn: () => paymentQ.getApproData(),
+    queryKey: queryKeys.approvisionnement(pagination),
+    queryFn: () =>
+      paymentQ.getApproData({
+        pageIndex: pagination.pageIndex,
+        pageSize: pagination.pageSize,
+      }),
   });
 
   const filteredBanks = React.useMemo(() => {
