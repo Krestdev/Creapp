@@ -54,6 +54,7 @@ import {
   SquareStackIcon,
   SquareUserRoundIcon,
   TableCellsSplitIcon,
+  TextQuoteIcon,
   User2,
   WalletCardsIcon,
 } from "lucide-react";
