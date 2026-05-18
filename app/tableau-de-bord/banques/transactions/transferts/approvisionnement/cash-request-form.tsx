@@ -43,6 +43,8 @@ import {
   flexRender,
   getCoreRowModel,
   getPaginationRowModel,
+  PaginationOptions,
+  PaginationState,
   useReactTable,
 } from "@tanstack/react-table";
 import z from "zod";
@@ -51,6 +53,8 @@ import PaymentsList from "./payments-list";
 interface Props {
   banks: Array<Bank>;
   payments: Array<PaymentRequest>;
+  pagination: PaginationState;
+  paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
 }
 
 const formSchema = z.object({
@@ -67,7 +71,12 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function CashRequestForm({ banks, payments }: Props) {
+function CashRequestForm({
+  banks,
+  payments,
+  pagination,
+  paginationOptions,
+}: Props) {
   const { user } = useStore();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -115,7 +124,9 @@ function CashRequestForm({ banks, payments }: Props) {
               table.getIsAllPageRowsSelected() ||
               (table.getIsSomePageRowsSelected() && "indeterminate")
             }
-            onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+            onCheckedChange={(value) =>
+              table.toggleAllPageRowsSelected(!!value)
+            }
             aria-label="Select all"
           />
         ),
@@ -146,7 +157,7 @@ function CashRequestForm({ banks, payments }: Props) {
         ),
       },
     ],
-    []
+    [],
   );
 
   const table = useReactTable({
@@ -155,21 +166,11 @@ function CashRequestForm({ banks, payments }: Props) {
     getCoreRowModel: getCoreRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getRowId: (row) => String(row.id),
+    manualPagination: true,
+    ...paginationOptions,
     state: {
       rowSelection,
-    },
-    onRowSelectionChange: (updater) => {
-      const newSelection =
-        typeof updater === "function" ? updater(rowSelection) : updater;
-      const newPayments = Object.keys(newSelection)
-        .filter((k) => newSelection[k])
-        .map(Number);
-      form.setValue("payments", newPayments);
-    },
-    initialState: {
-      pagination: {
-        pageSize: 10,
-      },
+      pagination,
     },
   });
 
@@ -364,12 +365,15 @@ function CashRequestForm({ banks, payments }: Props) {
                 {table.getHeaderGroups().map((headerGroup) => (
                   <TableRow key={headerGroup.id}>
                     {headerGroup.headers.map((header) => (
-                      <TableHead key={header.id} className="h-10 py-2 px-4 text-xs font-semibold">
+                      <TableHead
+                        key={header.id}
+                        className="h-10 py-2 px-4 text-xs font-semibold"
+                      >
                         {header.isPlaceholder
                           ? null
                           : flexRender(
                               header.column.columnDef.header,
-                              header.getContext()
+                              header.getContext(),
                             )}
                       </TableHead>
                     ))}
@@ -384,19 +388,29 @@ function CashRequestForm({ banks, payments }: Props) {
                       data-state={row.getIsSelected() && "selected"}
                       className={cn(
                         "cursor-pointer transition-colors",
-                        row.getIsSelected() ? "bg-primary-50 hover:bg-primary-50/80" : "hover:bg-gray-50"
+                        row.getIsSelected()
+                          ? "bg-primary-50 hover:bg-primary-50/80"
+                          : "hover:bg-gray-50",
                       )}
                       onClick={() => row.toggleSelected()}
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id} className="py-2 px-4" onClick={(e) => {
-                          if ((e.target as HTMLElement).closest('button[role="checkbox"]')) {
-                            e.stopPropagation();
-                          }
-                        }}>
+                        <TableCell
+                          key={cell.id}
+                          className="py-2 px-4"
+                          onClick={(e) => {
+                            if (
+                              (e.target as HTMLElement).closest(
+                                'button[role="checkbox"]',
+                              )
+                            ) {
+                              e.stopPropagation();
+                            }
+                          }}
+                        >
                           {flexRender(
                             cell.column.columnDef.cell,
-                            cell.getContext()
+                            cell.getContext(),
                           )}
                         </TableCell>
                       ))}

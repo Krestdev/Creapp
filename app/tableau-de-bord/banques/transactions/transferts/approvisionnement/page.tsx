@@ -54,6 +54,11 @@ function Page() {
         <CashRequestForm
           banks={filteredBanks}
           payments={getPayments.data.data}
+          pagination={pagination}
+          paginationOptions={{
+            onPaginationChange: setPagination,
+            rowCount: getPayments.data.count,
+          }}
         />
       </div>
     );
