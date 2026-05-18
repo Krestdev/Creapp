@@ -610,24 +610,28 @@ export function BesoinsTraiter({
       {/* Pagination */}
       <Pagination table={table} />
 
-      {select && (
-        <>
-          <ModalDestockage
-            open={isOpenModal}
-            onOpenChange={setIsModalOpen}
-            data={select}
-          />
-          <DetailBesoin
-            open={isOpenModalView}
-            onOpenChange={setIsModalOpenView}
-            data={select}
-            projects={projectsData.data?.data!}
-            users={usersData.data?.data!}
-            receptions={getReceptions.data?.data!}
-            purchaseOrders={getPurchases.data?.data!}
-          />
-        </>
-      )}
+      {select &&
+        projectsData.isSuccess &&
+        usersData.isSuccess &&
+        getReceptions.isSuccess &&
+        getPurchases.isSuccess && (
+          <>
+            <ModalDestockage
+              open={isOpenModal}
+              onOpenChange={setIsModalOpen}
+              data={select}
+            />
+            <DetailBesoin
+              open={isOpenModalView}
+              onOpenChange={setIsModalOpenView}
+              data={select}
+              projects={projectsData.data.data}
+              users={usersData.data.data}
+              receptions={getReceptions.data.data}
+              purchaseOrders={getPurchases.data.data}
+            />
+          </>
+        )}
     </div>
   );
 }
