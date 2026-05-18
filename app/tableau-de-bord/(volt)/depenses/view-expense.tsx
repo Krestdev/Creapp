@@ -682,7 +682,9 @@ function ViewExpense({
               </span>
               <div className="flex flex-col">
                 <p className="view-group-title">{"Motif du rejet"}</p>
-                <p className="text-red-700 font-semibold">{payment.reason}</p>
+                <p className="text-destructive font-semibold">
+                  {payment.reason}
+                </p>
               </div>
             </div>
           )}
