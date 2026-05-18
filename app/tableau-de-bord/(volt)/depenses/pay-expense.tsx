@@ -52,7 +52,14 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
     enabled: !!request?.vehiclesId,
   });
 
+  const getTransaction = useQuery({
+    queryKey: queryKeys.transaction(ticket?.transactionId!),
+    queryFn: () => transactionQ.getOne(ticket?.transactionId!),
+    enabled: !!ticket?.transactionId,
+  });
+
   const vehicle = getVehicle.data?.data;
+  const transaction = getTransaction.data?.data;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -60,8 +67,6 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
       proof: [],
     },
   });
-
-  const transaction = ticket.transaction;
 
   const pay = useMutation({
     mutationFn: async (payload: {

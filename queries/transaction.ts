@@ -59,6 +59,12 @@ class TransactionQuery {
     });
   };
 
+  getOne = async (id: number): Promise<{ data: Transaction }> => {
+    return api.get(`${this.route}/${id}`).then((response) => {
+      return response.data;
+    });
+  };
+
   //Pending for validation count
   getApprovePendingCount = async (): Promise<{ data: number }> => {
     return api.get(`${this.route}/appro/count`).then((response) => {
