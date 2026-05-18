@@ -849,3 +849,19 @@ export type Service = {
   createdAt: string;
   updatedAt: string;
 };
+
+export type modification = {
+  id: number;
+  action: "edit" | "cancel";
+  description: string | null;
+  requestId?: number | null;
+  devisId?: number | null;
+  commandId?: number | null;
+  paymentId?: number | null;
+  transactionId?: number | null;
+  validatorId?: number | null;
+  requestorId?: number | null;
+  decision?: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+};
