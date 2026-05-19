@@ -12,6 +12,9 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import DepenseDocument from "./depenseDoc";
+import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-keys";
+import { transactionQ } from "@/queries/transaction";
 
 interface Props {
   open: boolean;
@@ -30,6 +33,11 @@ const PaymentReceipt: React.FC<Props> = ({
   users,
   requestTypes,
 }) => {
+  const getTransaction = useQuery({
+    queryKey: queryKeys.transaction(paymentRequest.transactionId!),
+    queryFn: () => transactionQ.getOne(paymentRequest.transactionId!),
+    enabled: !!paymentRequest.transactionId,
+  });
   return (
     <div>
       <Dialog open={open} onOpenChange={openChange}>
@@ -43,20 +51,23 @@ const PaymentReceipt: React.FC<Props> = ({
           </DialogHeader>
 
           {/* Option 1: PDF Viewer (for preview) */}
-          <div style={{ height: "500px", marginBottom: "20px" }}>
-            <CrossPlatformPDFViewer
-              document={
-                <DepenseDocument
-                  getPaymentType={payTypes}
-                  paymentRequest={paymentRequest}
-                  users={users}
-                  requestTypes={requestTypes}
-                />
-              }
-              fileName={`Depense_${paymentRequest.reference}.pdf`}
-              style={{ width: "100%", height: "100%" }}
-            />
-          </div>
+          {getTransaction.isSuccess && (
+            <div style={{ height: "500px", marginBottom: "20px" }}>
+              <CrossPlatformPDFViewer
+                document={
+                  <DepenseDocument
+                    getPaymentType={payTypes}
+                    paymentRequest={paymentRequest}
+                    users={users}
+                    requestTypes={requestTypes}
+                    transaction={getTransaction.data.data}
+                  />
+                }
+                fileName={`Depense_${paymentRequest.reference}.pdf`}
+                style={{ width: "100%", height: "100%" }}
+              />
+            </div>
+          )}
 
           {/* Option 2: PDF Download Link */}
           <DialogFooter className="shrink-0 sticky z-10 w-full bottom-0">
@@ -67,13 +78,18 @@ const PaymentReceipt: React.FC<Props> = ({
                   paymentRequest={paymentRequest}
                   users={users}
                   requestTypes={requestTypes}
+                  transaction={getTransaction.data?.data}
                 />
               }
               fileName={`recu-transport-${paymentRequest.reference}.pdf`}
             >
               {({ loading }) => (
-                <Button disabled={loading}>
-                  {loading ? "Génération du PDF..." : "Télécharger le PDF"}
+                <Button disabled={loading || getTransaction.isPending}>
+                  {loading || getTransaction.isPending
+                    ? "Génération du PDF..."
+                    : getTransaction.data
+                      ? "Télécharger le PDF"
+                      : "Erreur de génération"}
                 </Button>
               )}
             </PDFDownloadLink>

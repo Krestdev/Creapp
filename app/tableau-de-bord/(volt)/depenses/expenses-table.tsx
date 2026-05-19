@@ -9,7 +9,6 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -76,6 +75,7 @@ import { NoticeFile } from "./notice";
 import PayExpense from "./pay-expense";
 import ShareExpense from "./share-expense";
 import ViewExpense from "./view-expense";
+import Decharge from "./decharge";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -606,30 +606,12 @@ function ExpensesTable({
                     {"Payer"}
                   </DropdownMenuItem>
                   <DropdownMenuItem>
-                    <PDFDownloadLink
-                      document={
-                        <DepenseDocument
-                          getPaymentType={paymentTypes}
-                          paymentRequest={item}
-                          users={users}
-                          requestTypes={requestTypes}
-                        />
-                      }
-                      fileName={`recu-${item.type}-${item.reference}.pdf`}
-                    >
-                      {({ loading }) => (
-                        <Button
-                          disabled={loading}
-                          variant={"ghost"}
-                          className="font-normal px-0 text-gray-600 bg-transparent hover:bg-transparent h-5"
-                        >
-                          <Download />
-                          {loading
-                            ? "Génération du PDF..."
-                            : "Télécharger le PDF"}
-                        </Button>
-                      )}
-                    </PDFDownloadLink>
+                    <Decharge
+                      paymentRequest={item}
+                      users={users}
+                      requestTypes={requestTypes}
+                      paymentTypes={paymentTypes}
+                    />
                   </DropdownMenuItem>
                 </>
               )}

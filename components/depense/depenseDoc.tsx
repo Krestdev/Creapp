@@ -5,6 +5,7 @@ import {
   PayType,
   RequestModelT,
   RequestType,
+  Transaction,
   User,
 } from "@/types/types";
 import {
@@ -269,6 +270,7 @@ interface ReceiptPDFProps {
   getPaymentType: PayType[];
   users: Array<User>;
   requestTypes: Array<RequestType>;
+  transaction?: Transaction;
 }
 
 const DepenseDocument: React.FC<ReceiptPDFProps> = ({
@@ -276,6 +278,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
   getPaymentType,
   users,
   requestTypes,
+  transaction,
 }) => {
   const formatDate = (dateString: string | Date) => {
     const date = new Date(dateString);
@@ -301,8 +304,6 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
       }`.trim() || "N/A";
 
   const beneficiaryName = getBeneficiaryName();
-
-  const transaction = paymentRequest.transaction;
 
   const paymentEmitter = users.find((u) => u.id === paymentRequest.userId);
 
