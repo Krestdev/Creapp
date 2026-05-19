@@ -133,8 +133,6 @@ export default function BesoinLastValSettle({
     },
   });
 
-  console.log(request);
-
   // Réinitialiser le formulaire quand la requête change ou à l'ouverture
   useEffect(() => {
     if (open) {
