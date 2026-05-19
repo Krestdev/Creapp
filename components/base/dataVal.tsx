@@ -871,17 +871,19 @@ export function DataVal({
             <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase">
               {beneficiary.toLocaleLowerCase() === "me"
                 ? getUserName(usersData, item.userId)
-                : item.type?.toLocaleLowerCase().includes("facili")
-                  ? item.benFac?.list
-                      .map((li) => li.name)
-                      .join(", ")
-                      .substring(0, 21)
-                  : !!list && list.length > 0
-                    ? list
-                        .map((u) => u.firstName.concat(" ", u.lastName))
+                : beneficiary.length > 0
+                  ? getUserName(usersData, Number(beneficiary))
+                  : item.type?.toLocaleLowerCase().includes("facili")
+                    ? item.benFac?.list
+                        .map((li) => li.name)
                         .join(", ")
                         .substring(0, 21)
-                    : "Aucun bénéficiaire"}
+                    : !!list && list.length > 0
+                      ? list
+                          .map((u) => u.firstName.concat(" ", u.lastName))
+                          .join(", ")
+                          .substring(0, 21)
+                      : "Aucun bénéficiaire"}
             </div>
           );
         },

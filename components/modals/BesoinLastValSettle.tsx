@@ -1,13 +1,22 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -31,15 +40,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
 import { units } from "@/data/unit";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
@@ -47,20 +47,19 @@ import {
   Category,
   PRIORITIES,
   ProjectT,
-  User,
   RequestModelT,
+  User,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import FilesUpload from "../comp-547";
-import { paymentQ } from "@/queries/payment";
 
 interface Props {
   open: boolean;
@@ -123,7 +122,7 @@ export default function BesoinLastValSettle({
       label: request.label,
       description: request.description,
       quantity: request.quantity,
-      benef: request.benef?.[0],
+      benef: request.benef?.[0] ?? Number(request.beneficiary),
       priority: (request.priority as any) || "low",
       unit: request.unit,
       categoryId: request.categoryId,
@@ -134,6 +133,8 @@ export default function BesoinLastValSettle({
     },
   });
 
+  console.log(request);
+
   // Réinitialiser le formulaire quand la requête change ou à l'ouverture
   useEffect(() => {
     if (open) {
@@ -142,7 +143,7 @@ export default function BesoinLastValSettle({
         description: request.description,
         projectId: request.projectId,
         quantity: request.quantity,
-        benef: request.beficiaryList?.[0].id,
+        benef: Number(request.beneficiary),
         priority: (request.priority as any) || "low",
         unit: request.unit,
         categoryId: request.categoryId,
