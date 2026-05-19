@@ -4,6 +4,14 @@ import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -36,7 +44,7 @@ import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { NewPayment, paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
-import { Invoice, PRIORITIES, ProjectT } from "@/types/types";
+import { Invoice, PRIORITIES, ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -69,6 +77,9 @@ const formSchema = z
     project: z.enum(PROJECT_OPTIONS),
     description: z.string().optional(),
     invoiceId: z.number({ message: "Requis" }),
+    beneficiary: z.coerce.number({
+      message: "Veuillez renseigner un bénéficiaire",
+    }),
     deadline: z.string({ message: "Veuillez définir une date" }).refine(
       (val) => {
         const d = new Date(val);
@@ -107,9 +118,10 @@ type FormValues = z.infer<typeof formSchema>;
 interface Props {
   invoices: Array<Invoice>;
   projects: Array<ProjectT>;
+  users: Array<User>;
 }
 
-function CreatePaiement({ invoices, projects }: Props) {
+function CreatePaiement({ invoices, projects, users }: Props) {
   /**Data states */
   const { user } = useStore();
 
@@ -143,6 +155,7 @@ function CreatePaiement({ invoices, projects }: Props) {
       description: "",
       project: undefined,
       invoiceId: undefined,
+      beneficiary: undefined,
       deadline: format(new Date(), "yyyy-MM-dd"),
       isPartial: false,
       price: 0,
@@ -253,6 +266,7 @@ function CreatePaiement({ invoices, projects }: Props) {
         proof: values.proof[0],
         invoiceId: values.invoiceId,
         isPartial: values.isPartial,
+        benefId: values.beneficiary,
       };
     createPayment.mutate(payload);
   }
@@ -421,6 +435,40 @@ function CreatePaiement({ invoices, projects }: Props) {
             )}
           />
         )}
+
+        {/**Bénéficiaire */}
+        <FormField
+          control={form.control}
+          name="beneficiary"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>Bénéficiaire</FormLabel>
+              <FormControl>
+                <Combobox
+                  items={users}
+                  value={users.find((user) => user.id === field.value) ?? null}
+                  onValueChange={(v) => field.onChange(v?.id ?? "")}
+                  itemToStringLabel={(v) => v.firstName.concat(" ", v.lastName)}
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>
+                      {"Aucun utilisateur enregistré"}
+                    </ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: User) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.firstName.concat(" ", item.lastName)}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
         {/* Date limite de soumission */}
         <FormField

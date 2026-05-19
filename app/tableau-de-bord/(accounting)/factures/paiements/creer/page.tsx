@@ -2,12 +2,12 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
+import { queryKeys } from "@/lib/query-keys";
+import { userQ } from "@/queries/baseModule";
 import { invoiceQ } from "@/queries/invoices";
-import { paymentQ } from "@/queries/payment";
+import { projectQ } from "@/queries/projectModule";
 import { useQuery } from "@tanstack/react-query";
 import CreatePaiement from "./create";
-import { projectQ } from "@/queries/projectModule";
-import { queryKeys } from "@/lib/query-keys";
 
 function Page() {
   const getInvoices = useQuery({
@@ -20,15 +20,24 @@ function Page() {
     queryFn: projectQ.getAll,
   });
 
-  if (getInvoices.isLoading || getProjects.isLoading) {
+  const getUsers = useQuery({
+    queryKey: queryKeys.users,
+    queryFn: userQ.getAll,
+  });
+
+  if (getInvoices.isLoading || getProjects.isLoading || getUsers.isLoading) {
     return <LoadingPage />;
   }
-  if (getInvoices.isError || getProjects.isError) {
+  if (getInvoices.isError || getProjects.isError || getUsers.isError) {
     return (
-      <ErrorPage error={getInvoices.error || getProjects.error || undefined} />
+      <ErrorPage
+        error={
+          getInvoices.error || getProjects.error || getUsers.error || undefined
+        }
+      />
     );
   }
-  if (getInvoices.isSuccess && getProjects.isSuccess)
+  if (getInvoices.isSuccess && getProjects.isSuccess && getUsers.isSuccess)
     return (
       <div className="content">
         <PageTitle
@@ -39,6 +48,7 @@ function Page() {
         <CreatePaiement
           invoices={getInvoices.data.data.filter((x) => x.status === "UNPAID")}
           projects={getProjects.data.data}
+          users={getUsers.data.data}
         />
       </div>
     );
