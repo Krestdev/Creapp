@@ -74,7 +74,7 @@ function Page() {
     error,
     isSuccess,
   } = useQuery({
-    queryKey: ["requests", filters, customFilters, dateFilter],
+    queryKey: queryKeys.allRequests(filters, customFilters, dateFilter),
     queryFn: async () =>
       requestQ.getAll({
         pageIndex: filters.pageIndex,
@@ -103,7 +103,7 @@ function Page() {
     error: errorStats,
     isSuccess: isSuccessStats,
   } = useQuery({
-    queryKey: ["requests", "stats", filters, customFilters, dateFilter],
+    queryKey: queryKeys.allRequestsStats(filters, customFilters, dateFilter),
     queryFn: async () =>
       requestQ.getStats({
         pageIndex: filters.pageIndex,
@@ -164,7 +164,7 @@ function Page() {
     });
     setFilters({
       pageIndex: 0,
-      pageSize: 10,
+      pageSize: 15,
     });
   };
 
@@ -308,6 +308,7 @@ function Page() {
                 uniqueCategories={uniqueCategories}
                 uniqueProjects={uniqueProjects}
                 users={usersData.data}
+                requestTypes={requestTypes.data.data}
               />
             </div>
           </SheetContent>

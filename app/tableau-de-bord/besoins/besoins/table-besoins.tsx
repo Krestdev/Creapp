@@ -97,12 +97,6 @@ export function RequestsTable({
     switch (status) {
       case "cancel":
         return { label, variant: "outline" };
-      case "in-review":
-        return {
-          label,
-          variant: "sky",
-          className: "bg-sky-50 hover:bg-sky-100",
-        };
       case "pending":
         return {
           label,
@@ -225,7 +219,7 @@ export function RequestsTable({
         return (
           <div>
             {subText({
-              text: `${row.original.user.firstName}`,
+              text: `${row.original.user?.firstName ?? "--"}`,
               length: 21,
             })}
           </div>

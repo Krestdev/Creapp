@@ -1,22 +1,4 @@
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { getUserName } from "@/lib/utils";
-import {
-  RequestModelT,
-  PAYMENT_TYPES,
-  REQUEST_STATUS,
-  DateFilter,
-  User,
-} from "@/types/types";
-import { ChevronDown } from "lucide-react";
-import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Collapsible,
@@ -29,6 +11,24 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { getUserName } from "@/lib/utils";
+import {
+  DateFilter,
+  REQUEST_STATUS,
+  RequestModelT,
+  RequestType,
+  User,
+} from "@/types/types";
+import { format } from "date-fns";
+import { ChevronDown } from "lucide-react";
 
 interface FiltersProps {
   customFilters: {
@@ -62,6 +62,7 @@ interface FiltersProps {
     id: number;
     label: string;
   }[];
+  requestTypes: RequestType[];
   resetAllFilters: () => void;
 }
 
@@ -74,6 +75,7 @@ export default function Filters({
   setDateFilter,
   users,
   uniqueProjects,
+  requestTypes,
   resetAllFilters,
 }: FiltersProps) {
   return (
@@ -206,9 +208,9 @@ export default function Filters({
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tous</SelectItem>
-            {PAYMENT_TYPES.map((type) => (
-              <SelectItem key={type.value} value={String(type.value)}>
-                {type.name}
+            {requestTypes.map((type) => (
+              <SelectItem key={type.id} value={String(type.type)}>
+                {type.label}
               </SelectItem>
             ))}
           </SelectContent>
