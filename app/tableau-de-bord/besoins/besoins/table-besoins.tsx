@@ -225,7 +225,7 @@ export function RequestsTable({
         return (
           <div>
             {subText({
-              text: `${row.original.user.firstName} ${row.original.user.lastName}`,
+              text: `${row.original.user.firstName}`,
               length: 21,
             })}
           </div>
