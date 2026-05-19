@@ -15,6 +15,13 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -48,15 +55,6 @@ import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ChevronDown, Settings2 } from "lucide-react";
 import React from "react";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 
 const Page = () => {
   const [searchFilter, setSearchFilter] = React.useState<string>("");
@@ -512,7 +510,7 @@ const Page = () => {
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-w-[360px] max-h-[300px] overflow-y-auto">
                     <div className="p-2 sticky top-0 bg-popover z-10 border-b">
                       <Input
                         placeholder="Rechercher une demande..."
