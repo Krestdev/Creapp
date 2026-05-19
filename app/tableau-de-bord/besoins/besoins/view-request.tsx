@@ -89,8 +89,6 @@ function ViewRequest({
         return { label: "Approuvé", variant: "success" };
       case "rejected":
         return { label: "Rejeté", variant: "destructive" };
-      case "in-review":
-        return { label: "En révision", variant: "lime" };
       case "store":
         return { label: "Déstocké", variant: "blue" };
       default:
@@ -149,7 +147,7 @@ function ViewRequest({
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"default"}>
-          <DialogTitle>{`Besoin - ${request.data?.data.label}`}</DialogTitle>
+          <DialogTitle className="uppercase">{`Besoin - ${request.data?.data.label}`}</DialogTitle>
           <DialogDescription>{"Description du besoin"}</DialogDescription>
         </DialogHeader>
         <div className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3">
@@ -205,7 +203,7 @@ function ViewRequest({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Projet associé"}</p>
                 <p className="font-semibold">
-                  {projectData.isSuccess && projectData.data.data?.label}
+                  {projectData.data && projectData.data.data.label}
                 </p>
               </div>
             </div>
@@ -223,7 +221,7 @@ function ViewRequest({
                   !request.data?.data.description && "italic text-gray-600",
                 )}
               >
-                {request.data?.data.description ?? "Non renseigné"}
+                {request.data?.data.description ?? "N/A"}
               </p>
             </div>
           </div>
@@ -236,16 +234,11 @@ function ViewRequest({
             <div className="flex flex-col">
               <p className="view-group-title">{"Catégorie"}</p>
               <p className="font-semibold">
-                {!category.isSuccess
-                  ? "chargement..."
-                  : category.data.data.label.toLowerCase().includes("facilita")
-                    ? category.data.data.label
-                    : request.data?.data.type === "facilitation"
-                      ? "Facilitation"
-                      : request.data?.data.type === "ressource_humaine"
-                        ? "Ressources Humaines"
-                        : request.data?.data.type === "speciaux" &&
-                          "Besoins Spéciaux"}
+                {category.data
+                  ? category.data.data.label
+                  : category.isLoading
+                    ? "Chargement..."
+                    : "N/A"}
               </p>
             </div>
           </div>

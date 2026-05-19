@@ -724,7 +724,7 @@ export function DataVal({
             value.type !== "facilitation"
               ? !!value.amount
                 ? XAF.format(value.amount)
-                : "N/A"
+                : "Aucun"
               : XAF.format(
                   value.benFac?.list?.reduce(
                     (acc, item) => acc + item.amount,
