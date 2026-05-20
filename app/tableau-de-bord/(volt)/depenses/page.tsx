@@ -85,6 +85,10 @@ function Page() {
       to: "",
     });
     setDateFilter(undefined);
+    setFilters({
+      pageIndex: 0,
+      pageSize: 15,
+    });
   };
 
   const [filters, setFilters] = React.useState({

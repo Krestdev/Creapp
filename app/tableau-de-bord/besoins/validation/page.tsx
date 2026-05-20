@@ -18,12 +18,80 @@ import { purchaseQ } from "@/queries/purchase-order";
 import { receptionQ } from "@/queries/reception";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
-import { RequestModelT } from "@/types/types";
+import { DateFilter, RequestModelT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
+import React, { useMemo, useState } from "react";
+import ApprovalFilters, { ApprovalFiltersProps } from "./filters";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Settings2 } from "lucide-react";
+import { TabBar } from "@/components/base/TabBar";
 
 const Page = () => {
-  const { user } = useStore();
+  const [customFilters, setCustomFilters] = React.useState<
+    ApprovalFiltersProps["customFilters"]
+  >({
+    search: "",
+    user: "all",
+    tab: "pending",
+    category: "all",
+    project: "all",
+    status: "all",
+    type: "all",
+    date: undefined,
+    from: "",
+    to: "",
+  });
+  const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
+    React.useState(false);
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+
+  const { tab, search, ...otherFilters } = customFilters;
+
+  const [filters, setFilters] = useState({
+    pageIndex: 0,
+    pageSize: 15,
+  });
+
+  const tabs = [
+    {
+      id: "pending",
+      title: "En attente",
+    },
+    {
+      id: "processed",
+      title: "Traités",
+    },
+  ];
+
+  const resetAllFilters = () => {
+    setCustomFilters({
+      search: "",
+      user: "all",
+      tab: "pending",
+      category: "all",
+      project: "all",
+      status: "all",
+      type: "all",
+      date: undefined,
+      from: "",
+      to: "",
+    });
+    setDateFilter(undefined);
+    setIsCustomDateModalOpen(false);
+    setFilters({
+      pageIndex: 0,
+      pageSize: 15,
+    });
+  };
+
   const categoriesData = useQuery({
     queryKey: queryKeys.categories,
     queryFn: categoryQ.getCategories,
@@ -39,9 +107,47 @@ const Page = () => {
   });
 
   const requestData = useQuery({
-    queryKey: queryKeys.requestsForApproval,
-    queryFn: async () => requestQ.getValidatorRequests(user?.id ?? 0),
-    enabled: !!user,
+    queryKey: queryKeys.requestsForApproval(filters, customFilters, dateFilter),
+    queryFn: () =>
+      requestQ.getValidatorRequests({
+        pageIndex: filters.pageIndex,
+        pageSize: filters.pageSize,
+        search: customFilters.search || undefined,
+        user: customFilters.user !== "all" ? customFilters.user : undefined,
+        tab: customFilters.tab,
+        category:
+          customFilters.category !== "all" ? customFilters.category : undefined,
+        project:
+          customFilters.project !== "all" ? customFilters.project : undefined,
+        status:
+          customFilters.status !== "all" ? customFilters.status : undefined,
+        type: customFilters.type !== "all" ? customFilters.type : undefined,
+        date: customFilters.date || undefined,
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
+  });
+
+  const requestStatsData = useQuery({
+    queryKey: queryKeys.requestsForApprovalStats(
+      filters,
+      otherFilters,
+      dateFilter,
+    ),
+    queryFn: () =>
+      requestQ.getValidatorRequestsStats({
+        user: customFilters.user !== "all" ? customFilters.user : undefined,
+        category:
+          customFilters.category !== "all" ? customFilters.category : undefined,
+        project:
+          customFilters.project !== "all" ? customFilters.project : undefined,
+        status:
+          customFilters.status !== "all" ? customFilters.status : undefined,
+        type: customFilters.type !== "all" ? customFilters.type : undefined,
+        date: customFilters.date || undefined,
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
   });
 
   const getRequestType = useQuery({
@@ -59,56 +165,6 @@ const Page = () => {
     queryFn: purchaseQ.getAll,
   });
 
-  const data: Array<RequestModelT> = useMemo(() => {
-    if (!requestData.data) return [];
-    return approbatorRequests(requestData.data.data, user?.id);
-  }, [requestData.data, user?.id]);
-
-  // Calcul des statistiques à partir des données filtrées
-  const pending = useMemo(() => {
-    return data.filter((b) => {
-      const myApproval = b.validators.find((v) => v.userId === user?.id);
-      return b.state !== "rejected" && myApproval?.validated === false;
-    }).length;
-  }, [data, user?.id]);
-
-  const approved = useMemo(() => {
-    return data.filter((b) => {
-      const myApproval = b.validators.find((v) => v.userId === user?.id);
-      return myApproval?.validated === true && b.state !== "rejected";
-    }).length;
-  }, [data, user?.id]);
-
-  const rejected = useMemo(() => {
-    return data.filter((b) => {
-      const myApproval = b.validators.find((v) => v.userId === user?.id);
-      // On compte comme rejeté si l'état est "rejected", peu importe si l'user a cliqué ou non
-      // OU si l'user a validé mais que c'est devenu rejeté plus tard (selon ta logique métier)
-      return b.state === "rejected" || b.state.includes("rejected");
-    }).length;
-  }, [data, user?.id]);
-
-  const Statistics: Array<StatisticProps> = [
-    {
-      title: "En attente de validation",
-      value: pending,
-      variant: "secondary",
-      more: {
-        title: "Total recus",
-        value: data.length,
-      },
-    },
-    {
-      title: "Besoins approuvés",
-      value: approved,
-      variant: "default",
-      more: {
-        title: "Besoins rejetés",
-        value: rejected,
-      },
-    },
-  ];
-
   if (
     projectsData.isPending ||
     usersData.isPending ||
@@ -116,7 +172,8 @@ const Page = () => {
     requestData.isPending ||
     getRequestType.isPending ||
     getReceptions.isPending ||
-    getPurchases.isPending
+    getPurchases.isPending ||
+    requestStatsData.isPending
   ) {
     return <LoadingPage />;
   }
@@ -128,7 +185,8 @@ const Page = () => {
     requestData.isError ||
     getRequestType.isError ||
     getPurchases.isError ||
-    getReceptions.isError
+    getReceptions.isError ||
+    requestStatsData.isError
   ) {
     return (
       <ErrorPage
@@ -140,50 +198,108 @@ const Page = () => {
           getRequestType.error ||
           getReceptions.error ||
           getPurchases.error ||
+          requestStatsData.error ||
           undefined
         }
       />
     );
   }
+  const statistics: Array<StatisticProps> = [
+    {
+      title: "En attente de validation",
+      value: requestStatsData.data.data.awaiting,
+      variant: "primary",
+      more: {
+        title: "Total recus",
+        value: requestStatsData.data.data.total,
+      },
+    },
+    {
+      title: "Besoins approuvés",
+      value: requestStatsData.data.data.validated,
+      variant: "default",
+      more: {
+        title: "Besoins rejetés",
+        value: requestStatsData.data.data.rejected,
+      },
+    },
+  ];
 
-  if (
-    projectsData.data &&
-    usersData.data &&
-    categoriesData.data &&
-    requestData.data &&
-    getRequestType.data &&
-    getPurchases.isSuccess &&
-    getReceptions.isSuccess
-  ) {
-    return (
-      <div className="content">
-        {/* page title */}
-        <PageTitle
-          title="Validation des besoins"
-          subtitle="Approuvez ou rejetez les besoins."
-          color="green"
-        />
-        <div className="grid-stats-4">
-          {Statistics.map((statistic, id) => (
-            <StatisticCard key={id} {...statistic} />
-          ))}
-        </div>
-        <DataVal
-          data={data}
-          empty="Aucun besoin en attente"
-          isCheckable={true}
-          categoriesData={categoriesData.data.data}
-          projectsData={projectsData.data.data}
-          usersData={usersData.data.data}
-          requestTypeData={getRequestType.data.data}
-          pending={pending}
-          cleared={approved + rejected}
-          purchaseOrders={getPurchases.data.data}
-          receptions={getReceptions.data.data}
-        />
+  return (
+    <div className="content">
+      {/* page title */}
+      <PageTitle
+        title="Validation des besoins"
+        subtitle="Approuvez ou rejetez les besoins."
+        color="green"
+      />
+      <Sheet>
+        <SheetTrigger asChild className="w-fit">
+          <Button variant={"outline"}>
+            <Settings2 />
+            {"Filtres"}
+          </Button>
+        </SheetTrigger>
+        <SheetContent className="px-3">
+          <SheetHeader>
+            <SheetTitle>{"Filtres"}</SheetTitle>
+            <SheetDescription>
+              {"Configurer les filtres pour affiner les données"}
+            </SheetDescription>
+          </SheetHeader>
+          <ApprovalFilters
+            customFilters={customFilters}
+            setCustomFilters={setCustomFilters}
+            isCustomDateModalOpen={isCustomDateModalOpen}
+            setIsCustomDateModalOpen={setIsCustomDateModalOpen}
+            uniqueCategories={categoriesData.data.data}
+            uniqueProjects={projectsData.data.data}
+            requestTypes={getRequestType.data.data}
+            setDateFilter={setDateFilter}
+            resetAllFilters={resetAllFilters}
+            users={usersData.data.data}
+          />
+        </SheetContent>
+      </Sheet>
+      <div className="grid-stats-4">
+        {statistics.map((statistic, id) => (
+          <StatisticCard key={id} {...statistic} />
+        ))}
       </div>
-    );
-  }
+      <TabBar
+        tabs={tabs}
+        setSelectedTab={(value) => {
+          setCustomFilters({ ...customFilters, tab: value });
+          setFilters((prev) => ({ ...prev, pageIndex: 0 }));
+        }}
+        selectedTab={customFilters.tab}
+        className="w-fit"
+      />
+      <DataVal
+        data={requestData.data.data.data}
+        empty="Aucun besoin en attente"
+        isCheckable={true}
+        categoriesData={categoriesData.data.data}
+        projectsData={projectsData.data.data}
+        usersData={usersData.data.data}
+        requestTypeData={getRequestType.data.data}
+        purchaseOrders={getPurchases.data.data}
+        receptions={getReceptions.data.data}
+        tab={customFilters.tab}
+        pagination={filters}
+        paginationOptions={{
+          onPaginationChange: (updater) => {
+            setFilters((prev) => {
+              const nextPagination =
+                typeof updater === "function" ? updater(prev) : updater;
+              return { ...prev, ...nextPagination };
+            });
+          },
+          //rowCount: data.count,
+        }}
+      />
+    </div>
+  );
 };
 
 export default Page;

@@ -7,6 +7,8 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  PaginationOptions,
+  PaginationState,
   Row,
   type SortingState,
   useReactTable,
@@ -24,11 +26,10 @@ import {
   LucideBan,
   LucideCreditCard,
   LucideIcon,
-  Paperclip,
-  Settings2,
 } from "lucide-react";
 import * as React from "react";
 
+import { ApprovalFiltersProps } from "@/app/tableau-de-bord/besoins/validation/filters";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -38,7 +39,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -59,7 +59,6 @@ import { requestQ } from "@/queries/requestModule";
 import {
   BonsCommande,
   Category,
-  DateFilter,
   ProjectT,
   Reception,
   RequestModelT,
@@ -81,12 +80,6 @@ import BesoinRHLastVal from "../modals/BesoinRHLastVal";
 import UpdatePaymentMethod from "../modals/UpdatePaymentMethod";
 import { ValidationModal } from "../modals/ValidationModal";
 import { Badge, badgeVariants } from "../ui/badge";
-import { Calendar } from "../ui/calendar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "../ui/collapsible";
 import {
   Dialog,
   DialogContent,
@@ -96,23 +89,13 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Label } from "../ui/label";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "../ui/sheet";
 import { Textarea } from "../ui/textarea";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
-import { TabBar } from "./TabBar";
 
 interface DataTableProps {
   data: RequestModelT[];
   empty: string;
-  type?: "pending" | "proceed";
   customProps?: {
     userPosition?: number | null;
     categoryName?: string;
@@ -124,25 +107,26 @@ interface DataTableProps {
   projectsData: ProjectT[];
   usersData: User[];
   requestTypeData: RequestType[];
-  pending: number;
-  cleared: number;
   receptions: Array<Reception>;
   purchaseOrders: Array<BonsCommande>;
+  tab: ApprovalFiltersProps["customFilters"]["tab"];
+  pagination: PaginationState;
+  paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
 }
 
 export function DataVal({
   data,
   empty,
-  type = "pending",
   isCheckable = false,
   categoriesData,
   projectsData,
   usersData,
   requestTypeData,
-  pending,
-  cleared,
   receptions,
   purchaseOrders,
+  tab,
+  pagination,
+  paginationOptions,
 }: DataTableProps) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -156,27 +140,6 @@ export function DataVal({
 
   // États pour les filtres
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState<string>("all");
-  const [categoryFilter, setCategoryFilter] = React.useState<string>("all");
-  const [projectFilter, setProjectFilter] = React.useState<string>("all");
-  const [userFilter, setUserFilter] = React.useState<string>("all");
-  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
-  const [customDateRange, setCustomDateRange] = React.useState<
-    { from: Date; to: Date } | undefined
-  >();
-  const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
-  const [selectedTab, setSelectedTab] = React.useState<number>(0);
-  const tabs = [
-    {
-      id: 0,
-      title: "En attente",
-      badge: pending,
-    },
-    {
-      id: 1,
-      title: "Traités",
-    },
-  ];
 
   // Modal states
   const [selectedItem, setSelectedItem] = React.useState<RequestModelT | null>(
@@ -199,10 +162,6 @@ export function DataVal({
   >("approve");
   const [isUpdateSettleRequest, setIsUpdateSettleRequest] =
     React.useState(false);
-  const [statusSearch, setStatusSearch] = React.useState("");
-  const [categorySearch, setCategorySearch] = React.useState("");
-  const [projectSearch, setProjectSearch] = React.useState("");
-  const [userSearch, setUserSearch] = React.useState("");
 
   // États pour les actions de groupe
   const [isGroupActionDialogOpen, setIsGroupActionDialogOpen] =
@@ -236,112 +195,6 @@ export function DataVal({
       (cat) => cat.id === Number(categoryId),
     );
     return category?.label || categoryId;
-  };
-
-  // Major Filter *******************************************
-  const filteredData = React.useMemo(() => {
-    return data.filter((b) => {
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
-      const myApproval = b.validators.find((v) => v.userId === user?.id);
-      //Selected Tab
-      const matchTab =
-        selectedTab === 0
-          ? myApproval?.validated === false && b.state !== "rejected"
-          : selectedTab === 1 && myApproval?.validated === true;
-      //Status Filter
-      const matchStatus =
-        statusFilter === "all" ? true : b.state === statusFilter;
-      //Project Filter - MODIFICATION ICI
-      let matchProject = true;
-      if (projectFilter === "all") {
-        matchProject = true;
-      } else if (projectFilter === "null") {
-        // Option pour les besoins sans projet
-        matchProject = b.projectId === null || b.projectId === undefined;
-      } else {
-        matchProject = b.projectId === Number(projectFilter);
-      }
-      //User Filter
-      const matchUser =
-        userFilter === "all" ? true : b.userId === Number(userFilter);
-      //Category Filter
-      const matchCategory =
-        categoryFilter === "all"
-          ? true
-          : b.categoryId === Number(categoryFilter);
-      //Date filter
-      let matchDate = true;
-      if (dateFilter) {
-        switch (dateFilter) {
-          case "today":
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "week":
-            startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-            );
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "month":
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          case "year":
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
-          case "custom":
-            if (customDateRange?.from && customDateRange?.to) {
-              startDate = customDateRange.from;
-              endDate = customDateRange.to;
-            }
-            break;
-        }
-
-        if (
-          dateFilter !== "custom" ||
-          (customDateRange?.from && customDateRange?.to)
-        ) {
-          matchDate =
-            new Date(b.createdAt) >= startDate &&
-            new Date(b.createdAt) <= endDate;
-        }
-      }
-      return (
-        matchDate &&
-        matchProject &&
-        matchUser &&
-        matchStatus &&
-        matchTab &&
-        matchCategory
-      );
-    });
-  }, [
-    data,
-    globalFilter,
-    statusFilter,
-    categoryFilter,
-    projectFilter,
-    userFilter,
-    selectedTab,
-    dateFilter,
-    customDateRange,
-  ]);
-
-  const resetAllFilters = () => {
-    setGlobalFilter("");
-    setStatusFilter("all");
-    setCategoryFilter("all");
-    setProjectFilter("all");
-    setUserFilter("all");
-    setDateFilter(undefined);
-    setCustomDateRange(undefined);
-    setCustomOpen(false);
-    // Réinitialiser les recherches
-    setStatusSearch("");
-    setCategorySearch("");
-    setProjectSearch("");
-    setUserSearch("");
   };
 
   const categoryIds = [...new Set(data.map((req) => req.categoryId))];
@@ -890,7 +743,7 @@ export function DataVal({
       },
     );
 
-    if (type === "pending") {
+    if (tab === "pending") {
       baseColumns.push({
         id: "validationProgress",
         header: () => <span className="tablehead">{"Validation"}</span>,
@@ -919,7 +772,7 @@ export function DataVal({
       });
     }
 
-    if (type === "proceed") {
+    if (tab === "processed") {
       baseColumns.splice(3, 0, {
         accessorKey: "state",
         header: ({ column }) => {
@@ -1050,10 +903,10 @@ export function DataVal({
     });
 
     return baseColumns;
-  }, [type, user?.id, categoriesData, isCheckable]);
+  }, [tab, user?.id, categoriesData, isCheckable]);
 
   const table = useReactTable({
-    data: filteredData,
+    data: data,
     columns,
     onSortingChange: setSorting,
     getCoreRowModel: getCoreRowModel(),
@@ -1062,11 +915,14 @@ export function DataVal({
     getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    manualPagination: true,
+    ...paginationOptions,
     state: {
       sorting,
       columnVisibility,
       rowSelection,
       globalFilter,
+      pagination,
     },
   });
 
@@ -1076,528 +932,7 @@ export function DataVal({
   return (
     <div className="content">
       <div className="flex flex-wrap gap-4 items-center justify-between">
-        <TabBar
-          tabs={tabs}
-          selectedTab={selectedTab}
-          setSelectedTab={setSelectedTab}
-        />
         <div className="flex flex-wrap items-center gap-2">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant={"outline"}>
-                <Settings2 />
-                {"Filtres"}
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>{"Filtres"}</SheetTitle>
-                <SheetDescription>
-                  {"Configurer les filtres pour affiner les données"}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="px-5 grid gap-5">
-                <div className="grid gap-1.5">
-                  <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-                  <Input
-                    name="search"
-                    type="search"
-                    id="searchCommand"
-                    placeholder="Référence, libellé"
-                    value={globalFilter ?? ""}
-                    onChange={(event) => setGlobalFilter(event.target.value)}
-                    className="w-full"
-                  />
-                </div>
-
-                <div className="grid gap-1.5">
-                  <Label>{"Statut"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {statusFilter === "all"
-                            ? "Tous les statuts"
-                            : uniqueStatus.find(
-                                (s) => String(s.id) === statusFilter,
-                              )?.name || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                        <Input
-                          placeholder="Rechercher un statut..."
-                          className="h-8"
-                          value={statusSearch}
-                          onChange={(e) => setStatusSearch(e.target.value)}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setStatusFilter("all");
-                          setStatusSearch("");
-                        }}
-                        className={statusFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span>Tous les statuts</span>
-                        </div>
-                      </DropdownMenuItem>
-                      {uniqueStatus
-                        .filter((s) =>
-                          s.name
-                            .toLowerCase()
-                            .includes(statusSearch.toLowerCase()),
-                        )
-                        .map((s) => (
-                          <DropdownMenuItem
-                            key={s.id}
-                            onClick={() => {
-                              setStatusFilter(String(s.id));
-                              setStatusSearch("");
-                            }}
-                            className={
-                              statusFilter === String(s.id) ? "bg-accent" : ""
-                            }
-                          >
-                            <div className="flex items-center gap-2">
-                              <span>{s.name}</span>
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
-                      {uniqueStatus.filter((s) =>
-                        s.name
-                          .toLowerCase()
-                          .includes(statusSearch.toLowerCase()),
-                      ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun statut trouvé
-                        </div>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                <div className="grid gap-1.5">
-                  <Label>{"Catégorie"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {categoryFilter === "all"
-                            ? "Toutes les catégories"
-                            : categoriesData.find(
-                                (c) => String(c.id) === categoryFilter,
-                              )?.label || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                        <Input
-                          placeholder="Rechercher une catégorie..."
-                          className="h-8"
-                          value={categorySearch}
-                          onChange={(e) => setCategorySearch(e.target.value)}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setCategoryFilter("all");
-                          setCategorySearch("");
-                        }}
-                        className={categoryFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span>Toutes les catégories</span>
-                        </div>
-                      </DropdownMenuItem>
-                      {categoriesData
-                        .filter((c) => categoryIds.includes(c.id))
-                        .filter((c) =>
-                          c.label
-                            .toLowerCase()
-                            .includes(categorySearch.toLowerCase()),
-                        )
-                        .map((c) => (
-                          <DropdownMenuItem
-                            key={c.id}
-                            onClick={() => {
-                              setCategoryFilter(String(c.id));
-                              setCategorySearch("");
-                            }}
-                            className={
-                              categoryFilter === String(c.id) ? "bg-accent" : ""
-                            }
-                          >
-                            <div className="flex items-center gap-2">
-                              <span>{c.label}</span>
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
-                      {categoriesData
-                        .filter((c) => categoryIds.includes(c.id))
-                        .filter((c) =>
-                          c.label
-                            .toLowerCase()
-                            .includes(categorySearch.toLowerCase()),
-                        ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucune catégorie trouvée
-                        </div>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                <div className="grid gap-1.5">
-                  <Label>{"Projet"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {projectFilter === "all"
-                            ? "Tous les projets"
-                            : projectFilter === "null"
-                              ? "Sans projet"
-                              : projectsData.find(
-                                  (p) => String(p.id) === projectFilter,
-                                )?.label || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                        <Input
-                          placeholder="Rechercher un projet..."
-                          className="h-8"
-                          value={projectSearch}
-                          onChange={(e) => setProjectSearch(e.target.value)}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setProjectFilter("all");
-                          setProjectSearch("");
-                        }}
-                        className={projectFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span>Tous les projets</span>
-                        </div>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setProjectFilter("null");
-                          setProjectSearch("");
-                        }}
-                        className={projectFilter === "null" ? "bg-accent" : ""}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span className="text-red-500">Sans projet</span>
-                        </div>
-                      </DropdownMenuItem>
-                      {projectsData
-                        .filter((p) =>
-                          p.label
-                            .toLowerCase()
-                            .includes(projectSearch.toLowerCase()),
-                        )
-                        .map((p) => (
-                          <DropdownMenuItem
-                            key={p.id}
-                            onClick={() => {
-                              setProjectFilter(String(p.id));
-                              setProjectSearch("");
-                            }}
-                            className={
-                              projectFilter === String(p.id) ? "bg-accent" : ""
-                            }
-                          >
-                            <div className="flex items-center gap-2">
-                              <span>{p.label}</span>
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
-                      {projectsData.filter((p) =>
-                        p.label
-                          .toLowerCase()
-                          .includes(projectSearch.toLowerCase()),
-                      ).length === 0 &&
-                        projectSearch && (
-                          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                            Aucun projet trouvé
-                          </div>
-                        )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                <div className="grid gap-1.5">
-                  <Label>{"Emetteur"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {userFilter === "all"
-                            ? "Tous les émetteurs"
-                            : usersData
-                                .find((u) => String(u.id) === userFilter)
-                                ?.firstName?.concat(
-                                  " ",
-                                  usersData.find(
-                                    (u) => String(u.id) === userFilter,
-                                  )!.lastName,
-                                ) || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                        <Input
-                          placeholder="Rechercher un émetteur..."
-                          className="h-8"
-                          value={userSearch}
-                          onChange={(e) => setUserSearch(e.target.value)}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
-                      </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setUserFilter("all");
-                          setUserSearch("");
-                        }}
-                        className={userFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span>Tous les émetteurs</span>
-                        </div>
-                      </DropdownMenuItem>
-                      {usersData
-                        .filter((u) =>
-                          `${u.firstName} ${u.lastName}`
-                            .toLowerCase()
-                            .includes(userSearch.toLowerCase()),
-                        )
-                        .map((u) => (
-                          <DropdownMenuItem
-                            key={u.id}
-                            onClick={() => {
-                              setUserFilter(String(u.id));
-                              setUserSearch("");
-                            }}
-                            className={
-                              userFilter === String(u.id) ? "bg-accent" : ""
-                            }
-                          >
-                            <div className="flex items-center gap-2">
-                              <span>{`${u.firstName} ${u.lastName}`}</span>
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
-                      {usersData.filter((u) =>
-                        `${u.firstName} ${u.lastName}`
-                          .toLowerCase()
-                          .includes(userSearch.toLowerCase()),
-                      ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun émetteur trouvé
-                        </div>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                <div className="grid gap-1.5">
-                  <Label>{"Période"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {dateFilter === undefined
-                            ? "Toutes les périodes"
-                            : dateFilter === "today"
-                              ? "Aujourd'hui"
-                              : dateFilter === "week"
-                                ? "Cette semaine"
-                                : dateFilter === "month"
-                                  ? "Ce mois"
-                                  : dateFilter === "year"
-                                    ? "Cette année"
-                                    : dateFilter === "custom"
-                                      ? "Personnalisé"
-                                      : "Sélectionner une période"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter(undefined);
-                          setCustomDateRange(undefined);
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === undefined ? "bg-accent" : ""}
-                      >
-                        <span>Toutes les périodes</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("today");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "today" ? "bg-accent" : ""}
-                      >
-                        <span>Aujourd'hui</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("week");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "week" ? "bg-accent" : ""}
-                      >
-                        <span>Cette semaine</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("month");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "month" ? "bg-accent" : ""}
-                      >
-                        <span>Ce mois</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("year");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "year" ? "bg-accent" : ""}
-                      >
-                        <span>Cette année</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("custom");
-                          setCustomOpen(true);
-                        }}
-                        className={dateFilter === "custom" ? "bg-accent" : ""}
-                      >
-                        <span>Personnalisé</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <Collapsible
-                    open={customOpen}
-                    onOpenChange={setCustomOpen}
-                    disabled={dateFilter !== "custom"}
-                  >
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        {"Plage personnalisée"}
-                        <span className="text-muted-foreground text-xs">
-                          {customDateRange?.from && customDateRange.to
-                            ? `${format(
-                                customDateRange.from,
-                                "dd/MM/yyyy",
-                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
-                            : "Choisir"}
-                        </span>
-                      </Button>
-                    </CollapsibleTrigger>
-
-                    <CollapsibleContent className="space-y-4 pt-4">
-                      <Calendar
-                        mode="range"
-                        selected={customDateRange}
-                        onSelect={(range) =>
-                          setCustomDateRange(range as { from: Date; to: Date })
-                        }
-                        numberOfMonths={1}
-                        className="rounded-md border w-full"
-                      />
-                      <div className="space-y-1">
-                        <Button
-                          className="w-full"
-                          onClick={() => {
-                            setCustomDateRange(undefined);
-                            setDateFilter(undefined);
-                            setCustomOpen(false);
-                          }}
-                        >
-                          {"Annuler"}
-                        </Button>
-                        <Button
-                          className="w-full"
-                          variant={"outline"}
-                          onClick={() => {
-                            setCustomOpen(false);
-                          }}
-                        >
-                          {"Réduire"}
-                        </Button>
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </div>
-
-                <div className="flex items-end">
-                  <Button
-                    variant="outline"
-                    onClick={resetAllFilters}
-                    className="w-full"
-                  >
-                    {"Réinitialiser"}
-                  </Button>
-                </div>
-              </div>
-            </SheetContent>
-          </Sheet>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline">{"Colonnes"}</Button>
@@ -1644,7 +979,7 @@ export function DataVal({
           </DropdownMenu>
         </div>
       </div>
-      <h3>{`Besoins (${filteredData.length})`}</h3>
+      <h3>{`Besoins (${data.length})`}</h3>
       {isCheckable && selectedCount > 1 && (
         <div className="flex items-center gap-2 pb-4">
           <Button
@@ -1669,7 +1004,7 @@ export function DataVal({
           </Button>
         </div>
       )}
-      {filteredData.length > 0 ? (
+      {data.length > 0 ? (
         <div className="rounded-md border overflow-hidden">
           <Table>
             <TableHeader>
@@ -1737,7 +1072,7 @@ export function DataVal({
         <Empty message={empty} />
       )}
 
-      {filteredData.length > 0 && <Pagination table={table} />}
+      {data.length > 0 && <Pagination table={table} />}
 
       {/* Dialog pour les actions de groupe */}
       {isCheckable && (

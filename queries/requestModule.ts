@@ -344,9 +344,26 @@ class RequestQueries {
 
   // Request to approve/reject
   getValidatorRequests = async (
-    userId: number,
-  ): Promise<{ data: Array<RequestModelT> }> => {
-    return api.get(`${this.route}/validator/${userId}`).then((res) => res.data);
+    params?: Record<string, any>,
+  ): Promise<{ data: { data: Array<RequestModelT>; total: number } }> => {
+    return api
+      .get(`${this.route}/validator/all`, { params })
+      .then((res) => res.data);
+  };
+
+  getValidatorRequestsStats = async (
+    params?: Record<string, any>,
+  ): Promise<{
+    data: {
+      awaiting: number;
+      rejected: number;
+      validated: number;
+      total: number;
+    };
+  }> => {
+    return api
+      .get(`${this.route}/validator/stats`, { params })
+      .then((res) => res.data);
   };
 
   // Notification Requests to approve/reject for

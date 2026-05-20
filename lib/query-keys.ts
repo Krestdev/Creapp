@@ -31,7 +31,10 @@ export const queryKeys = {
   requestsUser: (...args: any[]) => ["requests-user", ...args] as const,
   allRequests: (...args: any[]) => ["allRequests", ...args] as const,
   allRequestsStats: (...args: any[]) => ["allRequests-stats", ...args] as const,
-  requestsForApproval: ["requests-for-approval"] as const,
+  requestsForApproval: (...args: any[]) =>
+    ["requests-for-approval", ...args] as const,
+  requestsForApprovalStats: (...args: any[]) =>
+    ["requests-for-approval-stats", ...args] as const,
   pendingRequestApprovalsCount: ["pending-request-approvals-count"] as const,
   serviceRequestsCount: ["service-requests-count"] as const,
   usableRequestsCount: ["usable-requests-count"] as const,
