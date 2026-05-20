@@ -112,8 +112,6 @@ export function DetailBesoin({
         return { label: "Approuvé", variant: "success" };
       case "rejected":
         return { label: "Rejeté", variant: "destructive" };
-      case "in-review":
-        return { label: "En révision", variant: "lime" };
       case "store":
         return { label: "Déstocké", variant: "blue" };
       default:
@@ -143,10 +141,6 @@ export function DetailBesoin({
     store: {
       label: "Déstocké",
       color: "bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-    },
-    "in-review": {
-      label: "En révision",
-      color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
     },
   };
 

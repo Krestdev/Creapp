@@ -402,7 +402,7 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
             <SelectItem value="pending">En attente</SelectItem>
             <SelectItem value="approved">Approuvé</SelectItem>
             <SelectItem value="rejected">Rejeté</SelectItem>
-            <SelectItem value="in-review">En révision</SelectItem>
+            {/* <SelectItem value="in-review">En révision</SelectItem> */}
           </SelectContent>
         </Select>
 

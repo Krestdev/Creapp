@@ -91,12 +91,6 @@ const statusConfig = {
     badgeClassName: "bg-red-100 text-red-600 border border-red-200",
     rowClassName: "bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-950/30",
   },
-  "in-review": {
-    label: "In Review",
-    icon: AlertCircle,
-    badgeClassName: "bg-sky-100 text-sky-600 border border-sky-200 ",
-    rowClassName: "bg-sky-50 dark:bg-bluesky/20 dark:hover:bg-sky-950/30",
-  },
   store: {
     label: "Store",
     icon: AlertCircle,
