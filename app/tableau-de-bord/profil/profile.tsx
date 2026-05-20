@@ -45,7 +45,6 @@ const STATE_CONFIG: Record<
   }
 > = {
   pending: { label: "En attente", variant: "yellow", icon: Clock },
-  "in-review": { label: "En révision", variant: "blue", icon: Activity },
   validated: { label: "Validé", variant: "success", icon: CheckCircle2 },
   rejected: { label: "Rejeté", variant: "destructive", icon: XCircle },
   cancel: { label: "Annulé", variant: "default", icon: AlertCircle },
@@ -106,11 +105,10 @@ function ProfilePage({ user, requests, signature }: Props) {
   const stats = useMemo(() => {
     const total = requests.length;
     const pending = requests.filter((r) => r.state === "pending").length;
-    const inReview = requests.filter((r) => r.state === "in-review").length;
     const validated = requests.filter((r) => r.state === "validated").length;
     const rejected = requests.filter((r) => r.state === "rejected").length;
     const cancelled = requests.filter((r) => r.state === "cancel").length;
-    return { total, pending, inReview, validated, rejected, cancelled };
+    return { total, pending, validated, rejected, cancelled };
   }, [requests]);
 
   // Latest 5 requests sorted by createdAt desc
@@ -313,8 +311,6 @@ function ProfilePage({ user, requests, signature }: Props) {
                               : req.state === "rejected" ||
                                   req.state === "cancel"
                                 ? "text-red-500"
-                                : req.state === "in-review"
-                                  ? "text-blue-500"
                                   : "text-yellow-500"
                           }
                         />

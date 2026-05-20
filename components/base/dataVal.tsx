@@ -375,12 +375,6 @@ export function DataVal({
           variant: "destructive",
           rowClassName: "bg-red-50/50 hover:bg-red-50",
         };
-      case "in-review":
-        return {
-          label: "En révision",
-          variant: "sky",
-          rowClassName: "bg-sky-50/50 hover:bg-sky-50",
-        };
       case "cancel":
         return { label: "Annulé", variant: "default" };
       default:

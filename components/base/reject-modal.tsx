@@ -69,10 +69,6 @@ export function RejectModal({ open, onOpenChange, data }: DetailModalProps) {
   //     label: "Rejeté",
   //     color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
   //   },
-  //   "in-review": {
-  //     label: "En révision",
-  //     color: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  //   },
   // };
 
   return (
