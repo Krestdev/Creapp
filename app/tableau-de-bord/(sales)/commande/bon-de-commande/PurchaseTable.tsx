@@ -377,7 +377,7 @@ export function PurchaseTable({
 
     {
       accessorKey: "status",
-      header: () => <span className="tablehead">{"État de paiement"}</span>,
+      header: () => <span className="tablehead">{"Statut"}</span>,
       cell: ({ row }) => {
         const value = row.getValue("status") as Status;
         const { label, variant } = getStatusLabel(value);
@@ -387,7 +387,7 @@ export function PurchaseTable({
 
     {
       accessorKey: "payment",
-      header: () => <span className="tablehead">{"Statut de paiement"}</span>,
+      header: () => <span className="tablehead">{"État de paiement"}</span>,
       cell: ({ row }) => {
         const original = row.original;
         const i = getProgress(original);
