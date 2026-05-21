@@ -235,7 +235,7 @@ export default function ApprovalFilters({
               <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="max-h-[300px] overflow-y-auto">
+          <DropdownMenuContent className="max-h-[300px] overflow-y-auto max-w-sm">
             <DropdownMenuItem
               onClick={() => {
                 setCustomFilters({ ...customFilters, project: "all" });
