@@ -26,14 +26,13 @@ import {
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
 import { useStore } from "@/providers/datastore";
-import { paymentQ } from "@/queries/payment";
 import { requestQ } from "@/queries/requestModule";
 import { ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, LoaderIcon } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -101,14 +100,6 @@ export default function UpdateRHRequest({
 
   const [isFormInitialized, setIsFormInitialized] = useState(false);
 
-  // ----------------------------------------------------------------------
-  // QUERY PAYMENTS
-  // ----------------------------------------------------------------------
-  const paymentsData = useQuery({
-    queryKey: ["payments"],
-    queryFn: async () => paymentQ.getAll(),
-  });
-
   const USERS = users
     .filter((u) => u.verified)
     .map((u) => ({
@@ -140,10 +131,6 @@ export default function UpdateRHRequest({
   // INITIALISATION DES DONNÉES
   // ----------------------------------------------------------------------
 
-  const paiement = paymentsData.data?.data.find(
-    (x) => x.requestId === requestData?.id,
-  );
-
   useEffect(() => {
     if (open && USERS.length > 0) {
       const initializeForm = async () => {
@@ -163,16 +150,6 @@ export default function UpdateRHRequest({
                 ? new Date(requestData.period.to)
                 : undefined,
             };
-          }
-
-          // Formater la preuve si elle existe
-          let proofValue: any[] = [];
-          if (paiement?.proof) {
-            if (typeof paiement?.proof === "string") {
-              proofValue = [paiement?.proof];
-            } else if (Array.isArray(paiement?.proof)) {
-              proofValue = paiement?.proof;
-            }
           }
 
           // Récupérer les bénéficiaires
@@ -196,7 +173,7 @@ export default function UpdateRHRequest({
               ? new Date(requestData.dueDate)
               : new Date(),
             beneficiaire: beneficiaireIds,
-            justificatif: proofValue,
+            justificatif: requestData.proof,
           });
 
           setIsFormInitialized(true);
