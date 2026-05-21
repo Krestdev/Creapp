@@ -190,7 +190,7 @@ export function PurchaseTable({
   const [cotationSearch, setCotationSearch] = React.useState("");
 
   //Pay filter
-  const [paymentFilter, setPaymentFilter] = React.useState<number>(0);
+  const [paymentFilter, setPaymentFilter] = React.useState<{start: number, end: number}>({start: 0, end: 100});
 
   // Extraire la liste unique des fournisseurs
   const uniqueProviders = React.useMemo(() => {
@@ -261,8 +261,10 @@ export function PurchaseTable({
         (po) => po.devi?.id === parseInt(cotationFilter),
       );
     }
-    if(paymentFilter > 0) {
-      filtered = filtered.filter((po) => getProgress(po).progress >= paymentFilter);
+    if (paymentFilter.start > 0 || paymentFilter.end < 100) {
+      filtered = filtered.filter(
+        (po) => getProgress(po).progress >= paymentFilter.start && getProgress(po).progress <= paymentFilter.end,
+      );
     }
 
     return filtered;
@@ -908,15 +910,15 @@ export function PurchaseTable({
                   <div className="flex items-center justify-between">
                     <Label htmlFor="paymentFilter">{"Paiement"}</Label>
                     <span className="text-xs text-gray-600">
-                      {`>${paymentFilter}%`}
+                      {`>${paymentFilter.start} - ${paymentFilter.end}%`}
                     </span>
                   </div>
                   <Slider
                     id="paymentFilter"
-                    defaultValue={[paymentFilter]}
+                    defaultValue={[paymentFilter.start, paymentFilter.end]}
                     max={100}
                     step={10}
-                    onValueChange={(value) => setPaymentFilter(value[0])}
+                    onValueChange={(value) => setPaymentFilter({start: value[0], end: value[1]})}
                   />
                 </div>
 
