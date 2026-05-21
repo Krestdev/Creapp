@@ -65,12 +65,11 @@ import {
   BonsCommande,
   CommandCondition,
   Invoice,
-  PaymentRequest,
   PayType,
   PRIORITIES,
   PURCHASE_ORDER_STATUS,
   Quotation,
-  User,
+  User
 } from "@/types/types";
 import { format } from "date-fns";
 import AddSignedFile from "./add-signed-file";
@@ -80,7 +79,6 @@ import ViewSignedPurchase from "./viewSignedPurchase";
 
 interface BonsCommandeTableProps {
   data: Array<BonsCommande>;
-  payments: Array<PaymentRequest>;
   conditions: Array<CommandCondition>;
   invoices: Array<Invoice>;
   users: Array<User>;
@@ -133,13 +131,15 @@ const getPriorityLabel = (
 
 export function PurchaseTable({
   data,
-  payments,
   conditions,
   invoices,
   users,
   quotations,
   paytypes,
 }: BonsCommandeTableProps) {
+
+  const STATUS = PURCHASE_ORDER_STATUS.filter(s=> s.value !== "IN-REVIEW" && s.value !== "PAID");
+
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -607,7 +607,7 @@ export function PurchaseTable({
                         <span className="truncate">
                           {statusFilter === "all"
                             ? "Tous les statuts"
-                            : PURCHASE_ORDER_STATUS.find(
+                            : STATUS.find(
                                 (s) => s.value === statusFilter,
                               )?.name || "Sélectionner"}
                         </span>
@@ -637,7 +637,7 @@ export function PurchaseTable({
                       >
                         <span>Tous les statuts</span>
                       </DropdownMenuItem>
-                      {PURCHASE_ORDER_STATUS.filter((s) =>
+                      {STATUS.filter((s) =>
                         s.name
                           .toLowerCase()
                           .includes(statusSearch.toLowerCase()),
@@ -655,7 +655,7 @@ export function PurchaseTable({
                           <span>{s.name}</span>
                         </DropdownMenuItem>
                       ))}
-                      {PURCHASE_ORDER_STATUS.filter((s) =>
+                      {STATUS.filter((s) =>
                         s.name
                           .toLowerCase()
                           .includes(statusSearch.toLowerCase()),

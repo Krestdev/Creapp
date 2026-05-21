@@ -119,6 +119,9 @@ export const queryKeys = {
   // ─── Departments ───────────────────────────────────────────────────────────
   departmentList: ["departmentList"] as const,
 
+  //Conditions
+  conditions: ["conditions"] as const,
+
   // ─── Signature ─────────────────────────────────────────────────────────────
   signature: (userId: number) => ["signature", userId] as const,
 } as const;

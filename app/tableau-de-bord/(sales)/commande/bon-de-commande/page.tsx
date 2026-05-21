@@ -10,21 +10,21 @@ import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { queryKeys } from "@/lib/query-keys";
 import { isRole, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { paymentQ } from "@/queries/payment";
+import { userQ } from "@/queries/baseModule";
+import { CommandConditionQ } from "@/queries/commandsConditions";
+import { invoiceQ } from "@/queries/invoices";
+import { payTypeQ } from "@/queries/payType";
 import { purchaseQ } from "@/queries/purchase-order";
+import { quotationQ } from "@/queries/quotation";
+import { receptionQ } from "@/queries/reception";
 import { BonsCommande, NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 import { PurchaseTable } from "./PurchaseTable";
-import { CommandConditionQ } from "@/queries/commandsConditions";
-import { invoiceQ } from "@/queries/invoices";
-import { receptionQ } from "@/queries/reception";
-import { userQ } from "@/queries/baseModule";
-import { payTypeQ } from "@/queries/payType";
-import { quotationQ } from "@/queries/quotation";
 
 const Page = () => {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -33,42 +33,37 @@ const Page = () => {
   });
 
   const { isSuccess, isError, error, isLoading, data } = useQuery({
-    queryKey: ["purchaseOrders"],
+    queryKey: queryKeys.purchaseOrders,
     queryFn: purchaseQ.getAll,
   });
 
-  const getPayments = useQuery({
-    queryKey: ["payments"],
-    queryFn: () => paymentQ.getAll(),
-  });
-
   const getConditions = useQuery({
-    queryKey: ["conditions"],
+    queryKey: queryKeys.conditions,
     queryFn: () => CommandConditionQ.getAll(),
   });
 
   const getInvoices = useQuery({
-    queryKey: ["invoices"],
+    queryKey: queryKeys.invoices,
     queryFn: invoiceQ.getAll,
   });
 
   const getReceptions = useQuery({
-    queryKey: ["receptions"],
+    queryKey: queryKeys.receptions,
     queryFn: receptionQ.getAll,
   });
 
   const getUsers = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
 
   const getQuotations = useQuery({
-    queryKey: ["quotations"],
+    queryKey: queryKeys.quotations,
     queryFn: quotationQ.getAll,
   });
 
   const getPaymentType = useQuery({
-    queryKey: ["paymentTypes"],
+    queryKey: queryKeys.paymentTypes,
     queryFn: payTypeQ.getAll,
   });
 
@@ -165,7 +160,6 @@ const Page = () => {
 
   if (
     isLoading ||
-    getPayments.isLoading ||
     getConditions.isLoading ||
     getInvoices.isLoading ||
     getReceptions.isLoading ||
@@ -177,7 +171,6 @@ const Page = () => {
   }
   if (
     isError ||
-    getPayments.isError ||
     getConditions.isError ||
     getInvoices.isError ||
     getReceptions.isError ||
@@ -189,7 +182,6 @@ const Page = () => {
       <ErrorPage
         error={
           error ||
-          getPayments.error ||
           getInvoices.error ||
           getConditions.error ||
           getReceptions.error ||
@@ -203,7 +195,6 @@ const Page = () => {
   }
   if (
     isSuccess &&
-    getPayments.isSuccess &&
     getConditions.isSuccess &&
     getInvoices.isSuccess &&
     getReceptions.isSuccess &&
@@ -239,7 +230,6 @@ const Page = () => {
         </div>
         <PurchaseTable
           data={filteredData}
-          payments={getPayments.data.data}
           conditions={getConditions.data.data}
           invoices={getInvoices.data.data}
           users={getUsers.data.data}
