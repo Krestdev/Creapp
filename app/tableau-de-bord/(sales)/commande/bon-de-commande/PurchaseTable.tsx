@@ -76,6 +76,7 @@ import AddSignedFile from "./add-signed-file";
 import EditPurchase from "./editPurchase";
 import ViewPurchase from "./viewPurchase";
 import ViewSignedPurchase from "./viewSignedPurchase";
+import { Slider } from "@/components/ui/slider";
 
 interface BonsCommandeTableProps {
   data: Array<BonsCommande>;
@@ -140,6 +141,26 @@ export function PurchaseTable({
 
   const STATUS = PURCHASE_ORDER_STATUS.filter(s=> s.value !== "IN-REVIEW" && s.value !== "PAID");
 
+   const getProgress = (
+    purchaseOrder: BonsCommande,
+  ): { progress: number; value: number } => {
+    //To-Do complete this code
+    const data = invoices.filter((i) => i.commandId === purchaseOrder.id);
+    //console.log(data);
+
+    const values = data.flatMap((i) =>
+      i.payment.map((p) => {
+        if (p.status !== "paid") return 0;
+        return p.price;
+      }),
+    );
+    return {
+      progress:
+        (values.reduce((acc, i) => acc + i, 0) * 100) / purchaseOrder.netToPay,
+      value: values.reduce((acc, i) => acc + i, 0),
+    };
+  };
+
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -167,6 +188,9 @@ export function PurchaseTable({
   const [providerSearch, setProviderSearch] = React.useState("");
   const [cotationFilter, setCotationFilter] = React.useState<string>("all");
   const [cotationSearch, setCotationSearch] = React.useState("");
+
+  //Pay filter
+  const [paymentFilter, setPaymentFilter] = React.useState<number>(0);
 
   // Extraire la liste unique des fournisseurs
   const uniqueProviders = React.useMemo(() => {
@@ -237,6 +261,9 @@ export function PurchaseTable({
         (po) => po.devi?.id === parseInt(cotationFilter),
       );
     }
+    if(paymentFilter > 0) {
+      filtered = filtered.filter((po) => getProgress(po).progress >= paymentFilter);
+    }
 
     return filtered;
   }, [
@@ -246,27 +273,8 @@ export function PurchaseTable({
     penaltyFilter,
     providerFilter,
     cotationFilter,
+    paymentFilter,
   ]);
-
-  const getProgress = (
-    purchaseOrder: BonsCommande,
-  ): { progress: number; value: number } => {
-    //To-Do complete this code
-    const data = invoices.filter((i) => i.commandId === purchaseOrder.id);
-    //console.log(data);
-
-    const values = data.flatMap((i) =>
-      i.payment.map((p) => {
-        if (p.status !== "paid") return 0;
-        return p.price;
-      }),
-    );
-    return {
-      progress:
-        (values.reduce((acc, i) => acc + i, 0) * 100) / purchaseOrder.netToPay,
-      value: values.reduce((acc, i) => acc + i, 0),
-    };
-  };
 
   const columns: ColumnDef<BonsCommande>[] = [
     {
@@ -584,7 +592,7 @@ export function PurchaseTable({
               </SheetHeader>
 
               <div className="space-y-5 px-5">
-                <div className="space-y-3">
+                <div className="grid gap-1.5">
                   <Label htmlFor="searchPO">{"Recherche globale"}</Label>
                   <Input
                     id="searchPO"
@@ -596,7 +604,7 @@ export function PurchaseTable({
                 </div>
 
                 {/* Filtre par statut avec recherche */}
-                <div className="space-y-3">
+                <div className="grid gap-1.5">
                   <Label>{"Statut"}</Label>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -669,7 +677,7 @@ export function PurchaseTable({
                 </div>
 
                 {/* Filtre par priorité avec recherche */}
-                <div className="space-y-3">
+                <div className="grid gap-1.5">
                   <Label>{"Priorité"}</Label>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -741,7 +749,7 @@ export function PurchaseTable({
                 </div>
 
                 {/* Filtre par fournisseur avec recherche */}
-                <div className="space-y-3">
+                <div className="grid gap-1.5">
                   <Label>{"Fournisseur"}</Label>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -816,7 +824,7 @@ export function PurchaseTable({
                 </div>
 
                 {/* Filtre par cotation avec recherche */}
-                <div className="space-y-3">
+                <div className="grid gap-1.5">
                   <Label>{"Cotation"}</Label>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
@@ -895,6 +903,21 @@ export function PurchaseTable({
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
+                </div>
+                <div className="grid gap-3">
+                  <div className="flex items-center justify-between">
+                    <Label htmlFor="paymentFilter">{"Paiement"}</Label>
+                    <span className="text-xs text-gray-600">
+                      {`>${paymentFilter}%`}
+                    </span>
+                  </div>
+                  <Slider
+                    id="paymentFilter"
+                    defaultValue={[paymentFilter]}
+                    max={100}
+                    step={10}
+                    onValueChange={(value) => setPaymentFilter(value[0])}
+                  />
                 </div>
 
                 <Button
