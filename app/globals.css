@@ -188,7 +188,7 @@
 
 @layer components {
   .tablehead {
-    @apply w-full text-base px-2 font-semibold has-[>svg]:cursor-pointer inline-flex gap-2 items-center justify-between [&_svg]:size-4;
+    @apply w-full text-sm px-2 text-gray-600 has-[>svg]:cursor-pointer inline-flex gap-2 items-center justify-between [&_svg]:size-3 sticky top-0 z-10;
   }
   .content {
     @apply flex flex-col gap-4 @min-[640px]:gap-6;
