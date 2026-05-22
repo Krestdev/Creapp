@@ -20,16 +20,20 @@ import {
   CheckCircle,
   ChevronDown,
   Circle,
+  Ellipsis,
   Eye,
   Hourglass,
   LoaderIcon,
   LucideBan,
   LucideCreditCard,
   LucideIcon,
+  Settings2,
 } from "lucide-react";
 import * as React from "react";
 
-import { ApprovalFiltersProps } from "@/app/tableau-de-bord/besoins/validation/filters";
+import ApprovalFilters, {
+  ApprovalFiltersProps,
+} from "@/app/tableau-de-bord/besoins/validation/filters";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -92,6 +96,15 @@ import { Label } from "../ui/label";
 import { Textarea } from "../ui/textarea";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
+import { TabBar, TabProps } from "./TabBar";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -112,6 +125,8 @@ interface DataTableProps {
   tab: ApprovalFiltersProps["customFilters"]["tab"];
   pagination: PaginationState;
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
+  filters: ApprovalFiltersProps;
+  tabs: TabProps;
 }
 
 export function DataVal({
@@ -127,6 +142,8 @@ export function DataVal({
   tab,
   pagination,
   paginationOptions,
+  filters,
+  tabs,
 }: DataTableProps) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -521,9 +538,7 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="max-w-[200px] truncate font-medium uppercase">
-            {row.getValue("label")}
-          </div>
+          <p className="max-w-[200px] truncate">{row.getValue("label")}</p>
         ),
       },
       {
@@ -579,13 +594,14 @@ export function DataVal({
                   ) || 0,
                 );
           return (
-            <div
+            <p
               className={cn(
+                "normal-case",
                 amount === "N/A" ? "text-muted-foreground" : "font-medium",
               )}
             >
               {amount}
-            </div>
+            </p>
           );
         },
       },
@@ -610,16 +626,16 @@ export function DataVal({
             ? getProjectName(projectId as string)
             : "N/A";
           return (
-            <div
+            <p
               className={cn(
-                "text-sm",
+                "normal-case",
                 projectName === "N/A"
                   ? "text-muted-foreground"
                   : "first-letter:uppercase lowercase",
               )}
             >
               {subText({ text: projectName, length: 21 })}
-            </div>
+            </p>
           );
         },
       },
@@ -642,13 +658,7 @@ export function DataVal({
           const categoryName = getCategoryName(row.getValue("categoryId"));
           const validationInfo = getValidationInfo(row.original);
 
-          return (
-            <div>
-              <div className="font-medium text-sm first-letter:uppercase lowercase">
-                {categoryName}
-              </div>
-            </div>
-          );
+          return categoryName;
         },
       },
       {
@@ -667,9 +677,9 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="text-sm first-letter:uppercase lowercase">
+          <p className="normal-case">
             {getUserName(usersData, row.getValue("userId"))}
-          </div>
+          </p>
         ),
       },
       {
@@ -688,11 +698,11 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="text-sm">
+          <p className="normal-case">
             {format(new Date(row.getValue("createdAt")), "dd/MM/yyyy", {
               locale: fr,
             })}
-          </div>
+          </p>
         ),
       },
       {
@@ -715,7 +725,7 @@ export function DataVal({
           const list = row.original.beficiaryList;
           const beneficiary = row.original.beneficiary;
           return (
-            <div className="text-sm max-w-[200px] truncate first-letter:uppercase lowercase">
+            <p className="max-w-[200px] truncate normal-case">
               {beneficiary.toLocaleLowerCase() === "me"
                 ? getUserName(usersData, item.userId)
                 : beneficiary.length > 0
@@ -731,7 +741,7 @@ export function DataVal({
                           .join(", ")
                           .substring(0, 21)
                       : "Aucun bénéficiaire"}
-            </div>
+            </p>
           );
         },
       },
@@ -807,91 +817,85 @@ export function DataVal({
         const userHasValidated = hasUserAlreadyValidated(item);
 
         return (
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  {"Actions"}
-                  <ChevronDown className="ml-2 h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelectedItem(item);
-                    setIsModalOpen(true);
-                  }}
-                >
-                  <Eye />
-                  {"Voir les détails"}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() =>
-                    validationInfo.isLastValidator
-                      ? item.type === "facilitation"
-                        ? (setSelectedItem(item), setIsUpdateFacModalOpen(true))
-                        : item.type === "ressource_humaine"
+          <DropdownMenu>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedItem(item);
+                  setIsModalOpen(true);
+                }}
+              >
+                <Eye />
+                {"Voir les détails"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() =>
+                  validationInfo.isLastValidator
+                    ? item.type === "facilitation"
+                      ? (setSelectedItem(item), setIsUpdateFacModalOpen(true))
+                      : item.type === "ressource_humaine"
+                        ? (setSelectedItem(item), setIsUpdateRHModalOpen(true))
+                        : item.type === "appro"
                           ? (setSelectedItem(item),
-                            setIsUpdateRHModalOpen(true))
-                          : item.type === "appro"
+                            setIsUpdateApproModalOpen(true))
+                          : item.type === "others"
                             ? (setSelectedItem(item),
-                              setIsUpdateApproModalOpen(true))
-                            : item.type === "others"
+                              setIsUpdateOtherRequest(true))
+                            : item.type === "settle"
                               ? (setSelectedItem(item),
-                                setIsUpdateOtherRequest(true))
-                              : item.type === "settle"
-                                ? (setSelectedItem(item),
-                                  setIsUpdateSettleRequest(true))
-                                : (setSelectedItem(item),
-                                  setIsLastValModalOpen(true))
-                      : openValidationModal("approve", item)
-                  }
-                  disabled={
-                    validationInfo.canValidate === false ||
-                    item.state !== "pending"
-                  }
-                >
-                  <CheckCheck className="text-green-500" />
-                  {"Approuver"}
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => openValidationModal("reject", item)}
-                  disabled={
-                    !validationInfo.canValidate ||
-                    item.state !== "pending" ||
-                    userHasValidated
-                  }
-                  className={
-                    !validationInfo.canValidate
-                      ? "opacity-50 cursor-not-allowed"
-                      : ""
-                  }
-                >
-                  <LucideBan className="text-destructive" />
-                  {"Rejeter"}
-                </DropdownMenuItem>
-                {(item.type === "facilitation" || item.type === "others") &&
-                  item.state === "validated" && (
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setSelectedItem(item);
-                        setIsUpdatePaymentModalOpen(true);
-                      }}
-                      // disabled={
-                      //   !validationInfo.canValidate ||
-                      //   item.state !== "pending" ||
-                      //   userHasValidated
-                      // }
-                    >
-                      <LucideCreditCard className="h-4 w-4 text-blue-500" />
-                      {"Modifier le moyen de paiement"}
-                    </DropdownMenuItem>
-                  )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+                                setIsUpdateSettleRequest(true))
+                              : (setSelectedItem(item),
+                                setIsLastValModalOpen(true))
+                    : openValidationModal("approve", item)
+                }
+                disabled={
+                  validationInfo.canValidate === false ||
+                  item.state !== "pending"
+                }
+              >
+                <CheckCheck className="text-green-500" />
+                {"Approuver"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => openValidationModal("reject", item)}
+                disabled={
+                  !validationInfo.canValidate ||
+                  item.state !== "pending" ||
+                  userHasValidated
+                }
+                className={
+                  !validationInfo.canValidate
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }
+              >
+                <LucideBan className="text-destructive" />
+                {"Rejeter"}
+              </DropdownMenuItem>
+              {(item.type === "facilitation" || item.type === "others") &&
+                item.state === "validated" && (
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelectedItem(item);
+                      setIsUpdatePaymentModalOpen(true);
+                    }}
+                    // disabled={
+                    //   !validationInfo.canValidate ||
+                    //   item.state !== "pending" ||
+                    //   userHasValidated
+                    // }
+                  >
+                    <LucideCreditCard className="h-4 w-4 text-blue-500" />
+                    {"Modifier le moyen de paiement"}
+                  </DropdownMenuItem>
+                )}
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
     });
@@ -926,6 +930,42 @@ export function DataVal({
   return (
     <div className="content">
       <div className="flex flex-wrap gap-4 items-center justify-between">
+        <div className="flex items-center gap-2 flex-wrap">
+          <TabBar
+            tabs={tabs.tabs}
+            setSelectedTab={tabs.setSelectedTab}
+            selectedTab={tabs.selectedTab}
+            className="w-fit"
+          />
+          <Sheet>
+            <SheetTrigger asChild className="w-fit">
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="px-3">
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les filtres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <ApprovalFilters
+                customFilters={filters.customFilters}
+                setCustomFilters={filters.setCustomFilters}
+                isCustomDateModalOpen={filters.isCustomDateModalOpen}
+                setIsCustomDateModalOpen={filters.setIsCustomDateModalOpen}
+                uniqueCategories={filters.uniqueCategories}
+                uniqueProjects={filters.uniqueProjects}
+                requestTypes={filters.requestTypes}
+                setDateFilter={filters.setDateFilter}
+                resetAllFilters={filters.resetAllFilters}
+                users={filters.users}
+              />
+            </SheetContent>
+          </Sheet>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

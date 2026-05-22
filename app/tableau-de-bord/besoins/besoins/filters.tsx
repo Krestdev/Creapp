@@ -30,7 +30,7 @@ import {
 import { format } from "date-fns";
 import { ChevronDown } from "lucide-react";
 
-interface FiltersProps {
+export interface RequestFiltersProps {
   customFilters: {
     search: string;
     user: string;
@@ -77,7 +77,7 @@ export default function Filters({
   uniqueProjects,
   requestTypes,
   resetAllFilters,
-}: FiltersProps) {
+}: RequestFiltersProps) {
   return (
     <>
       {/* Category filter */}

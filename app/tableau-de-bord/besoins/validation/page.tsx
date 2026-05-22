@@ -9,30 +9,18 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { queryKeys } from "@/lib/query-keys";
-import { approbatorRequests } from "@/lib/requests-helpers";
-import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
+import { useFilters } from "@/queries/filters/standard-filter";
 import { projectQ } from "@/queries/projectModule";
 import { purchaseQ } from "@/queries/purchase-order";
 import { receptionQ } from "@/queries/reception";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
-import { DateFilter, RequestModelT } from "@/types/types";
+import { DateFilter } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import React, { useMemo, useState } from "react";
-import ApprovalFilters, { ApprovalFiltersProps } from "./filters";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
-import { Button } from "@/components/ui/button";
-import { Settings2 } from "lucide-react";
-import { TabBar } from "@/components/base/TabBar";
+import React from "react";
+import { ApprovalFiltersProps } from "./filters";
 
 const Page = () => {
   const [customFilters, setCustomFilters] = React.useState<
@@ -55,10 +43,7 @@ const Page = () => {
 
   const { tab, search, ...otherFilters } = customFilters;
 
-  const [filters, setFilters] = useState({
-    pageIndex: 0,
-    pageSize: 15,
-  });
+  const { filters, setFilters } = useFilters();
 
   const tabs = [
     {
@@ -87,8 +72,8 @@ const Page = () => {
     setDateFilter(undefined);
     setIsCustomDateModalOpen(false);
     setFilters({
-      pageIndex: 0,
-      pageSize: 15,
+      pageIndex: filters.pageIndex,
+      pageSize: filters.pageSize,
     });
   };
 
@@ -233,48 +218,11 @@ const Page = () => {
         subtitle="Approuvez ou rejetez les besoins."
         color="green"
       />
-      <Sheet>
-        <SheetTrigger asChild className="w-fit">
-          <Button variant={"outline"}>
-            <Settings2 />
-            {"Filtres"}
-          </Button>
-        </SheetTrigger>
-        <SheetContent className="px-3">
-          <SheetHeader>
-            <SheetTitle>{"Filtres"}</SheetTitle>
-            <SheetDescription>
-              {"Configurer les filtres pour affiner les données"}
-            </SheetDescription>
-          </SheetHeader>
-          <ApprovalFilters
-            customFilters={customFilters}
-            setCustomFilters={setCustomFilters}
-            isCustomDateModalOpen={isCustomDateModalOpen}
-            setIsCustomDateModalOpen={setIsCustomDateModalOpen}
-            uniqueCategories={categoriesData.data.data}
-            uniqueProjects={projectsData.data.data}
-            requestTypes={getRequestType.data.data}
-            setDateFilter={setDateFilter}
-            resetAllFilters={resetAllFilters}
-            users={usersData.data.data}
-          />
-        </SheetContent>
-      </Sheet>
       <div className="grid-stats-4">
         {statistics.map((statistic, id) => (
           <StatisticCard key={id} {...statistic} />
         ))}
       </div>
-      <TabBar
-        tabs={tabs}
-        setSelectedTab={(value) => {
-          setCustomFilters({ ...customFilters, tab: value });
-          setFilters((prev) => ({ ...prev, pageIndex: 0 }));
-        }}
-        selectedTab={customFilters.tab}
-        className="w-fit"
-      />
       <DataVal
         data={requestData.data.data.data}
         empty="Aucun besoin en attente"
@@ -296,6 +244,26 @@ const Page = () => {
             });
           },
           //rowCount: data.count,
+        }}
+        filters={{
+          customFilters,
+          setCustomFilters,
+          isCustomDateModalOpen,
+          setIsCustomDateModalOpen,
+          uniqueCategories: categoriesData.data.data,
+          uniqueProjects: projectsData.data.data,
+          requestTypes: getRequestType.data.data,
+          setDateFilter,
+          resetAllFilters,
+          users: usersData.data.data,
+        }}
+        tabs={{
+          tabs,
+          setSelectedTab: (value) => {
+            setCustomFilters({ ...customFilters, tab: value });
+            setFilters((prev) => ({ ...prev, pageIndex: 0 }));
+          },
+          selectedTab: customFilters.tab,
         }}
       />
     </div>

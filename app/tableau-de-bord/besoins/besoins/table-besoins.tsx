@@ -14,7 +14,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, AsteriskIcon, Eye } from "lucide-react";
+import { ArrowUpDown, AsteriskIcon, Ellipsis, Eye, Settings2 } from "lucide-react";
 import * as React from "react";
 
 import Empty from "@/components/base/empty";
@@ -25,6 +25,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -48,6 +49,10 @@ import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ViewRequest from "./view-request";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import Filters, { RequestFiltersProps } from "./filters";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Props {
   data: Array<RequestModelT>;
@@ -57,6 +62,7 @@ interface Props {
   users: Array<User>;
   pagination: PaginationState;
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
+  filters: RequestFiltersProps;
 }
 
 export function RequestsTable({
@@ -67,6 +73,7 @@ export function RequestsTable({
   users,
   paginationOptions,
   pagination,
+  filters
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -139,9 +146,7 @@ export function RequestsTable({
           </span>
         );
       },
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("ref")}</div>
-      ),
+      cell: ({ row }) => row.getValue("ref"),
     },
     {
       accessorKey: "label",
@@ -175,7 +180,9 @@ export function RequestsTable({
                 <AsteriskIcon size={16} />
               </span>
             )}
-            {subText({ text: original.label })}
+            <p className="first-letter:uppercase lowercase">
+              {subText({ text: original.label })}
+            </p>
           </div>
         );
       },
@@ -217,12 +224,12 @@ export function RequestsTable({
       },
       cell: ({ row }) => {
         return (
-          <div>
+          <p className="normal-case">
             {subText({
               text: `${row.original.user?.firstName ?? "--"}`,
               length: 21,
             })}
-          </div>
+          </p>
         );
       },
     },
@@ -246,9 +253,9 @@ export function RequestsTable({
           ? (project?.label ?? projectId.toString())
           : "--";
         return (
-          <div className="first-letter:uppercase lowercase">
+          <p className="first-letter:uppercase lowercase">
             {subText({ text: title, length: 21 })}
-          </div>
+          </p>
         );
       },
     },
@@ -272,9 +279,9 @@ export function RequestsTable({
         };
         const category = getCategoryName(Number(categoryId));
         return (
-          <div className="first-letter:uppercase lowercase">
+          <p className="first-letter:uppercase lowercase">
             {subText({ text: category.toString(), length: 21 })}
-          </div>
+          </p>
         );
       },
     },
@@ -292,9 +299,9 @@ export function RequestsTable({
         );
       },
       cell: ({ row }) => (
-        <div className="max-w-[200px] truncate first-letter:uppercase">
+        <p className="normal-case">
           {format(new Date(row.getValue("createdAt")), "PP", { locale: fr })}
-        </div>
+        </p>
       ),
     },
     {
@@ -325,16 +332,20 @@ export function RequestsTable({
         const item = row.original;
 
         return (
-          <Button
-            variant={"outline"}
-            onClick={() => {
+          <DropdownMenu>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+                <Ellipsis />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => {
               setSelectedItem(item);
               setView(true);
-            }}
-          >
-            <Eye />
-            {"Voir"}
-          </Button>
+            }}>
+                <Eye/>
+                {"Voir"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
     },
@@ -364,7 +375,52 @@ export function RequestsTable({
 
   return (
     <div className="content">
-      <div className="flex flex-wrap justify-between gap-4">
+      <div className="flex flex-wrap justify-between gap-4 items-center">
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+                    placeholder="titre ou référence"
+                    name="search"
+                    type="search"
+                    value={filters.customFilters.search ?? ""}
+                    onChange={(event) =>
+                      filters.setCustomFilters({
+                        ...filters.customFilters,
+                        search: event.target.value,
+                      })
+                    }
+                    className="w-full h-9"
+                  />
+          <Sheet>
+            <SheetTrigger asChild className="w-fit">
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="px-3">
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les filtres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+                <Filters
+                  customFilters={filters.customFilters}
+                  setCustomFilters={filters.setCustomFilters}
+                  isCustomDateModalOpen={filters.isCustomDateModalOpen}
+                  setIsCustomDateModalOpen={filters.setIsCustomDateModalOpen}
+                  setDateFilter={(filter) =>
+                    filters.setCustomFilters({ ...filters.customFilters, date: filter })
+                  }
+                  resetAllFilters={filters.resetAllFilters}
+                  uniqueCategories={filters.uniqueCategories}
+                  uniqueProjects={filters.uniqueProjects}
+                  users={filters.users}
+                  requestTypes={filters.requestTypes}
+                />
+            </SheetContent>
+          </Sheet>
+        </div>
         {/* Colonne de visibilité */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -407,8 +463,6 @@ export function RequestsTable({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Besoins (${data.length})`}</h3>
-
       {/* Table */}
       {table.getRowModel().rows?.length > 0 ? (
         <div className="rounded-md border">
