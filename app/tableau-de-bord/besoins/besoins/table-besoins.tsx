@@ -417,10 +417,18 @@ export function RequestsTable({
               {table.getHeaderGroups().map((headerGroup) => (
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
+                    // if (header.column.)
                     return (
                       <TableHead
                         key={header.id}
-                        className="border-r last:border-r-0"
+                        // className="border-r last:border-r-0"
+                        className={cn(
+                          "px-4 py-2 text-left border-b border-gray-200 bg-gray-100",
+                          header.column.columnDef.meta?.pinned === "left" &&
+                            "sticky left-0 z-10 bg-gray-100 shadow",
+                          header.column.columnDef.meta?.pinned === "right" &&
+                            "sticky right-0 z-10 bg-gray-100 shadow",
+                        )}
                       >
                         {header.isPlaceholder
                           ? null
