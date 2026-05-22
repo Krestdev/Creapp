@@ -14,7 +14,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, AsteriskIcon, Ellipsis, Eye } from "lucide-react";
+import { ArrowUpDown, AsteriskIcon, Ellipsis, Eye, Settings2 } from "lucide-react";
 import * as React from "react";
 
 import Empty from "@/components/base/empty";
@@ -49,6 +49,10 @@ import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ViewRequest from "./view-request";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import Filters, { RequestFiltersProps } from "./filters";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 interface Props {
   data: Array<RequestModelT>;
@@ -58,6 +62,7 @@ interface Props {
   users: Array<User>;
   pagination: PaginationState;
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
+  filters: RequestFiltersProps;
 }
 
 export function RequestsTable({
@@ -68,6 +73,7 @@ export function RequestsTable({
   users,
   paginationOptions,
   pagination,
+  filters
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -369,7 +375,52 @@ export function RequestsTable({
 
   return (
     <div className="content">
-      <div className="flex flex-wrap justify-between gap-4">
+      <div className="flex flex-wrap justify-between gap-4 items-center">
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+                    placeholder="titre ou référence"
+                    name="search"
+                    type="search"
+                    value={filters.customFilters.search ?? ""}
+                    onChange={(event) =>
+                      filters.setCustomFilters({
+                        ...filters.customFilters,
+                        search: event.target.value,
+                      })
+                    }
+                    className="w-full h-9"
+                  />
+          <Sheet>
+            <SheetTrigger asChild className="w-fit">
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="px-3">
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les filtres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+                <Filters
+                  customFilters={filters.customFilters}
+                  setCustomFilters={filters.setCustomFilters}
+                  isCustomDateModalOpen={filters.isCustomDateModalOpen}
+                  setIsCustomDateModalOpen={filters.setIsCustomDateModalOpen}
+                  setDateFilter={(filter) =>
+                    filters.setCustomFilters({ ...filters.customFilters, date: filter })
+                  }
+                  resetAllFilters={filters.resetAllFilters}
+                  uniqueCategories={filters.uniqueCategories}
+                  uniqueProjects={filters.uniqueProjects}
+                  users={filters.users}
+                  requestTypes={filters.requestTypes}
+                />
+            </SheetContent>
+          </Sheet>
+        </div>
         {/* Colonne de visibilité */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -412,8 +463,6 @@ export function RequestsTable({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Besoins (${data.length})`}</h3>
-
       {/* Table */}
       {table.getRowModel().rows?.length > 0 ? (
         <div className="rounded-md border">

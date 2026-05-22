@@ -6,32 +6,17 @@ import {
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { queryKeys } from "@/lib/query-keys";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
 import { useFilters } from "@/queries/filters/standard-filter";
 import { projectQ } from "@/queries/projectModule";
-import { purchaseQ } from "@/queries/purchase-order";
-import { receptionQ } from "@/queries/reception";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { DateFilter } from "@/types/types";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { Settings2 } from "lucide-react";
 import React, { useState } from "react";
-import Filters from "./filters";
 import { RequestsTable } from "./table-besoins";
 
 function Page() {
@@ -262,54 +247,6 @@ function Page() {
           subtitle="Accedez à l'ensemble des besoins emis sur l'application."
           color="red"
         />
-        <Sheet>
-          <SheetTrigger asChild className="w-fit">
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les filtres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-5 grid gap-5">
-              <div className="grid gap-1.5">
-                <Label htmlFor="search">{"Rechercher"}</Label>
-                <Input
-                  placeholder="Titre ou référence"
-                  name="search"
-                  type="search"
-                  value={customFilters.search ?? ""}
-                  onChange={(event) =>
-                    setCustomFilters({
-                      ...customFilters,
-                      search: event.target.value,
-                    })
-                  }
-                  className="w-full"
-                />
-              </div>
-              <Filters
-                customFilters={customFilters}
-                setCustomFilters={setCustomFilters}
-                isCustomDateModalOpen={isCustomDateModalOpen}
-                setIsCustomDateModalOpen={setIsCustomDateModalOpen}
-                setDateFilter={(filter) =>
-                  setCustomFilters({ ...customFilters, date: filter })
-                }
-                resetAllFilters={resetAllFilters}
-                uniqueCategories={uniqueCategories}
-                uniqueProjects={uniqueProjects}
-                users={usersData.data}
-                requestTypes={requestTypes.data.data}
-              />
-            </div>
-          </SheetContent>
-        </Sheet>
         <div className="grid-stats-4">
           {Statistics.map((statistic, id) => (
             <StatisticCard key={id} {...statistic} />
@@ -325,19 +262,30 @@ function Page() {
           paginationOptions={{
             onPaginationChange: (updater) => {
               setFilters((prev) => {
-                const nextPagination =
-                  typeof updater === "function"
-                    ? updater({
-                        pageIndex: prev.pageIndex,
-                        pageSize: prev.pageSize,
-                      })
-                    : updater;
+                const nextPagination = typeof updater === "function"
+                  ? updater({
+                    pageIndex: prev.pageIndex,
+                    pageSize: prev.pageSize,
+                  })
+                  : updater;
                 return { ...prev, ...nextPagination };
               });
             },
             rowCount: requests.data.total || requests.data.data.length,
           }}
           pagination={paginationState}
+          filters={{
+            users: {data :usersData.data.data},
+            requestTypes: requestTypes.data.data,
+            uniqueCategories: categoryData.data.data,
+            uniqueProjects: projectsData.data.data,
+            resetAllFilters: resetAllFilters,
+            customFilters: customFilters,
+            setCustomFilters: setCustomFilters,
+            isCustomDateModalOpen: isCustomDateModalOpen,
+            setIsCustomDateModalOpen: setIsCustomDateModalOpen,
+            setDateFilter: setDateFilter,
+          }}
         />
       </div>
     );

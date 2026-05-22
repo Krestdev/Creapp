@@ -521,9 +521,9 @@ export function DataVal({
           );
         },
         cell: ({ row }) => (
-          <div className="max-w-[200px] truncate font-medium uppercase">
+          <p className="max-w-[200px] truncate">
             {row.getValue("label")}
-          </div>
+          </p>
         ),
       },
       {
@@ -579,13 +579,13 @@ export function DataVal({
                   ) || 0,
                 );
           return (
-            <div
-              className={cn(
+            <p
+              className={cn( "normal-case",
                 amount === "N/A" ? "text-muted-foreground" : "font-medium",
               )}
             >
               {amount}
-            </div>
+            </p>
           );
         },
       },
@@ -610,16 +610,16 @@ export function DataVal({
             ? getProjectName(projectId as string)
             : "N/A";
           return (
-            <div
+            <p
               className={cn(
-                "text-sm",
+                "normal-case",
                 projectName === "N/A"
                   ? "text-muted-foreground"
                   : "first-letter:uppercase lowercase",
               )}
             >
               {subText({ text: projectName, length: 21 })}
-            </div>
+            </p>
           );
         },
       },
