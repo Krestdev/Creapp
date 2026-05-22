@@ -772,12 +772,12 @@ export function ProjectTable({
                                 <badgeInfo.icon className="h-4 w-4" />
                               )}
                               <span>{badgeInfo.label}</span>
-                              <Badge
+{/*                               <Badge
                                 variant="outline"
                                 className="ml-auto text-xs"
                               >
                                 {status}
-                              </Badge>
+                              </Badge> */}
                             </div>
                           </DropdownMenuItem>
                         );

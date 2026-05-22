@@ -3,11 +3,14 @@
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
+  DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Form } from "@/components/ui/form";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -32,15 +35,21 @@ import { z } from "zod";
 import { Field, FieldError, FieldGroup, FieldLabel } from "../ui/field";
 import { Textarea } from "../ui/textarea";
 import { SearchableSelect } from "../base/searchableSelect";
+import { queryKeys } from "@/lib/query-keys";
 
 // ----------------------------------------------------------------------
 // VALIDATION
 // ----------------------------------------------------------------------
 export const formSchema = z.object({
-  label: z.string({ message: "This field is required" }),
-  description: z.string({ message: "This field is required" }).optional(),
-  chiefid: z.string().min(1, "Please select an item"),
-  budget: z.coerce.number({ message: "Please enter a valid number" }),
+  label: z.string({ message: "Veuillez renseigner un titre de projet" }),
+  description: z
+    .string({ message: "Veuillez renseigner une description" })
+    .optional(),
+  chiefid: z.coerce
+    .number({ message: "Veuillez sélectionner un chef de projet" })
+    .min(1, "Veuillez sélectionner un chef de projet"),
+  budget: z.coerce
+    .number({ message: "Veuillez entrer un montant valide" }),
 });
 
 interface UpdateRequestProps {
@@ -61,7 +70,7 @@ export default function UpdateProject({
     defaultValues: {
       label: "",
       description: "",
-      chiefid: "",
+      chiefid: undefined,
       budget: 0,
     },
   });
@@ -87,7 +96,7 @@ export default function UpdateProject({
   });
 
   const userApi = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: () => userQ.getAll(),
     enabled: isHydrated,
   });
@@ -96,7 +105,7 @@ export default function UpdateProject({
     form.reset({
       label: projectData?.label || "",
       description: projectData?.description || "",
-      chiefid: projectData?.chief?.id.toString() || "",
+      chiefid: projectData?.chief?.id || undefined,
       budget: projectData?.budget || 0,
     });
   }, [projectData]);
@@ -109,7 +118,7 @@ export default function UpdateProject({
       label: values.label,
       description: values.description || "",
       budget: values.budget,
-      chiefId: parseInt(values.chiefid, 10),
+      chiefId: values.chiefid,
       status: projectData?.status || "ongoing",
       userId: user?.id!,
     };
@@ -121,170 +130,76 @@ export default function UpdateProject({
   // ----------------------------------------------------------------------
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[80vh] p-0 gap-0 flex flex-col">
+      <DialogContent>
         {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white uppercase">
+        <DialogHeader>
+          <DialogTitle>
             {`Projet - ${projectData?.label}`}
           </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          <DialogDescription>
             {"Modifiez les informations du projet existant"}
-          </p>
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onsubmit)}
-            className="space-y-8 max-w-3xl py-10 p-6"
+            className="w-full grid gap-2"
           >
-            <FieldGroup>
-              <Controller
-                name="label"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-1">
-                    <FieldLabel htmlFor="label">
-                      {"Titre du projet"}{" "}
-                      <span className="text-destructive">*</span>
-                    </FieldLabel>
-                    <Input
-                      {...field}
-                      id="label"
-                      type="text"
-                      onChange={(e) => {
-                        field.onChange(e.target.value);
-                      }}
-                      aria-invalid={fieldState.invalid}
-                      placeholder=".ex Madiba AutoRoute"
-                    />
-
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-
-              <Controller
-                name="description"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-1">
-                    <FieldLabel htmlFor="description">
-                      {"Description"}{" "}
-                      <span className="text-destructive">*</span>
-                    </FieldLabel>
-                    <Textarea
-                      {...field}
-                      id="description"
-                      onChange={(e) => {
-                        field.onChange(e.target.value);
-                      }}
-                      aria-invalid={fieldState.invalid}
-                      placeholder="project description"
-                    />
-
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-
-              <Controller
-                name="chiefid"
-                control={form.control}
-                render={({ field, fieldState }) => {
-                  const options = userApi.data
-                    ? userApi.data.data
-                        .filter((u) => u.verified)
-                        .map((user) => ({
-                          value: String(user.id),
-                          label: user.lastName + " " + user.firstName,
-                        }))
-                    : [];
-                  return (
-                    <Field data-invalid={fieldState.invalid} className="gap-1">
-                      <FieldLabel htmlFor="chiefid">
-                        {"Chef de projet"}{" "}
-                        <span className="text-destructive">*</span>
-                      </FieldLabel>
-
-                      <SearchableSelect
-                        width="w-full"
-                        allLabel="" // Pas d'option "all"
-                        options={options}
-                        value={field.value}
-                        onChange={field.onChange}
-                        placeholder="Sélectionner un chef de projet"
-                        emptyLabel="Aucun utilisateur trouvé"
-                      />
-                      {/* <Select
-                        value={field.value.toString()}
-                        onValueChange={field.onChange}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select project chief" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {options.map((option) => (
-                            <SelectItem
-                              key={option.value}
-                              value={
-                                option.value ? option.value.toString() : ""
-                              }
-                            >
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select> */}
-                      {fieldState.invalid && (
-                        <FieldError errors={[fieldState.error]} />
-                      )}
-                    </Field>
-                  );
-                }}
-              />
-
-              <Controller
-                name="budget"
-                control={form.control}
-                render={({ field, fieldState }) => (
-                  <Field data-invalid={fieldState.invalid} className="gap-1">
-                    <FieldLabel htmlFor="budget">{"Budget"}</FieldLabel>
-                    <Input
-                      {...field}
-                      id="budget"
-                      type="number"
-                      onChange={(e) => {
-                        field.onChange(e.target.valueAsNumber);
-                      }}
-                      aria-invalid={fieldState.invalid}
-                      placeholder="12000"
-                    />
-
-                    {fieldState.invalid && (
-                      <FieldError errors={[fieldState.error]} />
-                    )}
-                  </Field>
-                )}
-              />
-              <div className="flex justify-end items-center w-full">
+            <FormField control={form.control} name="label" render={({field})=>(
+              <FormItem>
+                <FormLabel isRequired>{"Titre du Projet"}</FormLabel>
+                <FormControl>
+                  <Input {...field} placeholder="Ex. Projet Oeuil de Lune" />
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="description" render={({field})=>(
+              <FormItem>
+                <FormLabel>{"Description"}</FormLabel>
+                <FormControl>
+                  <Textarea {...field} placeholder="Description du Projet" />
+                </FormControl>
+                <FormMessage/>
+              </FormItem>
+            )} />
+            <FormField control={form.control} name="chiefid" render={({field})=>(<FormItem>
+              <FormLabel>{"Chef de projet"}</FormLabel>
+              <FormControl>
+                <SearchableSelect 
+                  value={field.value?.toString()}
+                  onChange={(value) => field.onChange(parseInt(value))}
+                  options={userApi.data?.data.map((user) => ({
+                    value: user.id.toString(),
+                    label: user.firstName + " " + user.lastName,
+                  })) || []}
+                />
+              </FormControl>
+              <FormMessage/>
+            </FormItem>)} />
+            <FormField control={form.control} name="budget" render={({field})=>(<FormItem>
+              <FormLabel>{"Budget"}</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage/>
+            </FormItem>)} />
+              <DialogFooter className="sticky bottom-0">
                 <Button
                   disabled={projectApi.isPending}
                   type="submit"
                   variant={"primary"}
-                  className="rounded-lg"
-                  size="sm"
+                  isLoading={projectApi.isPending}
                 >
-                  {projectApi.isPending && (
-                    <Loader className="mr-2 h-4 w-4 animate-spin" />
-                  )}
                   {"Enregistrer"}
                 </Button>
-              </div>
-            </FieldGroup>
+                <DialogClose asChild>
+                  <Button variant={"outline"} disabled={projectApi.isPending}>
+                    {"Annuler"}
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
           </form>
         </Form>
       </DialogContent>
