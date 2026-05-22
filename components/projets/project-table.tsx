@@ -16,6 +16,7 @@ import {
   ArrowUpDown,
   CheckCircle,
   ChevronDown,
+  Ellipsis,
   Eye,
   LucideClock,
   LucideIcon,
@@ -358,9 +359,7 @@ export function ProjectTable({
             </span>
           );
         },
-        cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("reference")}</div>
-        ),
+        cell: ({ row }) => <p className="normal-case">{row.getValue("reference")}</p>
       },
       {
         accessorKey: "label",
@@ -378,7 +377,7 @@ export function ProjectTable({
           );
         },
         cell: ({ row }) => (
-          <div className="max-w-[500px] truncate uppercase">{row.getValue("label")}</div>
+          <p className="max-w-[500px] truncate">{row.getValue("label")}</p>
         ),
       },
       {
@@ -398,9 +397,8 @@ export function ProjectTable({
         },
         cell: ({ row }) => {
           const budget = row.getValue("budget") as number;
-          const projectBudget = row.original.budget || 0;
 
-          return <div>{formatCurrency(budget)}</div>;
+          return <p className="normal-case">{formatCurrency(budget)}</p>;
         },
       },
       {
@@ -425,11 +423,7 @@ export function ProjectTable({
             lastName: string;
             post: string;
           };
-          return (
-            <div>
-              {chief ? chief.firstName + " " + chief.lastName : "Pas de chef"}
-            </div>
-          );
+          return <p className="normal-case">{chief ? chief.firstName + " " + chief.lastName : "Pas de chef"}</p>;
         },
       },
       {
@@ -447,9 +441,7 @@ export function ProjectTable({
             </span>
           );
         },
-        cell: ({ row }) => {
-          return <div>{getUserName(row.getValue("userId"))}</div>;
-        },
+        cell: ({ row }) => <p className="normal-case">{getUserName(row.getValue("userId"))}</p>,
       },
       {
         accessorKey: "status",
@@ -497,22 +489,18 @@ export function ProjectTable({
             </span>
           );
         },
-        cell: ({ row }) => {
-          return (
-            <div>
-              {format(row.getValue("createdAt"), "PPP", { locale: fr })}
-            </div>
-          );
-        },
+        cell: ({ row }) => (
+          <p className="normal-case">
+            {format(row.getValue("createdAt"), "PPP", { locale: fr })}
+          </p>
+        ),
         filterFn: (row, id, value) => {
           return value.includes(row.getValue(id));
         },
       },
       {
         id: "actions",
-        header: () => {
-          return <span className="tablehead">{"Actions"}</span>;
-        },
+        header: () => <span className="tablehead">{"Actions"}</span>,
         enableHiding: false,
         cell: ({ row }) => {
           const project = row.original;
@@ -520,12 +508,9 @@ export function ProjectTable({
 
           return (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost">
-                  {"Actions"}
-                  <ChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
+              <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+                <Ellipsis />
+            </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
                 <DropdownMenuItem
@@ -638,6 +623,9 @@ export function ProjectTable({
       columnVisibility,
       rowSelection,
       globalFilter: effectiveFilters.globalFilter,
+      columnPinning: {
+        right: ["actions"]
+      }
     },
   });
 

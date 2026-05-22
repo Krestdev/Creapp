@@ -4,7 +4,7 @@ import { useState } from "react";
 export function useFilters() {
   const [filters, setFilters] = useState({
     pageIndex: 0,
-    pageSize: 10
+    pageSize: 30
   });
   return {
     filters,

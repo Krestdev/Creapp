@@ -14,7 +14,7 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, AsteriskIcon, Eye } from "lucide-react";
+import { ArrowUpDown, AsteriskIcon, Ellipsis, Eye } from "lucide-react";
 import * as React from "react";
 
 import Empty from "@/components/base/empty";
@@ -25,6 +25,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -139,9 +140,7 @@ export function RequestsTable({
           </span>
         );
       },
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("ref")}</div>
-      ),
+      cell: ({ row }) => row.getValue("ref"),
     },
     {
       accessorKey: "label",
@@ -175,7 +174,9 @@ export function RequestsTable({
                 <AsteriskIcon size={16} />
               </span>
             )}
-            {subText({ text: original.label })}
+            <p className="first-letter:uppercase lowercase">
+              {subText({ text: original.label })}
+            </p>
           </div>
         );
       },
@@ -217,12 +218,12 @@ export function RequestsTable({
       },
       cell: ({ row }) => {
         return (
-          <div>
+          <p className="normal-case">
             {subText({
               text: `${row.original.user?.firstName ?? "--"}`,
               length: 21,
             })}
-          </div>
+          </p>
         );
       },
     },
@@ -246,9 +247,9 @@ export function RequestsTable({
           ? (project?.label ?? projectId.toString())
           : "--";
         return (
-          <div className="first-letter:uppercase lowercase">
+          <p className="first-letter:uppercase lowercase">
             {subText({ text: title, length: 21 })}
-          </div>
+          </p>
         );
       },
     },
@@ -272,9 +273,9 @@ export function RequestsTable({
         };
         const category = getCategoryName(Number(categoryId));
         return (
-          <div className="first-letter:uppercase lowercase">
+          <p className="first-letter:uppercase lowercase">
             {subText({ text: category.toString(), length: 21 })}
-          </div>
+          </p>
         );
       },
     },
@@ -292,9 +293,9 @@ export function RequestsTable({
         );
       },
       cell: ({ row }) => (
-        <div className="max-w-[200px] truncate first-letter:uppercase">
+        <p className="normal-case">
           {format(new Date(row.getValue("createdAt")), "PP", { locale: fr })}
-        </div>
+        </p>
       ),
     },
     {
@@ -325,16 +326,20 @@ export function RequestsTable({
         const item = row.original;
 
         return (
-          <Button
-            variant={"outline"}
-            onClick={() => {
+          <DropdownMenu>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+                <Ellipsis />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem onClick={() => {
               setSelectedItem(item);
               setView(true);
-            }}
-          >
-            <Eye />
-            {"Voir"}
-          </Button>
+            }}>
+                <Eye/>
+                {"Voir"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
     },

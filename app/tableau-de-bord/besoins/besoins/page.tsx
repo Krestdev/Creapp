@@ -106,9 +106,6 @@ function Page() {
     queryKey: queryKeys.allRequestsStats(filters, customFilters, dateFilter),
     queryFn: async () =>
       requestQ.getStats({
-        pageIndex: filters.pageIndex,
-        pageSize: filters.pageSize,
-        search: customFilters.search || undefined,
         user: customFilters.user !== "all" ? customFilters.user : undefined,
         category:
           customFilters.category !== "all" ? customFilters.category : undefined,
@@ -164,7 +161,7 @@ function Page() {
     });
     setFilters({
       pageIndex: 0,
-      pageSize: 15,
+      pageSize: 30,
     });
   };
 

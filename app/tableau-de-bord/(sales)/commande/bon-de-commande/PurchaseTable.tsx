@@ -16,6 +16,7 @@ import { VariantProps } from "class-variance-authority";
 import {
   ArrowUpDown,
   ChevronDown,
+  Ellipsis,
   Eye,
   FileSpreadsheetIcon,
   FileTextIcon,
@@ -60,6 +61,7 @@ import {
   ProgressLabel,
   ProgressValue,
 } from "@/components/ui/progress";
+import { Slider } from "@/components/ui/slider";
 import { subText, totalAmountPurchase, XAF } from "@/lib/utils";
 import {
   BonsCommande,
@@ -76,7 +78,6 @@ import AddSignedFile from "./add-signed-file";
 import EditPurchase from "./editPurchase";
 import ViewPurchase from "./viewPurchase";
 import ViewSignedPurchase from "./viewSignedPurchase";
-import { Slider } from "@/components/ui/slider";
 
 interface BonsCommandeTableProps {
   data: Array<BonsCommande>;
@@ -168,7 +169,9 @@ export function PurchaseTable({
     [],
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+    React.useState<VisibilityState>({
+      "createdAt": false
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
 
@@ -291,7 +294,7 @@ export function PurchaseTable({
         </span>
       ),
       cell: ({ row }) => (
-        <div className="font-medium uppercase">{row.getValue("reference")}</div>
+        <p className="uppercase">{row.getValue("reference")}</p>
       ),
     },
     {
@@ -308,12 +311,12 @@ export function PurchaseTable({
       cell: ({ row }) => {
         const name: BonsCommande["devi"] = row.getValue("devi");
         return (
-          <div className="font-medium">
+          <>
             {subText({ text: name.commandRequest.title, length: 21 })} -{" "}
             <span className="text-red-500">
               {name.commandRequest.reference}
             </span>
-          </div>
+          </>
         );
       },
     },
@@ -331,10 +334,7 @@ export function PurchaseTable({
       ),
       cell: ({ row }) => {
         const provider: BonsCommande["provider"] = row.getValue("provider");
-        return (
-          <div className="font-medium">{provider.name}</div>
-          // <div className="font-medium">{formatToShortName(provider.name)}</div>
-        );
+        return provider.name;
       },
     },
 
@@ -351,7 +351,7 @@ export function PurchaseTable({
       ),
       cell: ({ row }) => {
         const base = row.original;
-        return <div className="font-medium">{XAF.format(base.netToPay)}</div>;
+        return <p className="normal-case">{XAF.format(base.netToPay)}</p>;
       },
     },
     {
@@ -367,11 +367,7 @@ export function PurchaseTable({
       ),
       cell: ({ row }) => {
         const base = row.original;
-        return (
-          <div className="font-medium">
-            {XAF.format(totalAmountPurchase(base))}
-          </div>
-        );
+        return <p className="normal-case">{XAF.format(totalAmountPurchase(base))}</p>;
       },
     },
 
@@ -403,7 +399,7 @@ export function PurchaseTable({
         const i = getProgress(original);
 
         return (
-          <Progress value={i.progress} className={"w-full"}>
+          <Progress value={i.progress}>
             <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
             <ProgressValue />
           </Progress>
@@ -425,9 +421,7 @@ export function PurchaseTable({
       cell: ({ row }) => {
         const raw = row.getValue("createdAt") as any;
         const d = new Date(raw);
-        return (
-          <div>{isNaN(d.getTime()) ? "-" : format(d, "dd/MM/yyyy HH:mm")}</div>
-        );
+        return isNaN(d.getTime()) ? "-" : format(d, "dd/MM/yyyy HH:mm");
       },
     },
 
@@ -440,13 +434,9 @@ export function PurchaseTable({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+                <Ellipsis />
             </DropdownMenuTrigger>
-
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
 

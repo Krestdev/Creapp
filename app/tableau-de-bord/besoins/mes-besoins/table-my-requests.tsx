@@ -18,12 +18,12 @@ import {
   AsteriskIcon,
   Ban,
   CheckCircle,
-  ChevronDown,
   Clock,
+  Ellipsis,
   Eye,
   LucideBan,
   LucidePen,
-  XCircle,
+  XCircle
 } from "lucide-react";
 import * as React from "react";
 
@@ -218,9 +218,7 @@ export function TableMyRequests({
           </span>
         );
       },
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("ref")}</div>
-      ),
+      cell: ({ row }) => row.getValue("ref"),
     },
     {
       accessorKey: "label",
@@ -246,13 +244,13 @@ export function TableMyRequests({
             modifier.quantity !== original.quantity ||
             modifier.unit !== original.unit;
         return (
-          <div className="flex items-center gap-1.5 uppercase">
+          <div className="flex items-center gap-1.5">
             {!!modified && (
               <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
                 <AsteriskIcon size={16} />
               </span>
             )}
-            {subText({ text: row.getValue("label"), length: 21 })}
+            <p className="first-letter:uppercase!">{subText({ text: row.getValue("label"), length: 21 })}</p>
           </div>
         );
       },
@@ -298,11 +296,7 @@ export function TableMyRequests({
         const title = projectId
           ? (project?.label ?? projectId.toString())
           : "--";
-        return (
-          <div className="first-letter:uppercase lowercase max-w-[500px] truncate">
-            {subText({ text: title, length: 21 })}
-          </div>
-        );
+        return subText({ text: title, length: 21 });
       },
     },
     {
@@ -324,11 +318,7 @@ export function TableMyRequests({
           return categories.find((x) => x.id === id)?.label || id;
         };
         const category = getCategoryName(Number(categoryId));
-        return (
-          <div className="first-letter:uppercase lowercase">
-            {subText({ text: category.toString(), length: 21 })}
-          </div>
-        );
+        return subText({ text: category.toString(), length: 21 });
       },
     },
     {
@@ -345,9 +335,9 @@ export function TableMyRequests({
         );
       },
       cell: ({ row }) => (
-        <div className="max-w-[200px] truncate first-letter:uppercase">
+        <p className="normal-case">
           {format(new Date(row.getValue("createdAt")), "PP", { locale: fr })}
-        </div>
+        </p>
       ),
     },
     {
@@ -386,12 +376,9 @@ export function TableMyRequests({
         return (
           <div className="flex items-center gap-2">
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant={"outline"}>
-                  {"Actions"}
-                  <ChevronDown />
-                </Button>
-              </DropdownMenuTrigger>
+              <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+                <Ellipsis />
+            </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
                 <DropdownMenuItem

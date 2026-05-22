@@ -21,7 +21,7 @@ const TitleValueCard = ({ title, value, className, valColor }: Props) => {
 export default TitleValueCard
 
 const statisticVariants = cva(
-  "w-full flex flex-col gap-2 p-5 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[12px] h-full min-h-fit", // Retirer h-full, ajouter box-border et min-h-0
+  "w-full flex flex-col gap-1.5 p-4 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[8px] h-full min-h-fit", // Retirer h-full, ajouter box-border et min-h-0
   {
     variants: {
       variant: {
@@ -92,14 +92,14 @@ export const StatisticCard = ({
       "overflow-hidden" // Ajouter overflow-hidden
     )}>
       <h4 className={cn(
-        "text-sm font-medium line-clamp-1", // Ajouter line-clamp-1
+        "text-xs font-medium line-clamp-1", // Ajouter line-clamp-1
         variant === "default" ? "text-gray-600" : "text-gray-200"
       )}>
         {title}
       </h4>
       
       <span className={cn(
-        "font-mono font-medium text-[32px] leading-[1.2] tracking-tight", // Changer leading
+        "font-mono font-medium text-[30px] leading-[1.2] tracking-tight", // Changer leading
         valueClassName
       )}>
         {value}
