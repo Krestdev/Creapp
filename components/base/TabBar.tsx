@@ -19,7 +19,7 @@ export const TabBar = ({
   return (
     <div
       className={cn(
-        "min-w-fit w-fit flex flex-wrap border rounded overflow-hidden",
+        "min-w-fit w-fit flex flex-wrap border rounded overflow-hidden min-h-fit",
         className,
       )}
     >

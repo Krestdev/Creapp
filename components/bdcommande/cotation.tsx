@@ -7,20 +7,21 @@ import LoadingPage from "../loading-page";
 import { useQuery } from "@tanstack/react-query";
 import { requestQ } from "@/queries/requestModule";
 import { categoryQ } from "@/queries/categoryModule";
+import { queryKeys } from "@/lib/query-keys";
 
 const Cotation = () => {
   const { isSuccess, isError, error, isLoading, data } = useQuery({
-    queryKey: ["commands"],
+    queryKey: queryKeys.quotationRequests,
     queryFn: commandRqstQ.getAll,
   });
 
   const getRequests = useQuery({
-    queryKey: ["requestsQuotation"],
+    queryKey: queryKeys.requestsForQuotation,
     queryFn: () => requestQ.getForQuotation(),
   });
 
   const getCategories = useQuery({
-    queryKey: ["categories"],
+    queryKey: queryKeys.categories,
     queryFn: categoryQ.getCategories,
   });
 

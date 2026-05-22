@@ -16,6 +16,7 @@ import {
   ArrowUpDown,
   CheckCircle,
   ChevronDown,
+  Ellipsis,
   Eye,
   Hourglass,
   LucideIcon,
@@ -44,6 +45,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { queryKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { quotationQ } from "@/queries/quotation";
@@ -107,15 +109,20 @@ export function CommandeTable({
   >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
 
+  const [pagination, setPagination] = React.useState({
+    pageIndex: 0, //initial page index
+    pageSize: 30, //default page size
+  });
+
   const commandData = useQuery({
-    queryKey: ["commands"],
+    queryKey: queryKeys.quotationRequests,
     queryFn: async () => commandRqstQ.getAll(),
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
 
   const { data: devis } = useQuery({
-    queryKey: ["quotations"],
+    queryKey: queryKeys.quotations,
     queryFn: quotationQ.getAll,
   });
 
@@ -268,9 +275,7 @@ export function CommandeTable({
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium first-letter:uppercase">
-          {row.getValue("reference")}
-        </div>
+        <p className="normal-case">{row.getValue("reference")}</p>
       ),
     },
     {
@@ -287,9 +292,7 @@ export function CommandeTable({
         );
       },
       cell: ({ row }) => (
-        <div className="uppercase truncate max-w-60">
-          {row.getValue("title")}
-        </div>
+        <p className="truncate max-w-60">{row.getValue("title")}</p>
       ),
     },
     {
@@ -306,7 +309,9 @@ export function CommandeTable({
         );
       },
       cell: ({ row }) => (
-        <div>{format(row.getValue("createdAt"), "PPP", { locale: fr })}</div>
+        <p className="normal-case">
+          {format(row.getValue("createdAt"), "PPP", { locale: fr })}
+        </p>
       ),
     },
     {
@@ -323,7 +328,9 @@ export function CommandeTable({
         );
       },
       cell: ({ row }) => (
-        <div>{format(row.getValue("dueDate"), "PPP", { locale: fr })}</div>
+        <p className="normal-case">
+          {format(row.getValue("dueDate"), "PPP", { locale: fr })}
+        </p>
       ),
     },
     {
@@ -343,7 +350,7 @@ export function CommandeTable({
         const devisAssocies = devis?.data.filter(
           (x) => x.commandRequestId === row.original.id,
         );
-        return <div>{devisAssocies?.length}</div>;
+        return devisAssocies?.length;
       },
     },
     {
@@ -358,11 +365,8 @@ export function CommandeTable({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
@@ -430,12 +434,14 @@ export function CommandeTable({
         return value?.toLowerCase().includes(searchValue);
       });
     },
+    onPaginationChange: setPagination,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       globalFilter,
+      pagination,
     },
   });
 

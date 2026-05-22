@@ -28,18 +28,20 @@ function DashboardLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <main className="flex-1">
-          <div className="p-6 @container min-h-[calc(100vh-100px)]">
+          <div className="p-6 @container min-h-[calc(100vh-100px)] max-h-[calc(100vh-100px)] overflow-auto">
             {children}
           </div>
-          <div className="w-full flex justify-center items-center gap-2 h-10 bg-slate-50 text-sm text-slate-600">
-            Copyright © 2026 Creapp. Tous droits réservés. Réalisé par{" "}
-            <a
-              href="https://krestdev.com"
-              className="text-primary cursor-pointer hover:underline"
-              target="_blank"
-            >
-              KrestDev
-            </a>
+          <div className="w-full flex px-3 items-center justify-center min-h-10 py-2 bg-slate-50 text-xs sm:text-sm text-slate-600">
+            <p className="max-w-7xl mx-auto">
+              {"© 2026 CREAPP. Réalisé par "}
+              <a
+                href="https://krestdev.com"
+                className="text-primary cursor-pointer hover:underline"
+                target="_blank"
+              >
+                KrestDev
+              </a>
+            </p>
           </div>
         </main>
       </section>

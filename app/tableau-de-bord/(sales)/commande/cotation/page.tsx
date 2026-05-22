@@ -6,6 +6,7 @@ import CreateCotation from "@/components/bdcommande/createCommande";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
+import { queryKeys } from "@/lib/query-keys";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
 import { commandRqstQ } from "@/queries/commandRqstModule";
@@ -26,24 +27,24 @@ const Page = () => {
   ];
 
   const requestData = useQuery({
-    queryKey: ["requestsQuotation"],
+    queryKey: queryKeys.requestsForQuotation,
     queryFn: () => {
       return requestQ.getForQuotation();
     },
   });
 
   const getUsers = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: () => userQ.getAll(),
   });
 
   const getCommandRequests = useQuery({
-    queryKey: ["commands"],
+    queryKey: queryKeys.quotationRequests,
     queryFn: commandRqstQ.getAll,
   });
 
   const getCategories = useQuery({
-    queryKey: ["categories"],
+    queryKey: queryKeys.categories,
     queryFn: async () => categoryQ.getCategories(),
     refetchOnMount: true,
     refetchOnWindowFocus: true,
