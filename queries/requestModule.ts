@@ -554,6 +554,7 @@ class RequestQueries {
     formData.append("unit", payload.unit);
     formData.append("priority", "medium");
     formData.append("type", "settle");
+    formData.append("quantity", payload.quantity.toString());
     formData.append("userId", payload.userId.toString());
     payload.benef &&
       formData.append("beneficiary", payload.benef[0].toString());
