@@ -111,7 +111,7 @@ export function ProjectCreateForm({
             <FormItem>
               <FormLabel isRequired>{"Titre du Projet"}</FormLabel>
               <FormControl>
-                <Input {...field} placeholder="ex. Autoroute A5" />
+                <Textarea {...field} placeholder="ex. Autoroute A5" />
               </FormControl>
               <FormMessage />
             </FormItem>

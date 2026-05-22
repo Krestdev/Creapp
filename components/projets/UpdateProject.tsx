@@ -12,30 +12,21 @@ import {
 } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { projectQ } from "@/queries/projectModule";
 
+import { queryKeys } from "@/lib/query-keys";
 import { ProjectT, ResponseT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Loader } from "lucide-react";
 import { useEffect } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { Field, FieldError, FieldGroup, FieldLabel } from "../ui/field";
-import { Textarea } from "../ui/textarea";
 import { SearchableSelect } from "../base/searchableSelect";
-import { queryKeys } from "@/lib/query-keys";
+import { Textarea } from "../ui/textarea";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -150,7 +141,7 @@ export default function UpdateProject({
               <FormItem>
                 <FormLabel isRequired>{"Titre du Projet"}</FormLabel>
                 <FormControl>
-                  <Input {...field} placeholder="Ex. Projet Oeuil de Lune" />
+                  <Textarea {...field} placeholder="Ex. Projet Oeuil de Lune" />
                 </FormControl>
                 <FormMessage/>
               </FormItem>
