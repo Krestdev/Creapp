@@ -369,33 +369,47 @@ function ExpensesTable({
         const value = row.original;
         const requestItem = value.request;
 
-        if (!requestItem) return <div>--</div>;
-
         // Vérifier dans beneficiary (string)
-        if (requestItem.beneficiary && requestItem.beneficiary !== "me") {
+        if (
+          requestItem &&
+          requestItem.beneficiary &&
+          requestItem.beneficiary !== "me"
+        ) {
           const user = users.find(
             (x) => x.id === Number(requestItem.beneficiary),
           );
           if (user) {
-            return subText({
-              text: `${user.firstName} ${user.lastName}`,
-              length: 21,
-            });
+            return (
+              <p className="normal-case">
+                {subText({
+                  text: `${user.firstName} ${user.lastName}`,
+                  length: 21,
+                })}
+              </p>
+            );
           }
         }
 
         // Vérifier dans beneficiaryList (array)
-        if (requestItem.beficiaryList && requestItem.beficiaryList.length > 0) {
+        if (
+          requestItem &&
+          requestItem.beficiaryList &&
+          requestItem.beficiaryList.length > 0
+        ) {
           const names = requestItem.beficiaryList
             .map((b) => `${b.firstName || ""} ${b.lastName || ""}`.trim())
             .filter((name) => name)
             .join(", ");
           if (names) {
-            return subText({ text: names, length: 21 });
+            return (
+              <p className="normal-case">
+                {subText({ text: names, length: 21 })}
+              </p>
+            );
           }
         }
 
-        return <div>--</div>;
+        return <p className="normal-case">{"--"}</p>;
       },
     },
     {
