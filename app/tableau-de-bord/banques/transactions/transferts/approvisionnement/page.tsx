@@ -21,7 +21,7 @@ function Page() {
     isLoading,
     isError,
     error,
-  } = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
+  } = useQuery({ queryKey: queryKeys.banks, queryFn: bankQ.getAll });
 
   const getPayments = useQuery({
     queryKey: queryKeys.approvisionnement(pagination),

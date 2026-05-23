@@ -39,6 +39,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cn } from "@/lib/utils";
 import { queryKeys } from "@/lib/query-keys";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
@@ -554,36 +555,59 @@ export function BesoinsTraiter({
 
       <div className="rounded-md">
         <Table>
-          <TableHeader className="bg-gray-500">
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id} className="border-none">
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} className="border-none">
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  );
-                })}
+              <TableRow key={headerGroup.id}>
+                {headerGroup.headers.map((header) => (
+                  <TableHead
+                    key={header.id}
+                    className="h-10 py-2 px-4 text-xs font-semibold"
+                  >
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
           </TableHeader>
-          <TableBody className="border shadow bg-white">
+          <TableBody>
             {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row, index) => {
+              table.getRowModel().rows.map((row) => {
+                const isSelected = internalSelectedIds.has(row.original.id);
                 return (
                   <TableRow
                     key={row.id}
-                    className={`border-none ${
-                      index % 2 === 1 ? "bg-gray-200" : ""
-                    }`}
+                    className={cn(
+                      "cursor-pointer transition-colors",
+                      isSelected
+                        ? "bg-primary-50 hover:bg-primary-50/80"
+                        : "hover:bg-gray-50",
+                    )}
+                    onClick={() =>
+                      handleCheckboxChange(row.original.id, !isSelected)
+                    }
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="border-none">
+                      <TableCell
+                        key={cell.id}
+                        className="py-2 px-4"
+                        onClick={(e) => {
+                          if (
+                            (e.target as HTMLElement).closest(
+                              'button[role="checkbox"]',
+                            ) ||
+                            (e.target as HTMLElement).closest(
+                              '[data-radix-collection-item]',
+                            )
+                          ) {
+                            e.stopPropagation();
+                          }
+                        }}
+                      >
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
@@ -594,10 +618,10 @@ export function BesoinsTraiter({
                 );
               })
             ) : (
-              <TableRow className="border-none">
+              <TableRow>
                 <TableCell
                   colSpan={columns.length}
-                  className="h-24 text-center border-none"
+                  className="h-24 text-center text-muted-foreground"
                 >
                   Aucun résultat trouvé.
                 </TableCell>
