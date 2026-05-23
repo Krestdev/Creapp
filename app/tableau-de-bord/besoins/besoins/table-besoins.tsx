@@ -14,7 +14,13 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, AsteriskIcon, Ellipsis, Eye, Settings2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  AsteriskIcon,
+  Ellipsis,
+  Eye,
+  Settings2,
+} from "lucide-react";
 import * as React from "react";
 
 import Empty from "@/components/base/empty";
@@ -49,7 +55,14 @@ import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ViewRequest from "./view-request";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import Filters, { RequestFiltersProps } from "./filters";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -73,7 +86,7 @@ export function RequestsTable({
   users,
   paginationOptions,
   pagination,
-  filters
+  filters,
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -334,14 +347,16 @@ export function RequestsTable({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
-                <Ellipsis />
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
-              <DropdownMenuItem onClick={() => {
-              setSelectedItem(item);
-              setView(true);
-            }}>
-                <Eye/>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelectedItem(item);
+                  setView(true);
+                }}
+              >
+                <Eye />
                 {"Voir"}
               </DropdownMenuItem>
             </DropdownMenuContent>
@@ -378,18 +393,18 @@ export function RequestsTable({
       <div className="flex flex-wrap justify-between gap-4 items-center">
         <div className="flex flex-wrap items-center gap-2">
           <Input
-                    placeholder="titre ou référence"
-                    name="search"
-                    type="search"
-                    value={filters.customFilters.search ?? ""}
-                    onChange={(event) =>
-                      filters.setCustomFilters({
-                        ...filters.customFilters,
-                        search: event.target.value,
-                      })
-                    }
-                    className="w-full h-9"
-                  />
+            placeholder="titre ou référence"
+            name="search"
+            type="search"
+            value={filters.customFilters.search ?? ""}
+            onChange={(event) =>
+              filters.setCustomFilters({
+                ...filters.customFilters,
+                search: event.target.value,
+              })
+            }
+            className="w-full h-9"
+          />
           <Sheet>
             <SheetTrigger asChild className="w-fit">
               <Button variant={"outline"}>
@@ -404,20 +419,23 @@ export function RequestsTable({
                   {"Configurer les filtres pour affiner les données"}
                 </SheetDescription>
               </SheetHeader>
-                <Filters
-                  customFilters={filters.customFilters}
-                  setCustomFilters={filters.setCustomFilters}
-                  isCustomDateModalOpen={filters.isCustomDateModalOpen}
-                  setIsCustomDateModalOpen={filters.setIsCustomDateModalOpen}
-                  setDateFilter={(filter) =>
-                    filters.setCustomFilters({ ...filters.customFilters, date: filter })
-                  }
-                  resetAllFilters={filters.resetAllFilters}
-                  uniqueCategories={filters.uniqueCategories}
-                  uniqueProjects={filters.uniqueProjects}
-                  users={filters.users}
-                  requestTypes={filters.requestTypes}
-                />
+              <Filters
+                customFilters={filters.customFilters}
+                setCustomFilters={filters.setCustomFilters}
+                isCustomDateModalOpen={filters.isCustomDateModalOpen}
+                setIsCustomDateModalOpen={filters.setIsCustomDateModalOpen}
+                setDateFilter={(filter) =>
+                  filters.setCustomFilters({
+                    ...filters.customFilters,
+                    date: filter,
+                  })
+                }
+                resetAllFilters={filters.resetAllFilters}
+                uniqueCategories={filters.uniqueCategories}
+                uniqueProjects={filters.uniqueProjects}
+                users={filters.users}
+                requestTypes={filters.requestTypes}
+              />
             </SheetContent>
           </Sheet>
         </div>
@@ -472,10 +490,7 @@ export function RequestsTable({
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead
-                        key={header.id}
-                        className="border-r last:border-r-0"
-                      >
+                      <TableHead key={header.id}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -500,10 +515,7 @@ export function RequestsTable({
                     className={cn(className)}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className="border-r last:border-r-0"
-                      >
+                      <TableCell key={cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),

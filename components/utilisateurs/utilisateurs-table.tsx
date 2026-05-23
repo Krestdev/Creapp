@@ -716,10 +716,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                   className={getRowColor(row.original.verified!)}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="border-r last:border-r-0"
-                    >
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

@@ -1046,10 +1046,7 @@ export function DataVal({
                 <TableRow key={headerGroup.id} className="bg-gray-50">
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead
-                        key={header.id}
-                        className="border-r last:border-r-0 py-3"
-                      >
+                      <TableHead key={header.id} className="">
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -1086,10 +1083,7 @@ export function DataVal({
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className="border-r last:border-r-0 py-3"
-                      >
+                      <TableCell key={cell.id} className="">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),

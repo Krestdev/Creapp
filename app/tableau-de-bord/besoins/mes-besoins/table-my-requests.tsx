@@ -23,7 +23,7 @@ import {
   Eye,
   LucideBan,
   LucidePen,
-  XCircle
+  XCircle,
 } from "lucide-react";
 import * as React from "react";
 
@@ -250,7 +250,9 @@ export function TableMyRequests({
                 <AsteriskIcon size={16} />
               </span>
             )}
-            <p className="first-letter:uppercase!">{subText({ text: row.getValue("label"), length: 21 })}</p>
+            <p className="first-letter:uppercase!">
+              {subText({ text: row.getValue("label"), length: 21 })}
+            </p>
           </div>
         );
       },
@@ -378,7 +380,7 @@ export function TableMyRequests({
             <DropdownMenu>
               <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
                 <Ellipsis />
-            </DropdownMenuTrigger>
+              </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
                 <DropdownMenuItem
@@ -551,10 +553,7 @@ export function TableMyRequests({
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead
-                        key={header.id}
-                        className="border-r last:border-r-0"
-                      >
+                      <TableHead key={header.id}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -579,10 +578,7 @@ export function TableMyRequests({
                     className={cn(config.rowClassName)}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className="border-r last:border-r-0"
-                      >
+                      <TableCell key={cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
