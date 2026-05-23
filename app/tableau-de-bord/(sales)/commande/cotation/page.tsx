@@ -78,7 +78,7 @@ const Page = () => {
       title: "Historique",
     },
   ];
-  const [selectedTab, setSelectedTab] = useState(0);
+  const [selectedTab, setSelectedTab] = useState(1);
   if (
     getCommandRequests.isLoading ||
     requestData.isLoading ||
