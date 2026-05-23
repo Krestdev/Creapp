@@ -19,6 +19,7 @@ import {
   Ellipsis,
   Eye,
   LucidePen,
+  Settings2,
   Trash,
 } from "lucide-react";
 import * as React from "react";
@@ -54,11 +55,23 @@ import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
 import { ModalWarning } from "../modals/modal-warning";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
+import PaymentFilters, {
+  PaymentFiltersProps,
+} from "@/app/tableau-de-bord/(accounting)/factures/paiements/paymentFilters";
 
 interface Props {
   payments: Array<PaymentRequest>;
   pagination: PaginationState;
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
+  filters: PaymentFiltersProps;
 }
 
 const getPriorityBadge = (
@@ -139,6 +152,7 @@ export function PaiementsTable({
   payments,
   pagination,
   paginationOptions,
+  filters,
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -419,6 +433,31 @@ export function PaiementsTable({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
+        <Sheet>
+          <SheetTrigger asChild className="w-fit">
+            <Button variant={"outline"}>
+              <Settings2 />
+              {"Filtres"}
+            </Button>
+          </SheetTrigger>
+          <SheetContent className="px-3">
+            <SheetHeader>
+              <SheetTitle>{"Filtres"}</SheetTitle>
+              <SheetDescription>
+                {"Configurer les filtres pour affiner les données"}
+              </SheetDescription>
+            </SheetHeader>
+            <PaymentFilters
+              customFilters={filters.customFilters}
+              setCustomFilters={filters.setCustomFilters}
+              isCustomDateModalOpen={filters.isCustomDateModalOpen}
+              setIsCustomDateModalOpen={filters.setIsCustomDateModalOpen}
+              providers={filters.providers}
+              setDateFilter={filters.setDateFilter}
+              resetAllFilters={filters.resetAllFilters}
+            />
+          </SheetContent>
+        </Sheet>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">
