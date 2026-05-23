@@ -807,7 +807,7 @@ export function DataVal({
     }
 
     baseColumns.push({
-      id: "actions",
+      accessorKey: "actions",
       enableHiding: false,
       header: () => <span className="tablehead">{"Actions"}</span>,
       cell: ({ row }) => {
