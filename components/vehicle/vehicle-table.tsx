@@ -15,6 +15,7 @@ import {
 import {
   ArrowUpDown,
   ChevronDown,
+  Ellipsis,
   LucideEye,
   LucidePen,
   Search,
@@ -52,12 +53,12 @@ import { useStore } from "@/providers/datastore";
 import { vehicleQ } from "@/queries/vehicule";
 import { Role, Vehicle } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import { ModalWarning } from "../modals/modal-warning";
-import UpdateVehicle from "./UpdateCar";
-import { format } from "date-fns";
 import ShowCar from "./ShowCar";
+import UpdateVehicle from "./UpdateCar";
 
 interface VehiclesTableProps {
   data: Vehicle[];
@@ -123,14 +124,14 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
           );
         },
         cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("mark")}</div>
+          <p className="normal-case">{row.getValue("mark")}</p>
         ),
       },
       {
         id: "label",
         header: ({ column }) => (
           <span
-            className="tablehead cursor-pointer select-none flex items-center"
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Modèle"}
@@ -141,7 +142,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
         accessorFn: (row) => row.label,
 
         cell: ({ row }) => {
-          return <div className="font-medium">{row.getValue("label")}</div>;
+          return <p className="normal-case">{row.getValue("label")}</p>;
         },
 
         sortingFn: (rowA, rowB) => {
@@ -161,15 +162,15 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
               }
             >
               {"Matricule"}
-              <ArrowUpDown/>
+              <ArrowUpDown />
             </span>
           );
         },
         cell: ({ row }) => {
           return (
-            <div className="flex flex-wrap max-w-[350px] gap-1">
+            <p className="normal-case">
               {row.getValue("matricule") ?? "Pas de couleur"}
-            </div>
+            </p>
           );
         },
         filterFn: (row, columnId, filterValue) => {
@@ -198,9 +199,9 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
         },
         cell: ({ row }) => {
           return (
-            <div className="flex flex-wrap max-w-[350px] gap-1">
-              {format(row.getValue("createdAt"), "dd/MM/yyyy") ?? "Pas de date"}
-            </div>
+            <p className="normal-case">
+              {format(row.getValue("createdAt"), "PPP") ?? "Pas de date"}
+            </p>
           );
         },
         filterFn: (row, columnId, filterValue) => {
@@ -208,24 +209,21 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
 
           const roles = row.getValue(columnId) as Role[];
           return roles?.some((role) =>
-            role.label.toLowerCase().includes(filterValue.toLowerCase())
+            role.label.toLowerCase().includes(filterValue.toLowerCase()),
           );
         },
       },
       {
         id: "actions",
-        header: () => <span className="tablehead">Action</span>,
+        header: () => <span className="tablehead">{"Action"}</span>,
         enableHiding: false,
         cell: ({ row }) => {
           const vehicle = row.original;
 
           return (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant={"outline"}>
-                  {"Actions"}
-                  <ChevronDown />
-                </Button>
+              <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+                <Ellipsis />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
@@ -236,7 +234,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
                     setIsShowModalOpen(true);
                   }}
                 >
-                  <LucideEye/>
+                  <LucideEye />
                   {"Voir"}
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -245,7 +243,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
                     setIsUpdateModalOpen(true);
                   }}
                 >
-                  <LucidePen/>
+                  <LucidePen />
                   {"Modifier"}
                 </DropdownMenuItem>
                 <DropdownMenuItem

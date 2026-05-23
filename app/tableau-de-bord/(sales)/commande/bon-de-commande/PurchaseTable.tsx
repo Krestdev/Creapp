@@ -71,7 +71,7 @@ import {
   PRIORITIES,
   PURCHASE_ORDER_STATUS,
   Quotation,
-  User
+  User,
 } from "@/types/types";
 import { format } from "date-fns";
 import AddSignedFile from "./add-signed-file";
@@ -139,10 +139,11 @@ export function PurchaseTable({
   quotations,
   paytypes,
 }: BonsCommandeTableProps) {
+  const STATUS = PURCHASE_ORDER_STATUS.filter(
+    (s) => s.value !== "IN-REVIEW" && s.value !== "PAID",
+  );
 
-  const STATUS = PURCHASE_ORDER_STATUS.filter(s=> s.value !== "IN-REVIEW" && s.value !== "PAID");
-
-   const getProgress = (
+  const getProgress = (
     purchaseOrder: BonsCommande,
   ): { progress: number; value: number } => {
     //To-Do complete this code
@@ -170,7 +171,7 @@ export function PurchaseTable({
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
-      "createdAt": false
+      createdAt: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
@@ -193,7 +194,10 @@ export function PurchaseTable({
   const [cotationSearch, setCotationSearch] = React.useState("");
 
   //Pay filter
-  const [paymentFilter, setPaymentFilter] = React.useState<{start: number, end: number}>({start: 0, end: 100});
+  const [paymentFilter, setPaymentFilter] = React.useState<{
+    start: number;
+    end: number;
+  }>({ start: 0, end: 100 });
 
   // Extraire la liste unique des fournisseurs
   const uniqueProviders = React.useMemo(() => {
@@ -266,7 +270,9 @@ export function PurchaseTable({
     }
     if (paymentFilter.start > 0 || paymentFilter.end < 100) {
       filtered = filtered.filter(
-        (po) => getProgress(po).progress >= paymentFilter.start && getProgress(po).progress <= paymentFilter.end,
+        (po) =>
+          getProgress(po).progress >= paymentFilter.start &&
+          getProgress(po).progress <= paymentFilter.end,
       );
     }
 
@@ -294,7 +300,7 @@ export function PurchaseTable({
         </span>
       ),
       cell: ({ row }) => (
-        <p className="uppercase">{row.getValue("reference")}</p>
+        <p className="normal-case">{row.getValue("reference")}</p>
       ),
     },
     {
@@ -367,7 +373,9 @@ export function PurchaseTable({
       ),
       cell: ({ row }) => {
         const base = row.original;
-        return <p className="normal-case">{XAF.format(totalAmountPurchase(base))}</p>;
+        return (
+          <p className="normal-case">{XAF.format(totalAmountPurchase(base))}</p>
+        );
       },
     },
 
@@ -435,7 +443,7 @@ export function PurchaseTable({
         return (
           <DropdownMenu>
             <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
-                <Ellipsis />
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
@@ -607,9 +615,8 @@ export function PurchaseTable({
                         <span className="truncate">
                           {statusFilter === "all"
                             ? "Tous les statuts"
-                            : STATUS.find(
-                                (s) => s.value === statusFilter,
-                              )?.name || "Sélectionner"}
+                            : STATUS.find((s) => s.value === statusFilter)
+                                ?.name || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -908,7 +915,9 @@ export function PurchaseTable({
                     defaultValue={[paymentFilter.start, paymentFilter.end]}
                     max={100}
                     step={10}
-                    onValueChange={(value) => setPaymentFilter({start: value[0], end: value[1]})}
+                    onValueChange={(value) =>
+                      setPaymentFilter({ start: value[0], end: value[1] })
+                    }
                   />
                 </div>
 

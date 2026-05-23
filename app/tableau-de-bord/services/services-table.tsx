@@ -1,6 +1,5 @@
 "use client";
 import { Pagination } from "@/components/base/pagination";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -33,7 +32,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   ArrowUpDown,
-  ChevronDownIcon,
+  Ellipsis,
   EyeIcon,
   PencilIcon,
   Trash2Icon,
@@ -126,7 +125,9 @@ function ServicesTable({ services, users }: Props) {
         const name = !!value
           ? value.firstName.concat(" ", value.lastName)
           : "N/A";
-        return <div>{subText({ text: name, length: 21 })}</div>;
+        return (
+          <p className="normal-case">{subText({ text: name, length: 21 })}</p>
+        );
       },
     },
     {
@@ -142,7 +143,7 @@ function ServicesTable({ services, users }: Props) {
       ),
       cell: ({ row }) => {
         const amount = row.original.users.length;
-        return <div>{`${amount} employé(s)`}</div>;
+        return `${amount} employé(s)`;
       },
     },
     {
@@ -160,7 +161,7 @@ function ServicesTable({ services, users }: Props) {
         const date = new Date(row.original.createdAt);
         const formatted = format(date, "dd/MM/yyyy, p", { locale: fr });
 
-        return <div>{formatted}</div>;
+        return <p className="normal-case">{formatted}</p>;
       },
     },
     {
@@ -178,7 +179,7 @@ function ServicesTable({ services, users }: Props) {
         const date = new Date(row.original.updatedAt);
         const formatted = format(date, "dd/MM/yyyy, p", { locale: fr });
 
-        return <div>{formatted}</div>;
+        return <p className="normal-case">{formatted}</p>;
       },
     },
     {
@@ -188,11 +189,8 @@ function ServicesTable({ services, users }: Props) {
         const item = row.original;
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant={"ghost"}>
-                {"Actions"}
-                <ChevronDownIcon />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem

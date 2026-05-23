@@ -2,15 +2,15 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  PaginationOptions,
-  PaginationState,
-  type SortingState,
-  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  PaginationOptions,
+  PaginationState,
+  type SortingState,
   useReactTable,
+  type VisibilityState,
 } from "@tanstack/react-table";
 import {
   AlertCircle,
@@ -25,6 +25,7 @@ import {
   Coins,
   DollarSign,
   Download,
+  Ellipsis,
   Eye,
   FilePenLineIcon,
   Signature,
@@ -33,7 +34,6 @@ import {
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
-import DepenseDocument from "@/components/depense/depenseDoc";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,7 +52,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getRequestTypeBadge, XAF } from "@/lib/utils";
+import { cn, getRequestTypeBadge, subText, XAF } from "@/lib/utils";
 import {
   PaymentRequest,
   PayType,
@@ -70,12 +70,12 @@ import AddProove from "./addProove";
 import CancelTicket from "./cancel-ticket";
 import CompleteGas from "./complete-gas";
 import CompleteSettle from "./complete-settle";
+import Decharge from "./decharge";
 import { DepenseFiltersProps } from "./depenseFilters";
 import { NoticeFile } from "./notice";
 import PayExpense from "./pay-expense";
 import ShareExpense from "./share-expense";
 import ViewExpense from "./view-expense";
-import Decharge from "./decharge";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -277,7 +277,7 @@ function ExpensesTable({
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("reference")}</div>
+        <p className="normal-case">{row.getValue("reference")}</p>
       ),
     },
     {
@@ -320,13 +320,15 @@ function ExpensesTable({
             value.transaction?.status === "APPROVED"
           : false;
         return (
-          <div className="max-w-[500px] flex gap-1.5">
+          <div className="flex gap-1.5 items-center">
             {!!transactionStatus && (
               <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
                 <AsteriskIcon size={16} />
               </span>
             )}
-            <span className="line-clamp-1">{value.title ?? "--"}</span>
+            <span className="line-clamp-1">
+              {subText({ text: value.title ?? "--", length: 21 })}
+            </span>
           </div>
         );
       },
@@ -347,11 +349,7 @@ function ExpensesTable({
       cell: ({ row }) => {
         const value = row.original;
         const paytype = value.method?.label;
-        return (
-          <span className="line-clamp-1 first-letter:uppercase">
-            {paytype ?? "--"}
-          </span>
-        );
+        return paytype ?? "--";
       },
     },
     {
@@ -379,7 +377,10 @@ function ExpensesTable({
             (x) => x.id === Number(requestItem.beneficiary),
           );
           if (user) {
-            return <div>{`${user.firstName} ${user.lastName}`}</div>;
+            return subText({
+              text: `${user.firstName} ${user.lastName}`,
+              length: 21,
+            });
           }
         }
 
@@ -390,7 +391,7 @@ function ExpensesTable({
             .filter((name) => name)
             .join(", ");
           if (names) {
-            return <div>{names}</div>;
+            return subText({ text: names, length: 21 });
           }
         }
 
@@ -412,7 +413,7 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        return <div>{value.facture?.command.provider.name ?? "--"}</div>;
+        return value.facture?.command.provider.name ?? "--";
       },
     },
     {
@@ -430,7 +431,7 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.getValue("price");
-        return <div className="font-medium">{XAF.format(Number(value))}</div>;
+        return <p className="normal-case">{XAF.format(Number(value))}</p>;
       },
     },
     {
@@ -442,7 +443,7 @@ function ExpensesTable({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Priorité"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </span>
         );
       },
@@ -510,9 +511,9 @@ function ExpensesTable({
       cell: ({ row }) => {
         const value = row.original.createdAt;
         return (
-          <div>
+          <p className="normal-case">
             {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
-          </div>
+          </p>
         );
       },
     },
@@ -532,9 +533,9 @@ function ExpensesTable({
       cell: ({ row }) => {
         const value = row.original.updatedAt;
         return (
-          <div>
+          <p className="normal-case">
             {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
-          </div>
+          </p>
         );
       },
     },
@@ -547,11 +548,8 @@ function ExpensesTable({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>

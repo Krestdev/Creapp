@@ -5,6 +5,7 @@ import LoadingPage from "@/components/loading-page";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { queryKeys } from "@/lib/query-keys";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
@@ -49,19 +50,19 @@ function SelectQuotation({ id }: { id: string }) {
 
   // --- QUERIES ---
   const quotations = useQuery({
-    queryKey: ["quotations"],
+    queryKey: queryKeys.quotations,
     queryFn: quotationQ.getAll,
   });
   const providers = useQuery({
-    queryKey: ["providers"],
+    queryKey: queryKeys.providers,
     queryFn: providerQ.getAll,
   });
   const commands = useQuery({
-    queryKey: ["commands"],
+    queryKey: queryKeys.quotationRequests,
     queryFn: commandRqstQ.getAll,
   });
   const purchaseOrders = useQuery({
-    queryKey: ["purchaseOrders"],
+    queryKey: queryKeys.purchaseOrders,
     queryFn: purchaseQ.getAll,
   });
 

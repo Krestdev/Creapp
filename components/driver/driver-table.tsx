@@ -17,6 +17,7 @@ import {
   ArrowUpDown,
   Check,
   ChevronDown,
+  Ellipsis,
   Eye,
   LucidePen,
   Pencil,
@@ -94,7 +95,9 @@ export function DriverTable({ data }: DriversTableProps) {
 
   // États pour les filtres
   const [regimeFilter, setRegimeFilter] = React.useState<string>("all");
-  const [statusFilter, setStatusFilter] = React.useState<"all" | "complet" | "incomplet">("all");
+  const [statusFilter, setStatusFilter] = React.useState<
+    "all" | "complet" | "incomplet"
+  >("all");
 
   const driverMutation = useMutation({
     mutationFn: (id: number) => driverQ.delete(id),
@@ -121,11 +124,11 @@ export function DriverTable({ data }: DriversTableProps) {
 
   // Données filtrées
   const filteredData = React.useMemo(() => {
-    return data.filter(d=>{
+    return data.filter((d) => {
       //status Filter
-      const matchStatus = statusFilter === "all" ? true :
-      statusFilter === checkDriverInfo(d);
-      return matchStatus; 
+      const matchStatus =
+        statusFilter === "all" ? true : statusFilter === checkDriverInfo(d);
+      return matchStatus;
     });
   }, [data, statusFilter]);
 
@@ -156,9 +159,7 @@ export function DriverTable({ data }: DriversTableProps) {
           );
         },
         cell: ({ row }) => (
-          <div className="font-medium uppercase">
-            {row.getValue("firstName")}
-          </div>
+          <p className="normal-case">{row.getValue("firstName")}</p>
         ),
       },
       {
@@ -179,9 +180,9 @@ export function DriverTable({ data }: DriversTableProps) {
         cell: ({ row }) => {
           const lname = row.original.lastName;
           return (
-            <div className="font-medium">
+            <p className="normal-case">
               {lname || <span className="text-muted-foreground">{lname}</span>}
-            </div>
+            </p>
           );
         },
       },
@@ -204,29 +205,24 @@ export function DriverTable({ data }: DriversTableProps) {
         cell: ({ row }) => {
           const status = checkDriverInfo(row.original);
           return (
-            <div className="font-medium">
-              <Badge variant={status === "complet" ? "success" : "amber"}>
-                {status === "complet" ? <Check /> : <AlertTriangle />}
-                {status === "complet" ? "Complet" : "Incomplet"}
-              </Badge>
-            </div>
+            <Badge variant={status === "complet" ? "success" : "amber"}>
+              {status === "complet" ? <Check /> : <AlertTriangle />}
+              {status === "complet" ? "Complet" : "Incomplet"}
+            </Badge>
           );
         },
       },
       {
         id: "actions",
-        header: ()=><span className="tablehead">{"Actions"}</span>,
+        header: () => <span className="tablehead">{"Actions"}</span>,
         enableHiding: false,
         cell: ({ row }) => {
           const driver = row.original;
 
           return (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant={"outline"}>
-                  {"Actions"}
-                  <ChevronDown />
-                </Button>
+              <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+                <Ellipsis />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
@@ -282,14 +278,14 @@ export function DriverTable({ data }: DriversTableProps) {
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
     globalFilterFn: (row, columnId, filterValue) => {
-      if (!filterValue || filterValue === '') return true;
+      if (!filterValue || filterValue === "") return true;
       const searchValue = filterValue.toLowerCase().trim();
       const item = row.original;
       const status = checkDriverInfo(item);
-      if(item.firstName.toLocaleLowerCase().includes(searchValue)) return true;
-      if(item.lastName.toLocaleLowerCase().includes(searchValue)) return true;
-      if(status.includes(searchValue)) return true;
-      if(String(item.id) === searchValue) return true;
+      if (item.firstName.toLocaleLowerCase().includes(searchValue)) return true;
+      if (item.lastName.toLocaleLowerCase().includes(searchValue)) return true;
+      if (status.includes(searchValue)) return true;
+      if (String(item.id) === searchValue) return true;
       return false;
     },
     state: {
@@ -342,7 +338,12 @@ export function DriverTable({ data }: DriversTableProps) {
               {/**Status Filter */}
               <div className="grid gap-1.5">
                 <Label htmlFor="statusFilter">{"Statut"}</Label>
-                <Select value={statusFilter} onValueChange={(v)=>setStatusFilter(v as typeof statusFilter)}>
+                <Select
+                  value={statusFilter}
+                  onValueChange={(v) =>
+                    setStatusFilter(v as typeof statusFilter)
+                  }
+                >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Tous les statuts" />
                   </SelectTrigger>
@@ -455,20 +456,20 @@ export function DriverTable({ data }: DriversTableProps) {
       </div>
 
       <Pagination table={table} />
-      {
-        selectedItem &&
+      {selectedItem && (
         <UpdateDriver
-        open={isUpdateModalOpen}
-        setOpen={setIsUpdateModalOpen}
-        driverData={selectedItem}
-      />}
-      {
-        selectedItem &&
+          open={isUpdateModalOpen}
+          setOpen={setIsUpdateModalOpen}
+          driverData={selectedItem}
+        />
+      )}
+      {selectedItem && (
         <ShowDriver
-        open={openUpdate}
-        onOpenChange={setOpenUpdate}
-        data={selectedItem}
-      />}
+          open={openUpdate}
+          onOpenChange={setOpenUpdate}
+          data={selectedItem}
+        />
+      )}
       <ModalWarning
         variant="error"
         title="Chauffeur - "

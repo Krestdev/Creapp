@@ -12,7 +12,14 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, Check, ChevronDown, Eye, Settings2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  Check,
+  ChevronDown,
+  Ellipsis,
+  Eye,
+  Settings2,
+} from "lucide-react";
 import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -28,13 +35,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -55,6 +55,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
+import { subText } from "@/lib/utils";
 import {
   CommandRequestT,
   Provider,
@@ -65,10 +66,9 @@ import {
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { DevisGroup } from "./DevisGroup";
-import { subText } from "@/lib/utils";
-import { fr } from "date-fns/locale";
 
 interface QuotationGroupTableProps {
   providers: Array<Provider>;
@@ -168,18 +168,18 @@ export function QuotationGroupTable({
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Demande de cotation"}
-          <ArrowUpDown className="h-4 w-4" />
+          <ArrowUpDown />
         </span>
       ),
       cell: ({ row }) => {
         const group = row.original;
         return (
-          <div className="font-medium">
+          <p>
             {subText({ text: group.commandRequest.title, length: 21 })} -{" "}
             <span className="text-red-500">
               {group.commandRequest.reference}
             </span>
-          </div>
+          </p>
         );
       },
     },
@@ -192,7 +192,7 @@ export function QuotationGroupTable({
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Fournisseurs"}
-          <ArrowUpDown className="h-4 w-4" />
+          <ArrowUpDown />
         </span>
       ),
       cell: ({ row }) => {
@@ -222,9 +222,9 @@ export function QuotationGroupTable({
       header: () => <span className="tablehead">{"Mis à jour le"}</span>,
       cell: ({ row }) => {
         return (
-          <div>
+          <p className="normal-case">
             {format(row.getValue("createdAt"), "dd/MM/yyyy, p", { locale: fr })}
-          </div>
+          </p>
         );
       },
     },
@@ -237,11 +237,8 @@ export function QuotationGroupTable({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                {"Actions"}
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions du groupe"}</DropdownMenuLabel>

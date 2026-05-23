@@ -16,6 +16,7 @@ import {
   ArrowUpDown,
   CheckCheckIcon,
   ChevronDown,
+  Ellipsis,
   Eye,
   LucidePen,
   LucideX,
@@ -160,7 +161,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
         id: "fullName",
         header: ({ column }) => (
           <span
-            className="tablehead cursor-pointer select-none flex items-center"
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Noms & prénoms"}
@@ -172,7 +173,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
         cell: ({ row }) => {
           const fullName = row.getValue("fullName") as string;
-          return <div className="font-medium">{fullName}</div>;
+          return <p className="normal-case">{fullName}</p>;
         },
 
         sortingFn: (rowA, rowB) => {
@@ -206,7 +207,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           );
         },
         cell: ({ row }) => (
-          <div className="font-medium">{row.getValue("email")}</div>
+          <p className="normal-case">{row.getValue("email")}</p>
         ),
       },
       {
@@ -228,7 +229,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
           const role = row.getValue("role") as Role[];
 
           return (
-            <div className="flex flex-wrap gap-1">
+            <div className="flex flex-wrap gap-1 normal-case">
               {role?.map((rol) => {
                 const { label, variant } = getRoleBadge(rol);
                 return (
@@ -329,25 +330,25 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
-              Dernière connexion
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              {"Dernière connexion"}
+              <ArrowUpDown />
             </span>
           );
         },
         cell: ({ row }) => {
           const dateValue = row.getValue("lastConnection");
           if (!dateValue)
-            return <div className="text-muted-foreground">Jamais</div>;
+            return <p className="text-muted-foreground">{"Jamais"}</p>;
 
           const date = new Date(dateValue as string);
           return (
-            <div>
+            <p className="normal-case">
               {date.toLocaleDateString("fr-FR")}{" "}
               {date.toLocaleTimeString("fr-FR", {
                 hour: "2-digit",
                 minute: "2-digit",
               })}
-            </div>
+            </p>
           );
         },
       },
@@ -362,21 +363,22 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
               }
             >
               {"Date d'ajout"}
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              <ArrowUpDown />
             </span>
           );
         },
         cell: ({ row }) => {
           const dateValue = row.getValue("createdAt");
-          if (!dateValue) return <div className="text-muted-foreground">-</div>;
+          if (!dateValue)
+            return <p className="normal-case text-muted-foreground">{"N/A"}</p>;
 
           const date = new Date(dateValue as string);
-          return <div>{format(date, "dd/MM/yyyy")}</div>;
+          return <p className="normal-case">{format(date, "dd/MM/yyyy")}</p>;
         },
       },
       {
         id: "actions",
-        header: () => <span className="tablehead">Action</span>,
+        header: () => <span className="tablehead">{"Action"}</span>,
         enableHiding: false,
         cell: ({ row }) => {
           const utilisateur = row.original;
@@ -389,11 +391,8 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
 
           return (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant={"outline"}>
-                  {"Actions"}
-                  <ChevronDown />
-                </Button>
+              <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+                <Ellipsis />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>

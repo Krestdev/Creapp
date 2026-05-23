@@ -16,6 +16,7 @@ import { VariantProps } from "class-variance-authority";
 import {
   ArrowUpDown,
   ChevronDown,
+  Ellipsis,
   Eye,
   HandHelpingIcon,
   Settings2,
@@ -60,6 +61,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
+import { subText } from "@/lib/utils";
 import {
   BonsCommande,
   CommandRequestT,
@@ -172,7 +174,7 @@ export function ReceptionTable({ data, devis, cmdReqst, purchases }: Props) {
         </span>
       ),
       cell: ({ row }) => (
-        <div className="font-medium uppercase">{row.getValue("Reference")}</div>
+        <p className="normal-case">{row.getValue("Reference")}</p>
       ),
     },
 
@@ -190,11 +192,10 @@ export function ReceptionTable({ data, devis, cmdReqst, purchases }: Props) {
       cell: ({ row }) => {
         const original = row.original;
         const item = purchases.find((p) => p.id === original.CommandId);
-        return (
-          <div className="font-medium max-w-[300px] truncate">
-            {item?.devi.commandRequest.title ?? "N/A"}
-          </div>
-        );
+        return subText({
+          text: item?.devi.commandRequest.title ?? "N/A",
+          length: 21,
+        });
       },
     },
 
@@ -211,7 +212,7 @@ export function ReceptionTable({ data, devis, cmdReqst, purchases }: Props) {
       ),
       cell: ({ row }) => {
         const provider: Reception["Provider"] = row.getValue("Provider");
-        return <div className="font-medium">{provider.name}</div>;
+        return provider.name;
       },
     },
 
@@ -223,15 +224,15 @@ export function ReceptionTable({ data, devis, cmdReqst, purchases }: Props) {
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Date de création"}
-          <ArrowUpDown className="h-4 w-4" />
+          <ArrowUpDown />
         </span>
       ),
       cell: ({ row }) => {
         const base = row.getValue("createdAt") as string;
         return (
-          <div className="font-medium">
+          <p className="normal-case">
             {format(new Date(base), "dd MMMM yyyy", { locale: fr })}
-          </div>
+          </p>
         );
       },
     },
@@ -244,15 +245,15 @@ export function ReceptionTable({ data, devis, cmdReqst, purchases }: Props) {
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Date limite"}
-          <ArrowUpDown className="h-4 w-4" />
+          <ArrowUpDown />
         </span>
       ),
       cell: ({ row }) => {
         const base = row.getValue("Deadline") as string;
         return (
-          <div className="font-medium">
+          <p className="normal-case">
             {format(new Date(base), "dd MMMM yyyy", { locale: fr })}
-          </div>
+          </p>
         );
       },
     },
@@ -286,11 +287,8 @@ export function ReceptionTable({ data, devis, cmdReqst, purchases }: Props) {
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end">

@@ -1,4 +1,4 @@
-'use client'
+"use client";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -14,9 +14,10 @@ import {
 import {
   ArrowUpDown,
   ChevronDown,
+  Ellipsis,
   Eye,
   Pencil,
-  Settings2
+  Settings2,
 } from "lucide-react";
 import * as React from "react";
 
@@ -29,7 +30,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -40,7 +41,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -61,22 +69,26 @@ interface Props {
   canEdit: boolean;
 }
 
-
 function BankTable({ data, canEdit }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "updatedAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
-  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({
-    status: false, // Masque la colonne statut par défaut
-  });
+  const [columnVisibility, setColumnVisibility] =
+    React.useState<VisibilityState>({
+      status: false, // Masque la colonne statut par défaut
+    });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [statusFilter, setStatusFilter] = React.useState<"all" | "true" | "false">("all");
+  const [statusFilter, setStatusFilter] = React.useState<
+    "all" | "true" | "false"
+  >("all");
   const [searchFilter, setSearchFilter] = React.useState<string>("");
-  const [typeFilter, setTypeFilter] = React.useState<"all" | Bank["type"]>("all");
+  const [typeFilter, setTypeFilter] = React.useState<"all" | Bank["type"]>(
+    "all",
+  );
   const [selected, setSelected] = React.useState<Bank>();
   const [view, setView] = React.useState<boolean>(false);
   const [edit, setEdit] = React.useState<boolean>(false);
@@ -85,26 +97,27 @@ function BankTable({ data, canEdit }: Props) {
     setSearchFilter("");
     setStatusFilter("all");
     setTypeFilter("all");
-  }
+  };
 
   const filteredData: Array<Bank> = React.useMemo(() => {
-    return data.filter(bank => {
+    return data.filter((bank) => {
       const search = searchFilter.toLocaleLowerCase();
       //search Filter
       const matchSearch =
-        search.trim() === "" ? true : bank.accountNumber?.toLocaleLowerCase().includes(search)
-          || bank.balance.toString().includes(search)
-          || bank.label.toLocaleLowerCase().includes(search)
-          || bank.phoneNum?.includes(search)
+        search.trim() === ""
+          ? true
+          : bank.accountNumber?.toLocaleLowerCase().includes(search) ||
+            bank.balance.toString().includes(search) ||
+            bank.label.toLocaleLowerCase().includes(search) ||
+            bank.phoneNum?.includes(search);
       //statusFilter
       const matchStatus =
         statusFilter === "all" ? true : statusFilter === String(bank.Status);
       //typeFilter
-      const matchType =
-        typeFilter === "all" ? true : typeFilter === bank.type;
+      const matchType = typeFilter === "all" ? true : typeFilter === bank.type;
 
-      return matchStatus && matchType && matchSearch
-    })
+      return matchStatus && matchType && matchSearch;
+    });
   }, [data, statusFilter, typeFilter, searchFilter]);
 
   const columns: ColumnDef<Bank>[] = [
@@ -122,8 +135,8 @@ function BankTable({ data, canEdit }: Props) {
         );
       },
       cell: ({ row }) => {
-        const value = row.original.id
-        return <span>{`BA-${value}`}</span>
+        const value = row.original.id;
+        return <p className="normal-case">{`BA-${value}`}</p>;
       },
     },
     {
@@ -141,7 +154,7 @@ function BankTable({ data, canEdit }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.label;
-        return <span className="font-medium">{value}</span>;
+        return <p className="normal-case">{value}</p>;
       },
     },
     {
@@ -159,7 +172,7 @@ function BankTable({ data, canEdit }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.balance;
-        return <span>{XAF.format(value)}</span>;
+        return <p className="normal-case">{XAF.format(value)}</p>;
       },
     },
     {
@@ -177,7 +190,7 @@ function BankTable({ data, canEdit }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.type;
-        const { variant, label } = getBankTypeBadge({type:value});
+        const { variant, label } = getBankTypeBadge({ type: value });
         return <Badge variant={variant}>{label}</Badge>;
       },
     },
@@ -195,8 +208,12 @@ function BankTable({ data, canEdit }: Props) {
         );
       },
       cell: ({ row }) => {
-        const value = row.original.Status
-        return <Badge variant={value ? "success" : "destructive"}>{value ? "Actif" : "Désactivé"}</Badge>;
+        const value = row.original.Status;
+        return (
+          <Badge variant={value ? "success" : "destructive"}>
+            {value ? "Actif" : "Désactivé"}
+          </Badge>
+        );
       },
     },
     {
@@ -214,7 +231,13 @@ function BankTable({ data, canEdit }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.updatedAt;
-        return <span>{value ? format(new Date(value), "dd MMMM yyyy, p", { locale: fr }) : "--"}</span>;
+        return (
+          <p className="normal-case">
+            {value
+              ? format(new Date(value), "dd MMMM yyyy, p", { locale: fr })
+              : "--"}
+          </p>
+        );
       },
     },
     {
@@ -226,11 +249,8 @@ function BankTable({ data, canEdit }: Props) {
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
@@ -320,14 +340,16 @@ function BankTable({ data, canEdit }: Props) {
                 <Label>{"Type de compte"}</Label>
                 <Select
                   value={typeFilter}
-                  onValueChange={(value) => setTypeFilter(value as "all" | Bank["type"])}
+                  onValueChange={(value) =>
+                    setTypeFilter(value as "all" | Bank["type"])
+                  }
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Filtrer par type" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{"Tous"}</SelectItem>
-                    {BANK_TYPES.filter(b => b.value !== "null").map((p) => (
+                    {BANK_TYPES.filter((b) => b.value !== "null").map((p) => (
                       <SelectItem key={p.name} value={p.value}>
                         {p.name}
                       </SelectItem>
@@ -339,19 +361,17 @@ function BankTable({ data, canEdit }: Props) {
                 <Label>{"Statut"}</Label>
                 <Select
                   value={statusFilter}
-                  onValueChange={(value) => setStatusFilter(value as "all" | "true" | "false")}
+                  onValueChange={(value) =>
+                    setStatusFilter(value as "all" | "true" | "false")
+                  }
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Filtrer par statut" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">{"Toutes"}</SelectItem>
-                    <SelectItem value={"true"}>
-                      {"Actif"}
-                    </SelectItem>
-                    <SelectItem value={"false"}>
-                      {"Désactivé"}
-                    </SelectItem>
+                    <SelectItem value={"true"}>{"Actif"}</SelectItem>
+                    <SelectItem value={"false"}>{"Désactivé"}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -389,13 +409,20 @@ function BankTable({ data, canEdit }: Props) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id === "label" ? "Intitulé du compte"
-                      : column.id === "type" ? "Type"
-                        : column.id === "balance" ? "Solde"
-                          : column.id === "status" ? "Statut"
-                            : column.id === "updatedAt" ? "Dernière mise à jour"
-                              : column.id === "actions" ? "Actions"
-                                : column.id === "id" ? "Référence"
+                    {column.id === "label"
+                      ? "Intitulé du compte"
+                      : column.id === "type"
+                        ? "Type"
+                        : column.id === "balance"
+                          ? "Solde"
+                          : column.id === "status"
+                            ? "Statut"
+                            : column.id === "updatedAt"
+                              ? "Dernière mise à jour"
+                              : column.id === "actions"
+                                ? "Actions"
+                                : column.id === "id"
+                                  ? "Référence"
                                   : column.id}
                   </DropdownMenuCheckboxItem>
                 );
@@ -418,9 +445,9 @@ function BankTable({ data, canEdit }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -442,7 +469,7 @@ function BankTable({ data, canEdit }: Props) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}
@@ -463,10 +490,14 @@ function BankTable({ data, canEdit }: Props) {
       </div>
 
       <Pagination table={table} />
-      {selected && <ViewBank bank={selected} open={view} openChange={setView} />}
-      {selected && <EditBank bank={selected} open={edit} openChange={setEdit} />}
+      {selected && (
+        <ViewBank bank={selected} open={view} openChange={setView} />
+      )}
+      {selected && (
+        <EditBank bank={selected} open={edit} openChange={setEdit} />
+      )}
     </div>
-  )
+  );
 }
 
-export default BankTable
+export default BankTable;

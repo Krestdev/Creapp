@@ -12,7 +12,13 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, LucideEye } from "lucide-react";
+import {
+  ArrowUpDown,
+  CheckCheckIcon,
+  Ellipsis,
+  EyeIcon,
+  LucideEye,
+} from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -21,6 +27,7 @@ import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
+  DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
@@ -304,34 +311,32 @@ export function BesoinsTraiter({
     {
       accessorKey: "label",
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <span
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="bg-transparent text-black hover:bg-transparent"
+          className="tablehead"
         >
           {"Titre"}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown />
+        </span>
       ),
       cell: ({ row }) => (
-        <div className="max-w-[300px] truncate">{row.getValue("label")}</div>
+        <p className="max-w-[300px] truncate">{row.getValue("label")}</p>
       ),
     },
     {
       accessorKey: "categoryId",
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <span
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="bg-transparent text-black hover:bg-transparent"
+          className="tablehead"
         >
           {"Catégorie"}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown />
+        </span>
       ),
       cell: ({ row }) => {
         const categoryId = row.getValue("categoryId");
-        return <div>{getCategoryName(categoryId as string | number)}</div>;
+        return getCategoryName(categoryId as string | number);
       },
       filterFn: (row, columnId, filterValue) => {
         if (!filterValue || filterValue === "all" || filterValue === "") {
@@ -349,11 +354,11 @@ export function BesoinsTraiter({
       id: "fullName",
       header: ({ column }) => (
         <span
-          className="tablehead cursor-pointer select-none flex items-center"
+          className="tablehead"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Quantité"}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown />
         </span>
       ),
 
@@ -361,7 +366,7 @@ export function BesoinsTraiter({
 
       cell: ({ row }) => {
         const fullName = row.getValue("fullName") as string;
-        return <div className="font-medium text-center">{fullName}</div>;
+        return fullName;
       },
 
       sortingFn: (rowA, rowB) => {
@@ -376,33 +381,35 @@ export function BesoinsTraiter({
     {
       accessorKey: "createdAt",
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <span
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="bg-transparent text-black hover:bg-transparent"
+          className="tablehead"
         >
           {"Date de création"}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown />
+        </span>
       ),
       cell: ({ row }) => (
-        <div>{format(row.getValue("createdAt"), "PPP", { locale: fr })}</div>
+        <p className="normal-case">
+          {format(row.getValue("createdAt"), "PPP", { locale: fr })}
+        </p>
       ),
     },
     {
       accessorKey: "dueDate",
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <span
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="bg-transparent text-black hover:bg-transparent"
+          className="tablehead"
         >
           {"Date Limite"}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown />
+        </span>
       ),
       cell: ({ row }) => (
-        <div>{format(row.getValue("dueDate"), "PPP", { locale: fr })}</div>
+        <p className="normal-case">
+          {format(row.getValue("dueDate"), "PPP", { locale: fr })}
+        </p>
       ),
     },
     {
@@ -411,39 +418,32 @@ export function BesoinsTraiter({
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <div className=" flex justify-end gap-2">
-            <Button
-              onClick={() => {
-                setSelect(item);
-                setIsModalOpen(true);
-              }}
-              className="bg-[#013E7B]"
-            >
-              {"Déstocker"}
-            </Button>
-          </div>
-        );
-      },
-    },
-
-    // Mettre l'action pour voir les détails du besoin
-    {
-      id: "details",
-      enableHiding: false,
-      cell: ({ row }) => {
-        const item = row.original;
-        return (
-          <div className=" flex justify-end gap-2">
-            <Button
-              variant={"outline"}
-              onClick={() => {
-                setSelect(item);
-                setIsModalOpenView(true);
-              }}
-            >
-              <LucideEye className="h-4 w-4" />
-            </Button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem
+                variant={"destructive"}
+                onClick={() => {
+                  setSelect(item);
+                  setIsModalOpen(true);
+                }}
+              >
+                <CheckCheckIcon />
+                {"Déstocker le besoin"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelect(item);
+                  setIsModalOpenView(true);
+                }}
+              >
+                <EyeIcon />
+                {"Voir"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
     },

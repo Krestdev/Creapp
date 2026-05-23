@@ -12,11 +12,10 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Eye, Pen } from "lucide-react";
+import { ArrowUpDown, Ellipsis, Eye, Pen } from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -83,28 +82,26 @@ export function TypeTable({ data }: BesoinsTraiterTableProps) {
     {
       accessorKey: "label",
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <span
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="bg-transparent text-black hover:bg-transparent"
+          className="tablehead"
         >
           {"Titre"}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown />
+        </span>
       ),
-      cell: ({ row }) => <div>{row.getValue("label")}</div>,
+      cell: ({ row }) => <p className="normal-case">{row.getValue("label")}</p>,
     },
     {
       accessorKey: "description",
       header: ({ column }) => (
-        <Button
-          variant="ghost"
+        <span
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="bg-transparent text-black hover:bg-transparent"
+          className="tablehead"
         >
           {"Description"}
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
+          <ArrowUpDown />
+        </span>
       ),
       cell: ({ row }) => {
         return <div>{row.getValue("description")}</div>;
@@ -127,38 +124,33 @@ export function TypeTable({ data }: BesoinsTraiterTableProps) {
       cell: ({ row }) => {
         const item = row.original;
         return (
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm">
-                  {"Actions"}
-                  <ChevronDown className="ml-2 h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelect(item);
-                    setIsModalOpen(true);
-                  }}
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  {"Voir"}
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => {
-                    setSelect(item);
-                    setIsModalOpenEdit(true);
-                  }}
-                >
-                  <Pen className="mr-2 h-4 w-4" />
-                  {"Modifier"}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelect(item);
+                  setIsModalOpen(true);
+                }}
+              >
+                <Eye className="mr-2 h-4 w-4" />
+                {"Voir"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelect(item);
+                  setIsModalOpenEdit(true);
+                }}
+              >
+                <Pen className="mr-2 h-4 w-4" />
+                {"Modifier"}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         );
       },
     },

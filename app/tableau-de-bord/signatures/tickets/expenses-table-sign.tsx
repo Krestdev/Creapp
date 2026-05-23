@@ -11,7 +11,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Eye, PenTool } from "lucide-react";
+import { ArrowUpDown, ChevronDown, Ellipsis, Eye, PenTool } from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
@@ -179,7 +179,7 @@ function ExpensesTableSign({
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("reference")}</div>
+        <p className="normal-case">{row.getValue("reference")}</p>
       ),
     },
     {
@@ -220,9 +220,9 @@ function ExpensesTableSign({
       cell: ({ row }) => {
         const value = row.original;
         return (
-          <div>
+          <p className="normal-case">
             {payType.find((t) => t.id === value.methodId)?.label ?? "--"}
-          </div>
+          </p>
         );
       },
     },
@@ -241,7 +241,7 @@ function ExpensesTableSign({
       },
       cell: ({ row }) => {
         const value = row.original;
-        return <div>{value.bank?.label ?? "--"}</div>;
+        return <p className="normal-case">{value.bank?.label ?? "--"}</p>;
       },
     },
     {
@@ -259,7 +259,9 @@ function ExpensesTableSign({
       },
       cell: ({ row }) => {
         const value = row.original;
-        return <div>{value.transaction?.docNumber ?? "--"}</div>;
+        return (
+          <p className="normal-case">{value.transaction?.docNumber ?? "--"}</p>
+        );
       },
     },
     {
@@ -277,9 +279,7 @@ function ExpensesTableSign({
       },
       cell: ({ row }) => {
         const value = row.original;
-        return (
-          <div>{value.facture?.command.provider?.name ?? "Creaconsult"}</div>
-        );
+        return value.facture?.command.provider?.name ?? "Creaconsult";
       },
     },
     {
@@ -297,7 +297,7 @@ function ExpensesTableSign({
       },
       cell: ({ row }) => {
         const value = row.getValue("price");
-        return <div className="font-medium">{XAF.format(Number(value))}</div>;
+        return <p className="normal-case">{XAF.format(Number(value))}</p>;
       },
     },
     {
@@ -309,7 +309,7 @@ function ExpensesTableSign({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Priorité"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </span>
         );
       },
@@ -355,7 +355,7 @@ function ExpensesTableSign({
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("createdAt")}</div>
+        <p className="normal-case">{row.getValue("createdAt")}</p>
       ),
     },
     {
@@ -389,11 +389,8 @@ function ExpensesTableSign({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>

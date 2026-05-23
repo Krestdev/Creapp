@@ -3,18 +3,24 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  PaginationOptions,
-  PaginationState,
-  type SortingState,
-  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-
   getSortedRowModel,
+  PaginationOptions,
+  PaginationState,
+  type SortingState,
   useReactTable,
+  type VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Eye, LucidePen, Trash } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  Ellipsis,
+  Eye,
+  LucidePen,
+  Trash,
+} from "lucide-react";
 import * as React from "react";
 
 import EditPayment from "@/app/tableau-de-bord/(accounting)/factures/paiements/edit-payment";
@@ -181,7 +187,7 @@ export function PaiementsTable({
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("reference")}</div>
+        <p className="normal-case">{row.getValue("reference")}</p>
       ),
     },
     {
@@ -200,14 +206,10 @@ export function PaiementsTable({
       cell: ({ row }) => {
         const value = row.original;
         const purchase = value.facture?.command;
-        return (
-          <div>
-            {subText({
-              text: purchase?.devi.commandRequest.title ?? "--",
-              length: 21,
-            })}
-          </div>
-        );
+        return subText({
+          text: purchase?.devi.commandRequest.title ?? "--",
+          length: 21,
+        });
       },
     },
     {
@@ -226,7 +228,7 @@ export function PaiementsTable({
       cell: ({ row }) => {
         const value = row.original;
         const providerName = value.facture?.command.provider.name ?? "--";
-        return <div>{providerName}</div>;
+        return providerName;
       },
     },
     {
@@ -244,7 +246,7 @@ export function PaiementsTable({
       },
       cell: ({ row }) => {
         const value = row.getValue("price");
-        return <div className="font-medium">{XAF.format(Number(value))}</div>;
+        return <p className="normal-case">{XAF.format(Number(value))}</p>;
       },
     },
     {
@@ -299,9 +301,9 @@ export function PaiementsTable({
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">
+        <p className="normal-case">
           {format(row.getValue("createdAt"), "dd/MM/yyyy")}
-        </div>
+        </p>
       ),
     },
     {
@@ -313,11 +315,8 @@ export function PaiementsTable({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>

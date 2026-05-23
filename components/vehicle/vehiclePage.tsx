@@ -3,11 +3,12 @@ import { useStore } from "@/providers/datastore";
 import { vehicleQ } from "@/queries/vehicule";
 import { useQuery } from "@tanstack/react-query";
 import { VehiclesTable } from "./vehicle-table";
+import { queryKeys } from "@/lib/query-keys";
 
 const VehiclePage = () => {
   const { isHydrated } = useStore();
   const vehicleData = useQuery({
-    queryKey: ["vehicles"],
+    queryKey: queryKeys.vehicles,
     queryFn: () => vehicleQ.getAll(),
     enabled: isHydrated,
   });

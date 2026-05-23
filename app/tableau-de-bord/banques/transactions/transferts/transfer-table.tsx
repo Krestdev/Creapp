@@ -16,6 +16,7 @@ import {
   CheckCircleIcon,
   ChevronDown,
   ClipboardPenIcon,
+  Ellipsis,
   Eye,
   Pencil,
   Settings2,
@@ -289,7 +290,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.id;
-        return <span>{`TR-${value}`}</span>;
+        return <p className="normal-case">{`TR-${value}`}</p>;
       },
     },
     {
@@ -307,7 +308,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.label;
-        return <span className="font-medium">{value}</span>;
+        return value;
       },
     },
     {
@@ -325,7 +326,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.amount;
-        return <span>{XAF.format(value)}</span>;
+        return <p className="normal-case">{XAF.format(value)}</p>;
       },
     },
     {
@@ -343,7 +344,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const source = row.original.from;
-        return <span>{source.label}</span>;
+        return source.label;
       },
     },
     {
@@ -361,7 +362,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const target = row.original.to;
-        return <span>{target.label}</span>;
+        return target.label;
       },
     },
     {
@@ -380,9 +381,9 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       cell: ({ row }) => {
         const value = row.original.createdAt;
         return (
-          <span>
+          <p className="normal-case">
             {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
-          </span>
+          </p>
         );
       },
     },
@@ -402,11 +403,11 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       cell: ({ row }) => {
         const value = row.original.date;
         return (
-          <span>
+          <p className="normal-case">
             {row.original.status === "APPROVED"
               ? format(new Date(value), "dd MMMM yyyy, p", { locale: fr })
               : "-"}
-          </span>
+          </p>
         );
       },
     },
@@ -446,9 +447,9 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
         const value = row.original.userId;
         const user = users.find((u) => u.id === value);
         return (
-          <span>
+          <p className="normal-case">
             {user ? user.firstName.concat(" ", user.lastName) : "N/A"}
-          </span>
+          </p>
         );
       },
     },
@@ -461,11 +462,8 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>

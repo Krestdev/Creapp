@@ -11,10 +11,20 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Eye, Settings2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  Ellipsis,
+  Eye,
+  Settings2,
+} from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
+import {
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -34,13 +44,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -71,10 +74,6 @@ import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ViewTransaction from "./view-transaction";
-import {
-  StatisticCard,
-  StatisticProps,
-} from "@/components/base/TitleValueCard";
 
 interface Props {
   data: Array<Transaction>;
@@ -372,7 +371,7 @@ function TransactionTable({
       },
       cell: ({ row }) => {
         const value = row.original.id;
-        return <span>{`TR-${value}`}</span>;
+        return <p className="normal-case">{`TR-${value}`}</p>;
       },
     },
     {
@@ -390,11 +389,7 @@ function TransactionTable({
       },
       cell: ({ row }) => {
         const value = row.original.label;
-        return (
-          <span className="font-medium">
-            {subText({ text: value, length: 21 })}
-          </span>
-        );
+        return subText({ text: value, length: 21 });
       },
     },
     {
@@ -414,16 +409,16 @@ function TransactionTable({
         const value = row.original.amount;
         const type = row.original.Type;
         return (
-          <span
+          <p
             className={cn(
-              "font-bold",
+              "font-bold normal-case",
               type === "CREDIT"
                 ? "text-green-600"
                 : type === "DEBIT" && "text-red-600",
             )}
           >
             {XAF.format(value)}
-          </span>
+          </p>
         );
       },
     },
@@ -461,7 +456,7 @@ function TransactionTable({
       },
       cell: ({ row }) => {
         const source = row.original.from;
-        return <span>{source.label}</span>;
+        return source.label;
       },
     },
     {
@@ -479,7 +474,7 @@ function TransactionTable({
       },
       cell: ({ row }) => {
         const target = row.original.to;
-        return <span>{target.label}</span>;
+        return target.label;
       },
     },
     {
@@ -498,9 +493,9 @@ function TransactionTable({
       cell: ({ row }) => {
         const value = row.original.updatedAt;
         return (
-          <span>
+          <p className="normal-case">
             {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
-          </span>
+          </p>
         );
       },
     },
@@ -540,14 +535,14 @@ function TransactionTable({
         const value = row.original.userId;
         const user = users.find((u) => u.id === value);
         return (
-          <span>
+          <p className="normal-case">
             {user
               ? subText({
                   text: user.firstName.concat(" ", user.lastName),
                   length: 21,
                 })
               : "N/A"}
-          </span>
+          </p>
         );
       },
     },
@@ -560,11 +555,8 @@ function TransactionTable({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>

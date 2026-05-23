@@ -29,6 +29,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { queryKeys } from "@/lib/query-keys";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
 import { requestTypeQ } from "@/queries/requestType";
@@ -64,15 +65,15 @@ export default function UpdateCategory({ id }: { id: number }) {
   const router = useRouter();
 
   const getCategories = useQuery({
-    queryKey: ["categories"],
+    queryKey: queryKeys.categories,
     queryFn: categoryQ.getCategories,
   });
   const getUsers = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
   const getRequestTypes = useQuery({
-    queryKey: ["types"],
+    queryKey: queryKeys.requestTypes,
     queryFn: requestTypeQ.getAll,
   });
   const usersList = useMemo(() => {

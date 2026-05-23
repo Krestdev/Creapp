@@ -14,6 +14,7 @@ import {
   ArrowRightIcon,
   ArrowUpDown,
   ChevronDown,
+  Ellipsis,
   Eye,
   Pencil,
   Settings2,
@@ -245,7 +246,7 @@ function SignTransfers({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.label;
-        return <span className="font-medium">{value}</span>;
+        return value;
       },
     },
     {
@@ -263,7 +264,7 @@ function SignTransfers({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.amount;
-        return <span>{XAF.format(value)}</span>;
+        return <p className="normal-case">{XAF.format(value)}</p>;
       },
     },
     {
@@ -283,7 +284,7 @@ function SignTransfers({ data, banks, paymentMethods, users }: Props) {
         const source = row.original.from;
         const destination = row.original.to;
         return (
-          <span className="flex items-center gap-1.5">
+          <span className="normal-case flex items-center gap-1.5">
             {source.label}
             <ArrowRightIcon size={12} />
             {destination.label}
@@ -306,7 +307,7 @@ function SignTransfers({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const method = row.original.method;
-        return <span>{method?.label ?? "Non défini"}</span>;
+        return <p className="normal-case">{method?.label ?? "Non défini"}</p>;
       },
     },
     {
@@ -342,11 +343,8 @@ function SignTransfers({ data, banks, paymentMethods, users }: Props) {
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>

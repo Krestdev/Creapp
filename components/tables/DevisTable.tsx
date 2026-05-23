@@ -12,7 +12,14 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Eye, LucidePen, Trash } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  Ellipsis,
+  Eye,
+  LucidePen,
+  Trash,
+} from "lucide-react";
 import * as React from "react";
 
 import CancelQuotation from "@/app/tableau-de-bord/(sales)/commande/devis/cancel";
@@ -132,9 +139,7 @@ export function DevisTable({
           </span>
         );
       },
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("ref")}</div>
-      ),
+      cell: ({ row }) => <p className="normal-case">{row.getValue("ref")}</p>,
     },
     {
       accessorKey: "commandRequestId",
@@ -150,7 +155,7 @@ export function DevisTable({
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium first-letter:uppercase">
+        <div>
           {`${subText({ text: getQuotationTitle(row.getValue("commandRequestId")), length: 21 })} - `}
           <span className="text-destructive text-[12px]">{`${getQuotationRef(
             row.getValue("commandRequestId"),
@@ -171,11 +176,7 @@ export function DevisTable({
           </span>
         );
       },
-      cell: ({ row }) => (
-        <div className="first-letter:uppercase">
-          {getProviderName(row.getValue("providerId"))}
-        </div>
-      ),
+      cell: ({ row }) => getProviderName(row.getValue("providerId")),
     },
     {
       accessorKey: "montant",
@@ -193,7 +194,7 @@ export function DevisTable({
       cell: ({ row }) => {
         const value = row.original;
         const total = getQuotationAmount(value, providers);
-        return <div>{XAF.format(total)}</div>;
+        return <p className="normal-case">{XAF.format(total)}</p>;
       },
     },
     {
@@ -203,7 +204,7 @@ export function DevisTable({
       },
       cell: ({ row }) => {
         const value = row.getValue("element") as QuotationElement[];
-        return <span>{value.length}</span>;
+        return value.length;
       },
     },
     {
@@ -239,9 +240,9 @@ export function DevisTable({
         );
       },
       cell: ({ row }) => (
-        <div>
+        <p className="normal-case">
           {format(new Date(row.getValue("createdAt")), "dd/MM/yyyy HH:mm")}
-        </div>
+        </p>
       ),
     },
     {
@@ -253,11 +254,8 @@ export function DevisTable({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost" size={"sm"}>
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>

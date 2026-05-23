@@ -9,6 +9,7 @@ import { useQuery } from "@tanstack/react-query";
 import React from "react";
 import ProfilePage from "./profile";
 import { userQ } from "@/queries/baseModule";
+import { queryKeys } from "@/lib/query-keys";
 
 function Page() {
   const { user } = useStore();
@@ -27,19 +28,19 @@ function Page() {
   ];
 
   const requests = useQuery({
-    queryKey: ["requests", user?.id],
+    queryKey: queryKeys.requestsUser(user?.id),
     queryFn: () => requestQ.getMine(user!.id),
     enabled: !!user,
   });
 
   const getUser = useQuery({
-    queryKey: ["user", user?.id],
+    queryKey: queryKeys.user(user?.id!),
     queryFn: () => userQ.getOne(user!.id),
     enabled: !!user,
   });
 
   const signature = useQuery({
-    queryKey: ["signature", user?.id],
+    queryKey: queryKeys.signature(user?.id!),
     queryFn: () => userQ.getSignature(user!.id),
     enabled: !!user && !!user.signatureId,
   });

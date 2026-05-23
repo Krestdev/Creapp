@@ -16,6 +16,7 @@ import {
   ArrowUpDown,
   BanIcon,
   ChevronDown,
+  Ellipsis,
   Eye,
   Settings2,
   WalletCardsIcon,
@@ -287,7 +288,7 @@ export function InvoicesTable({
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("reference")}</div>
+        <p className="normal-case">{row.getValue("reference")}</p>
       ),
     },
     {
@@ -303,9 +304,7 @@ export function InvoicesTable({
           </span>
         );
       },
-      cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("title")}</div>
-      ),
+      cell: ({ row }) => row.getValue("title"),
     },
     {
       id: "provider",
@@ -322,7 +321,7 @@ export function InvoicesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        return <div>{value.command.provider.name ?? "Inconnu"}</div>;
+        return value.command.provider.name ?? "Inconnu";
       },
     },
     {
@@ -341,14 +340,10 @@ export function InvoicesTable({
       cell: ({ row }) => {
         const value = row.original;
         const purchase = value.command;
-        return (
-          <div>
-            {subText({
-              text: purchase?.devi.commandRequest.title ?? "--",
-              length: 21,
-            })}
-          </div>
-        );
+        return subText({
+          text: purchase?.devi.commandRequest.title ?? "--",
+          length: 21,
+        });
       },
     },
     {
@@ -366,7 +361,7 @@ export function InvoicesTable({
       },
       cell: ({ row }) => {
         const value = row.original.amount;
-        return <div className="font-medium">{XAF.format(Number(value))}</div>;
+        return <p className="normal-case">{XAF.format(Number(value))}</p>;
       },
     },
     {
@@ -387,7 +382,7 @@ export function InvoicesTable({
         const status = getInvoiceStatusBadge(value.status);
         const i = getProgress(value);
         return (
-          <Progress value={i.progress} className={"w-full flex-col"}>
+          <Progress value={i.progress} className={"w-full"}>
             <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
             <ProgressValue />
           </Progress>
@@ -419,7 +414,7 @@ export function InvoicesTable({
               ? proofField.map(String).filter(Boolean)
               : [];
         return (
-          <div className="font-medium flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-1.5">
             {elements.map((proof, index) => (
               <Link
                 key={index}
@@ -454,9 +449,9 @@ export function InvoicesTable({
       },
       cell: ({ row }) => {
         return (
-          <div className="font-medium">
+          <p className="normal-case">
             {format(row.getValue("createdAt"), "dd/MM/yyyy")}
-          </div>
+          </p>
         );
       },
     },
@@ -469,11 +464,8 @@ export function InvoicesTable({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
