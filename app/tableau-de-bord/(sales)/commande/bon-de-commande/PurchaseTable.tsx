@@ -24,8 +24,15 @@ import {
   Settings2,
 } from "lucide-react";
 import * as React from "react";
+import { DateRange } from "react-day-picker";
+
+import { DateRangePicker } from "@/components/dateRangePicker";
 
 import { Pagination } from "@/components/base/pagination";
+import {
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -175,6 +182,10 @@ export function PurchaseTable({
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
+  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
+    from: undefined,
+    to: undefined,
+  });
 
   // filtres spécifiques
   const [statusFilter, setStatusFilter] = React.useState<"all" | Status>("all");
@@ -240,6 +251,19 @@ export function PurchaseTable({
   const filteredData = React.useMemo(() => {
     let filtered = [...(data ?? [])];
 
+    // Date filter
+    const from = dateRange?.from;
+    const to = dateRange?.to;
+    if (from || to) {
+      filtered = filtered.filter((po) => {
+        const start = new Date(po.createdAt as any);
+        if (from && !to) return start >= from;
+        if (!from && to) return start <= to;
+        if (from && to) return start >= from && start <= to;
+        return true;
+      });
+    }
+
     if (statusFilter !== "all") {
       filtered = filtered.filter((po) => po.status === statusFilter);
     }
@@ -279,6 +303,7 @@ export function PurchaseTable({
     return filtered;
   }, [
     data,
+    dateRange,
     statusFilter,
     priorityFilter,
     penaltyFilter,
@@ -558,6 +583,7 @@ export function PurchaseTable({
 
   const resetAllFilters = () => {
     setGlobalFilter("");
+    setDateRange({ from: undefined, to: undefined });
     setStatusFilter("all");
     setPriorityFilter("all");
     setProviderFilter("all");
@@ -570,11 +596,68 @@ export function PurchaseTable({
     // setPenaltyFilter("all"); // Si vous décommentez le filtre pénalités
   };
 
+  const Statistics: Array<StatisticProps> = [
+    {
+      title: "Total Bons de commande",
+      value: filteredData.length,
+      variant: "primary",
+      more: {
+        title: "Montant Total",
+        value: XAF.format(
+          filteredData.reduce((total, item) => total + item.netToPay, 0),
+        ),
+      },
+    },
+    {
+      title: "En attente",
+      value: filteredData.filter(
+        (c) => c.status === "PENDING" || c.status === "IN-REVIEW",
+      ).length,
+      variant: "secondary",
+      more: {
+        title: "Rejetés",
+        value: filteredData.filter((c) => c.status === "REJECTED").length,
+      },
+    },
+    {
+      title: "Validés",
+      value: filteredData.filter((c) => c.status === "APPROVED").length,
+      variant: "success",
+      more: {
+        title: "Montant Total",
+        value: XAF.format(
+          filteredData
+            .filter((c) => c.status === "APPROVED")
+            .reduce((total, item) => total + item.netToPay, 0),
+        ),
+      },
+    },
+  ];
+
   return (
     <div className="w-full space-y-4">
+      {/* Statistics */}
+      <div className="grid-stats-4">
+        {Statistics.map((stat, index) => (
+          <StatisticCard key={index} {...stat} className="h-full" />
+        ))}
+      </div>
       {/* BARRE DE FILTRES */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
+          <Input
+            id="searchPO"
+            type="search"
+            placeholder="Ref, Cotation, fournisseur, statut"
+            value={globalFilter ?? ""}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            className="w-56 h-9"
+          />
+          <DateRangePicker
+            date={dateRange}
+            onChange={setDateRange}
+            className="min-w-40"
+          />
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline">
@@ -592,16 +675,6 @@ export function PurchaseTable({
               </SheetHeader>
 
               <div className="space-y-5 px-5">
-                <div className="grid gap-1.5">
-                  <Label htmlFor="searchPO">{"Recherche globale"}</Label>
-                  <Input
-                    id="searchPO"
-                    type="search"
-                    placeholder="Ref, Cotation, fournisseur, statut"
-                    value={globalFilter ?? ""}
-                    onChange={(e) => setGlobalFilter(e.target.value)}
-                  />
-                </div>
 
                 {/* Filtre par statut avec recherche */}
                 <div className="grid gap-1.5">
