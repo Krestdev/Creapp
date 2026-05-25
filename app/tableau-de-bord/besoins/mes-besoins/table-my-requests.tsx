@@ -655,7 +655,7 @@ export function TableMyRequests({
         onOpenChange={setIsCancelModalOpen}
         title="Annuler le besoin"
         description="Êtes-vous sûr de vouloir annuler ce besoin ?"
-        actionText="Annuler"
+        actionText="Confirmer"
         onAction={() => handleCancel()}
         name={selectedItem?.label}
         variant="error"
