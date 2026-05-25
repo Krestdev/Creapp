@@ -19,7 +19,7 @@ interface ModalWarningProps {
   actionText?: string;
   onAction?: () => void;
   variant?: "warning" | "error" | "info" | "success";
-  name?: string
+  name?: string;
 }
 
 export function ModalWarning({
@@ -31,9 +31,8 @@ export function ModalWarning({
   actionText = "Confirmer",
   onAction,
   variant = "warning",
-  name = ""
+  name = "",
 }: ModalWarningProps) {
-
   const variantStyles = {
     warning: {
       header: "bg-gradient-to-r from-[#D97706] to-[#92400E]",
@@ -51,7 +50,7 @@ export function ModalWarning({
     success: {
       header: "bg-gradient-to-r from-[#16A34A] to-[#052c14]",
       button: "bg-[#16A34A] hover:bg-[#16A34A]",
-    }
+    },
   };
 
   const handleAction = () => {
@@ -69,17 +68,15 @@ export function ModalWarning({
           <DialogTitle className="text-xl font-semibold text-white">
             {title + " " + name}
           </DialogTitle>
-          {description ?
-            <DialogDescription>
-              {description}
-            </DialogDescription>
-          : <DialogDescription/>}
+          {description ? (
+            <DialogDescription>{description}</DialogDescription>
+          ) : (
+            <DialogDescription />
+          )}
         </DialogHeader>
 
         {/* Message content */}
-        {message &&
-          <p className="text-foreground">{message}</p>
-        }
+        {message && <p className="text-foreground">{message}</p>}
 
         {/* Footer buttons */}
         <DialogFooter>
@@ -90,7 +87,7 @@ export function ModalWarning({
             {actionText}
           </Button>
           <DialogClose asChild>
-            <Button variant={"outline"}>{"Annuler"}</Button>
+            <Button variant={"outline"}>{"Fermer"}</Button>
           </DialogClose>
         </DialogFooter>
       </DialogContent>
