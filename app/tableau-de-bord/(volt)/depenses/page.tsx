@@ -1,5 +1,4 @@
 "use client";
-import { TabBar } from "@/components/base/TabBar";
 import {
   StatisticCard,
   StatisticProps,
@@ -328,15 +327,6 @@ function Page() {
             <StatisticCard key={id} {...data} className="h-full" />
           ))}
         </div>
-        <TabBar
-          tabs={tabs}
-          setSelectedTab={(value) => {
-            setCustomFilters({ ...customFilters, tab: value });
-            setFilters((prev) => ({ ...prev, pageIndex: 0 }));
-          }}
-          selectedTab={customFilters.tab}
-          className="w-fit"
-        />
         <ExpensesTable
           payments={data.data}
           requestTypes={getRequestType.data.data}
@@ -344,7 +334,6 @@ function Page() {
           providers={getProviders.data.data}
           users={getUsers.data.data}
           projects={getProjects.data.data}
-          activeTab={customFilters.tab}
           pagination={filters}
           paginationOptions={{
             onPaginationChange: (updater) => {
@@ -355,6 +344,14 @@ function Page() {
               });
             },
             rowCount: data.count,
+          }}
+          tabs={{
+            tabs,
+            selectedTab: customFilters.tab,
+            setSelectedTab: (value) => {
+              setCustomFilters({ ...customFilters, tab: value });
+              setFilters((prev) => ({ ...prev, pageIndex: 0 }));
+            },
           }}
         />
       </div>

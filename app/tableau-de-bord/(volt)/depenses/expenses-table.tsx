@@ -76,6 +76,7 @@ import { NoticeFile } from "./notice";
 import PayExpense from "./pay-expense";
 import ShareExpense from "./share-expense";
 import ViewExpense from "./view-expense";
+import { TabBar, TabProps } from "@/components/base/TabBar";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -138,9 +139,9 @@ interface Props {
   providers: Array<Provider>;
   users: Array<User>;
   projects: Array<ProjectT>;
-  activeTab: DepenseFiltersProps["customFilters"]["tab"];
   pagination: PaginationState;
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
+  tabs: TabProps;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -234,9 +235,9 @@ function ExpensesTable({
   providers,
   users,
   projects,
-  activeTab,
   pagination,
   paginationOptions,
+  tabs,
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -601,7 +602,7 @@ function ExpensesTable({
                   {"Compléter le paiement"}
                 </DropdownMenuItem>
               )}
-              {activeTab === "processed" && (
+              {tabs.selectedTab === "processed" && (
                 <>
                   <DropdownMenuItem
                     disabled={
@@ -627,7 +628,7 @@ function ExpensesTable({
                   </DropdownMenuItem>
                 </>
               )}
-              {activeTab === "validated" && (
+              {tabs.selectedTab === "validated" && (
                 <DropdownMenuItem
                   disabled={
                     item.status === "unsigned" ||
@@ -718,6 +719,11 @@ function ExpensesTable({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
+        <TabBar
+          tabs={tabs.tabs}
+          setSelectedTab={tabs.setSelectedTab}
+          selectedTab={tabs.selectedTab}
+        />
         <div className="flex flex-wrap items-end gap-3">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
