@@ -251,38 +251,38 @@ function Page() {
   ) {
     const Statistics: Array<StatisticProps> = [
       {
-        title: "Tickets en attente de traitement",
+        title: "En attente de traitement",
         value: getStats.data.validated.count,
         variant: "primary",
         more: {
-          title: "Montant total",
+          title: "Total",
           value: XAF.format(getStats.data.validated.sum),
         },
       },
       {
-        title: "Tickets payés",
-        value: getStats.data.paid.count,
-        variant: "success",
-        more: {
-          title: "Montant total",
-          value: XAF.format(getStats.data.paid.sum),
-        },
-      },
-      {
-        title: "Tickets traités",
+        title: "Traités",
         value: getStats.data.processed.count,
         variant: "secondary",
         more: {
-          title: "Montant total",
+          title: "Total",
           value: XAF.format(getStats.data.processed.sum),
         },
       },
       {
-        title: "Tickets annulés",
+        title: "Payés",
+        value: getStats.data.paid.count,
+        variant: "success",
+        more: {
+          title: "Total",
+          value: XAF.format(getStats.data.paid.sum),
+        },
+      },
+      {
+        title: "Annulés",
         value: getStats.data.cancelled.count,
         variant: "default",
         more: {
-          title: "Montant total",
+          title: "Total",
           value: XAF.format(getStats.data.cancelled.sum),
         },
       },
@@ -322,9 +322,9 @@ function Page() {
             />
           </SheetContent>
         </Sheet>
-        <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
+        <div className="grid grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
           {Statistics.map((data, id) => (
-            <StatisticCard key={id} {...data} className="h-full" />
+            <StatisticCard key={id} {...data} className="h-full" hideMore />
           ))}
         </div>
         <ExpensesTable

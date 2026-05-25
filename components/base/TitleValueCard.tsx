@@ -1,24 +1,27 @@
-import { cn } from '@/lib/utils'
-import { cva, VariantProps } from 'class-variance-authority'
-import React from 'react'
+import { cn } from "@/lib/utils";
+import { cva, VariantProps } from "class-variance-authority";
+import React from "react";
 
 interface Props {
-  title: string
-  value: string
-  className: string
-  valColor: string
+  title: string;
+  value: string;
+  className: string;
+  valColor: string;
 }
 
 const TitleValueCard = ({ title, value, className, valColor }: Props) => {
   return (
-    <div className={`${className} w-full flex flex-col gap-2 p-5 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[12px] box-border min-h-0`}>
-      <p className='text-sm font-medium'>{title}</p>
-      <p className={`${valColor} text-[32px] leading-[1.2]`}>{value}</p> {/* Ajouter leading */}
+    <div
+      className={`${className} w-full flex flex-col gap-2 p-5 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[12px] box-border min-h-0`}
+    >
+      <p className="text-sm font-medium">{title}</p>
+      <p className={`${valColor} text-[32px] leading-[1.2]`}>{value}</p>{" "}
+      {/* Ajouter leading */}
     </div>
-  )
-}
+  );
+};
 
-export default TitleValueCard
+export default TitleValueCard;
 
 const statisticVariants = cva(
   "w-full flex flex-col gap-1.5 p-4 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[8px] h-full min-h-fit", // Retirer h-full, ajouter box-border et min-h-0
@@ -32,13 +35,13 @@ const statisticVariants = cva(
         destructive: "bg-[#9E1315] border border-red-200 text-white",
         success: "bg-[#15803D] border border-green-200 text-white",
         amber: "bg-amber-600 border border-amber-200 text-white",
-        blue: "bg-blue-600 border border-blue-200 text-white"
+        blue: "bg-blue-600 border border-blue-200 text-white",
       },
     },
     defaultVariants: {
-      variant: "default"
-    }
-  }
+      variant: "default",
+    },
+  },
 );
 
 export interface StatisticProps {
@@ -50,18 +53,24 @@ export interface StatisticProps {
   more?: {
     title: string;
     value: string | number;
-  }
+  };
+  hideMore?: boolean;
 }
 
-function getMoreClassName(variant: StatisticProps["variant"]): HTMLHRElement["className"] {
+function getMoreClassName(
+  variant: StatisticProps["variant"],
+): HTMLHRElement["className"] {
   switch (variant) {
     case "default":
       return "text-gray-400";
-    default: return "text-gray-200";
+    default:
+      return "text-gray-200";
   }
 }
 
-function getBorderClassName(variant: StatisticProps["variant"]): HTMLHRElement["className"] {
+function getBorderClassName(
+  variant: StatisticProps["variant"],
+): HTMLHRElement["className"] {
   switch (variant) {
     case "dark":
       return "border border-gray-600";
@@ -73,54 +82,76 @@ function getBorderClassName(variant: StatisticProps["variant"]): HTMLHRElement["
       return "border border-red-200";
     case "success":
       return "border border-green-200";
-    default: return "border border-input";
+    default:
+      return "border border-input";
   }
 }
 
-export const StatisticCard = ({ 
-  title, 
-  value, 
-  more, 
-  className = "", 
-  variant, 
-  valueClassName = "" 
+export const StatisticCard = ({
+  title,
+  value,
+  more,
+  className = "",
+  variant,
+  valueClassName = "",
+  hideMore = false,
 }: StatisticProps) => {
   return (
-    <div className={cn(
-      statisticVariants({ variant: variant }), 
-      className,
-      "overflow-hidden" // Ajouter overflow-hidden
-    )}>
-      <h4 className={cn(
-        "text-xs font-medium line-clamp-1", // Ajouter line-clamp-1
-        variant === "default" ? "text-gray-600" : "text-gray-200"
-      )}>
+    <div
+      className={cn(
+        statisticVariants({ variant: variant }),
+        className,
+        "overflow-hidden", // Ajouter overflow-hidden
+      )}
+    >
+      <h4
+        className={cn(
+          "text-xs font-medium line-clamp-1", // Ajouter line-clamp-1
+          variant === "default" ? "text-gray-600" : "text-gray-200",
+        )}
+      >
         {title}
       </h4>
-      
-      <span className={cn(
-        "font-mono font-medium text-[30px] leading-[1.2] tracking-tight", // Changer leading
-        valueClassName
-      )}>
+
+      <span
+        className={cn(
+          "font-mono font-medium text-[30px] leading-[1.2] tracking-tight", // Changer leading
+          valueClassName,
+        )}
+      >
         {value}
       </span>
-      
+
       {!!more && (
         <>
-          <hr className={getBorderClassName(variant)} />
-          <div className="flex items-center text-xs"> {/* Conteneur flex */}
+          <hr
+            className={cn(
+              getBorderClassName(variant),
+              hideMore && "hidden sm:block",
+            )}
+          />
+          <div
+            className={cn(
+              "flex items-center text-xs",
+              hideMore && "hidden sm:flex",
+            )}
+          >
+            {" "}
+            {/* Conteneur flex */}
             <span className={cn("font-mono", getMoreClassName(variant))}>
               {more.title}:
             </span>
-            <span className={cn(
-              "font-medium ml-1",
-              variant === "default" ? "text-foreground" : "text-white"
-            )}>
+            <span
+              className={cn(
+                "font-medium ml-1",
+                variant === "default" ? "text-foreground" : "text-white",
+              )}
+            >
               {more.value}
             </span>
           </div>
         </>
       )}
     </div>
-  )
-}
+  );
+};
