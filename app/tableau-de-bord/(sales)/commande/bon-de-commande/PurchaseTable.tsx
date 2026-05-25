@@ -24,9 +24,12 @@ import {
   Settings2,
 } from "lucide-react";
 import * as React from "react";
-import { DateRange } from "react-day-picker";
-
-import { DateRangePicker } from "@/components/dateRangePicker";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 
 import { Pagination } from "@/components/base/pagination";
 import {
@@ -73,6 +76,7 @@ import { subText, totalAmountPurchase, XAF } from "@/lib/utils";
 import {
   BonsCommande,
   CommandCondition,
+  DateFilter,
   Invoice,
   PayType,
   PRIORITIES,
@@ -182,10 +186,11 @@ export function PurchaseTable({
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
-    from: undefined,
-    to: undefined,
-  });
+  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+  const [customDateRange, setCustomDateRange] = React.useState<
+    { from: Date; to: Date } | undefined
+  >();
+  const [customOpen, setCustomOpen] = React.useState<boolean>(false);
 
   // filtres spécifiques
   const [statusFilter, setStatusFilter] = React.useState<"all" | Status>("all");
@@ -252,16 +257,45 @@ export function PurchaseTable({
     let filtered = [...(data ?? [])];
 
     // Date filter
-    const from = dateRange?.from;
-    const to = dateRange?.to;
-    if (from || to) {
-      filtered = filtered.filter((po) => {
-        const start = new Date(po.createdAt as any);
-        if (from && !to) return start >= from;
-        if (!from && to) return start <= to;
-        if (from && to) return start >= from && start <= to;
-        return true;
-      });
+    if (dateFilter) {
+      const now = new Date();
+      let startDate = new Date();
+      let endDate = new Date(now);
+
+      switch (dateFilter) {
+        case "today":
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case "week":
+          startDate.setDate(
+            now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
+          );
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case "month":
+          startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+          break;
+        case "year":
+          startDate = new Date(now.getFullYear(), 0, 1);
+          break;
+        case "custom":
+          if (customDateRange?.from && customDateRange?.to) {
+            startDate = new Date(customDateRange.from);
+            endDate = new Date(customDateRange.to);
+            endDate.setHours(23, 59, 59, 999);
+          }
+          break;
+      }
+
+      if (
+        dateFilter !== "custom" ||
+        (customDateRange?.from && customDateRange?.to)
+      ) {
+        filtered = filtered.filter((po) => {
+          const itemDate = new Date(po.createdAt as any);
+          return itemDate >= startDate && itemDate <= endDate;
+        });
+      }
     }
 
     if (statusFilter !== "all") {
@@ -303,7 +337,8 @@ export function PurchaseTable({
     return filtered;
   }, [
     data,
-    dateRange,
+    dateFilter,
+    customDateRange,
     statusFilter,
     priorityFilter,
     penaltyFilter,
@@ -583,7 +618,9 @@ export function PurchaseTable({
 
   const resetAllFilters = () => {
     setGlobalFilter("");
-    setDateRange({ from: undefined, to: undefined });
+    setDateFilter(undefined);
+    setCustomDateRange(undefined);
+    setCustomOpen(false);
     setStatusFilter("all");
     setPriorityFilter("all");
     setProviderFilter("all");
@@ -652,11 +689,6 @@ export function PurchaseTable({
             value={globalFilter ?? ""}
             onChange={(e) => setGlobalFilter(e.target.value)}
             className="w-56 h-9"
-          />
-          <DateRangePicker
-            date={dateRange}
-            onChange={setDateRange}
-            className="min-w-40"
           />
           <Sheet>
             <SheetTrigger asChild>
@@ -976,6 +1008,146 @@ export function PurchaseTable({
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
+
+                {/* Période */}
+                <div className="grid gap-1.5">
+                  <Label>{"Période"}</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {dateFilter === undefined
+                            ? "Toutes les périodes"
+                            : dateFilter === "today"
+                              ? "Aujourd'hui"
+                              : dateFilter === "week"
+                                ? "Cette semaine"
+                                : dateFilter === "month"
+                                  ? "Ce mois"
+                                  : dateFilter === "year"
+                                    ? "Cette année"
+                                    : "Personnalisé"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter(undefined);
+                          setCustomDateRange(undefined);
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === undefined ? "bg-accent" : ""}
+                      >
+                        <span>Toutes les périodes</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("today");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "today" ? "bg-accent" : ""}
+                      >
+                        <span>Aujourd'hui</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("week");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "week" ? "bg-accent" : ""}
+                      >
+                        <span>Cette semaine</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("month");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "month" ? "bg-accent" : ""}
+                      >
+                        <span>Ce mois</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("year");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "year" ? "bg-accent" : ""}
+                      >
+                        <span>Cette année</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("custom");
+                          setCustomOpen(true);
+                        }}
+                        className={dateFilter === "custom" ? "bg-accent" : ""}
+                      >
+                        <span>Personnalisé</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  <Collapsible
+                    open={customOpen}
+                    onOpenChange={setCustomOpen}
+                    disabled={dateFilter !== "custom"}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        {"Plage personnalisée"}
+                        <span className="text-muted-foreground text-xs">
+                          {customDateRange?.from && customDateRange.to
+                            ? `${format(customDateRange.from, "dd/MM/yyyy")} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                            : "Choisir"}
+                        </span>
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-4 pt-4">
+                      <Calendar
+                        mode="range"
+                        selected={customDateRange}
+                        onSelect={(range) => {
+                          if (!range?.from || !range?.to) return;
+                          const from = new Date(range.from);
+                          const to = new Date(range.to);
+                          to.setHours(23, 59, 59, 999);
+                          setCustomDateRange({ from, to });
+                        }}
+                        numberOfMonths={1}
+                        className="rounded-md border w-full"
+                      />
+                      <div className="space-y-1">
+                        <Button
+                          className="w-full"
+                          onClick={() => {
+                            setCustomDateRange(undefined);
+                            setDateFilter(undefined);
+                            setCustomOpen(false);
+                          }}
+                        >
+                          {"Annuler"}
+                        </Button>
+                        <Button
+                          className="w-full"
+                          variant="outline"
+                          onClick={() => setCustomOpen(false)}
+                        >
+                          {"Réduire"}
+                        </Button>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+
                 <div className="grid gap-3">
                   <div className="flex items-center justify-between">
                     <Label htmlFor="paymentFilter">{"Paiement"}</Label>
@@ -1011,6 +1183,7 @@ export function PurchaseTable({
             penaltyFilter !== "all" ||
             providerFilter !== "all" ||
             cotationFilter !== "all" ||
+            dateFilter !== undefined ||
             globalFilter) && (
             <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
               <span>Filtres actifs:</span>
@@ -1042,6 +1215,24 @@ export function PurchaseTable({
               {penaltyFilter !== "all" && (
                 <Badge variant="outline" className="font-normal">
                   {`Pénalités: ${penaltyFilter === "yes" ? "Oui" : "Non"}`}
+                </Badge>
+              )}
+
+              {dateFilter !== undefined && (
+                <Badge variant="outline" className="font-normal">
+                  {`Période: ${
+                    dateFilter === "today"
+                      ? "Aujourd'hui"
+                      : dateFilter === "week"
+                        ? "Cette semaine"
+                        : dateFilter === "month"
+                          ? "Ce mois"
+                          : dateFilter === "year"
+                            ? "Cette année"
+                            : customDateRange?.from && customDateRange?.to
+                              ? `${format(customDateRange.from, "dd/MM/yyyy")} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              : "Personnalisé"
+                  }`}
                 </Badge>
               )}
 
