@@ -56,6 +56,7 @@ import { format } from "date-fns";
 import { Pagination } from "../base/pagination";
 import { DevisModal } from "../modals/DevisModal";
 import { Badge, badgeVariants } from "../ui/badge";
+import { Input } from "../ui/input";
 
 interface DevisTableProps {
   data: Quotation[];
@@ -70,6 +71,7 @@ export function DevisTable({
   commands,
   users,
 }: DevisTableProps) {
+  const [globalFilter, setGlobalFilter] = React.useState<string>("");
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -90,20 +92,29 @@ export function DevisTable({
     string | undefined
   >(undefined);
 
-  const getProviderName = (providerId: number) => {
-    const provider = providers.find((p) => p.id === providerId);
-    return provider ? provider.name : "Inconnu";
-  };
+  const getProviderName = React.useCallback(
+    (providerId: number) => {
+      const provider = providers.find((p) => p.id === providerId);
+      return provider ? provider.name : "Inconnu";
+    },
+    [providers],
+  );
 
-  const getQuotationTitle = (commandRequestId: number) => {
-    const command = commands.find((c) => c.id === commandRequestId);
-    return command ? command.title : "Inconnu";
-  };
+  const getQuotationTitle = React.useCallback(
+    (commandRequestId: number) => {
+      const command = commands.find((c) => c.id === commandRequestId);
+      return command ? command.title : "Inconnu";
+    },
+    [commands],
+  );
 
-  const getQuotationRef = (commandRequestId: number) => {
-    const command = commands.find((c) => c.id === commandRequestId);
-    return command ? command.reference : "Inconnu";
-  };
+  const getQuotationRef = React.useCallback(
+    (commandRequestId: number) => {
+      const command = commands.find((c) => c.id === commandRequestId);
+      return command ? command.reference : "Inconnu";
+    },
+    [commands],
+  );
 
   const getStatusLabel = (
     status: QuotationStatus,
@@ -124,6 +135,25 @@ export function DevisTable({
         return { label: "Inconnu", variant: "outline" };
     }
   };
+
+  const filteredData = React.useMemo(() => {
+    if (!data) return [];
+    const filtered = data.filter((item) => {
+      return (
+        item.ref.toLowerCase().includes(globalFilter.toLowerCase()) ||
+        getProviderName(item.providerId)
+          .toLowerCase()
+          .includes(globalFilter.toLowerCase()) ||
+        getQuotationTitle(item.commandRequestId)
+          .toLowerCase()
+          .includes(globalFilter.toLowerCase()) ||
+        getQuotationRef(item.commandRequestId)
+          .toLowerCase()
+          .includes(globalFilter.toLowerCase())
+      );
+    });
+    return filtered;
+  }, [data, globalFilter, getProviderName, getQuotationRef, getQuotationTitle]);
 
   const columns: ColumnDef<Quotation>[] = [
     {
@@ -305,7 +335,7 @@ export function DevisTable({
   ];
 
   const table = useReactTable({
-    data: data.reverse() || [],
+    data: filteredData || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -326,8 +356,14 @@ export function DevisTable({
   return (
     <div className="content">
       <div className="flex flex-wrap justify-between items-center gap-4">
-        <h3>{`Devis (${data.length})`}</h3>
-
+        <Input
+          type="search"
+          value={globalFilter}
+          onChange={(e) => {
+            setGlobalFilter(e.target.value);
+          }}
+          placeholder="Recherche"
+        />
         {/* Menu des colonnes */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

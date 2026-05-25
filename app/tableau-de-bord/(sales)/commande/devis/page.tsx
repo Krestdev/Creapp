@@ -39,6 +39,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { queryKeys } from "@/lib/query-keys";
 import { getQuotationAmount } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
 import { commandRqstQ } from "@/queries/commandRqstModule";
@@ -57,7 +58,6 @@ import { ChevronDown, Settings2 } from "lucide-react";
 import React from "react";
 
 const Page = () => {
-  const [searchFilter, setSearchFilter] = React.useState<string>("");
   const [providerFilter, setProviderFilter] = React.useState<string>("all");
   const [quotationFilter, setQuotationFilter] = React.useState<"all" | string>(
     "all",
@@ -81,7 +81,6 @@ const Page = () => {
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
   // Reset Filters
   const resetAllFilters = () => {
-    setSearchFilter("");
     setProviderFilter("all");
     setStatusFilter("all");
     setQuotationFilter("all");
@@ -104,28 +103,28 @@ const Page = () => {
   /**Quotation fetch */
 
   const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: ["quotations"],
+    queryKey: queryKeys.quotations,
     queryFn: quotationQ.getAll,
   });
   /**Providers fetch */
 
   const getProviders = useQuery({
-    queryKey: ["providers"],
+    queryKey: queryKeys.providers,
     queryFn: providerQ.getAll,
   });
   /**Commands fetch */
   const commands = useQuery({
-    queryKey: ["commands"],
+    queryKey: queryKeys.quotationRequests,
     queryFn: commandRqstQ.getAll,
   });
 
   const getUsers = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: () => userQ.getAll(),
   });
 
   const getRequests = useQuery({
-    queryKey: ["requests"],
+    queryKey: queryKeys.requests,
     queryFn: () => requestQ.getAll(),
   });
 
@@ -139,19 +138,8 @@ const Page = () => {
     const now = new Date();
     let startDate = new Date();
     let endDate = now;
-    const search = searchFilter.toLocaleLowerCase();
     return data.data.filter((item) => {
       const itemAmount = getQuotationAmount(item, providers);
-      //Search Filter
-      const matchSearch =
-        searchFilter.trim() === ""
-          ? true
-          : item.commandRequest.title.toLocaleLowerCase().includes(search) ||
-            item.commandRequest.reference.includes(search) ||
-            item.ref.includes(search) ||
-            item.element.some((e) =>
-              e.title.toLocaleLowerCase().includes(search),
-            );
       //Quotation Filter
       const matchQuotation =
         quotationFilter === "all"
@@ -216,8 +204,7 @@ const Page = () => {
         matchQuotation &&
         matchProvider &&
         matchStatus &&
-        matchAmount &&
-        matchSearch
+        matchAmount
       );
     });
   }, [
@@ -229,7 +216,6 @@ const Page = () => {
     statusFilter,
     amountFilter,
     amountTypeFilter,
-    searchFilter,
   ]);
 
   const validated = filteredData.filter((d) => d.status === "APPROVED").length;
@@ -316,19 +302,6 @@ const Page = () => {
               </SheetDescription>
             </SheetHeader>
             <div className="px-5 grid gap-5">
-              <div className="grid gap-1.5">
-                <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-                <Input
-                  name="search"
-                  type="search"
-                  id="searchCommand"
-                  placeholder="Référence, titre, fournisseur..."
-                  value={searchFilter}
-                  onChange={(event) => setSearchFilter(event.target.value)}
-                  className="max-w-sm"
-                />
-              </div>
-
               {/* Filtre par fournisseur */}
               <div className="grid gap-1.5">
                 <Label>{"Fournisseur"}</Label>
