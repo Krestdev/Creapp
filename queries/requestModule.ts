@@ -72,7 +72,7 @@ export type newRequestTransport = Omit<
   | "user"
 > & {
   amount: number;
-  benef: Array<number>;
+  benFac: RequestModelT["benFac"];
   projectId: number;
 };
 

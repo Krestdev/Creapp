@@ -32,16 +32,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { newRequestTransport, requestQ } from "@/queries/requestModule";
 import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
@@ -56,6 +57,12 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
   ...(typeof PRIORITIES)[number]["value"][],
 ];
 
+const beneficiaryArray = z.object({
+  id: z.coerce.number(),
+  name: z.string(),
+  amount: z.coerce.number().min(1, "Veuillez saisir un montant"),
+});
+
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
@@ -68,9 +75,8 @@ const formSchema = z.object({
   categoryId: z.coerce.number({
     message: "Veuillez sélectionner une catégorie",
   }),
-  amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   projectId: z.coerce.number({ message: "Veuillez définir un projet" }),
-  benef: z.coerce.number(),
+  list: z.array(beneficiaryArray).min(1, "Veuillez ajouter un bénéficiaire"),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
       const d = new Date(val);
@@ -92,13 +98,21 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
     defaultValues: {
       label: "Transport",
       description: "",
-      amount: 100,
       projectId: undefined,
-      benef: undefined,
+      list: [],
       priority: "low",
       categoryId: undefined,
     },
   });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "list",
+  });
+
+  const list = form.watch("list");
+  const amount = list.reduce((a, b) => a + b.amount, 0);
+  const listError = form.getFieldState("list").error?.message;
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (payload: newRequestTransport) =>
@@ -116,9 +130,9 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
     mutate({
       label: values.label,
       description: values.description,
-      amount: values.amount,
+      amount: values.list.reduce((a, b) => a + b.amount, 0),
       projectId: values.projectId,
-      benef: [values.benef],
+      benFac: { list: values.list },
       dueDate: new Date(values.dueDate),
       priority: values.priority,
       categoryId: values.categoryId,
@@ -163,30 +177,30 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
 
             return (
               <FormItem>
-                  <FormLabel isRequired>{"Categorie"}</FormLabel>
-                  <FormControl>
-                    <SearchableSelect
-                      onChange={field.onChange}
-                      options={transportCategories.map((c) => ({
-                        value: c.id!.toString(),
-                        label: c.label,
-                      }))}
-                      value={field.value ? String(field.value) : ""}
-                      width="w-full"
-                      allLabel=""
-                      placeholder="Sélectionner une catégorie"
-                    />
-                  </FormControl>
+                <FormLabel isRequired>{"Categorie"}</FormLabel>
+                <FormControl>
+                  <SearchableSelect
+                    onChange={field.onChange}
+                    options={transportCategories.map((c) => ({
+                      value: c.id!.toString(),
+                      label: c.label,
+                    }))}
+                    value={field.value ? String(field.value) : ""}
+                    width="w-full"
+                    allLabel=""
+                    placeholder="Sélectionner une catégorie"
+                  />
+                </FormControl>
 
-                  {/* ✅ Affichage de la description sous le SearchableSelect */}
-                  {selectedCategory?.description && (
-                    <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
-                      {selectedCategory.description}
-                    </div>
-                  )}
+                {/* ✅ Affichage de la description sous le SearchableSelect */}
+                {selectedCategory?.description && (
+                  <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
+                    {selectedCategory.description}
+                  </div>
+                )}
 
-                  <FormMessage />
-                </FormItem>
+                <FormMessage />
+              </FormItem>
             );
           }}
         />
@@ -275,29 +289,6 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
             );
           }}
         />
-        <FormField
-          control={form.control}
-          name="amount"
-          render={({ field }) => (
-            <FormItem>
-              <FormLabel isRequired>{"Montant"}</FormLabel>
-              <FormControl>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="Ex. 15 000 FCFA"
-                    {...field}
-                    className="pr-12"
-                  />
-                  <p className="absolute right-2 top-1/2 -translate-y-1/2">
-                    {"FCFA"}
-                  </p>
-                </div>
-              </FormControl>
-              <FormMessage />
-            </FormItem>
-          )}
-        />
         {/* Project */}
         <FormField
           control={form.control}
@@ -356,30 +347,128 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
             </FormItem>
           )}
         />
-        <FormField
+        <div className="w-full @min-[560px]:col-span-2 grid gap-3">
+          <div className="flex items-center justify-between">
+            <FormLabel isRequired>{"Bénéficiaires"}</FormLabel>
+            <div className="text-sm text-muted-foreground">
+              {"Total: "}
+              <span>{XAF.format(amount)}</span>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {fields.map((field, index) => (
+              <div
+                key={field.id}
+                className="p-4 rounded-md border grid grid-cols-1 @min-[560px]:grid-cols-2 gap-3 place-items-start"
+              >
+                <FormField
+                  control={form.control}
+                  name={`list.${index}.amount`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{"Montant (FCFA)"}</FormLabel>
+                      <FormControl>
+                        <div className="relative">
+                          <Input
+                            {...field}
+                            type="number"
+                            placeholder="Ex. 30"
+                            onChange={(e) => {
+                              const value =
+                                e.target.value === ""
+                                  ? 0
+                                  : parseFloat(e.target.value);
+                              field.onChange(value);
+                            }}
+                          />
+                          <p className="absolute right-2 top-1/2 -translate-y-1/2">
+                            {"FCFA"}
+                          </p>
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name={`list.${index}.id`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>{`Beneficiaire`}</FormLabel>
+                      <FormControl>
+                        <Combobox
+                          items={users}
+                          value={
+                            users.find((user) => user.id === field.value) ??
+                            null
+                          }
+                          onValueChange={(v) => {
+                            field.onChange(v?.id ?? "");
+                            form.setValue(
+                              `list.${index}.name`,
+                              v?.firstName.concat(" ", v.lastName) ?? "",
+                            );
+                          }}
+                          itemToStringLabel={(v) =>
+                            v.firstName.concat(" ", v.lastName)
+                          }
+                        >
+                          <ComboboxInput placeholder="Sélectionner" />
+                          <ComboboxContent>
+                            <ComboboxEmpty>
+                              {"Aucun utilisateur enregistré"}
+                            </ComboboxEmpty>
+                            <ComboboxList>
+                              {(item: User) => (
+                                <ComboboxItem key={item.id} value={item}>
+                                  {item.firstName.concat(" ", item.lastName)}
+                                </ComboboxItem>
+                              )}
+                            </ComboboxList>
+                          </ComboboxContent>
+                        </Combobox>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {fields.length > 1 && (
+                  <Button
+                    type="button"
+                    variant="delete"
+                    size="icon"
+                    onClick={() => remove(index)}
+                  >
+                    <Trash2 />
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => append({ amount: 0, id: -1, name: "" })}
+          >
+            <Plus />
+            {"Ajouter un bénéficiaire"}
+          </Button>
+          {listError && (
+            <p className="text-sm font-medium text-destructive">{listError}</p>
+          )}
+        </div>
+        {/* <FormField
           control={form.control}
           name="benef"
           render={({ field }) => (
             <FormItem>
               <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
               <FormControl>
-                {/* <Select
-                  value={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {users.map(({ id, firstName, lastName }) => (
-                      <SelectItem key={id} value={String(id)}>
-                        {user?.id === id
-                          ? `${firstName.concat(" ", lastName)} (Moi-même)`
-                          : firstName.concat(" ", lastName)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select> */}
                 <Combobox
                   items={users}
                   value={users.find((user) => user.id === field.value) ?? null}
@@ -404,7 +493,7 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
               <FormMessage />
             </FormItem>
           )}
-        />
+        /> */}
         <div className="@min-[640px]:col-span-full w-full flex justify-end">
           <Button
             variant={"primary"}

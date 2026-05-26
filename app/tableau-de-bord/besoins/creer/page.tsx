@@ -7,14 +7,7 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { queryKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
@@ -24,40 +17,40 @@ import { requestTypeQ } from "@/queries/requestType";
 import { vehicleQ } from "@/queries/vehicule";
 import { RequestModelT, RequestType, Role } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft } from "lucide-react";
 import React from "react";
+import CreateTypeApprovisionement from "./create-type-approvisionement";
 import CreateTypeGas from "./create-type-gas";
 import CreateTypeOthers from "./create-type-others";
-import CreateTypeTransport from "./create-type-transport";
-import { ArrowLeft } from "lucide-react";
-import CreateTypeApprovisionement from "./create-type-approvisionement";
-import CreateTypeTaxes from "./create-type-taxes";
 import CreateTypeSettle from "./create-type-settle";
+import CreateTypeTaxes from "./create-type-taxes";
+import CreateTypeTransport from "./create-type-transport";
 
 const Page = () => {
   const { user } = useStore();
   const [requestType, setRequestType] = React.useState<RequestModelT["type"]>();
   const getRequestType = useQuery({
-    queryKey: ["requestType"],
+    queryKey: queryKeys.requestTypes,
     queryFn: requestTypeQ.getAll,
   });
 
   const getUsers = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: async () => userQ.getAll(),
   });
 
   const getProjects = useQuery({
-    queryKey: ["projects"],
+    queryKey: queryKeys.projects,
     queryFn: async () => projectQ.getAll(),
   });
 
   const getCategories = useQuery({
-    queryKey: ["categories"],
+    queryKey: queryKeys.categories,
     queryFn: async () => categoryQ.getCategories(),
   });
 
   const getVehicles = useQuery({
-    queryKey: ["vehicles"],
+    queryKey: queryKeys.vehicles,
     queryFn: async () => vehicleQ.getAll(),
   });
 
@@ -277,8 +270,7 @@ const Page = () => {
           };
         case "settle":
           return {
-            className:
-              "border-cyan-200 from-cyan-50 to-cyan-100 text-cyan-500",
+            className: "border-cyan-200 from-cyan-50 to-cyan-100 text-cyan-500",
           };
         default:
           return {
