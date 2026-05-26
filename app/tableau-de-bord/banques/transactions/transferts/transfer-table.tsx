@@ -344,7 +344,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const source = row.original.from;
-        return source.label;
+        return <p className="normal-case">{source.label}</p>;
       },
     },
     {
@@ -362,7 +362,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const target = row.original.to;
-        return target.label;
+        return <p className="normal-case">{target.label}</p>;
       },
     },
     {
