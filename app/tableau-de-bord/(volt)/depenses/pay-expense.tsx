@@ -95,7 +95,7 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
         paymentId: ticket.id,
       };
 
-      pay.mutate(payload);
+      return pay.mutate(payload);
     }
     const message = !transaction
       ? "Transaction introuvable"
