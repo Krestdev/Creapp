@@ -642,8 +642,14 @@ class RequestQueries {
   createTransportRequest = async (
     payload: newRequestTransport,
   ): Promise<RequestModelT> => {
+    const { benFac, ...rest } = payload;
     return api
-      .post(this.route, { ...payload, type: "transport", beneficiary: "" })
+      .post(this.route, {
+        ...rest,
+        type: "transport",
+        benFac: JSON.stringify(benFac),
+        beneficiary: "",
+      })
       .then((response) => {
         return response.data;
       });
