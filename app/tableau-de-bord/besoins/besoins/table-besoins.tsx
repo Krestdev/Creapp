@@ -34,6 +34,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -54,18 +63,8 @@ import {
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import ViewRequest from "./view-request";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import Filters, { RequestFiltersProps } from "./filters";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import ViewRequest from "./view-request";
 
 interface Props {
   data: Array<RequestModelT>;
@@ -99,6 +98,14 @@ export function RequestsTable({
       createdAt: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
+
+  const [searchText, setSearchText] = React.useState(
+    filters.customFilters.search ?? "",
+  );
+
+  React.useEffect(() => {
+    setSearchText(filters.customFilters.search ?? "");
+  }, [filters.customFilters.search]);
 
   // modal specific states
   const [selectedItem, setSelectedItem] = React.useState<RequestModelT>();
@@ -396,15 +403,37 @@ export function RequestsTable({
             placeholder="titre ou référence"
             name="search"
             type="search"
-            value={filters.customFilters.search ?? ""}
-            onChange={(event) =>
+            value={searchText}
+            onChange={(event) => {
+              setSearchText(event.target.value);
+              if (event.target.value === "") {
+                filters.setCustomFilters({
+                  ...filters.customFilters,
+                  search: "",
+                });
+              }
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                filters.setCustomFilters({
+                  ...filters.customFilters,
+                  search: searchText,
+                });
+              }
+            }}
+            className="w-full sm:w-[250px] h-9"
+          />
+          <Button
+            onClick={() => {
               filters.setCustomFilters({
                 ...filters.customFilters,
-                search: event.target.value,
-              })
-            }
-            className="w-full h-9"
-          />
+                search: searchText,
+              });
+            }}
+            className="h-9"
+          >
+            {"Rechercher"}
+          </Button>
           <Sheet>
             <SheetTrigger asChild className="w-fit">
               <Button variant={"outline"}>
