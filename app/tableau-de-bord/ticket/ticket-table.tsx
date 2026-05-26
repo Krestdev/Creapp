@@ -237,7 +237,7 @@ export function TicketTable({
       cell: ({ row }) => {
         const value = row.original;
         const invoice = value.facture;
-        return invoice?.command.provider.name ?? "N/A";
+        return invoice?.command.provider.name ?? "Aucun";
       },
     },
     {
