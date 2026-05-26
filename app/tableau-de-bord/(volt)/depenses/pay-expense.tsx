@@ -122,7 +122,7 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
                   {!!transaction && transaction.Type === "DEBIT" && (
                     <span className="flex gap-1.5">
                       {transaction.from?.label}
-                      <p>{"- Solde :"}</p>
+                      <span>{"- Solde :"}</span>
                       <strong className="text-primary-600">
                         {`(${XAF.format(transaction.from?.balance)})`}
                       </strong>

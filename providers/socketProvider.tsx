@@ -48,6 +48,10 @@ export default function SocketProvider({
         refetchType: "active",
       });
       queryClient.invalidateQueries({
+        queryKey: queryKeys.paymentsStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
         queryKey: queryKeys.depenses(),
         refetchType: "active",
       });
@@ -89,6 +93,16 @@ export default function SocketProvider({
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.paymentsToSignCount,
+        refetchType: "active",
+      });
+      // Bank balances are affected by payments
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.banks,
+        refetchType: "active",
+      });
+      // Invoices payment status changes
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.invoices,
         refetchType: "active",
       });
     };
@@ -192,6 +206,25 @@ export default function SocketProvider({
         queryKey: queryKeys.payments(),
         refetchType: "active",
       });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.paymentsStats(),
+        refetchType: "active",
+      });
+      // Validation can generate transactions that affect bank balances
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.banks,
+        refetchType: "active",
+      });
+      // Invoices can be linked to request validation
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.invoices,
+        refetchType: "active",
+      });
+      // Conditions may change on validation
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.conditions,
+        refetchType: "active",
+      });
       // Invalidate current user's requests
       if (user?.id) {
         queryClient.invalidateQueries({
@@ -219,7 +252,19 @@ export default function SocketProvider({
         refetchType: "active",
       });
       queryClient.invalidateQueries({
+        queryKey: queryKeys.requestsForApprovalStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
         queryKey: queryKeys.dashboardStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboardGraph(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.payments(),
         refetchType: "active",
       });
     });
@@ -238,6 +283,10 @@ export default function SocketProvider({
         refetchType: "active",
       });
       queryClient.invalidateQueries({
+        queryKey: queryKeys.paymentsStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
         queryKey: queryKeys.approvisionnement(),
         refetchType: "active",
       });
@@ -251,10 +300,6 @@ export default function SocketProvider({
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.pendingTransfersCount,
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: queryKeys.payments(),
         refetchType: "active",
       });
       queryClient.invalidateQueries({
@@ -285,8 +330,9 @@ export default function SocketProvider({
         queryKey: queryKeys.dashboardPaidData(),
         refetchType: "active",
       });
+      // Transactions always affect bank balances
       queryClient.invalidateQueries({
-        queryKey: queryKeys.approvisionnement(),
+        queryKey: queryKeys.banks,
         refetchType: "active",
       });
     };
@@ -331,6 +377,11 @@ export default function SocketProvider({
       });
       queryClient.invalidateQueries({
         queryKey: queryKeys.purchaseOrdersPendingCount,
+        refetchType: "active",
+      });
+      // Purchase orders generate invoices on approval
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.invoices,
         refetchType: "active",
       });
     };
