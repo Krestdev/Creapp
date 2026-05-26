@@ -66,6 +66,11 @@ import {
 import { TabBar } from "@/components/base/TabBar";
 import { Textarea } from "@/components/ui/textarea";
 import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/components/ui/progress";
+import {
   formatToShortName,
   subText,
   totalAmountPurchase,
@@ -74,6 +79,7 @@ import {
 import { purchaseQ } from "@/queries/purchase-order";
 import {
   BonsCommande,
+  Invoice,
   PRIORITIES,
   PURCHASE_ORDER_STATUS,
   User,
@@ -86,6 +92,7 @@ import ViewPurchase from "../viewPurchase";
 interface Props {
   data: Array<BonsCommande>;
   users: Array<User>;
+  invoices: Array<Invoice>;
 }
 
 type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
@@ -134,8 +141,26 @@ const getPriorityLabel = (
 const canDecide = (status: Status) =>
   status === "PENDING" || status === "IN-REVIEW";
 
-export function PurchaseApprovalTable({ data, users }: Props) {
+export function PurchaseApprovalTable({ data, users, invoices }: Props) {
   const purchaseOrderQuery = React.useMemo(() => purchaseQ, []);
+
+  const getProgress = (
+    purchaseOrder: BonsCommande,
+  ): { progress: number; value: number } => {
+    const invoiceData = invoices.filter((i) => i.commandId === purchaseOrder.id);
+
+    const values = invoiceData.flatMap((i) =>
+      i.payment.map((p) => {
+        if (p.status !== "paid") return 0;
+        return p.price;
+      }),
+    );
+    return {
+      progress:
+        (values.reduce((acc, i) => acc + i, 0) * 100) / purchaseOrder.netToPay,
+      value: values.reduce((acc, i) => acc + i, 0),
+    };
+  };
 
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -361,6 +386,22 @@ export function PurchaseApprovalTable({ data, users }: Props) {
         const value = row.getValue("status") as Status;
         const { label, variant } = getStatusLabel(value);
         return <Badge variant={variant}>{label}</Badge>;
+      },
+    },
+
+    {
+      accessorKey: "payment",
+      header: () => <span className="tablehead">{"État de paiement"}</span>,
+      cell: ({ row }) => {
+        const original = row.original;
+        const i = getProgress(original);
+
+        return (
+          <Progress value={i.progress}>
+            <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
+            <ProgressValue />
+          </Progress>
+        );
       },
     },
 
@@ -723,6 +764,7 @@ export function PurchaseApprovalTable({ data, users }: Props) {
                   else if (column.id === "amountHT") columnName = "Montant HT";
                   else if (column.id === "priority") columnName = "Priorité";
                   else if (column.id === "status") columnName = "Statut";
+                  else if (column.id === "payment") columnName = "État de paiement";
                   else if (column.id === "createdAt") columnName = "Créé le";
                   else if (column.id === "penalties") columnName = "Pénalités";
 

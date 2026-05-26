@@ -4,6 +4,7 @@ import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { useStore } from "@/providers/datastore";
 import { purchaseQ } from "@/queries/purchase-order";
+import { invoiceQ } from "@/queries/invoices";
 import { useQuery } from "@tanstack/react-query";
 import { PurchaseApprovalTable } from "./approval-table";
 import { userQ } from "@/queries/baseModule";
@@ -28,11 +29,16 @@ function Page() {
     queryFn: userQ.getAll,
   });
 
-  if (isLoading || getUsers.isLoading) {
+  const getInvoices = useQuery({
+    queryKey: ["invoices"],
+    queryFn: invoiceQ.getAll,
+  });
+
+  if (isLoading || getUsers.isLoading || getInvoices.isLoading) {
     return <LoadingPage />;
   }
-  if (isError || getUsers.isError) {
-    return <ErrorPage error={error || getUsers.error || undefined} />;
+  if (isError || getUsers.isError || getInvoices.isError) {
+    return <ErrorPage error={error || getUsers.error || getInvoices.error || undefined} />;
   }
   if (!auth) {
     return (
@@ -46,7 +52,7 @@ function Page() {
       />
     );
   }
-  if (isSuccess && getUsers.isSuccess) {
+  if (isSuccess && getUsers.isSuccess && getInvoices.isSuccess) {
     return (
       <div className="content">
         <PageTitle
@@ -54,7 +60,11 @@ function Page() {
           subtitle="Approbation des bons de commandes"
           color="blue"
         />
-        <PurchaseApprovalTable data={data.data} users={getUsers.data.data} />
+        <PurchaseApprovalTable
+          data={data.data}
+          users={getUsers.data.data}
+          invoices={getInvoices.data.data}
+        />
       </div>
     );
   }
