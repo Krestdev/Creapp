@@ -93,7 +93,14 @@ function BankTable({ data, canEdit }: Props) {
   const [view, setView] = React.useState<boolean>(false);
   const [edit, setEdit] = React.useState<boolean>(false);
 
+  const [searchText, setSearchText] = React.useState(searchFilter ?? "");
+
+  React.useEffect(() => {
+    setSearchText(searchFilter ?? "");
+  }, [searchFilter]);
+
   const resetAllFilters = (): void => {
+    setSearchText("");
     setSearchFilter("");
     setStatusFilter("all");
     setTypeFilter("all");
@@ -311,14 +318,38 @@ function BankTable({ data, canEdit }: Props) {
   });
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            placeholder="Intitulé, référence..."
+            type="search"
+            value={searchText}
+            onChange={(e) => {
+              setSearchText(e.target.value);
+              if (e.target.value === "") {
+                setSearchFilter("");
+              }
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                setSearchFilter(searchText);
+              }
+            }}
+            className="w-full sm:w-[250px] h-9"
+          />
+          <Button
+            onClick={() => setSearchFilter(searchText)}
+            className="h-9"
+          >
+            {"Rechercher"}
+          </Button>
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
           <SheetContent>
             <SheetHeader>
               <SheetTitle>{"Filtres"}</SheetTitle>
@@ -326,16 +357,7 @@ function BankTable({ data, canEdit }: Props) {
                 {"Configurer les fitres pour affiner les données"}
               </SheetDescription>
             </SheetHeader>
-            <div className="px-5 grid gap-5">
-              <div className="grid gap-1.5">
-                <Label>{"Recherche"}</Label>
-                <Input
-                  placeholder="Référence"
-                  value={searchFilter}
-                  onChange={(v) => setSearchFilter(v.target.value)}
-                  className="w-full"
-                />
-              </div>
+            <div className="px-5 grid gap-5 mt-4">
               <div className="grid gap-1.5">
                 <Label>{"Type de compte"}</Label>
                 <Select
@@ -388,6 +410,7 @@ function BankTable({ data, canEdit }: Props) {
             </div>
           </SheetContent>
         </Sheet>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">
