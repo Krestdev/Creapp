@@ -155,6 +155,9 @@ export function PaiementsTable({
   paginationOptions,
   filters,
 }: Props) {
+  const [search, setSearch] = React.useState<string>(
+    filters.customFilters.search,
+  );
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -436,16 +439,30 @@ export function PaiementsTable({
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <Input
-            placeholder="Rechercher..."
-            value={filters.customFilters.search}
-            onChange={(e) =>
-              filters.setCustomFilters({
-                ...filters.customFilters,
-                search: e.target.value,
-              })
-            }
+            placeholder="Titre, référence"
+            type="search"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              if (e.target.value === "") {
+                filters.setCustomFilters({
+                  ...filters.customFilters,
+                  search: "",
+                });
+              }
+            }}
             className="w-full sm:w-[250px] h-9"
           />
+          <Button
+            onClick={() => {
+              filters.setCustomFilters({
+                ...filters.customFilters,
+                search: search,
+              });
+            }}
+          >
+            {"Rechercher"}
+          </Button>
           <Sheet>
             <SheetTrigger asChild className="w-fit">
               <Button variant={"outline"}>
