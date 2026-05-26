@@ -553,31 +553,29 @@ export function InvoicesTable({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les fitres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-5 grid gap-5">
-              <div className="grid gap-1.5">
-                <Label>{"Recherche"}</Label>
-                <Input
-                  placeholder="Référence"
-                  value={globalFilter ?? ""}
-                  onChange={(event) => setGlobalFilter(event.target.value)}
-                  className="w-full"
-                />
-              </div>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            placeholder="Référence"
+            value={globalFilter ?? ""}
+            onChange={(event) => setGlobalFilter(event.target.value)}
+            className="w-full sm:w-[250px] h-9"
+          />
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les fitres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-5 grid gap-5 mt-4">
               {/**Status Filter */}
               <div className="grid gap-1.5">
                 <Label>{"Statut"}</Label>
@@ -826,7 +824,8 @@ export function InvoicesTable({
             </div>
           </SheetContent>
         </Sheet>
-        <DropdownMenu>
+      </div>
+      <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">
               {"Colonnes"}

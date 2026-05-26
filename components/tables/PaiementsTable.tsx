@@ -28,6 +28,7 @@ import EditPayment from "@/app/tableau-de-bord/(accounting)/factures/paiements/e
 import EditPaymentMethod from "@/app/tableau-de-bord/(accounting)/factures/paiements/edit-payment-method";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -432,32 +433,45 @@ export function PaiementsTable({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <Sheet>
-          <SheetTrigger asChild className="w-fit">
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent className="px-3">
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les filtres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <PaymentFilters
-              customFilters={filters.customFilters}
-              setCustomFilters={filters.setCustomFilters}
-              isCustomDateModalOpen={filters.isCustomDateModalOpen}
-              setIsCustomDateModalOpen={filters.setIsCustomDateModalOpen}
-              providers={filters.providers}
-              setDateFilter={filters.setDateFilter}
-              resetAllFilters={filters.resetAllFilters}
-            />
-          </SheetContent>
-        </Sheet>
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            placeholder="Rechercher..."
+            value={filters.customFilters.search}
+            onChange={(e) =>
+              filters.setCustomFilters({
+                ...filters.customFilters,
+                search: e.target.value,
+              })
+            }
+            className="w-full sm:w-[250px] h-9"
+          />
+          <Sheet>
+            <SheetTrigger asChild className="w-fit">
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="px-3">
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les filtres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <PaymentFilters
+                customFilters={filters.customFilters}
+                setCustomFilters={filters.setCustomFilters}
+                isCustomDateModalOpen={filters.isCustomDateModalOpen}
+                setIsCustomDateModalOpen={filters.setIsCustomDateModalOpen}
+                providers={filters.providers}
+                setDateFilter={filters.setDateFilter}
+                resetAllFilters={filters.resetAllFilters}
+              />
+            </SheetContent>
+          </Sheet>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">

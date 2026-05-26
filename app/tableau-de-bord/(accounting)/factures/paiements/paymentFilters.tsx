@@ -74,21 +74,6 @@ export default function PaymentFilters({
   }, [providers, providerSearch]);
   return (
     <>
-      {/**Search Filter */}
-      <div className="grid gap-1.5">
-        <Label htmlFor="search">Rechercher</Label>
-        <Input
-          id="search"
-          placeholder="Rechercher..."
-          value={customFilters.search}
-          onChange={(e) =>
-            setCustomFilters({
-              ...customFilters,
-              search: e.target.value,
-            })
-          }
-        />
-      </div>
       {/**Amount Filter */}
       <div className="grid gap-1.5">
         <Label htmlFor="amount">Montant</Label>
