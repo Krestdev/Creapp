@@ -326,6 +326,8 @@ export function getRequestTypeBadge({ type, requestTypes }: typesProps): {
       return { label, variant: "orange" };
     case "appro":
       return { label, variant: "fuchsia" };
+    case "settle":
+      return { label, variant: "indigo"}
     default:
       return { label, variant: "outline" };
   }
