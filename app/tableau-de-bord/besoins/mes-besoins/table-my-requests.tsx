@@ -113,6 +113,7 @@ interface Props {
   users: Array<User>;
   receptions: Array<Reception>;
   purchaseOrders: Array<BonsCommande>;
+  filters?: React.ReactNode;
 }
 
 export function TableMyRequests({
@@ -123,6 +124,7 @@ export function TableMyRequests({
   users,
   receptions,
   purchaseOrders,
+  filters,
 }: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -501,7 +503,8 @@ export function TableMyRequests({
 
   return (
     <div className="content">
-      <div className="flex flex-wrap justify-between gap-4">
+      <div className="flex flex-wrap justify-between gap-4 items-center">
+        {filters}
         {/* Colonne de visibilité */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
