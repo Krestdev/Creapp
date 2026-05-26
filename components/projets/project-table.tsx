@@ -640,35 +640,32 @@ export function ProjectTable({
 
   return (
     <div className="content">
-      <div className="flex flex-wrap justify-between gap-4">
-        <Sheet modal={false}>
-          <SheetTrigger asChild>
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les fitres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-5 grid gap-5">
-              <div className="grid gap-1.5">
-                <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-                <Input
-                  placeholder="Rechercher par nom"
-                  value={effectiveFilters.globalFilter ?? ""}
-                  onChange={(event) =>
-                    updateFilter("globalFilter", event.target.value)
-                  }
-                  className="w-full"
-                />
-              </div>
-
-              {/* Filtre par statut - Version DropdownMenu avec recherche */}
+      <div className="flex flex-wrap justify-between gap-4 items-center">
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            placeholder="Rechercher par nom"
+            value={effectiveFilters.globalFilter ?? ""}
+            onChange={(event) =>
+              updateFilter("globalFilter", event.target.value)
+            }
+            className="w-full sm:w-[250px] h-9"
+          />
+          <Sheet modal={false}>
+            <SheetTrigger asChild>
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les fitres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-5 grid gap-5 mt-4">
+                {/* Filtre par statut - Version DropdownMenu avec recherche */}
               <div className="grid gap-1.5">
                 <Label>{"Statut"}</Label>
                 <DropdownMenu
@@ -885,7 +882,8 @@ export function ProjectTable({
             </div>
           </SheetContent>
         </Sheet>
-        <DropdownMenu>
+      </div>
+      <DropdownMenu>
           <DropdownMenuTrigger asChild className="ml-auto">
             <Button variant="outline">
               {"Colonnes"}
