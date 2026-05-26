@@ -95,21 +95,6 @@ export default function DepenseFilters({
   }, [providers, providerSearch]);
   return (
     <>
-      {/**Search Filter */}
-      <div className="grid gap-1.5">
-        <Label htmlFor="search">Rechercher</Label>
-        <Input
-          id="search"
-          placeholder="Rechercher..."
-          value={customFilters.search}
-          onChange={(e) =>
-            setCustomFilters({
-              ...customFilters,
-              search: e.target.value,
-            })
-          }
-        />
-      </div>
       {/**Beneficiary Filter */}
       <div className="grid gap-1.5">
         <Label htmlFor="beneficiary">Bénéficiaire</Label>

@@ -142,6 +142,7 @@ interface Props {
   pagination: PaginationState;
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
   tabs: TabProps;
+  filters?: React.ReactNode;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -238,6 +239,7 @@ function ExpensesTable({
   pagination,
   paginationOptions,
   tabs,
+  filters,
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -718,13 +720,14 @@ function ExpensesTable({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
         <TabBar
           tabs={tabs.tabs}
           setSelectedTab={tabs.setSelectedTab}
           selectedTab={tabs.selectedTab}
         />
-        <div className="flex flex-wrap items-end gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          {filters}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="bg-transparent">

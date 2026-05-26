@@ -7,6 +7,7 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -46,6 +47,7 @@ function Page() {
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
     React.useState(false);
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+  const [searchText, setSearchText] = React.useState<string>("");
 
   const [customFilters, setCustomFilters] = React.useState<
     DepenseFiltersProps["customFilters"]
@@ -84,6 +86,7 @@ function Page() {
       to: "",
     });
     setDateFilter(undefined);
+    setSearchText("");
     setFilters({
       pageIndex: 0,
       pageSize: 15,
@@ -296,32 +299,6 @@ function Page() {
           color="red"
           links={links}
         />
-        <Sheet>
-          <SheetTrigger asChild className="w-fit">
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent className="px-3">
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les filtres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <DepenseFilters
-              customFilters={customFilters}
-              setCustomFilters={setCustomFilters}
-              isCustomDateModalOpen={isCustomDateModalOpen}
-              setIsCustomDateModalOpen={setIsCustomDateModalOpen}
-              users={getUsers.data.data}
-              providers={getProviders.data.data}
-              setDateFilter={setDateFilter}
-              resetAllFilters={resetAllFilters}
-            />
-          </SheetContent>
-        </Sheet>
         <div className="grid grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
           {Statistics.map((data, id) => (
             <StatisticCard key={id} {...data} className="h-full" hideMore />
@@ -353,6 +330,62 @@ function Page() {
               setFilters((prev) => ({ ...prev, pageIndex: 0 }));
             },
           }}
+          filters={
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                placeholder="Titre, référence"
+                type="search"
+                value={searchText}
+                onChange={(e) => {
+                  setSearchText(e.target.value);
+                  if (e.target.value === "") {
+                    setCustomFilters({
+                      ...customFilters,
+                      search: "",
+                    });
+                  }
+                }}
+                className="w-full sm:w-[250px] h-9"
+              />
+              <Button
+                onClick={() => {
+                  setCustomFilters({
+                    ...customFilters,
+                    search: searchText,
+                  });
+                }}
+                className="h-9"
+              >
+                {"Rechercher"}
+              </Button>
+              <Sheet>
+                <SheetTrigger asChild className="w-fit">
+                  <Button variant={"outline"}>
+                    <Settings2 />
+                    {"Filtres"}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="px-3">
+                  <SheetHeader>
+                    <SheetTitle>{"Filtres"}</SheetTitle>
+                    <SheetDescription>
+                      {"Configurer les filtres pour affiner les données"}
+                    </SheetDescription>
+                  </SheetHeader>
+                  <DepenseFilters
+                    customFilters={customFilters}
+                    setCustomFilters={setCustomFilters}
+                    isCustomDateModalOpen={isCustomDateModalOpen}
+                    setIsCustomDateModalOpen={setIsCustomDateModalOpen}
+                    users={getUsers.data.data}
+                    providers={getProviders.data.data}
+                    setDateFilter={setDateFilter}
+                    resetAllFilters={resetAllFilters}
+                  />
+                </SheetContent>
+              </Sheet>
+            </div>
+          }
         />
       </div>
     );
