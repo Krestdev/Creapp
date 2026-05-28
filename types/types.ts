@@ -82,6 +82,7 @@ export type PaymentRequest = {
   beneficiary?: User;
   benefId?: number;
   driverId?: number;
+  recipient?: string;
 
   model?: Vehicle;
   km?: number;

@@ -164,81 +164,81 @@ export default function DepenseFilters({
       {/**Amount Filter */}
       <div className="grid gap-1.5">
         <Label htmlFor="amount">Montant</Label>
-        <Input
-          id="amount"
-          placeholder="Montant"
-          type="number"
-          value={customFilters.amount}
-          onChange={(e) =>
-            setCustomFilters({
-              ...customFilters,
-              amount: Number(e.target.value),
-            })
-          }
-        />
-      </div>
-      {/**Amount Type Filter */}
-      <div className="grid gap-1.5">
-        <Label htmlFor="amountType">Type de montant</Label>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              <span className="truncate">
-                {customFilters.amountType === "equal"
-                  ? "Égal"
-                  : customFilters.amountType === "greater"
-                    ? "Supérieur"
-                    : "Inférieur"}
-              </span>
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-            <DropdownMenuItem
-              onClick={() => {
-                setCustomFilters({
-                  ...customFilters,
-                  amountType: "equal",
-                });
-              }}
-              className={
-                customFilters.amountType === "equal" ? "bg-accent" : ""
-              }
-            >
-              <div className="flex items-center gap-2">
-                <span>Égal</span>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                setCustomFilters({
-                  ...customFilters,
-                  amountType: "greater",
-                });
-              }}
-              className={
-                customFilters.amountType === "greater" ? "bg-accent" : ""
-              }
-            >
-              <div className="flex items-center gap-2">
-                <span>Supérieur</span>
-              </div>
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() => {
-                setCustomFilters({
-                  ...customFilters,
-                  amountType: "less",
-                });
-              }}
-              className={customFilters.amountType === "less" ? "bg-accent" : ""}
-            >
-              <div className="flex items-center gap-2">
-                <span>Inférieur</span>
-              </div>
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <span className="grid grid-cols-2 gap-1.5">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+                <span className="truncate">
+                  {customFilters.amountType === "equal"
+                    ? "Égal"
+                    : customFilters.amountType === "greater"
+                      ? "Supérieur"
+                      : "Inférieur"}
+                </span>
+                <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+              <DropdownMenuItem
+                onClick={() => {
+                  setCustomFilters({
+                    ...customFilters,
+                    amountType: "equal",
+                  });
+                }}
+                className={
+                  customFilters.amountType === "equal" ? "bg-accent" : ""
+                }
+              >
+                <div className="flex items-center gap-2">
+                  <span>Égal</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setCustomFilters({
+                    ...customFilters,
+                    amountType: "greater",
+                  });
+                }}
+                className={
+                  customFilters.amountType === "greater" ? "bg-accent" : ""
+                }
+              >
+                <div className="flex items-center gap-2">
+                  <span>Supérieur</span>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setCustomFilters({
+                    ...customFilters,
+                    amountType: "less",
+                  });
+                }}
+                className={
+                  customFilters.amountType === "less" ? "bg-accent" : ""
+                }
+              >
+                <div className="flex items-center gap-2">
+                  <span>Inférieur</span>
+                </div>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          <Input
+            id="amount"
+            placeholder="Montant"
+            type="number"
+            value={customFilters.amount}
+            onChange={(e) =>
+              setCustomFilters({
+                ...customFilters,
+                amount: Number(e.target.value),
+              })
+            }
+          />
+        </span>
       </div>
       {/**Provider Filter */}
       <div className="grid gap-1.5">

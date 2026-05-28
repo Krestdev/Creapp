@@ -179,10 +179,11 @@ function ShareExpense({
         to: {
           label: isFacilitation
             ? benef?.firstName + " " + benef?.lastName
-            : !!provider
-              ? provider.name
-              : (requestUser?.firstName.concat(" ", requestUser?.lastName) ??
-                ""),
+            : (ticket.recipient ??
+              (!!provider
+                ? provider.name
+                : (requestUser?.firstName.concat(" ", requestUser?.lastName) ??
+                  ""))),
           accountNumber: "",
           phoneNum: "",
         },

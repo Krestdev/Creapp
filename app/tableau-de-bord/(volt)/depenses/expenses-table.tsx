@@ -317,14 +317,10 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const isSelected = value.selected === true;
-        const transactionStatus = isSelected
-          ? value.transaction?.Type === "TRANSFER" &&
-            value.transaction?.status === "APPROVED"
-          : false;
+
         return (
           <div className="flex gap-1.5 items-center">
-            {!!transactionStatus && (
+            {value.selected === true && value.transaction && (
               <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
                 <AsteriskIcon size={16} />
               </span>
@@ -371,6 +367,10 @@ function ExpensesTable({
       cell: ({ row }) => {
         const value = row.original;
         const requestItem = value.request;
+        //New Value Recipient
+        if (value.recipient) {
+          return <p className="normal-case">{value.recipient}</p>;
+        }
 
         // Vérifier dans beneficiary (string)
         if (
