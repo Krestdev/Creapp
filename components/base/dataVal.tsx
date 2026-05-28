@@ -105,6 +105,7 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { TabBar, TabProps } from "./TabBar";
+import TransportApprobation from "@/app/tableau-de-bord/besoins/transport-approbation";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -179,6 +180,7 @@ export function DataVal({
   >("approve");
   const [isUpdateSettleRequest, setIsUpdateSettleRequest] =
     React.useState(false);
+  const [isUpdateTransport, setIsUpdateTransport] = React.useState(false);
 
   // États pour les actions de groupe
   const [isGroupActionDialogOpen, setIsGroupActionDialogOpen] =
@@ -846,11 +848,14 @@ export function DataVal({
                           : item.type === "others"
                             ? (setSelectedItem(item),
                               setIsUpdateOtherRequest(true))
-                            : item.type === "settle"
+                            : item.type === "transport"
                               ? (setSelectedItem(item),
-                                setIsUpdateSettleRequest(true))
-                              : (setSelectedItem(item),
-                                setIsLastValModalOpen(true))
+                                setIsUpdateTransport(true))
+                              : item.type === "settle"
+                                ? (setSelectedItem(item),
+                                  setIsUpdateSettleRequest(true))
+                                : (setSelectedItem(item),
+                                  setIsLastValModalOpen(true))
                     : openValidationModal("approve", item)
                 }
                 disabled={
@@ -1304,10 +1309,14 @@ export function DataVal({
           <BesoinLastValSettle
             request={selectedItem}
             users={usersData}
-            categories={categoriesData}
-            projects={projectsData}
             open={isUpdateSettleRequest}
             setOpen={setIsUpdateSettleRequest}
+          />
+          <TransportApprobation
+            open={isUpdateTransport}
+            onOpenChange={setIsUpdateTransport}
+            request={selectedItem}
+            users={usersData}
           />
         </>
       )}

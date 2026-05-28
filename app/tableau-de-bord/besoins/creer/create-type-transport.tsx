@@ -57,7 +57,7 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
   ...(typeof PRIORITIES)[number]["value"][],
 ];
 
-const beneficiaryArray = z.object({
+export const beneficiaryArray = z.object({
   id: z.coerce.number(),
   name: z.string(),
   amount: z.coerce.number().min(1, "Veuillez saisir un montant"),

@@ -397,19 +397,16 @@ class RequestQueries {
   // ============================
 
   // Valider une demande (pour le DERNIER validateur)
-  validate = async (
-    id: number,
-    validatorId: number,
-    validator:
-      | {
-          id?: number | undefined;
-          userId: number;
-          rank: number;
-        }
-      | undefined,
+  validate = async ({
+    id, request
+  }:{
+    id: number, //requestModelT[id]
+    request: Partial<RequestModelT>
+  }
+    
   ): Promise<{ data: RequestModelT }> => {
     return api
-      .put(`${this.route}/validate/${id}`, { validatorId, validator })
+      .put(`${this.route}/validate/${id}`, request)
       .then((res) => res.data);
   };
 
