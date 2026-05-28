@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogClose,
@@ -19,28 +20,28 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
-import { useStore } from "@/providers/datastore";
+import { queryKeys } from "@/lib/query-keys";
+import { categoryQ } from "@/queries/categoryModule";
+import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
-import { Category, ProjectT, RequestModelT, User } from "@/types/types";
+import { RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import MultiSelectUsers from "../base/multiSelectUsers";
-import { SearchableSelect } from "../base/searchableSelect";
 import FilesUpload from "../comp-547";
-import { Calendar } from "../ui/calendar";
 import {
   Select,
   SelectContent,
@@ -56,19 +57,7 @@ import {
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
-const SingleFileSchema = z
-  .array(
-    z.union([
-      z.instanceof(File, { message: "Doit être un fichier valide" }),
-      z.string(),
-    ]),
-  )
-  .max(1, "Pas plus d'un document");
-
 const formSchema = z.object({
-  projet: z.string().min(1, "Le projet est requis"),
-  titre: z.string().min(1, "Le titre est requis"),
-  description: z.string().min(1, "La description est requise"),
   periode: z
     .object({
       from: z.date({ required_error: "La date de début est requise" }),
@@ -79,15 +68,8 @@ const formSchema = z.object({
         "La date de début doit être antérieure ou égale à la date de fin",
       path: ["from"],
     }),
-  montant: z
-    .string()
-    .min(1, "Le montant est requis")
-    .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
-      message: "Le montant doit être un nombre positif",
-    }),
+  montant: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   date_limite: z.date().min(today, "La date limite doit être dans le futur"),
-  beneficiaire: z.array(z.number()).min(1, "Le bénéficiaire est requis"),
-  justificatif: SingleFileSchema,
   priority: z.enum(["low", "medium", "high", "urgent"]),
 });
 
@@ -96,9 +78,7 @@ interface BesoinRHLastValProps {
   setOpen: (open: boolean) => void;
   requestData: RequestModelT;
   onSuccess?: () => void;
-  projects: ProjectT[];
   users: User[];
-  categories: Category[];
 }
 
 export default function BesoinRHLastVal({
@@ -106,14 +86,8 @@ export default function BesoinRHLastVal({
   setOpen,
   requestData,
   onSuccess,
-  projects,
   users,
-  categories,
 }: BesoinRHLastValProps) {
-  const { user } = useStore();
-
-  const [isFormInitialized, setIsFormInitialized] = useState(false);
-
   const USERS =
     users
       .filter((u) => u.verified)
@@ -122,78 +96,57 @@ export default function BesoinRHLastVal({
         name: u.firstName + " " + u.lastName,
       })) || [];
 
+  const periodValue =
+    requestData.period && requestData.period?.from && requestData.period?.to
+      ? {
+          from: requestData.period.from
+            ? new Date(requestData.period.from)
+            : new Date(),
+          to: requestData.period.to
+            ? new Date(requestData.period.to)
+            : new Date(),
+        }
+      : { from: new Date(), to: new Date() };
+
+  const getCategory = useQuery({
+    queryKey: queryKeys.category(requestData.categoryId!),
+    queryFn: () => categoryQ.getCategory(requestData.categoryId!),
+    enabled: !!requestData.categoryId,
+  });
+
+  const getProject = useQuery({
+    queryKey: queryKeys.project(requestData.projectId!),
+    queryFn: () => projectQ.getOne(requestData.projectId!),
+    enabled: !!requestData.projectId,
+  });
+
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
   // ----------------------------------------------------------------------
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      projet: "",
-      titre: "",
-      description: "",
-      montant: "",
-      periode: {
-        from: undefined,
-        to: undefined,
-      },
-      date_limite: undefined,
-      beneficiaire: [],
-      justificatif: [],
-      priority: "medium",
+      montant: requestData.amount ?? 0,
+      periode: { from: requestData.period?.from, to: requestData.period?.to },
+      date_limite: requestData.dueDate,
+      priority: requestData.priority,
     },
   });
 
   // ----------------------------------------------------------------------
   // INITIALISATION DES DONNÉES
   // ----------------------------------------------------------------------
-
   useEffect(() => {
     if (requestData && open && USERS.length > 0) {
       const initializeForm = async () => {
         try {
-          // Formater la période si elle existe
-          let periodValue: {
-            from?: Date;
-            to?: Date;
-          } = {};
-
-          if (requestData.period) {
-            periodValue = {
-              from: requestData.period.from
-                ? new Date(requestData.period.from)
-                : undefined,
-              to: requestData.period.to
-                ? new Date(requestData.period.to)
-                : undefined,
-            };
-          }
-
-          // Récupérer les bénéficiaires
-          const beneficiaireIds =
-            requestData.beficiaryList?.flatMap((x) => x.id) || [];
-          if (typeof requestData.beneficiary === "string") {
-            const benefId = parseInt(requestData.beneficiary);
-            if (!isNaN(benefId) && !beneficiaireIds.includes(benefId)) {
-              beneficiaireIds.push(benefId);
-            }
-          }
-
-          // Réinitialiser le formulaire avec les valeurs
           form.reset({
-            projet: requestData.projectId?.toString() || "",
-            titre: requestData.label || "",
-            description: requestData.description || "",
-            montant: requestData.amount?.toString() || "",
-            periode: periodValue,
+            montant: requestData.amount,
             date_limite: requestData.dueDate
               ? new Date(requestData.dueDate)
               : new Date(),
-            beneficiaire: beneficiaireIds,
-            justificatif: requestData.proof,
-            priority: requestData.priority || "medium",
+            priority: requestData.priority,
           });
-
-          setIsFormInitialized(true);
         } catch (error) {
           console.error(
             "Erreur lors de l'initialisation du formulaire:",
@@ -204,61 +157,27 @@ export default function BesoinRHLastVal({
       };
 
       initializeForm();
-    } else {
-      setIsFormInitialized(false);
     }
   }, [requestData, open, USERS.length, form]);
 
   // ----------------------------------------------------------------------
-  // UPDATE MUTATION
+  // MUTATION
   // ----------------------------------------------------------------------
-
-  const validator = categories
-    .find((cat) => cat.id === requestData?.categoryId)
-    ?.validators?.find((v) => v.userId === user?.id);
-
   const validateRequest = useMutation({
     mutationFn: async ({
       id,
-      validator,
+      request,
     }: {
       id: number;
-      validator:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
-    }) => requestQ.validate(id, validator?.id!, validator),
+      request: Partial<RequestModelT>;
+    }) => requestQ.validate({ id, request }),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
       setOpen(false);
+      onSuccess?.();
     },
     onError: () => {
       toast.error("Erreur lors de la validation");
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async (data: Partial<RequestModelT>) => {
-      if (!requestData?.id) throw new Error("ID de la demande manquant");
-      return requestQ.specialUpdate(data, Number(requestData.id));
-    },
-
-    onSuccess: () => {
-      toast.success("Besoin RH validé avec succès !");
-      //setOpen(false);
-      onSuccess?.();
-      validateRequest.mutateAsync({
-        id: requestData?.id!,
-        validator: validator,
-      });
-    },
-
-    onError: (error: any) => {
-      console.error("Erreur lors de la validation:", error);
-      toast.error("Une erreur est survenue lors de la validation.");
     },
   });
 
@@ -268,30 +187,14 @@ export default function BesoinRHLastVal({
       return;
     }
 
-    // Préparation des données pour la mise à jour
-    const requestDataUpdate: Partial<RequestModelT> = {
-      label: values.titre,
-      description: values.description,
-      amount: Number(values.montant),
-      projectId: Number(values.projet),
-      dueDate: values.date_limite,
-      period: { from: values.periode.from, to: values.periode.to },
-      benef: values.beneficiaire,
-      proof: values.justificatif,
-      // Champs fixes
-      categoryId: requestData.categoryId,
-      quantity: 1,
-      unit: "unit",
-      userId: requestData.userId,
-      type: "ressource_humaine",
-      // Garder les valeurs originales pour les champs non modifiables
-      state: requestData?.state || "pending",
-      priority: values?.priority || "medium",
-      beneficiary:
-        values.beneficiaire.length > 0 ? values.beneficiaire[0].toString() : "",
-    };
-
-    updateMutation.mutate(requestDataUpdate);
+    validateRequest.mutate({
+      id: requestData.id,
+      request: {
+        amount: Number(values.montant),
+        dueDate: values.date_limite,
+        priority: values?.priority || "medium",
+      },
+    });
   }
 
   // ----------------------------------------------------------------------
@@ -300,7 +203,6 @@ export default function BesoinRHLastVal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-3xl">
-        {/* Header - FIXE EN HAUT */}
         <DialogHeader variant={"secondary"}>
           <DialogTitle>{"Approbation"}</DialogTitle>
           <DialogDescription>
@@ -309,111 +211,61 @@ export default function BesoinRHLastVal({
         </DialogHeader>
 
         <Form {...form}>
-          {/* Contenu scrollable */}
-          <div className="space-y-4">
-            {/* PROJET */}
-            <FormField
-              control={form.control}
-              name="projet"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Projet"}</FormLabel>
-                  <SearchableSelect
-                    disabled
-                    onChange={field.onChange}
-                    options={
-                      projects
-                        .filter(
-                          (p) =>
-                            p.status !== "cancelled" &&
-                            p.status !== "Completed" &&
-                            p.status !== "on-hold",
-                        )
-                        .map((p) => ({
-                          value: p.id!.toString(),
-                          label: p.label,
-                        })) ?? []
-                    }
-                    value={field.value}
-                    width="w-full"
-                    allLabel=""
-                    placeholder="Sélectionner un projet"
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3"
+            id="rh-approval-form"
+          >
+            {/* TITRE - static */}
+            <div className="grid gap-2">
+              <Label>{"Titre"}</Label>
+              <Input value={requestData.label || ""} disabled />
+            </div>
 
-            {/* TITRE */}
-            <FormField
-              control={form.control}
-              name="titre"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Titre"}</FormLabel>
-                  <FormControl>
-                    <Input
-                      disabled
-                      placeholder="Ex. Salaires Octobre"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* CATÉGORIE - static */}
+            <div className="grid gap-2">
+              <Label>{"Catégorie"}</Label>
+              <Input
+                disabled
+                value={
+                  getCategory.isLoading
+                    ? "..chargement"
+                    : getCategory.data
+                      ? getCategory.data.data.label
+                      : "--"
+                }
+              />
+            </div>
+
+            {/* PROJET - static */}
+            <div className="grid gap-2">
+              <Label>{"Projet"}</Label>
+              <Input
+                disabled
+                value={
+                  getProject.isLoading
+                    ? "..chargement"
+                    : getProject.data
+                      ? getProject.data.data.label
+                      : "--"
+                }
+              />
+            </div>
+
+            {/* DESCRIPTION - static */}
+            <div className="grid gap-2">
+              <Label>{"Description détaillée"}</Label>
+              <Input value={requestData.description || ""} disabled />
+            </div>
 
             {/* PERIODE - RANGE */}
-            <FormField
-              control={form.control}
-              name="periode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Période"}</FormLabel>
-                  <FormControl>
-                    <Popover>
-                      <PopoverTrigger asChild className="h-10 w-full">
-                        <FormControl>
-                          <Button
-                            disabled
-                            type="button"
-                            variant={"outline"}
-                            className="w-full pl-3 text-left font-normal"
-                          >
-                            {field.value?.from && field.value?.to ? (
-                              <>
-                                {format(field.value.from, "PPP", {
-                                  locale: fr,
-                                })}{" "}
-                                -{" "}
-                                {format(field.value.to, "PPP", {
-                                  locale: fr,
-                                })}
-                              </>
-                            ) : (
-                              <span>{"Choisir une période"}</span>
-                            )}
-                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="range"
-                          selected={field.value}
-                          onSelect={field.onChange}
-                          numberOfMonths={2}
-                          locale={fr}
-                          className="rounded-md border"
-                          defaultMonth={field.value?.from || new Date()}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="w-full grid gap-2">
+              <Label>{"Période"}</Label>
+              <Input
+                value={`${format(periodValue.from, "PPP", { locale: fr })} - ${format(periodValue.to, "PPP", { locale: fr })}`}
+                disabled
+              />
+            </div>
 
             {/* DATE LIMITE */}
             <FormField
@@ -469,7 +321,7 @@ export default function BesoinRHLastVal({
               )}
             />
 
-            {/* PRIORITE */}
+            {/* PRIORITÉ */}
             <FormField
               control={form.control}
               name="priority"
@@ -499,98 +351,51 @@ export default function BesoinRHLastVal({
               )}
             />
 
-            {/* BENEFICIAIRE */}
-            <FormField
-              control={form.control}
-              name="beneficiaire"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel isRequired>{"Bénéficiaire(s)"}</FormLabel>
-                  <FormControl>
-                    <MultiSelectUsers
-                      disabled
-                      users={USERS}
-                      selected={USERS.filter((u) =>
-                        field.value?.includes(u.id),
-                      )}
-                      onChange={(selectedUsers) => {
-                        field.onChange(selectedUsers.map((u) => u.id));
-                      }}
-                      display={"user"}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* BÉNÉFICIAIRE(S) */}
+            <div className="w-full grid gap-2">
+              <Label>{"Bénéficiaire"}</Label>
+              <MultiSelectUsers
+                disabled
+                users={USERS}
+                selected={USERS.filter((u) =>
+                  requestData.benef?.includes(u.id),
+                )}
+                onChange={() => {}}
+                display={"user"}
+              />
+            </div>
 
             {/* JUSTIFICATIF */}
-            <FormField
-              control={form.control}
-              name="justificatif"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel>{"Justificatif"}</FormLabel>
-                  <FormControl>
-                    <FilesUpload
-                      disabled
-                      value={field.value || []}
-                      onChange={field.onChange}
-                      name={field.name}
-                      acceptTypes="all"
-                      multiple={false}
-                      maxFiles={1}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="w-full grid gap-2">
+              <Label>{"Justificatif"}</Label>
+              <FilesUpload
+                disabled
+                value={requestData.proof}
+                onChange={() => {}}
+                name={"proof"}
+                acceptTypes="all"
+                multiple={false}
+                maxFiles={1}
+              />
+            </div>
 
-            {/* DESCRIPTION */}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem className="col-span-2">
-                  <FormLabel isRequired>
-                    {"Description détaillée du besoin"}
-                  </FormLabel>
-                  <FormControl>
-                    <Textarea
-                      disabled
-                      placeholder="Description détaillée du besoin RH"
-                      className="resize-none min-h-[120px]"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </div>
-
-          {/* Boutons - FIXE EN BAS */}
-          <DialogFooter>
-            <DialogClose asChild>
+            <DialogFooter className="@min-[540px]/dialog:col-span-2">
+              <DialogClose asChild>
+                <Button type="button" variant="outline">
+                  {"Annuler"}
+                </Button>
+              </DialogClose>
               <Button
-                type="button"
-                variant="outline"
-                disabled={updateMutation.isPending}
+                type="submit"
+                disabled={validateRequest.isPending}
+                variant={"success"}
+                isLoading={validateRequest.isPending}
+                form="rh-approval-form"
               >
-                {"Annuler"}
+                {"Valider"}
               </Button>
-            </DialogClose>
-            <Button
-              type="submit"
-              disabled={updateMutation.isPending || !isFormInitialized}
-              variant={"success"}
-              onClick={() => form.handleSubmit(onSubmit)()}
-              isLoading={updateMutation.isPending}
-            >
-              {"Valider"}
-            </Button>
-          </DialogFooter>
+            </DialogFooter>
+          </form>
         </Form>
       </DialogContent>
     </Dialog>

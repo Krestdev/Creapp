@@ -1260,31 +1260,24 @@ export function DataVal({
             data={selectedItem}
             titre={"Approuver le besoin"}
             description={"Êtes-vous sûr de vouloir approuver ce besoin ?"}
-            categories={categoriesData}
           />
           <BesoinFacLastVal
             open={isUpdateFacModalOpen}
             setOpen={setIsUpdateFacModalOpen}
             requestData={selectedItem}
-            categories={categoriesData}
             users={usersData}
-            projects={projectsData}
           />
           <BesoinRHLastVal
             open={isUpdateRHModalOpen}
             setOpen={setIsUpdateRHModalOpen}
             requestData={selectedItem}
             users={usersData}
-            categories={categoriesData}
-            projects={projectsData}
           />
           <BesoinLastApproVall
             open={isUpdateApproModalOpen}
             setOpen={setIsUpdateApproModalOpen}
             requestData={selectedItem}
             users={usersData}
-            categories={categoriesData}
-            projects={projectsData}
           />
           <UpdatePaymentMethod
             open={isUpdatePaymentModalOpen}
@@ -1301,8 +1294,6 @@ export function DataVal({
           <BesoinLastValOther
             request={selectedItem}
             users={usersData}
-            categories={categoriesData}
-            projects={projectsData}
             open={isUpdateOtherRequest}
             setOpen={setIsUpdateOtherRequest}
           />

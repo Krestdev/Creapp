@@ -28,6 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
@@ -41,25 +42,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { units } from "@/data/unit";
-import { useStore } from "@/providers/datastore";
+import { queryKeys } from "@/lib/query-keys";
+import { XAF } from "@/lib/utils";
+import { categoryQ } from "@/queries/categoryModule";
+import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { PRIORITIES, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, Plus, Trash2 } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import { beneficiaryArray } from "./creer/create-type-transport";
-import { Label } from "@/components/ui/label";
-import { queryKeys } from "@/lib/query-keys";
-import { categoryQ } from "@/queries/categoryModule";
-import { projectQ } from "@/queries/projectModule";
-import { XAF } from "@/lib/utils";
 
 interface Props {
   open: boolean;
@@ -146,6 +144,7 @@ export default function TransportApprobation({
         dueDate: values.dueDate,
         priority: values.priority,
         benFac: { list: values.list },
+        amount: values.list.reduce((acc, el) => acc + el.amount, 0),
       },
     });
   };
