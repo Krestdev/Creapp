@@ -625,39 +625,113 @@ function TransactionTable({
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-col gap-4">
-        <Sheet>
-          <SheetTrigger asChild className="w-fit">
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les filtres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-5 grid gap-5 mt-4">
-              {/* Recherche globale */}
-              <div className="grid gap-1.5">
-                <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-                <Input
-                  name="search"
-                  type="search"
-                  id="searchCommand"
-                  placeholder="Référence, libellé, source, destination"
-                  value={searchFilter}
-                  onChange={(event) => setSearchFilter(event.target.value)}
-                  className="w-full"
-                />
-              </div>
+        <div className="flex items-center gap-3">
+          <Input
+            name="search"
+            type="search"
+            id="searchCommand"
+            placeholder="Recherche par référence, libellé, source, destination..."
+            value={searchFilter}
+            onChange={(event) => setSearchFilter(event.target.value)}
+            className="max-w-md h-10 bg-background"
+          />
+          <Sheet>
+            <SheetTrigger asChild className="w-fit">
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les filtres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-5 grid gap-5 mt-4">
+                {/* Type de Transaction */}
+                {!!filterByType && (
+                  <div className="grid gap-1.5">
+                    <Label>{"Type de Transaction"}</Label>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between"
+                        >
+                          <span className="truncate">
+                            {typeFilter === "all"
+                              ? "Tous les types"
+                              : TRANSACTION_TYPES.find(
+                                  (t) => t.value === typeFilter,
+                                )?.name || "Sélectionner"}
+                          </span>
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                        <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                          <Input
+                            placeholder="Rechercher un type..."
+                            className="h-8"
+                            value={typeSearch}
+                            onChange={(e) => setTypeSearch(e.target.value)}
+                            onMouseDown={(e) => e.stopPropagation()}
+                            onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => e.stopPropagation()}
+                            autoFocus
+                          />
+                        </div>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem
+                          onClick={() => {
+                            setTypeFilter("all");
+                            setTypeSearch("");
+                          }}
+                          className={typeFilter === "all" ? "bg-accent" : ""}
+                        >
+                          <span>Tous les types</span>
+                        </DropdownMenuItem>
+                        {TRANSACTION_TYPES.filter((t) => t.value !== "TRANSFER")
+                          .filter((t) =>
+                            t.name
+                              .toLowerCase()
+                              .includes(typeSearch.toLowerCase()),
+                          )
+                          .map((t) => (
+                            <DropdownMenuItem
+                              key={t.value}
+                              onClick={() => {
+                                setTypeFilter(t.value);
+                                setTypeSearch("");
+                              }}
+                              className={
+                                typeFilter === t.value ? "bg-accent" : ""
+                              }
+                            >
+                              <span>{t.name}</span>
+                            </DropdownMenuItem>
+                          ))}
+                        {TRANSACTION_TYPES.filter(
+                          (t) => t.value !== "TRANSFER",
+                        ).filter((t) =>
+                          t.name
+                            .toLowerCase()
+                            .includes(typeSearch.toLowerCase()),
+                        ).length === 0 && (
+                          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                            Aucun type trouvé
+                          </div>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                )}
 
-              {/* Type de Transaction */}
-              {!!filterByType && (
+                {/* Compte (Bank) */}
                 <div className="grid gap-1.5">
-                  <Label>{"Type de Transaction"}</Label>
+                  <Label>{"Compte"}</Label>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -665,11 +739,10 @@ function TransactionTable({
                         className="w-full justify-between"
                       >
                         <span className="truncate">
-                          {typeFilter === "all"
-                            ? "Tous les types"
-                            : TRANSACTION_TYPES.find(
-                                (t) => t.value === typeFilter,
-                              )?.name || "Sélectionner"}
+                          {bankFilter === "all"
+                            ? "Tous les comptes"
+                            : banks.find((b) => String(b.id) === bankFilter)
+                                ?.label || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -677,10 +750,10 @@ function TransactionTable({
                     <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
                       <div className="p-2 sticky top-0 bg-popover z-10 border-b">
                         <Input
-                          placeholder="Rechercher un type..."
+                          placeholder="Rechercher un compte..."
                           className="h-8"
-                          value={typeSearch}
-                          onChange={(e) => setTypeSearch(e.target.value)}
+                          value={bankSearch}
+                          onChange={(e) => setBankSearch(e.target.value)}
                           onMouseDown={(e) => e.stopPropagation()}
                           onClick={(e) => e.stopPropagation()}
                           onKeyDown={(e) => e.stopPropagation()}
@@ -690,361 +763,286 @@ function TransactionTable({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={() => {
-                          setTypeFilter("all");
-                          setTypeSearch("");
+                          setBankFilter("all");
+                          setBankSearch("");
                         }}
-                        className={typeFilter === "all" ? "bg-accent" : ""}
+                        className={bankFilter === "all" ? "bg-accent" : ""}
                       >
-                        <span>Tous les types</span>
+                        <span>Tous les comptes</span>
                       </DropdownMenuItem>
-                      {TRANSACTION_TYPES.filter((t) => t.value !== "TRANSFER")
-                        .filter((t) =>
-                          t.name
+                      {banks
+                        .filter((b) => !!b.type && b.type !== "null")
+                        .filter((b) =>
+                          b.label
                             .toLowerCase()
-                            .includes(typeSearch.toLowerCase()),
+                            .includes(bankSearch.toLowerCase()),
                         )
-                        .map((t) => (
+                        .map((bank) => (
                           <DropdownMenuItem
-                            key={t.value}
+                            key={bank.id}
                             onClick={() => {
-                              setTypeFilter(t.value);
-                              setTypeSearch("");
+                              setBankFilter(String(bank.id));
+                              setBankSearch("");
                             }}
                             className={
-                              typeFilter === t.value ? "bg-accent" : ""
+                              bankFilter === String(bank.id) ? "bg-accent" : ""
                             }
                           >
-                            <span>{t.name}</span>
+                            <span className="truncate">{bank.label}</span>
                           </DropdownMenuItem>
                         ))}
-                      {TRANSACTION_TYPES.filter(
-                        (t) => t.value !== "TRANSFER",
-                      ).filter((t) =>
-                        t.name.toLowerCase().includes(typeSearch.toLowerCase()),
-                      ).length === 0 && (
+                      {banks
+                        .filter((b) => !!b.type && b.type !== "null")
+                        .filter((b) =>
+                          b.label
+                            .toLowerCase()
+                            .includes(bankSearch.toLowerCase()),
+                        ).length === 0 && (
                         <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun type trouvé
+                          Aucun compte trouvé
                         </div>
                       )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
-              )}
 
-              {/* Compte (Bank) */}
-              <div className="grid gap-1.5">
-                <Label>{"Compte"}</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      <span className="truncate">
-                        {bankFilter === "all"
-                          ? "Tous les comptes"
-                          : banks.find((b) => String(b.id) === bankFilter)
-                              ?.label || "Sélectionner"}
-                      </span>
-                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                      <Input
-                        placeholder="Rechercher un compte..."
-                        className="h-8"
-                        value={bankSearch}
-                        onChange={(e) => setBankSearch(e.target.value)}
-                        onMouseDown={(e) => e.stopPropagation()}
-                        onClick={(e) => e.stopPropagation()}
-                        onKeyDown={(e) => e.stopPropagation()}
-                        autoFocus
-                      />
-                    </div>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setBankFilter("all");
-                        setBankSearch("");
-                      }}
-                      className={bankFilter === "all" ? "bg-accent" : ""}
-                    >
-                      <span>Tous les comptes</span>
-                    </DropdownMenuItem>
-                    {banks
-                      .filter((b) => !!b.type && b.type !== "null")
-                      .filter((b) =>
-                        b.label
-                          .toLowerCase()
-                          .includes(bankSearch.toLowerCase()),
-                      )
-                      .map((bank) => (
+                {/* Montant */}
+                <div className="grid gap-1.5">
+                  <Label>{"Montant"}</Label>
+                  <span className="grid gap-1.5 grid-cols-2">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-between"
+                        >
+                          <span className="truncate">
+                            {amountTypeFilter === "aucun"
+                              ? "Aucun"
+                              : amountTypeFilter === "greater"
+                                ? "Supérieur"
+                                : amountTypeFilter === "equal"
+                                  ? "Égal"
+                                  : amountTypeFilter === "inferior"
+                                    ? "Inférieur"
+                                    : "Sélectionner"}
+                          </span>
+                          <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
                         <DropdownMenuItem
-                          key={bank.id}
-                          onClick={() => {
-                            setBankFilter(String(bank.id));
-                            setBankSearch("");
-                          }}
+                          onClick={() => setAmountTypeFilter("aucun")}
                           className={
-                            bankFilter === String(bank.id) ? "bg-accent" : ""
+                            amountTypeFilter === "aucun" ? "bg-accent" : ""
                           }
                         >
-                          <span className="truncate">{bank.label}</span>
+                          <span>Aucun</span>
                         </DropdownMenuItem>
-                      ))}
-                    {banks
-                      .filter((b) => !!b.type && b.type !== "null")
-                      .filter((b) =>
-                        b.label
-                          .toLowerCase()
-                          .includes(bankSearch.toLowerCase()),
-                      ).length === 0 && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Aucun compte trouvé
-                      </div>
-                    )}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Comparer le montant */}
-              <div className="grid gap-1.5">
-                <Label>{"Comparer le montant"}</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      <span className="truncate">
-                        {amountTypeFilter === "aucun"
-                          ? "Aucun"
-                          : amountTypeFilter === "greater"
-                            ? "Supérieur"
-                            : amountTypeFilter === "equal"
-                              ? "Égal"
-                              : amountTypeFilter === "inferior"
-                                ? "Inférieur"
-                                : "Sélectionner"}
+                        <DropdownMenuItem
+                          onClick={() => setAmountTypeFilter("greater")}
+                          className={
+                            amountTypeFilter === "greater" ? "bg-accent" : ""
+                          }
+                        >
+                          <span>Supérieur</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setAmountTypeFilter("equal")}
+                          className={
+                            amountTypeFilter === "equal" ? "bg-accent" : ""
+                          }
+                        >
+                          <span>Égal</span>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => setAmountTypeFilter("inferior")}
+                          className={
+                            amountTypeFilter === "inferior" ? "bg-accent" : ""
+                          }
+                        >
+                          <span>Inférieur</span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        placeholder="Ex. 250 000"
+                        value={amountFilter ?? 0}
+                        onChange={(e) =>
+                          setAmountFilter(Number(e.target.value))
+                        }
+                        className="w-full pr-12"
+                      />
+                      <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                        {"FCFA"}
                       </span>
-                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                    <DropdownMenuItem
-                      onClick={() => setAmountTypeFilter("aucun")}
-                      className={
-                        amountTypeFilter === "aucun" ? "bg-accent" : ""
-                      }
-                    >
-                      <span>Aucun</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setAmountTypeFilter("greater")}
-                      className={
-                        amountTypeFilter === "greater" ? "bg-accent" : ""
-                      }
-                    >
-                      <span>Supérieur</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setAmountTypeFilter("equal")}
-                      className={
-                        amountTypeFilter === "equal" ? "bg-accent" : ""
-                      }
-                    >
-                      <span>Égal</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => setAmountTypeFilter("inferior")}
-                      className={
-                        amountTypeFilter === "inferior" ? "bg-accent" : ""
-                      }
-                    >
-                      <span>Inférieur</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-
-              {/* Montant */}
-              <div className="grid gap-1.5">
-                <Label>{"Montant"}</Label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="Ex. 250 000"
-                    value={amountFilter ?? 0}
-                    onChange={(e) => setAmountFilter(Number(e.target.value))}
-                    className="w-full pr-12"
-                  />
-                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                    {"FCFA"}
+                    </div>
                   </span>
                 </div>
-              </div>
 
-              {/* Période */}
-              <div className="grid gap-1.5">
-                <Label>{"Période"}</Label>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      <span className="truncate">
-                        {dateFilter === undefined
-                          ? "Toutes les périodes"
-                          : dateFilter === "today"
-                            ? "Aujourd'hui"
-                            : dateFilter === "week"
-                              ? "Cette semaine"
-                              : dateFilter === "month"
-                                ? "Ce mois"
-                                : dateFilter === "year"
-                                  ? "Cette année"
-                                  : dateFilter === "custom"
-                                    ? "Personnalisé"
-                                    : "Sélectionner"}
-                      </span>
-                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDateFilter(undefined);
-                        setCustomDateRange(undefined);
-                        setCustomOpen(false);
-                      }}
-                      className={dateFilter === undefined ? "bg-accent" : ""}
-                    >
-                      <span>Toutes les périodes</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDateFilter("today");
-                        setCustomOpen(false);
-                      }}
-                      className={dateFilter === "today" ? "bg-accent" : ""}
-                    >
-                      <span>Aujourd'hui</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDateFilter("week");
-                        setCustomOpen(false);
-                      }}
-                      className={dateFilter === "week" ? "bg-accent" : ""}
-                    >
-                      <span>Cette semaine</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDateFilter("month");
-                        setCustomOpen(false);
-                      }}
-                      className={dateFilter === "month" ? "bg-accent" : ""}
-                    >
-                      <span>Ce mois</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDateFilter("year");
-                        setCustomOpen(false);
-                      }}
-                      className={dateFilter === "year" ? "bg-accent" : ""}
-                    >
-                      <span>Cette année</span>
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setDateFilter("custom");
-                        setCustomOpen(true);
-                      }}
-                      className={dateFilter === "custom" ? "bg-accent" : ""}
-                    >
-                      <span>Personnalisé</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
-
-                <Collapsible
-                  open={customOpen}
-                  onOpenChange={setCustomOpen}
-                  disabled={dateFilter !== "custom"}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      {"Plage personnalisée"}
-                      <span className="text-muted-foreground text-xs">
-                        {customDateRange?.from && customDateRange.to
-                          ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy",
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
-                          : "Choisir"}
-                      </span>
-                    </Button>
-                  </CollapsibleTrigger>
-
-                  <CollapsibleContent className="space-y-4 pt-4">
-                    <Calendar
-                      mode="range"
-                      selected={customDateRange}
-                      onSelect={(range) => {
-                        if (!range?.from || !range?.to) return;
-                        const from = new Date(range.from);
-                        const to = new Date(range.to);
-                        to.setHours(23, 59, 59, 999);
-                        setCustomDateRange({ from, to });
-                      }}
-                      numberOfMonths={1}
-                      className="rounded-md border w-full"
-                    />
-                    <div className="space-y-1">
+                {/* Période */}
+                <div className="grid gap-1.5">
+                  <Label>{"Période"}</Label>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
                       <Button
-                        className="w-full"
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        <span className="truncate">
+                          {dateFilter === undefined
+                            ? "Toutes les périodes"
+                            : dateFilter === "today"
+                              ? "Aujourd'hui"
+                              : dateFilter === "week"
+                                ? "Cette semaine"
+                                : dateFilter === "month"
+                                  ? "Ce mois"
+                                  : dateFilter === "year"
+                                    ? "Cette année"
+                                    : dateFilter === "custom"
+                                      ? "Personnalisé"
+                                      : "Sélectionner"}
+                        </span>
+                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                      <DropdownMenuItem
                         onClick={() => {
-                          setCustomDateRange(undefined);
                           setDateFilter(undefined);
+                          setCustomDateRange(undefined);
                           setCustomOpen(false);
                         }}
+                        className={dateFilter === undefined ? "bg-accent" : ""}
                       >
-                        {"Annuler"}
-                      </Button>
-                      <Button
-                        className="w-full"
-                        variant={"outline"}
+                        <span>Toutes les périodes</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
                         onClick={() => {
+                          setDateFilter("today");
                           setCustomOpen(false);
                         }}
+                        className={dateFilter === "today" ? "bg-accent" : ""}
                       >
-                        {"Réduire"}
-                      </Button>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
+                        <span>Aujourd'hui</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("week");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "week" ? "bg-accent" : ""}
+                      >
+                        <span>Cette semaine</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("month");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "month" ? "bg-accent" : ""}
+                      >
+                        <span>Ce mois</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("year");
+                          setCustomOpen(false);
+                        }}
+                        className={dateFilter === "year" ? "bg-accent" : ""}
+                      >
+                        <span>Cette année</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setDateFilter("custom");
+                          setCustomOpen(true);
+                        }}
+                        className={dateFilter === "custom" ? "bg-accent" : ""}
+                      >
+                        <span>Personnalisé</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
 
-              {/* Bouton pour réinitialiser les filtres */}
-              <div className="flex items-end">
-                <Button
-                  variant="outline"
-                  onClick={resetAllFilters}
-                  className="w-full"
-                >
-                  {"Réinitialiser"}
-                </Button>
+                  <Collapsible
+                    open={customOpen}
+                    onOpenChange={setCustomOpen}
+                    disabled={dateFilter !== "custom"}
+                  >
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="w-full justify-between"
+                      >
+                        {"Plage personnalisée"}
+                        <span className="text-muted-foreground text-xs">
+                          {customDateRange?.from && customDateRange.to
+                            ? `${format(
+                                customDateRange.from,
+                                "dd/MM/yyyy",
+                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                            : "Choisir"}
+                        </span>
+                      </Button>
+                    </CollapsibleTrigger>
+
+                    <CollapsibleContent className="space-y-4 pt-4">
+                      <Calendar
+                        mode="range"
+                        selected={customDateRange}
+                        onSelect={(range) => {
+                          if (!range?.from || !range?.to) return;
+                          const from = new Date(range.from);
+                          const to = new Date(range.to);
+                          to.setHours(23, 59, 59, 999);
+                          setCustomDateRange({ from, to });
+                        }}
+                        numberOfMonths={1}
+                        className="rounded-md border w-full"
+                      />
+                      <div className="space-y-1">
+                        <Button
+                          className="w-full"
+                          onClick={() => {
+                            setCustomDateRange(undefined);
+                            setDateFilter(undefined);
+                            setCustomOpen(false);
+                          }}
+                        >
+                          {"Annuler"}
+                        </Button>
+                        <Button
+                          className="w-full"
+                          variant={"outline"}
+                          onClick={() => {
+                            setCustomOpen(false);
+                          }}
+                        >
+                          {"Réduire"}
+                        </Button>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+
+                {/* Bouton pour réinitialiser les filtres */}
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={resetAllFilters}
+                    className="w-full"
+                  >
+                    {"Réinitialiser"}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </SheetContent>
-        </Sheet>
+            </SheetContent>
+          </Sheet>
+        </div>
         <div className="grid-stats-4">
           {Statistics.map((statistic, id) => (
             <StatisticCard key={id} {...statistic} />

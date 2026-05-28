@@ -565,36 +565,33 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les fitres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-5 grid gap-5">
-              {/**Global Filter (Search) */}
-              <div className="grid gap-1.5">
-                <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-                <Input
-                  name="search"
-                  type="search"
-                  id="searchCommand"
-                  placeholder="Référence, libellé"
-                  value={searchFilter}
-                  onChange={(event) => setSearchFilter(event.target.value)}
-                  className="max-w-sm"
-                />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="statusFilter">{"Statut"}</Label>
+        <div className="flex items-center gap-3">
+          <Input
+            name="search"
+            type="search"
+            id="searchCommand"
+            placeholder="Recherche par référence, libellé, source, destination..."
+            value={searchFilter}
+            onChange={(event) => setSearchFilter(event.target.value)}
+            className="max-w-md h-10 bg-background"
+          />
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les fitres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-5 grid gap-5">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="statusFilter">{"Statut"}</Label>
                 <Select
                   value={statusFilter}
                   onValueChange={(v) =>
@@ -636,36 +633,38 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
               {/* Filter by amount */}
               <div className="grid gap-1.5">
                 <Label>{"Montant"}</Label>
-                <Select
-                  value={amountTypeFilter}
-                  onValueChange={(v) =>
-                    setAmountTypeFilter(v as "greater" | "inferior" | "equal")
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="greater">{"Supérieur"}</SelectItem>
-                    <SelectItem value="equal">{"Égal"}</SelectItem>
-                    <SelectItem value="inferior">{"Inférieur"}</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               <div className="grid gap-1.5">
                 <Label>{"Montant"}</Label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="Ex. 250 000"
-                    value={amountFilter ?? 0}
-                    onChange={(e) => setAmountFilter(Number(e.target.value))}
-                    className="w-full pr-12"
-                  />
-                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                    {"FCFA"}
-                  </span>
-                </div>
+                <span className="grid grid-cols-2 gap-1.5">
+                  <Select
+                    value={amountTypeFilter}
+                    onValueChange={(v) =>
+                      setAmountTypeFilter(v as "greater" | "inferior" | "equal")
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner une période" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="greater">{"Supérieur"}</SelectItem>
+                      <SelectItem value="equal">{"Égal"}</SelectItem>
+                      <SelectItem value="inferior">{"Inférieur"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="Ex. 250 000"
+                      value={amountFilter ?? 0}
+                      onChange={(e) => setAmountFilter(Number(e.target.value))}
+                      className="w-full pr-12"
+                    />
+                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                      {"FCFA"}
+                    </span>
+                  </div>
+                </span>
               </div>
 
               {/* Filter by Date */}
@@ -768,6 +767,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
             </div>
           </SheetContent>
         </Sheet>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">
