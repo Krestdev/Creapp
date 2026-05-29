@@ -15,9 +15,9 @@ import {
 import {
   ArrowUpDown,
   ChevronDown,
+  Ellipsis,
   LucidePen,
   Search,
-  Trash2,
 } from "lucide-react";
 import * as React from "react";
 
@@ -41,17 +41,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { userQ } from "@/queries/baseModule";
-import { PayType, Signatair } from "@/types/types";
+import { Signatair } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
-import UpdateUser from "./updateSignatair";
 // import { ShowUser } from "./show-user";
 import { TranslateRole } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { ModalWarning } from "../modals/modal-warning";
 import { signatairQ } from "@/queries/signatair";
+import { ModalWarning } from "../modals/modal-warning";
 import EditSignatairForm from "./updateSignatair";
 
 interface UtilisateursTableProps {
@@ -107,11 +105,11 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
         id: "user",
         header: ({ column }) => (
           <span
-            className="tablehead cursor-pointer select-none flex items-center"
+            className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             Utilisateur
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </span>
         ),
 
@@ -124,7 +122,7 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
 
         cell: ({ row }) => {
           const fullName = row.getValue("user") as string;
-          return <div className="font-medium space-y-1">{fullName}</div>;
+          return <p className="normal-case">{fullName}</p>;
         },
       },
       {
@@ -138,13 +136,13 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
               }
             >
               Bank
-              <ArrowUpDown className="ml-2 h-4 w-4" />
+              <ArrowUpDown />
             </span>
           );
         },
         cell: ({ row }) => {
           const label = row.original.Bank?.label ?? "pas de label";
-          return <div className="font-medium">{label}</div>;
+          return <p className="normal-case">{label}</p>;
         },
       },
       {
@@ -158,7 +156,7 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
               }
             >
               Type
-              {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -182,7 +180,7 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
               }
             >
               Mode
-              {/* <ArrowUpDown className="ml-2 h-4 w-4" /> */}
+              <ArrowUpDown />
             </span>
           );
         },
@@ -203,18 +201,15 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
       },
       {
         id: "actions",
-        header: () => <span className="tablehead">Action</span>,
+        header: () => <span className="tablehead">{"Action"}</span>,
         enableHiding: false,
         cell: ({ row }) => {
           const signatair = row.original;
 
           return (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant={"outline"}>
-                  {"Actions"}
-                  <ChevronDown />
-                </Button>
+              <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+                <Ellipsis />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Actions</DropdownMenuLabel>
@@ -394,10 +389,7 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="border-r last:border-r-0"
-                    >
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

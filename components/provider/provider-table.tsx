@@ -96,9 +96,11 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       toast.success("Fournisseur supprimé avec succès !");
     },
     onError: (error: Error) => {
-      toast.error(error.message === "Cannot Delete Provider with active processes" ?
-        "Impossible de supprimer le fournisseur car il est lié à un ou plusieurs bons de commande" :
-        error.message);
+      toast.error(
+        error.message === "Cannot Delete Provider with active processes"
+          ? "Impossible de supprimer le fournisseur car il est lié à un ou plusieurs bons de commande"
+          : error.message,
+      );
     },
   });
 
@@ -522,16 +524,13 @@ export function ProviderTable({ data }: ProvidersTableProps) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead
-                      key={header.id}
-                      className="border-r last:border-r-0"
-                    >
+                    <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -546,10 +545,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="border-r last:border-r-0"
-                    >
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

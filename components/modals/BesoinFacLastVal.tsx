@@ -1,8 +1,10 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -18,6 +20,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
@@ -30,30 +33,22 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Textarea } from "@/components/ui/textarea";
-import { useStore } from "@/providers/datastore";
+import { queryKeys } from "@/lib/query-keys";
+import { categoryQ } from "@/queries/categoryModule";
+import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
-import {
-  Category,
-  PaymentRequest,
-  PayType,
-  ProjectT,
-  RequestModelT,
-  User,
-} from "@/types/types";
+import { RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { CalendarIcon, LoaderIcon } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
-import { SearchableSelect } from "../base/searchableSelect";
 import BeneficiairesList from "../besoin/AddBenef";
 import FilesUpload from "../comp-547";
-import { Calendar } from "../ui/calendar";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -61,6 +56,7 @@ import { Calendar } from "../ui/calendar";
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);
+
 const SingleFileSchema = z
   .array(
     z.union([
@@ -71,16 +67,9 @@ const SingleFileSchema = z
   .max(1, "Pas plus d'un document");
 
 const formSchema = z.object({
-  beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
-  projet: z.string().min(1, "Le projet est requis"),
   delai: z.date().min(today, "Le delai d'exécution doit être dans le futur"),
-  title: z.string().min(1, "Le titre est requis"),
-  description: z.string().min(1, "La description est requise"),
   priority: z.enum(["low", "medium", "high", "urgent"]),
   justificatif: SingleFileSchema,
-  categoryId: z.coerce.number({
-    message: "Veuillez sélectionner une catégorie",
-  }),
   paytype: z.enum(["cash", "chq", "ov"], {
     required_error: "Sélectionner le moyen de payement",
     invalid_type_error: "Sélectionner le moyen de payement",
@@ -92,9 +81,7 @@ interface UpdateFacilitationRequestProps {
   setOpen: (open: boolean) => void;
   requestData: RequestModelT;
   onSuccess?: () => void;
-  projects: ProjectT[];
   users: User[];
-  categories: Category[];
 }
 
 export default function BesoinFacLastVal({
@@ -102,19 +89,28 @@ export default function BesoinFacLastVal({
   setOpen,
   requestData,
   onSuccess,
-  projects,
   users,
-  categories,
 }: UpdateFacilitationRequestProps) {
-  const { user } = useStore();
-
   const [openCalendar, setOpenCalendar] = useState(false);
   const [beneficiairesList, setBeneficiairesList] = useState<
     { id: number; nom: string; montant: number }[]
   >([]);
-  const [isFormInitialized, setIsFormInitialized] = useState(false);
 
-  const USERS = users.filter((u) => u.verified) || [];
+  const getCategory = useQuery({
+    queryKey: queryKeys.category(requestData.categoryId!),
+    queryFn: () => categoryQ.getCategory(requestData.categoryId!),
+    enabled: !!requestData.categoryId,
+  });
+
+  const getProject = useQuery({
+    queryKey: queryKeys.project(requestData.projectId!),
+    queryFn: () => projectQ.getOne(requestData.projectId!),
+    enabled: !!requestData.projectId,
+  });
+
+  const beneficiary = users.find(
+    (u) => u.id === Number(requestData.beneficiary),
+  );
 
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
@@ -122,14 +118,9 @@ export default function BesoinFacLastVal({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      beneficiaire: "",
-      projet: requestData.projectId?.toString() || "",
       delai: new Date(),
       justificatif: [],
-      title: requestData.label || "",
-      description: requestData.description || "",
-      priority: requestData.priority,
-      categoryId: requestData.categoryId,
+      priority: requestData.priority || "medium",
       paytype: undefined,
     },
   });
@@ -137,105 +128,44 @@ export default function BesoinFacLastVal({
   // ----------------------------------------------------------------------
   // INITIALISATION DES DONNÉES
   // ----------------------------------------------------------------------
-
   useEffect(() => {
-    if (requestData && open && USERS.length > 0) {
-      const initializeForm = async () => {
-        try {
-          // Récupérer la liste des bénéficiaires depuis benFac
-          if (requestData.benFac?.list) {
-            setBeneficiairesList(
-              requestData.benFac.list.map((item: any) => ({
-                id: item.id,
-                nom: item.name,
-                montant: item.amount,
-              })),
-            );
-          }
-
-          // Réinitialiser le formulaire avec les valeurs
-          form.reset({
-            beneficiaire: requestData.beneficiary?.toString() || "",
-            projet: requestData.projectId?.toString() || "",
-            categoryId: requestData.categoryId,
-            paytype: undefined,
-            delai: requestData.dueDate
-              ? new Date(requestData.dueDate)
-              : new Date(),
-            justificatif: requestData.proof,
-            title: requestData.label || "",
-            description: requestData.description || "",
-            priority: requestData.priority || "medium",
-          });
-
-          setIsFormInitialized(true);
-        } catch (error) {
-          console.error(
-            "Erreur lors de l'initialisation du formulaire:",
-            error,
-          );
-          toast.error("Erreur lors du chargement des données");
-        }
-      };
-
-      initializeForm();
-    } else {
-      setIsFormInitialized(false);
+    if (requestData && open) {
+      if (requestData.benFac?.list) {
+        setBeneficiairesList(
+          requestData.benFac.list.map((item: any) => ({
+            id: item.id,
+            nom: item.name,
+            montant: item.amount,
+          })),
+        );
+      }
+      form.reset({
+        paytype: undefined,
+        delai: requestData.dueDate ? new Date(requestData.dueDate) : new Date(),
+        justificatif: requestData.proof,
+        priority: requestData.priority || "medium",
+      });
     }
-  }, [requestData, open, USERS.length, form]);
+  }, [requestData, open, form]);
 
   // ----------------------------------------------------------------------
-  // UPDATE MUTATION
+  // MUTATION
   // ----------------------------------------------------------------------
-
-  const validator = categories
-    .find((cat) => cat.id === requestData?.categoryId)
-    ?.validators?.find((v) => v.userId === user?.id);
-
   const validateRequest = useMutation({
     mutationFn: async ({
       id,
-      validator,
+      request,
     }: {
       id: number;
-      validator:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
-    }) => {
-      await requestQ.validate(id, validator?.id!, validator);
-    },
+      request: Partial<RequestModelT>;
+    }) => requestQ.validate({ id, request }),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
       setOpen(false);
+      onSuccess?.();
     },
     onError: () => {
       toast.error("Erreur lors de la validation");
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async (data: Partial<RequestModelT>) => {
-      if (!requestData?.id) throw new Error("ID de la demande manquant");
-      return requestQ.specialUpdate(data, Number(requestData.id));
-    },
-
-    onSuccess: () => {
-      validateRequest.mutateAsync({
-        id: requestData?.id!,
-        validator: validator,
-      });
-      //setOpen(false);
-
-      onSuccess?.();
-    },
-
-    onError: (error: any) => {
-      console.error("Erreur lors de la validation:", error);
-      toast.error("Une erreur est survenue lors de la validation.");
     },
   });
 
@@ -245,35 +175,23 @@ export default function BesoinFacLastVal({
       return;
     }
 
-    // Préparation des données pour la mise à jour
-    const requestDataUpdate: Partial<RequestModelT> = {
-      label: values.title,
-      description: values.description,
-      categoryId: values.categoryId,
-      paytype: values.paytype,
-      quantity: 1,
-      unit: "unit",
-      beneficiary: values.beneficiaire,
-      benef: Array(user?.id),
-      userId: requestData.userId,
-      dueDate: values.delai,
-      projectId: Number(values.projet),
-      proof: values.justificatif,
-      amount: beneficiairesList.reduce((total, b) => total + b.montant, 0),
-      type: "facilitation",
-      // Garder les valeurs originales pour les champs non modifiables
-      state: requestData?.state || "pending",
-      priority: values.priority,
-      benFac: {
-        list: beneficiairesList.map((b) => ({
-          id: b.id,
-          name: b.nom,
-          amount: b.montant,
-        })),
+    validateRequest.mutate({
+      id: requestData.id,
+      request: {
+        paytype: values.paytype,
+        dueDate: values.delai,
+        proof: values.justificatif,
+        amount: beneficiairesList.reduce((total, b) => total + b.montant, 0),
+        priority: values.priority,
+        benFac: {
+          list: beneficiairesList.map((b) => ({
+            id: b.id,
+            name: b.nom,
+            amount: b.montant,
+          })),
+        },
       },
-    };
-
-    updateMutation.mutate(requestDataUpdate);
+    });
   }
 
   // ----------------------------------------------------------------------
@@ -282,7 +200,6 @@ export default function BesoinFacLastVal({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-3xl">
-        {/* Header - FIXE EN HAUT */}
         <DialogHeader>
           <DialogTitle>{"Approbation"}</DialogTitle>
           <DialogDescription>
@@ -291,129 +208,65 @@ export default function BesoinFacLastVal({
         </DialogHeader>
 
         <Form {...form}>
-          {/* Contenu scrollable */}
-          <div className="flex flex-col @min-[640px]/dialog:grid @min-[640px]/dialog:grid-cols-2 gap-4">
-            {/* PROJET */}
-            <FormField
-              control={form.control}
-              name="projet"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Projet concerné"}</FormLabel>
-                  <SearchableSelect
-                    disabled={true}
-                    onChange={field.onChange}
-                    options={
-                      projects
-                        .filter(
-                          (p) =>
-                            p.status !== "cancelled" &&
-                            p.status !== "Completed" &&
-                            p.status !== "on-hold",
-                        )
-                        .map((p) => ({
-                          value: p.id!.toString(),
-                          label: p.label,
-                        })) ?? []
-                    }
-                    value={field.value}
-                    width="w-full"
-                    allLabel=""
-                    placeholder="Sélectionner un projet"
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3"
+            id="fac-approval-form"
+          >
+            {/* TITRE - static */}
+            <div className="grid gap-2">
+              <Label>{"Titre"}</Label>
+              <Input value={requestData.label || ""} disabled />
+            </div>
 
-            {/* Category */}
-            <FormField
-              control={form.control}
-              name="categoryId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Categorie"}</FormLabel>
-                  <FormControl>
-                    <Select
-                      defaultValue={
-                        field.value ? String(field.value) : undefined
-                      }
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="min-w-60 w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {categories.filter(
-                          (c) => c.type.type === "facilitation",
-                        ).length === 0 ? (
-                          <SelectItem value="#" disabled>
-                            {"Aucune catégorie enregistrée"}
-                          </SelectItem>
-                        ) : (
-                          categories
-                            .filter((c) => c.type.type === "facilitation")
-                            .map((category) => (
-                              <SelectItem
-                                key={category.id}
-                                value={category.id.toString()}
-                              >
-                                {category.label}
-                              </SelectItem>
-                            ))
-                        )}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* BÉNÉFICIAIRE - static */}
+            <div className="grid gap-2">
+              <Label>{"Récepteur pour compte"}</Label>
+              <Input
+                disabled
+                value={
+                  beneficiary
+                    ? `${beneficiary.firstName} ${beneficiary.lastName}`
+                    : "--"
+                }
+              />
+            </div>
 
-            {/* TITLE */}
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Titre"} </FormLabel>
-                  <Input
-                    {...field}
-                    placeholder="ex. Achat du carburant groupe"
-                    disabled={true}
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* CATÉGORIE - static */}
+            <div className="grid gap-2">
+              <Label>{"Catégorie"}</Label>
+              <Input
+                disabled
+                value={
+                  getCategory.isLoading
+                    ? "..chargement"
+                    : getCategory.data
+                      ? getCategory.data.data.label
+                      : "--"
+                }
+              />
+            </div>
 
-            {/* BENEFICIAIRE */}
-            <FormField
-              control={form.control}
-              name="beneficiaire"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Recepteur pour compte"}</FormLabel>
-                  <Select
-                    value={field.value}
-                    onValueChange={field.onChange}
-                    disabled={true}
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner un recepteur pour compte" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {USERS.map((user) => (
-                        <SelectItem key={user.id} value={user.id!.toString()}>
-                          {user.lastName + " " + user.firstName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* PROJET - static */}
+            <div className="grid gap-2">
+              <Label>{"Projet concerné"}</Label>
+              <Input
+                disabled
+                value={
+                  getProject.isLoading
+                    ? "..chargement"
+                    : getProject.data
+                      ? getProject.data.data.label
+                      : "--"
+                }
+              />
+            </div>
+
+            {/* DESCRIPTION - static */}
+            <div className="grid gap-2 @min-[540px]/dialog:col-span-2">
+              <Label>{"Description / Détail"}</Label>
+              <Input value={requestData.description || ""} disabled />
+            </div>
 
             {/* DELAI */}
             <FormField
@@ -457,7 +310,7 @@ export default function BesoinFacLastVal({
               )}
             />
 
-            {/* Priorite */}
+            {/* PRIORITÉ */}
             <FormField
               control={form.control}
               name="priority"
@@ -487,33 +340,7 @@ export default function BesoinFacLastVal({
               )}
             />
 
-            {/* Description/Détail */}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem className="@min-[640px]/dialog:col-span-2">
-                  <FormLabel isRequired>{"Description/Détail"}</FormLabel>
-                  <Textarea
-                    disabled={true}
-                    {...field}
-                    placeholder="Décrivez le besoin"
-                  />
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* LISTE DES BÉNÉFICIAIRES */}
-            <div className="@min-[640px]/dialog:col-span-2">
-              <BeneficiairesList
-                onBeneficiairesChange={setBeneficiairesList}
-                initialBeneficiaires={beneficiairesList}
-                disabledName={true}
-              />
-            </div>
-
-            {/* Moyen de paiement */}
+            {/* MOYEN DE PAIEMENT */}
             <FormField
               control={form.control}
               name="paytype"
@@ -542,12 +369,21 @@ export default function BesoinFacLastVal({
               )}
             />
 
+            {/* LISTE DES BÉNÉFICIAIRES */}
+            <div className="@min-[540px]/dialog:col-span-2">
+              <BeneficiairesList
+                onBeneficiairesChange={setBeneficiairesList}
+                initialBeneficiaires={beneficiairesList}
+                disabledName={true}
+              />
+            </div>
+
             {/* JUSTIFICATIF */}
             <FormField
               control={form.control}
               name="justificatif"
               render={({ field }) => (
-                <FormItem className="@min-[640px]/dialog:col-span-2">
+                <FormItem className="@min-[540px]/dialog:col-span-2">
                   <FormLabel>{"Justificatif"}</FormLabel>
                   <FormControl>
                     <FilesUpload
@@ -564,28 +400,24 @@ export default function BesoinFacLastVal({
                 </FormItem>
               )}
             />
-          </div>
 
-          {/* Boutons - FIXE EN BAS */}
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-              disabled={updateMutation.isPending}
-            >
-              {"Annuler"}
-            </Button>
-            <Button
-              type="submit"
-              disabled={updateMutation.isPending || !isFormInitialized}
-              variant={"success"}
-              onClick={() => form.handleSubmit(onSubmit)()}
-              isLoading={updateMutation.isPending}
-            >
-              {"Approuver la demande"}
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="@min-[540px]/dialog:col-span-2">
+              <DialogClose asChild>
+                <Button type="button" variant="outline">
+                  {"Annuler"}
+                </Button>
+              </DialogClose>
+              <Button
+                type="submit"
+                disabled={validateRequest.isPending}
+                variant={"success"}
+                isLoading={validateRequest.isPending}
+                form="fac-approval-form"
+              >
+                {"Approuver la demande"}
+              </Button>
+            </DialogFooter>
+          </form>
         </Form>
       </DialogContent>
     </Dialog>

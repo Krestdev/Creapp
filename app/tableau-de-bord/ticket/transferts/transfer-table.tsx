@@ -1,5 +1,7 @@
 "use client";
 import { Pagination } from "@/components/base/pagination";
+import { TabBar } from "@/components/base/TabBar";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -17,13 +19,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -64,16 +59,15 @@ import {
   ArrowUpDown,
   CheckCircleIcon,
   ChevronDown,
+  Ellipsis,
   EyeIcon,
   Settings2,
   TrashIcon,
 } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
-import RejectDialog from "./reject-dialog";
-import { TabBar } from "@/components/base/TabBar";
-import { Badge } from "@/components/ui/badge";
 import ViewTransaction from "../../banques/transactions/view-transaction";
+import RejectDialog from "./reject-dialog";
 import { SoldeDialog } from "./SoldeDialog";
 
 interface Props {
@@ -237,7 +231,7 @@ function TransferTable({ data, users }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.id;
-        return <span>{`TR-${value}`}</span>;
+        return <p className="normal-case">{`TR-${value}`}</p>;
       },
     },
     {
@@ -255,7 +249,7 @@ function TransferTable({ data, users }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.label;
-        return <span className="font-medium">{value}</span>;
+        return <p className="normal-case">{value}</p>;
       },
     },
     {
@@ -275,16 +269,16 @@ function TransferTable({ data, users }: Props) {
         const value = row.original.amount;
         const type = row.original.Type;
         return (
-          <span
+          <p
             className={cn(
-              "font-bold",
+              "font-bold normal-case",
               type === "CREDIT"
                 ? "text-green-600"
                 : type === "DEBIT" && "text-red-600",
             )}
           >
             {XAF.format(value)}
-          </span>
+          </p>
         );
       },
     },
@@ -305,7 +299,7 @@ function TransferTable({ data, users }: Props) {
         const source = row.original.from;
         const destination = row.original.to;
         return (
-          <span className="flex items-center gap-1.5">
+          <span className="normal-case flex items-center gap-1.5">
             {source.label}
             <ArrowRightIcon size={12} />
             {destination.label}
@@ -329,9 +323,9 @@ function TransferTable({ data, users }: Props) {
       cell: ({ row }) => {
         const value = row.original.createdAt;
         return (
-          <span>
+          <p className="normal-case">
             {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
-          </span>
+          </p>
         );
       },
     },
@@ -378,11 +372,8 @@ function TransferTable({ data, users }: Props) {
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
@@ -764,10 +755,7 @@ function TransferTable({ data, users }: Props) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead
-                      key={header.id}
-                      className="border-r last:border-r-0"
-                    >
+                    <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -788,10 +776,7 @@ function TransferTable({ data, users }: Props) {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="border-r last:border-r-0"
-                    >
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

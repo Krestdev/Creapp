@@ -1,32 +1,22 @@
 "use client";
+import { TabBar } from "@/components/base/TabBar";
+import {
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { PaiementsTable } from "@/components/tables/PaiementsTable";
-import { Button } from "@/components/ui/button";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import { queryKeys } from "@/lib/query-keys";
+import { XAF } from "@/lib/utils";
 import { paymentQ } from "@/queries/payment";
 import { providerQ } from "@/queries/providers";
 import { purchaseQ } from "@/queries/purchase-order";
 import { DateFilter, NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import { Settings2 } from "lucide-react";
-import PaymentFilters, { PaymentFiltersProps } from "./paymentFilters";
 import React from "react";
-import {
-  StatisticCard,
-  StatisticProps,
-} from "@/components/base/TitleValueCard";
-import { XAF } from "@/lib/utils";
-import { TabBar } from "@/components/base/TabBar";
+import { PaymentFiltersProps } from "./paymentFilters";
 
 function Page() {
   const links: Array<NavLink> = [
@@ -221,31 +211,6 @@ function Page() {
           color={"red"}
           links={links}
         />
-        <Sheet>
-          <SheetTrigger asChild className="w-fit">
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent className="px-3">
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les filtres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <PaymentFilters
-              customFilters={customFilters}
-              setCustomFilters={setCustomFilters}
-              isCustomDateModalOpen={isCustomDateModalOpen}
-              setIsCustomDateModalOpen={setIsCustomDateModalOpen}
-              providers={getProviders.data.data}
-              setDateFilter={setDateFilter}
-              resetAllFilters={resetAllFilters}
-            />
-          </SheetContent>
-        </Sheet>
         <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
           {Statistics.map((data, id) => (
             <StatisticCard key={id} {...data} className="h-full" />
@@ -272,6 +237,15 @@ function Page() {
               });
             },
             rowCount: getPayments.data.count,
+          }}
+          filters={{
+            customFilters,
+            setCustomFilters,
+            isCustomDateModalOpen,
+            setIsCustomDateModalOpen,
+            providers: getProviders.data.data,
+            setDateFilter,
+            resetAllFilters,
           }}
         />
       </div>

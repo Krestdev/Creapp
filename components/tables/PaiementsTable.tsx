@@ -3,24 +3,32 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  PaginationOptions,
-  PaginationState,
-  type SortingState,
-  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-
   getSortedRowModel,
+  PaginationOptions,
+  PaginationState,
+  type SortingState,
   useReactTable,
+  type VisibilityState,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, Eye, LucidePen, Trash } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  Ellipsis,
+  Eye,
+  LucidePen,
+  Settings2,
+  Trash,
+} from "lucide-react";
 import * as React from "react";
 
 import EditPayment from "@/app/tableau-de-bord/(accounting)/factures/paiements/edit-payment";
 import EditPaymentMethod from "@/app/tableau-de-bord/(accounting)/factures/paiements/edit-payment-method";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -48,11 +56,23 @@ import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import DetailPaiement from "../modals/detail-paiement";
 import { ModalWarning } from "../modals/modal-warning";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "../ui/sheet";
+import PaymentFilters, {
+  PaymentFiltersProps,
+} from "@/app/tableau-de-bord/(accounting)/factures/paiements/paymentFilters";
 
 interface Props {
   payments: Array<PaymentRequest>;
   pagination: PaginationState;
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
+  filters: PaymentFiltersProps;
 }
 
 const getPriorityBadge = (
@@ -133,7 +153,11 @@ export function PaiementsTable({
   payments,
   pagination,
   paginationOptions,
+  filters,
 }: Props) {
+  const [search, setSearch] = React.useState<string>(
+    filters.customFilters.search,
+  );
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -181,7 +205,7 @@ export function PaiementsTable({
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("reference")}</div>
+        <p className="normal-case">{row.getValue("reference")}</p>
       ),
     },
     {
@@ -200,14 +224,10 @@ export function PaiementsTable({
       cell: ({ row }) => {
         const value = row.original;
         const purchase = value.facture?.command;
-        return (
-          <div>
-            {subText({
-              text: purchase?.devi.commandRequest.title ?? "--",
-              length: 21,
-            })}
-          </div>
-        );
+        return subText({
+          text: purchase?.devi.commandRequest.title ?? "--",
+          length: 21,
+        });
       },
     },
     {
@@ -226,7 +246,7 @@ export function PaiementsTable({
       cell: ({ row }) => {
         const value = row.original;
         const providerName = value.facture?.command.provider.name ?? "--";
-        return <div>{providerName}</div>;
+        return providerName;
       },
     },
     {
@@ -244,7 +264,7 @@ export function PaiementsTable({
       },
       cell: ({ row }) => {
         const value = row.getValue("price");
-        return <div className="font-medium">{XAF.format(Number(value))}</div>;
+        return <p className="normal-case">{XAF.format(Number(value))}</p>;
       },
     },
     {
@@ -299,9 +319,9 @@ export function PaiementsTable({
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">
+        <p className="normal-case">
           {format(row.getValue("createdAt"), "dd/MM/yyyy")}
-        </div>
+        </p>
       ),
     },
     {
@@ -313,11 +333,8 @@ export function PaiementsTable({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
@@ -419,7 +436,59 @@ export function PaiementsTable({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            placeholder="Titre, référence"
+            type="search"
+            value={search}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              if (e.target.value === "") {
+                filters.setCustomFilters({
+                  ...filters.customFilters,
+                  search: "",
+                });
+              }
+            }}
+            className="w-full sm:w-[250px] h-9"
+          />
+          <Button
+            onClick={() => {
+              filters.setCustomFilters({
+                ...filters.customFilters,
+                search: search,
+              });
+            }}
+          >
+            {"Rechercher"}
+          </Button>
+          <Sheet>
+            <SheetTrigger asChild className="w-fit">
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent className="px-3">
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les filtres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <PaymentFilters
+                customFilters={filters.customFilters}
+                setCustomFilters={filters.setCustomFilters}
+                isCustomDateModalOpen={filters.isCustomDateModalOpen}
+                setIsCustomDateModalOpen={filters.setIsCustomDateModalOpen}
+                providers={filters.providers}
+                setDateFilter={filters.setDateFilter}
+                resetAllFilters={filters.resetAllFilters}
+              />
+            </SheetContent>
+          </Sheet>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">
@@ -470,10 +539,7 @@ export function PaiementsTable({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead
-                      key={header.id}
-                      className="border-r last:border-r-0"
-                    >
+                    <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -497,10 +563,7 @@ export function PaiementsTable({
                   )}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="border-r last:border-r-0"
-                    >
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

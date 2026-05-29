@@ -16,28 +16,29 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import SignTransfers from "./sign-transfers";
 import { userQ } from "@/queries/baseModule";
+import { queryKeys } from "@/lib/query-keys";
 
 function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: ["transactions"],
+    queryKey: queryKeys.transactions,
     queryFn: transactionQ.getAll,
   });
 
   const signatair = useQuery({
-    queryKey: ["signataires"],
+    queryKey: queryKeys.signataires,
     queryFn: signatairQ.getAll,
   });
   const getBanks = useQuery({
-    queryKey: ["banks"],
+    queryKey: queryKeys.banks,
     queryFn: bankQ.getAll,
   });
   const getPayType = useQuery({
-    queryKey: ["paymentTypes"],
+    queryKey: queryKeys.paymentTypes,
     queryFn: payTypeQ.getAll,
   });
 
   const getUsers = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
 

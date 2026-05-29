@@ -585,43 +585,46 @@ export function DetailBesoin({
                       ? "À Réceptionner par"
                       : "Bénéficiaires"}
                 </p>
-                {data.type === "facilitation" ? (
-                  <p className="font-semibold capitalize">
-                    {users.find((u) => u.id === Number(data.beneficiary))
-                      ?.firstName +
-                      " " +
-                      users.find((u) => u.id === Number(data.beneficiary))
-                        ?.lastName}
-                  </p>
-                ) : (
-                  <div className="flex flex-col">
-                    {data.beneficiary === "me" ? (
+                <div className="flex flex-col">
+                  {data.beneficiary.length > 0 ? (
+                    data.beneficiary === "me" ? (
                       <p className="font-semibold capitalize">
-                        {data.requestOlds && data.requestOlds[0].userId
-                          ? getUserName(data.requestOlds[0].userId.toString())
-                          : "Introuvable"}
+                        {data.user?.firstName + " " + data.user?.lastName}
                       </p>
                     ) : (
-                      <div className="flex flex-col">
-                        {data.beficiaryList?.map((ben) => {
-                          const beneficiary = users.find(
-                            (x) => x.id === ben.id,
-                          );
-                          return (
-                            <p
-                              key={ben.id}
-                              className="font-semibold capitalize"
-                            >{`${
-                              beneficiary?.firstName +
-                                " " +
-                                beneficiary?.lastName || ben.id
-                            }`}</p>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
+                      <p className="font-semibold capitalize">
+                        {users.find((u) => u.id === Number(data.beneficiary))
+                          ?.firstName +
+                          " " +
+                          users.find((u) => u.id === Number(data.beneficiary))
+                            ?.lastName}
+                      </p>
+                    )
+                  ) : data.beficiaryList && data.beficiaryList.length > 0 ? (
+                    data.beficiaryList.map((ben) => {
+                      const beneficiary = users.find((x) => x.id === ben.id);
+                      return (
+                        <p
+                          key={ben.id}
+                          className="font-semibold capitalize"
+                        >{`${
+                          beneficiary?.firstName +
+                            " " +
+                            beneficiary?.lastName || ben.id
+                        }`}</p>
+                      );
+                    })
+                  ) : data.benFac ? (
+                    data.benFac.list.map((ben) => {
+                      return (
+                        <p
+                          key={ben.id}
+                          className="font-semibold capitalize"
+                        >{`${ben?.name} - ${XAF.format(ben?.amount)}`}</p>
+                      );
+                    })
+                  ) : null}
+                </div>
               </div>
             </div>
           )}

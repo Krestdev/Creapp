@@ -34,6 +34,15 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -54,18 +63,8 @@ import {
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import ViewRequest from "./view-request";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from "@/components/ui/sheet";
 import Filters, { RequestFiltersProps } from "./filters";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import ViewRequest from "./view-request";
 
 interface Props {
   data: Array<RequestModelT>;
@@ -99,6 +98,14 @@ export function RequestsTable({
       createdAt: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
+
+  const [searchText, setSearchText] = React.useState(
+    filters.customFilters.search ?? "",
+  );
+
+  React.useEffect(() => {
+    setSearchText(filters.customFilters.search ?? "");
+  }, [filters.customFilters.search]);
 
   // modal specific states
   const [selectedItem, setSelectedItem] = React.useState<RequestModelT>();
@@ -396,15 +403,37 @@ export function RequestsTable({
             placeholder="titre ou référence"
             name="search"
             type="search"
-            value={filters.customFilters.search ?? ""}
-            onChange={(event) =>
+            value={searchText}
+            onChange={(event) => {
+              setSearchText(event.target.value);
+              if (event.target.value === "") {
+                filters.setCustomFilters({
+                  ...filters.customFilters,
+                  search: "",
+                });
+              }
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                filters.setCustomFilters({
+                  ...filters.customFilters,
+                  search: searchText,
+                });
+              }
+            }}
+            className="w-full sm:w-[250px] h-9"
+          />
+          <Button
+            onClick={() => {
               filters.setCustomFilters({
                 ...filters.customFilters,
-                search: event.target.value,
-              })
-            }
-            className="w-full h-9"
-          />
+                search: searchText,
+              });
+            }}
+            className="h-9"
+          >
+            {"Rechercher"}
+          </Button>
           <Sheet>
             <SheetTrigger asChild className="w-fit">
               <Button variant={"outline"}>
@@ -491,17 +520,7 @@ export function RequestsTable({
                   {headerGroup.headers.map((header) => {
                     // if (header.column.)
                     return (
-                      <TableHead
-                        key={header.id}
-                        className="border-r last:border-r-0"
-                        // className={cn(
-                        //   "px-4 py-2 text-left border-b border-gray-200 bg-gray-100",
-                        //   header.column.columnDef.meta?.pinned === "left" &&
-                        //     "sticky left-0 z-10 bg-gray-100 shadow",
-                        //   header.column.columnDef.meta?.pinned === "right" &&
-                        //     "sticky right-0 z-10 bg-gray-100 shadow",
-                        // )}
-                      >
+                      <TableHead key={header.id}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -526,10 +545,7 @@ export function RequestsTable({
                     className={cn(className)}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className="border-r last:border-r-0"
-                      >
+                      <TableCell key={cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),

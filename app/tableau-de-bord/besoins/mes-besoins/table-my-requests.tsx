@@ -23,7 +23,7 @@ import {
   Eye,
   LucideBan,
   LucidePen,
-  XCircle
+  XCircle,
 } from "lucide-react";
 import * as React from "react";
 
@@ -113,6 +113,7 @@ interface Props {
   users: Array<User>;
   receptions: Array<Reception>;
   purchaseOrders: Array<BonsCommande>;
+  filters?: React.ReactNode;
 }
 
 export function TableMyRequests({
@@ -123,6 +124,7 @@ export function TableMyRequests({
   users,
   receptions,
   purchaseOrders,
+  filters,
 }: Props) {
   const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([
@@ -250,7 +252,9 @@ export function TableMyRequests({
                 <AsteriskIcon size={16} />
               </span>
             )}
-            <p className="first-letter:uppercase!">{subText({ text: row.getValue("label"), length: 21 })}</p>
+            <p className="first-letter:uppercase!">
+              {subText({ text: row.getValue("label"), length: 21 })}
+            </p>
           </div>
         );
       },
@@ -378,7 +382,7 @@ export function TableMyRequests({
             <DropdownMenu>
               <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
                 <Ellipsis />
-            </DropdownMenuTrigger>
+              </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
                 <DropdownMenuItem
@@ -499,7 +503,8 @@ export function TableMyRequests({
 
   return (
     <div className="content">
-      <div className="flex flex-wrap justify-between gap-4">
+      <div className="flex flex-wrap justify-between gap-4 items-center">
+        {filters}
         {/* Colonne de visibilité */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
@@ -551,10 +556,7 @@ export function TableMyRequests({
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead
-                        key={header.id}
-                        className="border-r last:border-r-0"
-                      >
+                      <TableHead key={header.id}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -579,10 +581,7 @@ export function TableMyRequests({
                     className={cn(config.rowClassName)}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className="border-r last:border-r-0"
-                      >
+                      <TableCell key={cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
@@ -659,7 +658,7 @@ export function TableMyRequests({
         onOpenChange={setIsCancelModalOpen}
         title="Annuler le besoin"
         description="Êtes-vous sûr de vouloir annuler ce besoin ?"
-        actionText="Annuler"
+        actionText="Confirmer"
         onAction={() => handleCancel()}
         name={selectedItem?.label}
         variant="error"

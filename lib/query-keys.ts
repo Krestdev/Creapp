@@ -42,6 +42,7 @@ export const queryKeys = {
   request: (id: number) => ["request", id] as const,
   dashboardStats: (...args: any[]) => ["dashboardStats", ...args] as const,
   dashboardGraph: (...args: any[]) => ["dashboardGraph", ...args] as const,
+  requestsForQuotation: ["requests-for-quotation"] as const,
 
   // ─── Request Types ──────────────────────────────────────────────────────────
   requestTypes: ["requestTypes"] as const,
@@ -65,6 +66,10 @@ export const queryKeys = {
   // ─── Quotations ────────────────────────────────────────────────────────────
   quotations: ["quotations"] as const,
   quotationToAssignCount: ["quotation-to-assign-count"] as const,
+
+  // ----QuotationRequest -----------------------
+  quotationRequests: ["quotations-requests"] as const,
+  quotationRequest : (id: number) => ["quotations-request", id] as const,
 
   // ─── Banks ─────────────────────────────────────────────────────────────────
   banks: ["banks"] as const,

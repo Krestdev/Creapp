@@ -46,7 +46,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { cn, XAF } from "@/lib/utils";
+import { cn, subText, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { ApproProps, transactionQ } from "@/queries/transaction";
 import { Bank, PaymentRequest } from "@/types/types";
@@ -212,9 +212,7 @@ function CashRequestForm({
 
         header: "Libellé",
 
-        cell: ({ row }) => (
-          <div className="line-clamp-1 text-base">{row.original.title}</div>
-        ),
+        cell: ({ row }) => subText({ text: row.original.title, length: 21 }),
       },
 
       {
@@ -223,9 +221,9 @@ function CashRequestForm({
         header: "Montant",
 
         cell: ({ row }) => (
-          <div className="font-semibold text-gray-800">
+          <p className="normal-case font-bold">
             {XAF.format(row.original.price ?? 0)}
-          </div>
+          </p>
         ),
       },
     ],

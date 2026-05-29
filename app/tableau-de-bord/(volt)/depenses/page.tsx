@@ -1,5 +1,4 @@
 "use client";
-import { TabBar } from "@/components/base/TabBar";
 import {
   StatisticCard,
   StatisticProps,
@@ -8,6 +7,7 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -47,6 +47,7 @@ function Page() {
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
     React.useState(false);
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+  const [searchText, setSearchText] = React.useState<string>("");
 
   const [customFilters, setCustomFilters] = React.useState<
     DepenseFiltersProps["customFilters"]
@@ -85,6 +86,7 @@ function Page() {
       to: "",
     });
     setDateFilter(undefined);
+    setSearchText("");
     setFilters({
       pageIndex: 0,
       pageSize: 15,
@@ -252,38 +254,38 @@ function Page() {
   ) {
     const Statistics: Array<StatisticProps> = [
       {
-        title: "Tickets en attente de traitement",
+        title: "En attente de traitement",
         value: getStats.data.validated.count,
         variant: "primary",
         more: {
-          title: "Montant total",
+          title: "Total",
           value: XAF.format(getStats.data.validated.sum),
         },
       },
       {
-        title: "Tickets payés",
-        value: getStats.data.paid.count,
-        variant: "success",
-        more: {
-          title: "Montant total",
-          value: XAF.format(getStats.data.paid.sum),
-        },
-      },
-      {
-        title: "Tickets traités",
+        title: "Traités",
         value: getStats.data.processed.count,
         variant: "secondary",
         more: {
-          title: "Montant total",
+          title: "Total",
           value: XAF.format(getStats.data.processed.sum),
         },
       },
       {
-        title: "Tickets annulés",
+        title: "Payés",
+        value: getStats.data.paid.count,
+        variant: "success",
+        more: {
+          title: "Total",
+          value: XAF.format(getStats.data.paid.sum),
+        },
+      },
+      {
+        title: "Annulés",
         value: getStats.data.cancelled.count,
         variant: "default",
         more: {
-          title: "Montant total",
+          title: "Total",
           value: XAF.format(getStats.data.cancelled.sum),
         },
       },
@@ -297,46 +299,11 @@ function Page() {
           color="red"
           links={links}
         />
-        <Sheet>
-          <SheetTrigger asChild className="w-fit">
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent className="px-3">
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les filtres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <DepenseFilters
-              customFilters={customFilters}
-              setCustomFilters={setCustomFilters}
-              isCustomDateModalOpen={isCustomDateModalOpen}
-              setIsCustomDateModalOpen={setIsCustomDateModalOpen}
-              users={getUsers.data.data}
-              providers={getProviders.data.data}
-              setDateFilter={setDateFilter}
-              resetAllFilters={resetAllFilters}
-            />
-          </SheetContent>
-        </Sheet>
-        <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
+        <div className="grid grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
           {Statistics.map((data, id) => (
-            <StatisticCard key={id} {...data} className="h-full" />
+            <StatisticCard key={id} {...data} className="h-full" hideMore />
           ))}
         </div>
-        <TabBar
-          tabs={tabs}
-          setSelectedTab={(value) => {
-            setCustomFilters({ ...customFilters, tab: value });
-            setFilters((prev) => ({ ...prev, pageIndex: 0 }));
-          }}
-          selectedTab={customFilters.tab}
-          className="w-fit"
-        />
         <ExpensesTable
           payments={data.data}
           requestTypes={getRequestType.data.data}
@@ -344,7 +311,6 @@ function Page() {
           providers={getProviders.data.data}
           users={getUsers.data.data}
           projects={getProjects.data.data}
-          activeTab={customFilters.tab}
           pagination={filters}
           paginationOptions={{
             onPaginationChange: (updater) => {
@@ -356,6 +322,70 @@ function Page() {
             },
             rowCount: data.count,
           }}
+          tabs={{
+            tabs,
+            selectedTab: customFilters.tab,
+            setSelectedTab: (value) => {
+              setCustomFilters({ ...customFilters, tab: value });
+              setFilters((prev) => ({ ...prev, pageIndex: 0 }));
+            },
+          }}
+          filters={
+            <div className="flex flex-wrap items-center gap-2">
+              <Input
+                placeholder="Titre, référence"
+                type="search"
+                value={searchText}
+                onChange={(e) => {
+                  setSearchText(e.target.value);
+                  if (e.target.value === "") {
+                    setCustomFilters({
+                      ...customFilters,
+                      search: "",
+                    });
+                  }
+                }}
+                className="w-full sm:w-[250px] h-9"
+              />
+              <Button
+                onClick={() => {
+                  setCustomFilters({
+                    ...customFilters,
+                    search: searchText,
+                  });
+                }}
+                className="h-9"
+              >
+                {"Rechercher"}
+              </Button>
+              <Sheet>
+                <SheetTrigger asChild className="w-fit">
+                  <Button variant={"outline"}>
+                    <Settings2 />
+                    {"Filtres"}
+                  </Button>
+                </SheetTrigger>
+                <SheetContent className="px-3">
+                  <SheetHeader>
+                    <SheetTitle>{"Filtres"}</SheetTitle>
+                    <SheetDescription>
+                      {"Configurer les filtres pour affiner les données"}
+                    </SheetDescription>
+                  </SheetHeader>
+                  <DepenseFilters
+                    customFilters={customFilters}
+                    setCustomFilters={setCustomFilters}
+                    isCustomDateModalOpen={isCustomDateModalOpen}
+                    setIsCustomDateModalOpen={setIsCustomDateModalOpen}
+                    users={getUsers.data.data}
+                    providers={getProviders.data.data}
+                    setDateFilter={setDateFilter}
+                    resetAllFilters={resetAllFilters}
+                  />
+                </SheetContent>
+              </Sheet>
+            </div>
+          }
         />
       </div>
     );

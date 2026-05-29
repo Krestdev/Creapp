@@ -98,52 +98,22 @@ export default function UpdatePaymentMethod({
   // ----------------------------------------------------------------------
   // UPDATE MUTATION
   // ----------------------------------------------------------------------
-  const validator = categories
-    .find((cat) => cat.id === requestData?.categoryId)
-    ?.validators?.find((v) => v.userId === user?.id);
-
   const validateRequest = useMutation({
     mutationFn: async ({
       id,
-      validator,
+      request,
     }: {
       id: number;
-      validator:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
-    }) => {
-      await requestQ.validate(id, validator?.id!, validator);
-    },
+      request: Partial<RequestModelT>;
+    }) => requestQ.validate({ id, request }),
     onSuccess: () => {
-      toast.success("Besoin approuvé avec succès !");
-    },
-    onError: () => {
-      toast.error("Erreur lors de la validation");
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async (data: Partial<RequestModelT>) => {
-      if (!requestData?.id) throw new Error("ID de la demande manquant");
-      return requestQ.specialUpdate(data, Number(requestData.id));
-    },
-
-    onSuccess: () => {
-      validateRequest.mutateAsync({
-        id: requestData?.id!,
-        validator: validator,
-      });
+      toast.success("Moyen de paiement mis à jour et besoin approuvé avec succès !");
       setOpen(false);
       onSuccess?.();
     },
-
     onError: (error: any) => {
       console.error("Erreur lors de la validation:", error);
-      toast.error("Une erreur est survenue lors de la validation.");
+      toast.error("Erreur lors de la validation");
     },
   });
 
@@ -153,26 +123,12 @@ export default function UpdatePaymentMethod({
       return;
     }
 
-    // Préparation des données pour la mise à jour - uniquement le moyen de paiement
-    const requestDataUpdate: Partial<RequestModelT> = {
-      paytype: values.paytype,
-      // Conserver toutes les autres données inchangées
-      label: requestData.label,
-      description: requestData.description,
-      categoryId: requestData.categoryId,
-      quantity: requestData.quantity,
-      unit: requestData.unit,
-      beneficiary: requestData.beneficiary,
-      userId: requestData.userId,
-      dueDate: requestData.dueDate,
-      projectId: requestData.projectId,
-      amount: requestData.amount,
-      type: requestData.type,
-      state: requestData.state,
-      priority: requestData.priority,
-    };
-
-    updateMutation.mutate(requestDataUpdate);
+    validateRequest.mutate({
+      id: Number(requestData.id),
+      request: {
+        paytype: values.paytype,
+      },
+    });
   }
 
   // ----------------------------------------------------------------------
@@ -226,7 +182,7 @@ export default function UpdatePaymentMethod({
                       <Select
                         value={field.value}
                         onValueChange={field.onChange}
-                        disabled={updateMutation.isPending}
+                        disabled={validateRequest.isPending}
                       >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Sélectionner un moyen de paiement" />
@@ -251,17 +207,17 @@ export default function UpdatePaymentMethod({
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
-              disabled={updateMutation.isPending}
+              disabled={validateRequest.isPending}
             >
               Annuler
             </Button>
             <Button
               type="submit"
-              disabled={updateMutation.isPending || !isFormInitialized}
+              disabled={validateRequest.isPending || !isFormInitialized}
               className="bg-green-500 hover:bg-green-600"
               onClick={form.handleSubmit(onSubmit)}
             >
-              {updateMutation.isPending ? (
+              {validateRequest.isPending ? (
                 <>
                   <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
                   Traitement...

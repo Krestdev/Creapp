@@ -13,8 +13,8 @@ export const computeQuotationGroupStatus = (
   if (!quotations.length) return "NOT_PROCESSED";
 
   const allInitial = quotations.every(
-    (q) => q.status === "PENDING" || q.status === "SUBMITTED",
-  );
+    (q) => q.status === "PENDING" || q.status === "SUBMITTED" && q.element.every(e=> e.status !== "SELECTED"),
+  ) ;
   if (allInitial) return "NOT_PROCESSED";
 
   const allFinal = quotations.every(

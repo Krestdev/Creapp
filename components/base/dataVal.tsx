@@ -105,6 +105,7 @@ import {
   SheetTrigger,
 } from "../ui/sheet";
 import { TabBar, TabProps } from "./TabBar";
+import TransportApprobation from "@/app/tableau-de-bord/besoins/transport-approbation";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -179,6 +180,7 @@ export function DataVal({
   >("approve");
   const [isUpdateSettleRequest, setIsUpdateSettleRequest] =
     React.useState(false);
+  const [isUpdateTransport, setIsUpdateTransport] = React.useState(false);
 
   // États pour les actions de groupe
   const [isGroupActionDialogOpen, setIsGroupActionDialogOpen] =
@@ -807,7 +809,7 @@ export function DataVal({
     }
 
     baseColumns.push({
-      id: "actions",
+      accessorKey: "actions",
       enableHiding: false,
       header: () => <span className="tablehead">{"Actions"}</span>,
       cell: ({ row }) => {
@@ -846,11 +848,14 @@ export function DataVal({
                           : item.type === "others"
                             ? (setSelectedItem(item),
                               setIsUpdateOtherRequest(true))
-                            : item.type === "settle"
+                            : item.type === "transport"
                               ? (setSelectedItem(item),
-                                setIsUpdateSettleRequest(true))
-                              : (setSelectedItem(item),
-                                setIsLastValModalOpen(true))
+                                setIsUpdateTransport(true))
+                              : item.type === "settle"
+                                ? (setSelectedItem(item),
+                                  setIsUpdateSettleRequest(true))
+                                : (setSelectedItem(item),
+                                  setIsLastValModalOpen(true))
                     : openValidationModal("approve", item)
                 }
                 disabled={
@@ -1046,10 +1051,7 @@ export function DataVal({
                 <TableRow key={headerGroup.id} className="bg-gray-50">
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead
-                        key={header.id}
-                        className="border-r last:border-r-0 py-3"
-                      >
+                      <TableHead key={header.id} className="">
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -1086,10 +1088,7 @@ export function DataVal({
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className="border-r last:border-r-0 py-3"
-                      >
+                      <TableCell key={cell.id} className="">
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),
@@ -1261,31 +1260,24 @@ export function DataVal({
             data={selectedItem}
             titre={"Approuver le besoin"}
             description={"Êtes-vous sûr de vouloir approuver ce besoin ?"}
-            categories={categoriesData}
           />
           <BesoinFacLastVal
             open={isUpdateFacModalOpen}
             setOpen={setIsUpdateFacModalOpen}
             requestData={selectedItem}
-            categories={categoriesData}
             users={usersData}
-            projects={projectsData}
           />
           <BesoinRHLastVal
             open={isUpdateRHModalOpen}
             setOpen={setIsUpdateRHModalOpen}
             requestData={selectedItem}
             users={usersData}
-            categories={categoriesData}
-            projects={projectsData}
           />
           <BesoinLastApproVall
             open={isUpdateApproModalOpen}
             setOpen={setIsUpdateApproModalOpen}
             requestData={selectedItem}
             users={usersData}
-            categories={categoriesData}
-            projects={projectsData}
           />
           <UpdatePaymentMethod
             open={isUpdatePaymentModalOpen}
@@ -1302,18 +1294,20 @@ export function DataVal({
           <BesoinLastValOther
             request={selectedItem}
             users={usersData}
-            categories={categoriesData}
-            projects={projectsData}
             open={isUpdateOtherRequest}
             setOpen={setIsUpdateOtherRequest}
           />
           <BesoinLastValSettle
             request={selectedItem}
             users={usersData}
-            categories={categoriesData}
-            projects={projectsData}
             open={isUpdateSettleRequest}
             setOpen={setIsUpdateSettleRequest}
+          />
+          <TransportApprobation
+            open={isUpdateTransport}
+            onOpenChange={setIsUpdateTransport}
+            request={selectedItem}
+            users={usersData}
           />
         </>
       )}

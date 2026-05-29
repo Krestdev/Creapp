@@ -1,6 +1,7 @@
 "use client";
 
 import { getSocket } from "@/lib/sockets";
+import { queryKeys } from "@/lib/query-keys";
 import { userQ } from "@/queries/baseModule";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -41,62 +42,74 @@ export default function SocketProvider({
      * Payments
      */
 
-    socket.on("payment:new", () => {
+    const invalidatePayments = () => {
       queryClient.invalidateQueries({
-        queryKey: ["payments"],
+        queryKey: queryKeys.payments(),
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["volt-pending-count"],
+        queryKey: queryKeys.paymentsStats(),
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["pending-depense-count"],
+        queryKey: queryKeys.depenses(),
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["payments-to-sign-count"],
+        queryKey: queryKeys.depensesStats(),
         refetchType: "active",
       });
-    });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tickets(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.ticketsStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.signatureRequests(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.signatureRequestsStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboardPaidData(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.approvisionnement(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.voltPendingCount,
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.pendingDepenseCount,
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.paymentsToSignCount,
+        refetchType: "active",
+      });
+      // Bank balances are affected by payments
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.banks,
+        refetchType: "active",
+      });
+      // Invoices payment status changes
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.invoices,
+        refetchType: "active",
+      });
+    };
 
-    socket.on("payment:update", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["payments"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["volt-pending-count"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["pending-depense-count"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["payments-to-sign-count"],
-        refetchType: "active",
-      });
-    });
-
-    socket.on("payment:delete", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["payments"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["volt-pending-count"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["pending-depense-count"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["payments-to-sign-count"],
-        refetchType: "active",
-      });
-    });
+    socket.on("payment:new", invalidatePayments);
+    socket.on("payment:update", invalidatePayments);
+    socket.on("payment:delete", invalidatePayments);
 
     /**
      * Requests
@@ -105,63 +118,153 @@ export default function SocketProvider({
     socket.on("request:new", (data: { userId?: number }) => {
       if (data && data.userId !== undefined) {
         queryClient.invalidateQueries({
-          queryKey: ["requests", data.userId],
-          refetchType: "active",
-        });
-        queryClient.invalidateQueries({
-          queryKey: ["requests-user", data.userId],
+          queryKey: queryKeys.requestsUser(data.userId),
           refetchType: "active",
         });
       } else {
         queryClient.invalidateQueries({
-          queryKey: ["requests-user"],
+          queryKey: queryKeys.requestsUser(),
           refetchType: "active",
         });
       }
       queryClient.invalidateQueries({
-        queryKey: ["requests-for-approval"],
+        queryKey: queryKeys.requests,
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["requests"],
+        queryKey: queryKeys.allRequests(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.allRequestsStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.requestsForApproval(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.requestsForApprovalStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboardStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboardGraph(),
         refetchType: "active",
       });
     });
 
     socket.on("request:update", () => {
       queryClient.invalidateQueries({
-        queryKey: ["requests"],
+        queryKey: queryKeys.requests,
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["requests-for-approval"],
+        queryKey: queryKeys.allRequests(),
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["pending-request-approvals-count"],
+        queryKey: queryKeys.allRequestsStats(),
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["service-requests-count"],
+        queryKey: queryKeys.requestsForApproval(),
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["requests", user?.id],
+        queryKey: queryKeys.requestsForApprovalStats(),
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["requests-user"],
+        queryKey: queryKeys.pendingRequestApprovalsCount,
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["payments"],
+        queryKey: queryKeys.serviceRequestsCount,
         refetchType: "active",
       });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.usableRequestsCount,
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.requestsUser(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboardStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboardGraph(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.payments(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.paymentsStats(),
+        refetchType: "active",
+      });
+      // Validation can generate transactions that affect bank balances
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.banks,
+        refetchType: "active",
+      });
+      // Invoices can be linked to request validation
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.invoices,
+        refetchType: "active",
+      });
+      // Conditions may change on validation
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.conditions,
+        refetchType: "active",
+      });
+      // Invalidate current user's requests
+      if (user?.id) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.requestsUser(user.id),
+          refetchType: "active",
+        });
+      }
     });
 
     socket.on("request:delete", () => {
       queryClient.invalidateQueries({
-        queryKey: ["requests"],
+        queryKey: queryKeys.requests,
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.allRequests(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.allRequestsStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.requestsForApproval(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.requestsForApprovalStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboardStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboardGraph(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.payments(),
         refetchType: "active",
       });
     });
@@ -170,154 +273,140 @@ export default function SocketProvider({
      * transaction
      */
 
-    socket.on("transaction:new", () => {
+    const invalidateTransactions = () => {
       queryClient.invalidateQueries({
-        queryKey: ["transactions"],
+        queryKey: queryKeys.transactions,
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["payments"],
+        queryKey: queryKeys.payments(),
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["pending-approvals-transactions-count"],
+        queryKey: queryKeys.paymentsStats(),
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["pending-to-sign-transfers-count"],
+        queryKey: queryKeys.approvisionnement(),
         refetchType: "active",
       });
-    });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.pendingApprovalsTransactionsCount,
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.pendingToSignTransfersCount,
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.pendingTransfersCount,
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.depenses(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.depensesStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.tickets(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.ticketsStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.signatureRequests(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.signatureRequestsStats(),
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.dashboardPaidData(),
+        refetchType: "active",
+      });
+      // Transactions always affect bank balances
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.banks,
+        refetchType: "active",
+      });
+    };
 
-    socket.on("transaction:update", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["transactions"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["payments"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["pending-approvals-transactions-count"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["pending-to-sign-transfers-count"],
-        refetchType: "active",
-      });
-    });
-
-    socket.on("transaction:delete", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["transactions"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["payments"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["pending-approvals-transactions-count"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["pending-to-sign-transfers-count"],
-        refetchType: "active",
-      });
-    });
+    socket.on("transaction:new", invalidateTransactions);
+    socket.on("transaction:update", invalidateTransactions);
+    socket.on("transaction:delete", invalidateTransactions);
 
     /**
      * commandrequests
      */
 
-    socket.on("command:new", () => {
+    const invalidateCommands = () => {
       queryClient.invalidateQueries({
-        queryKey: ["commands"],
+        queryKey: queryKeys.commands,
         refetchType: "active",
       });
-    });
+    };
+
+    socket.on("command:new", invalidateCommands);
 
     socket.on("command:update", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["commands"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["requests", user?.id],
-        refetchType: "active",
-      });
+      invalidateCommands();
+      if (user?.id) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.requestsUser(user.id),
+          refetchType: "active",
+        });
+      }
     });
 
-    socket.on("command:delete", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["commands"],
-        refetchType: "active",
-      });
-    });
+    socket.on("command:delete", invalidateCommands);
 
     /**
      * purchaseOrder
      */
 
-    socket.on("purchaseOrder:new", () => {
+    const invalidatePurchaseOrders = () => {
       queryClient.invalidateQueries({
-        queryKey: ["purchaseOrders"],
+        queryKey: queryKeys.purchaseOrders,
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["purchaseOrders-pending-count"],
+        queryKey: queryKeys.purchaseOrdersPendingCount,
         refetchType: "active",
       });
-    });
+      // Purchase orders generate invoices on approval
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.invoices,
+        refetchType: "active",
+      });
+    };
 
+    socket.on("purchaseOrder:new", invalidatePurchaseOrders);
     socket.on("purchaseOrder:update", () => {
       console.log("Purchasing");
-      queryClient.invalidateQueries({
-        queryKey: ["purchaseOrders"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["purchaseOrders-pending-count"],
-        refetchType: "active",
-      });
+      invalidatePurchaseOrders();
     });
-
-    socket.on("purchaseOrder:delete", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["purchaseOrders"],
-        refetchType: "active",
-      });
-      queryClient.invalidateQueries({
-        queryKey: ["purchaseOrders-pending-count"],
-        refetchType: "active",
-      });
-    });
+    socket.on("purchaseOrder:delete", invalidatePurchaseOrders);
 
     /**
      * bank
      */
 
-    socket.on("bank:new", () => {
+    const invalidateBanks = () => {
       queryClient.invalidateQueries({
-        queryKey: ["banks"],
+        queryKey: queryKeys.banks,
         refetchType: "active",
       });
-    });
+    };
 
-    socket.on("bank:update", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["banks"],
-        refetchType: "active",
-      });
-    });
-
-    socket.on("bank:delete", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["banks"],
-        refetchType: "active",
-      });
-    });
+    socket.on("bank:new", invalidateBanks);
+    socket.on("bank:update", invalidateBanks);
+    socket.on("bank:delete", invalidateBanks);
 
     /**
      * quotation
@@ -325,33 +414,45 @@ export default function SocketProvider({
 
     socket.on("quotation:new", () => {
       queryClient.invalidateQueries({
-        queryKey: ["quotations"],
+        queryKey: queryKeys.quotations,
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.quotationRequests,
         refetchType: "active",
       });
     });
 
     socket.on("quotation:update", () => {
       queryClient.invalidateQueries({
-        queryKey: ["quotations"],
+        queryKey: queryKeys.quotations,
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["pending-commandRequests-count"],
+        queryKey: queryKeys.quotationRequests,
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["commands"],
+        queryKey: queryKeys.pendingCommandRequestsCount,
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["quotation-to-assign-count"],
+        queryKey: queryKeys.commands,
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.quotationToAssignCount,
         refetchType: "active",
       });
     });
 
     socket.on("quotation:delete", () => {
       queryClient.invalidateQueries({
-        queryKey: ["quotations"],
+        queryKey: queryKeys.quotations,
+        refetchType: "active",
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.quotationRequests,
         refetchType: "active",
       });
     });
@@ -360,126 +461,76 @@ export default function SocketProvider({
      * provider
      */
 
-    socket.on("provider:new", () => {
+    const invalidateProviders = () => {
       queryClient.invalidateQueries({
-        queryKey: ["providers"],
+        queryKey: queryKeys.providers,
         refetchType: "active",
       });
-    });
+    };
 
-    socket.on("provider:update", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["providers"],
-        refetchType: "active",
-      });
-    });
-
-    socket.on("provider:delete", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["providers"],
-        refetchType: "active",
-      });
-    });
+    socket.on("provider:new", invalidateProviders);
+    socket.on("provider:update", invalidateProviders);
+    socket.on("provider:delete", invalidateProviders);
 
     /**
      * project
      */
 
-    socket.on("project:new", () => {
+    const invalidateProjects = () => {
       queryClient.invalidateQueries({
-        queryKey: ["projects"],
+        queryKey: queryKeys.projects,
         refetchType: "active",
       });
-    });
+    };
 
-    socket.on("project:update", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["projects"],
-        refetchType: "active",
-      });
-    });
-
-    socket.on("project:delete", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["projects"],
-        refetchType: "active",
-      });
-    });
+    socket.on("project:new", invalidateProjects);
+    socket.on("project:update", invalidateProjects);
+    socket.on("project:delete", invalidateProjects);
 
     /**
      * category
      */
 
-    socket.on("category:new", () => {
+    const invalidateCategories = () => {
       queryClient.invalidateQueries({
-        queryKey: ["categories"],
+        queryKey: queryKeys.categories,
         refetchType: "active",
       });
-    });
+    };
 
-    socket.on("category:update", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["categories"],
-        refetchType: "active",
-      });
-    });
-
-    socket.on("category:delete", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["categories"],
-        refetchType: "active",
-      });
-    });
+    socket.on("category:new", invalidateCategories);
+    socket.on("category:update", invalidateCategories);
+    socket.on("category:delete", invalidateCategories);
 
     /**
      * signatair
      */
 
-    socket.on("signatair:new", () => {
+    const invalidateSignataires = () => {
       queryClient.invalidateQueries({
-        queryKey: ["signataires"],
+        queryKey: queryKeys.signataires,
         refetchType: "active",
       });
-    });
+    };
 
-    socket.on("signatair:update", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["signataires"],
-        refetchType: "active",
-      });
-    });
-
-    socket.on("signatair:delete", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["signataires"],
-        refetchType: "active",
-      });
-    });
+    socket.on("signatair:new", invalidateSignataires);
+    socket.on("signatair:update", invalidateSignataires);
+    socket.on("signatair:delete", invalidateSignataires);
 
     /**
      * reception
      */
 
-    socket.on("reception:new", () => {
+    const invalidateReceptions = () => {
       queryClient.invalidateQueries({
-        queryKey: ["receptions"],
+        queryKey: queryKeys.receptions,
         refetchType: "active",
       });
-    });
+    };
 
-    socket.on("reception:update", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["receptions"],
-        refetchType: "active",
-      });
-    });
-
-    socket.on("reception:delete", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["receptions"],
-        refetchType: "active",
-      });
-    });
+    socket.on("reception:new", invalidateReceptions);
+    socket.on("reception:update", invalidateReceptions);
+    socket.on("reception:delete", invalidateReceptions);
 
     /**
      * user
@@ -487,7 +538,7 @@ export default function SocketProvider({
 
     socket.on("user:new", () => {
       queryClient.invalidateQueries({
-        queryKey: ["users"],
+        queryKey: queryKeys.users,
         refetchType: "active",
       });
     });
@@ -506,13 +557,23 @@ export default function SocketProvider({
       }
 
       queryClient.invalidateQueries({
-        queryKey: ["users"],
+        queryKey: queryKeys.users,
         refetchType: "active",
       });
       queryClient.invalidateQueries({
-        queryKey: ["requests-user"],
+        queryKey: queryKeys.requestsUser(),
         refetchType: "active",
       });
+      if (data?.userId) {
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.user(data.userId),
+          refetchType: "active",
+        });
+        queryClient.invalidateQueries({
+          queryKey: queryKeys.signature(data.userId),
+          refetchType: "active",
+        });
+      }
     });
 
     socket.on("user:delete", (data?: { userId: number }) => {
@@ -521,7 +582,7 @@ export default function SocketProvider({
         window.location.href = "/connexion";
       }
       queryClient.invalidateQueries({
-        queryKey: ["users"],
+        queryKey: queryKeys.users,
         refetchType: "active",
       });
     });
@@ -530,26 +591,16 @@ export default function SocketProvider({
      * vehicle
      */
 
-    socket.on("vehicle:new", () => {
+    const invalidateVehicles = () => {
       queryClient.invalidateQueries({
-        queryKey: ["vehicles"],
+        queryKey: queryKeys.vehicles,
         refetchType: "active",
       });
-    });
+    };
 
-    socket.on("vehicle:update", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["vehicles"],
-        refetchType: "active",
-      });
-    });
-
-    socket.on("vehicle:delete", () => {
-      queryClient.invalidateQueries({
-        queryKey: ["vehicles"],
-        refetchType: "active",
-      });
-    });
+    socket.on("vehicle:new", invalidateVehicles);
+    socket.on("vehicle:update", invalidateVehicles);
+    socket.on("vehicle:delete", invalidateVehicles);
 
     /**
      * driver
@@ -557,26 +608,70 @@ export default function SocketProvider({
 
     socket.on("driver:new", () => {
       queryClient.invalidateQueries({
-        queryKey: ["drivers"],
+        queryKey: queryKeys.drivers,
         refetchType: "active",
       });
     });
 
     socket.on("driver:update", () => {
       console.log("updating Drivers");
-
       queryClient.invalidateQueries({
-        queryKey: ["drivers"],
+        queryKey: queryKeys.drivers,
         refetchType: "active",
       });
     });
 
     socket.on("driver:delete", () => {
       queryClient.invalidateQueries({
-        queryKey: ["drivers"],
+        queryKey: queryKeys.drivers,
         refetchType: "active",
       });
     });
+
+    /**
+     * invoice
+     */
+
+    const invalidateInvoices = () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.invoices,
+        refetchType: "active",
+      });
+    };
+
+    socket.on("invoice:new", invalidateInvoices);
+    socket.on("invoice:update", invalidateInvoices);
+    socket.on("invoice:delete", invalidateInvoices);
+
+    /**
+     * service
+     */
+
+    const invalidateServices = () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.services,
+        refetchType: "active",
+      });
+    };
+
+    socket.on("service:new", invalidateServices);
+    socket.on("service:update", invalidateServices);
+    socket.on("service:delete", invalidateServices);
+
+    /**
+     * department
+     */
+
+    const invalidateDepartments = () => {
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.departmentList,
+        refetchType: "active",
+      });
+    };
+
+    socket.on("department:new", invalidateDepartments);
+    socket.on("department:update", invalidateDepartments);
+    socket.on("department:delete", invalidateDepartments);
 
     return () => {
       socket.off("notification:new");
@@ -625,6 +720,15 @@ export default function SocketProvider({
       socket.off("vehicle:new");
       socket.off("vehicle:update");
       socket.off("vehicle:delete");
+      socket.off("invoice:new");
+      socket.off("invoice:update");
+      socket.off("invoice:delete");
+      socket.off("service:new");
+      socket.off("service:update");
+      socket.off("service:delete");
+      socket.off("department:new");
+      socket.off("department:update");
+      socket.off("department:delete");
       socket.off("connect");
       socket.off("disconnect");
     };

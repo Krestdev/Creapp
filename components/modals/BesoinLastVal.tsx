@@ -1,4 +1,5 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -27,14 +28,13 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
-import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
-import { Category, RequestModelT, User } from "@/types/types";
+import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ChevronDownIcon } from "lucide-react";
+import { ChevronDownIcon, CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -43,19 +43,18 @@ import { Calendar } from "../ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Label } from "../ui/label";
 import { userQ } from "@/queries/baseModule";
+import { queryKeys } from "@/lib/query-keys";
+import { categoryQ } from "@/queries/categoryModule";
+import { projectQ } from "@/queries/projectModule";
 
-// Validation Zod
+// Validation Zod - Editable fields only
 const formSchema = z.object({
-  title: z.string().min(1, "Le titre est obligatoire"),
-  dueDate: z.date().optional(),
+  dueDate: z.date({ required_error: "La date limite est obligatoire" }),
   priority: z.enum(["medium", "high", "low", "urgent"], {
     required_error: "La priorité est obligatoire",
   }),
-  quantity: z.coerce
-    .number()
-    .refine((val) => val > 0, "La quantité doit être supérieure à 0"),
-  description: z.string().optional(),
-  unit: z.string().min(1, "L'unité est obligatoire"),
+  quantity: z.coerce.number().optional(),
+  unit: z.string().optional(),
   amount: z.coerce.number().optional(),
 });
 
@@ -65,9 +64,9 @@ interface ValidationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   data: RequestModelT;
-  titre: string | undefined;
-  description: string | undefined;
-  categories: Array<Category>;
+  titre?: string;
+  description?: string;
+  onSuccess?: () => void;
 }
 
 export function BesoinLastVal({
@@ -76,212 +75,199 @@ export function BesoinLastVal({
   data,
   titre,
   description,
-  categories,
+  onSuccess,
 }: ValidationModalProps) {
   const [openD, setOpenD] = useState(false);
-  const { user } = useStore();
 
+  // Queries to fetch metadata
   const getUser = useQuery({
     queryKey: ["user", data.userId],
     queryFn: () => userQ.getOne(data.userId),
+    enabled: open && !!data.userId,
+  });
+
+  const getCategory = useQuery({
+    queryKey: queryKeys.category(data.categoryId!),
+    queryFn: () => categoryQ.getCategory(data.categoryId!),
+    enabled: open && !!data.categoryId,
+  });
+
+  const getProject = useQuery({
+    queryKey: queryKeys.project(data.projectId!),
+    queryFn: () => projectQ.getOne(data.projectId!),
+    enabled: open && !!data.projectId,
   });
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: data.label,
-      dueDate: new Date(data.dueDate),
-      priority: data.priority as "medium" | "high" | "low" | "urgent",
-      quantity: data.quantity,
-      description: data?.description || "",
-      unit: data.unit,
-      amount: data.amount,
+      dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+      priority: (data.priority as any) || "low",
+      quantity: data.quantity || undefined,
+      unit: data.unit || "",
+      amount: data.amount || undefined,
     },
   });
 
-  const validator = categories
-    .find((cat) => cat.id === data?.categoryId)
-    ?.validators?.find((v) => v.userId === user?.id);
-
+  // Single approval mutation
   const validateRequest = useMutation({
     mutationFn: async ({
       id,
-      validator,
+      request,
     }: {
       id: number;
-      validator:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
-    }) => requestQ.validate(id, validator?.id!, validator),
+      request: Partial<RequestModelT>;
+    }) => requestQ.validate({ id, request }),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
       onOpenChange(false);
+      onSuccess?.();
     },
     onError: () => {
       toast.error("Erreur lors de la validation");
     },
   });
 
-  const requestMutation = useMutation({
-    mutationFn: async (data: Partial<RequestModelT>) => {
-      const id = data?.id;
-
-      if (!id) throw new Error("ID de besoin manquant");
-
-      await requestQ.update(Number(id), data);
-      return { id: Number(id) };
-    },
-    onSuccess: (res) => {
-      validateRequest.mutateAsync({
-        id: res.id,
-        validator: validator,
-      });
-    },
-    onError: (error: Error) => {
-      toast.error(error.message ?? "Une erreur est survenue.");
-    },
-  });
-
-  // Reset when modal opens
+  // Reset form when modal opens or request data changes
   useEffect(() => {
     if (open) {
       form.reset({
-        title: data.label,
-        dueDate: new Date(data.dueDate),
-        priority: data.priority,
-        quantity: data.quantity,
-        description: data.description || "",
-        unit: data.unit,
-        amount: data.amount,
+        dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
+        priority: (data.priority as any) || "low",
+        quantity: data.quantity || undefined,
+        unit: data.unit || "",
+        amount: data.amount || undefined,
       });
     }
   }, [open, data, form]);
 
   const submitForm = async (values: FormValues) => {
-    const { unit, quantity, ...rest } = values;
-    const payload: Partial<RequestModelT> =
-      data.type === "gas" || data.type === "transport"
-        ? {
-            id: data.id,
-            label: rest.title,
-            description: rest.description,
-            priority: rest.priority,
-            dueDate: rest.dueDate,
-            userId: data.userId,
-            amount: rest.amount,
-            unit: unit,
-            quantity: Number(quantity),
-          }
-        : {
-            id: data.id,
-            label: rest.title,
-            description: rest.description,
-            priority: rest.priority,
-            dueDate: rest.dueDate,
-            userId: data.userId,
-            amount: rest.amount,
-          };
+    const payload: Partial<RequestModelT> = {
+      dueDate: values.dueDate,
+      priority: values.priority,
+      amount: values.amount,
+    };
+
+    if (data.type !== "transport" && data.type !== "gas") {
+      payload.unit = values.unit;
+      payload.quantity = values.quantity;
+    }
+
     try {
-      requestMutation.mutate(payload);
+      validateRequest.mutate({
+        id: data.id,
+        request: payload,
+      });
     } catch {
       toast.error("Une erreur est survenue");
     }
   };
 
-  // Reset complet quand le modal se ferme
-  useEffect(() => {
-    if (!open) {
-      form.reset({
-        title: data?.label || "",
-        dueDate: data?.dueDate ? new Date(data.dueDate) : undefined,
-        priority: data?.priority as "medium" | "high" | "low" | "urgent",
-        quantity: data?.quantity || 1,
-        description: data?.description || "",
-        unit: data?.unit || "",
-      });
-    }
-  }, [open, data]);
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"secondary"}>
-          <DialogTitle>{`Approbation - ${data.label}`}</DialogTitle>
+          <DialogTitle>{titre ?? `Approbation - ${data.label}`}</DialogTitle>
           <DialogDescription>
             {description ?? "Valider un besoin"}
           </DialogDescription>
         </DialogHeader>
 
-        {/* FORM - Zone scrollable */}
         <Form {...form}>
-          <form className="grid gap-4" onSubmit={form.handleSubmit(submitForm)}>
-            {/* Titre */}
-            <FormField
-              control={form.control}
-              name="title"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Titre"}</FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="ex. Chantier Duval"
-                      {...field}
-                      disabled
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+          <form
+            className="grid grid-cols-1 sm:grid-cols-2 gap-4"
+            id="generic-approval-form"
+            onSubmit={form.handleSubmit(submitForm)}
+          >
+            {/* Title - Static */}
+            <div className="grid gap-2 col-span-full">
+              <Label>{"Titre"}</Label>
+              <Input value={data.label} disabled />
+            </div>
 
+            {/* Description - Static */}
+            <div className="grid gap-2 col-span-full">
+              <Label>{"Description"}</Label>
+              <Textarea
+                value={data.description || ""}
+                disabled
+                className="resize-none"
+                rows={3}
+              />
+            </div>
+
+            {/* Category - Static */}
+            <div className="grid gap-2">
+              <Label>{"Catégorie"}</Label>
+              <Input
+                value={
+                  getCategory.isLoading
+                    ? "..chargement"
+                    : getCategory.data
+                      ? getCategory.data.data.label
+                      : "--"
+                }
+                disabled
+              />
+            </div>
+
+            {/* Project - Static */}
+            <div className="grid gap-2">
+              <Label>{"Projet"}</Label>
+              <Input
+                value={
+                  getProject.isLoading
+                    ? "..chargement"
+                    : getProject.data
+                      ? getProject.data.data.label
+                      : "--"
+                }
+                disabled
+              />
+            </div>
+
+            {/* Emetteur - Static */}
             {getUser.data && (
               <div className="grid gap-2">
                 <Label>{"Emetteur"}</Label>
                 <Input
-                  value={getUser.data.data.firstName.concat(
-                    " ",
-                    getUser.data.data.lastName,
-                  )}
+                  value={`${getUser.data.data.firstName} ${getUser.data.data.lastName}`}
                   disabled
                 />
               </div>
             )}
 
+            {/* Beneficiary - Static */}
             {data.beneficiary === "me" && (
               <div className="grid gap-2">
                 <Label>{"À Réceptionner par"}</Label>
                 <Input
-                  value={getUser.data?.data.firstName.concat(
-                    " ",
-                    getUser.data?.data.lastName,
-                  )}
+                  value={
+                    getUser.data
+                      ? `${getUser.data.data.firstName} ${getUser.data.data.lastName}`
+                      : "--"
+                  }
                   disabled
                 />
               </div>
             )}
 
             {data.beficiaryList && data.beficiaryList.length > 0 && (
-              <div className="grid gap-2">
+              <div className="grid gap-2 col-span-full">
                 <Label>{"Bénéficiaires"}</Label>
-                {data.beficiaryList.map((beneficiary) => {
-                  return (
-                    <div key={beneficiary.id} className="grid gap-2">
-                      <Label>
-                        {beneficiary.firstName.concat(
-                          " ",
-                          beneficiary.lastName,
-                        )}
-                      </Label>
-                    </div>
-                  );
-                })}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  {data.beficiaryList.map((beneficiary) => (
+                    <Input
+                      key={beneficiary.id}
+                      value={`${beneficiary.firstName} ${beneficiary.lastName}`}
+                      disabled
+                    />
+                  ))}
+                </div>
               </div>
             )}
 
+            {/* Amount - Editable if present */}
             {!!data.amount && (
               <FormField
                 control={form.control}
@@ -293,11 +279,11 @@ export function BesoinLastVal({
                       <div className="relative">
                         <Input
                           type="number"
-                          placeholder="Ex. 15 000 FCFA"
+                          placeholder="Ex. 15 000"
                           {...field}
-                          className="pr-12"
+                          className="pr-16"
                         />
-                        <p className="absolute right-2 top-1/2 -translate-y-1/2">
+                        <p className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
                           {"FCFA"}
                         </p>
                       </div>
@@ -308,13 +294,13 @@ export function BesoinLastVal({
               />
             )}
 
-            {/* Date */}
+            {/* Due Date - Editable */}
             <FormField
               control={form.control}
               name="dueDate"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Date limite"}</FormLabel>
+                <FormItem className="flex flex-col">
+                  <FormLabel isRequired className="mb-1">{"Date limite"}</FormLabel>
                   <Popover open={openD} onOpenChange={setOpenD}>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -323,9 +309,9 @@ export function BesoinLastVal({
                           className="w-full h-10 justify-between font-normal"
                         >
                           {field.value
-                            ? format(field.value, "PPP", { locale: fr })
+                            ? format(field.value, "dd/MM/yyyy", { locale: fr })
                             : "Sélectionner une date"}
-                          <ChevronDownIcon />
+                          <CalendarIcon className="h-4 w-4 opacity-50" />
                         </Button>
                       </FormControl>
                     </PopoverTrigger>
@@ -338,6 +324,9 @@ export function BesoinLastVal({
                           setOpenD(false);
                         }}
                         locale={fr}
+                        disabled={(date) =>
+                          date < new Date(new Date().setHours(0, 0, 0, 0))
+                        }
                       />
                     </PopoverContent>
                   </Popover>
@@ -346,7 +335,7 @@ export function BesoinLastVal({
               )}
             />
 
-            {/* Priorité */}
+            {/* Priority - Editable */}
             <FormField
               control={form.control}
               name="priority"
@@ -355,10 +344,8 @@ export function BesoinLastVal({
                   <FormLabel isRequired>{"Priorité"}</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    defaultValue={field.value}
-                    disabled={
-                      requestMutation.isPending || validateRequest.isPending
-                    }
+                    value={field.value}
+                    disabled={validateRequest.isPending}
                   >
                     <FormControl>
                       <SelectTrigger className="w-full">
@@ -377,7 +364,7 @@ export function BesoinLastVal({
               )}
             />
 
-            {/* Quantité */}
+            {/* Quantity - Editable if not transport/gas */}
             {data.type !== "transport" && data.type !== "gas" && (
               <FormField
                 control={form.control}
@@ -387,11 +374,10 @@ export function BesoinLastVal({
                     <FormLabel isRequired>{"Quantité"}</FormLabel>
                     <FormControl>
                       <Input
+                        type="number"
                         placeholder="Quantité..."
                         {...field}
-                        disabled={
-                          requestMutation.isPending || validateRequest.isPending
-                        }
+                        disabled={validateRequest.isPending}
                       />
                     </FormControl>
                     <FormMessage />
@@ -400,7 +386,7 @@ export function BesoinLastVal({
               />
             )}
 
-            {/* UNIT */}
+            {/* Unit - Editable if not transport/gas */}
             {data.type !== "transport" && data.type !== "gas" && (
               <FormField
                 control={form.control}
@@ -408,9 +394,13 @@ export function BesoinLastVal({
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>{"Unité"}</FormLabel>
-                    <Select value={field.value} onValueChange={field.onChange}>
+                    <Select
+                      value={field.value}
+                      onValueChange={field.onChange}
+                      disabled={validateRequest.isPending}
+                    >
                       <FormControl>
-                        <SelectTrigger className="w-full h-10 shadow-none rounded py-1">
+                        <SelectTrigger className="w-full">
                           <SelectValue placeholder="Sélectionner l'unité" />
                         </SelectTrigger>
                       </FormControl>
@@ -428,50 +418,26 @@ export function BesoinLastVal({
               />
             )}
 
-            {/* Description */}
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Description"}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      rows={4}
-                      className="resize-none"
-                      placeholder="Description détaillée..."
-                      {...field}
-                      disabled
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button
-                type="submit"
-                variant={"success"}
-                disabled={
-                  requestMutation.isPending || validateRequest.isPending
-                }
-                isLoading={
-                  requestMutation.isPending || validateRequest.isPending
-                }
-              >
-                {"Approuver"}
-              </Button>
+            {/* Footer */}
+            <DialogFooter className="col-span-full mt-4">
               <DialogClose asChild>
                 <Button
                   type="button"
                   variant="outline"
-                  disabled={
-                    requestMutation.isPending || validateRequest.isPending
-                  }
+                  disabled={validateRequest.isPending}
                 >
-                  {"Fermer"}
+                  {"Annuler"}
                 </Button>
               </DialogClose>
+              <Button
+                type="submit"
+                variant={"success"}
+                disabled={validateRequest.isPending}
+                isLoading={validateRequest.isPending}
+                form="generic-approval-form"
+              >
+                {"Approuver"}
+              </Button>
             </DialogFooter>
           </form>
         </Form>

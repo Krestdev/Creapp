@@ -9,6 +9,7 @@ import { quotationQ } from "@/queries/quotation";
 import { QuotationGroupTable } from "../quotation-group";
 import { useQuery } from "@tanstack/react-query";
 import { isRole } from "@/lib/utils";
+import { queryKeys } from "@/lib/query-keys";
 
 function Page() {
   const { user } = useStore();
@@ -18,18 +19,18 @@ function Page() {
   });
 
   const quotations = useQuery({
-    queryKey: ["quotations"],
+    queryKey: queryKeys.quotations,
     queryFn: quotationQ.getAll,
   });
   /**Providers fetch */
 
   const providers = useQuery({
-    queryKey: ["providers"],
+    queryKey: queryKeys.providers,
     queryFn: providerQ.getAll,
   });
   /**Commands fetch */
   const commands = useQuery({
-    queryKey: ["commands"],
+    queryKey: queryKeys.quotationRequests,
     queryFn: commandRqstQ.getAll,
   });
 

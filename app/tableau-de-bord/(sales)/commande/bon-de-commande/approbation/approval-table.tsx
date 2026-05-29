@@ -17,6 +17,7 @@ import {
   ArrowUpDown,
   CheckCircle2,
   ChevronDown,
+  Ellipsis,
   Eye,
   Settings2,
   XCircle,
@@ -46,13 +47,6 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import {
   Sheet,
   SheetContent,
   SheetDescription,
@@ -71,10 +65,21 @@ import {
 
 import { TabBar } from "@/components/base/TabBar";
 import { Textarea } from "@/components/ui/textarea";
-import { formatToShortName, totalAmountPurchase, XAF } from "@/lib/utils";
+import {
+  Progress,
+  ProgressLabel,
+  ProgressValue,
+} from "@/components/ui/progress";
+import {
+  formatToShortName,
+  subText,
+  totalAmountPurchase,
+  XAF,
+} from "@/lib/utils";
 import { purchaseQ } from "@/queries/purchase-order";
 import {
   BonsCommande,
+  Invoice,
   PRIORITIES,
   PURCHASE_ORDER_STATUS,
   User,
@@ -87,6 +92,7 @@ import ViewPurchase from "../viewPurchase";
 interface Props {
   data: Array<BonsCommande>;
   users: Array<User>;
+  invoices: Array<Invoice>;
 }
 
 type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
@@ -135,8 +141,26 @@ const getPriorityLabel = (
 const canDecide = (status: Status) =>
   status === "PENDING" || status === "IN-REVIEW";
 
-export function PurchaseApprovalTable({ data, users }: Props) {
+export function PurchaseApprovalTable({ data, users, invoices }: Props) {
   const purchaseOrderQuery = React.useMemo(() => purchaseQ, []);
+
+  const getProgress = (
+    purchaseOrder: BonsCommande,
+  ): { progress: number; value: number } => {
+    const invoiceData = invoices.filter((i) => i.commandId === purchaseOrder.id);
+
+    const values = invoiceData.flatMap((i) =>
+      i.payment.map((p) => {
+        if (p.status !== "paid") return 0;
+        return p.price;
+      }),
+    );
+    return {
+      progress:
+        (values.reduce((acc, i) => acc + i, 0) * 100) / purchaseOrder.netToPay,
+      value: values.reduce((acc, i) => acc + i, 0),
+    };
+  };
 
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -146,7 +170,7 @@ export function PurchaseApprovalTable({ data, users }: Props) {
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({
-      penalties: false
+      penalties: false,
     });
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
@@ -272,7 +296,7 @@ export function PurchaseApprovalTable({ data, users }: Props) {
         </span>
       ),
       cell: ({ row }) => (
-        <div className="font-medium uppercase">{row.getValue("reference")}</div>
+        <p className="normal-case">{row.getValue("reference")}</p>
       ),
     },
 
@@ -289,11 +313,7 @@ export function PurchaseApprovalTable({ data, users }: Props) {
       ),
       cell: ({ row }) => {
         const devi: BonsCommande["devi"] = row.getValue("devi");
-        return (
-          <div className="font-medium max-w-[500px] truncate">
-            {devi.commandRequest.title}
-          </div>
-        );
+        return subText({ text: devi.commandRequest.title, length: 21 });
       },
     },
 
@@ -310,9 +330,7 @@ export function PurchaseApprovalTable({ data, users }: Props) {
       ),
       cell: ({ row }) => {
         const provider: BonsCommande["provider"] = row.getValue("provider");
-        return (
-          <div className="font-medium">{formatToShortName(provider.name)}</div>
-        );
+        return formatToShortName(provider.name);
       },
     },
 
@@ -329,7 +347,7 @@ export function PurchaseApprovalTable({ data, users }: Props) {
       ),
       cell: ({ row }) => {
         const po = row.original;
-        return <div className="font-medium">{XAF.format(po.netToPay)}</div>;
+        return <p className="normal-case">{XAF.format(po.netToPay)}</p>;
       },
     },
     {
@@ -346,9 +364,7 @@ export function PurchaseApprovalTable({ data, users }: Props) {
       cell: ({ row }) => {
         const po = row.original;
         return (
-          <div className="font-medium">
-            {XAF.format(totalAmountPurchase(po))}
-          </div>
+          <p className="normal-case">{XAF.format(totalAmountPurchase(po))}</p>
         );
       },
     },
@@ -370,6 +386,22 @@ export function PurchaseApprovalTable({ data, users }: Props) {
         const value = row.getValue("status") as Status;
         const { label, variant } = getStatusLabel(value);
         return <Badge variant={variant}>{label}</Badge>;
+      },
+    },
+
+    {
+      accessorKey: "payment",
+      header: () => <span className="tablehead">{"État de paiement"}</span>,
+      cell: ({ row }) => {
+        const original = row.original;
+        const i = getProgress(original);
+
+        return (
+          <Progress value={i.progress}>
+            <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
+            <ProgressValue />
+          </Progress>
+        );
       },
     },
 
@@ -401,9 +433,7 @@ export function PurchaseApprovalTable({ data, users }: Props) {
       cell: ({ row }) => {
         const raw = row.getValue("createdAt") as any;
         const d = new Date(raw);
-        return (
-          <div>{isNaN(d.getTime()) ? "-" : format(d, "dd/MM/yyyy HH:mm")}</div>
-        );
+        return isNaN(d.getTime()) ? "-" : format(d, "dd/MM/yyyy HH:mm");
       },
     },
 
@@ -417,11 +447,8 @@ export function PurchaseApprovalTable({ data, users }: Props) {
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
 
             <DropdownMenuContent align="end">
@@ -737,6 +764,7 @@ export function PurchaseApprovalTable({ data, users }: Props) {
                   else if (column.id === "amountHT") columnName = "Montant HT";
                   else if (column.id === "priority") columnName = "Priorité";
                   else if (column.id === "status") columnName = "Statut";
+                  else if (column.id === "payment") columnName = "État de paiement";
                   else if (column.id === "createdAt") columnName = "Créé le";
                   else if (column.id === "penalties") columnName = "Pénalités";
 
@@ -764,10 +792,7 @@ export function PurchaseApprovalTable({ data, users }: Props) {
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className="border-r last:border-r-0"
-                  >
+                  <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -789,10 +814,7 @@ export function PurchaseApprovalTable({ data, users }: Props) {
                   className="hover:bg-muted/50"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="border-r last:border-r-0"
-                    >
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

@@ -15,6 +15,7 @@ import {
 import {
   ArrowUpDown,
   ChevronDown,
+  Ellipsis,
   Filter,
   LucideEye,
   LucidePen,
@@ -54,7 +55,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { Label } from "@/components/ui/label";
-import { getRequestTypeBadge } from "@/lib/utils";
+import { cn, getRequestTypeBadge, subText } from "@/lib/utils";
 import { categoryQ } from "@/queries/categoryModule";
 import { Category, RequestType, User } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
@@ -174,50 +175,40 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
         header: ({ column }) => {
           return (
             <span
-              className="tablehead cursor-pointer flex items-center gap-1"
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Nom de la catégorie"}
-              <ArrowUpDown className="h-3 w-3" />
+              <ArrowUpDown />
             </span>
           );
         },
-        cell: ({ row }) => {
-          return (
-            <div className="font-medium uppercase flex items-center gap-1.5">
-              {row.getValue("label")}
-            </div>
-          );
-        },
+        cell: ({ row }) => row.getValue("label"),
       },
       {
         accessorKey: "description",
         header: ({ column }) => {
           return (
             <span
-              className="tablehead cursor-pointer flex items-center gap-1"
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Description"}
-              <ArrowUpDown className="h-3 w-3" />
+              <ArrowUpDown />
             </span>
           );
         },
         cell: ({ row }) => {
           return (
-            <div
-              className={`${
-                row.getValue("description") ? "" : "italic"
-              } first-letter:uppercase lowercase max-w-[400px] truncate`}
-            >
+            <p className={cn(row.getValue("description") ? "" : "italic")}>
               {row.getValue("description")
-                ? row.getValue("description")
+                ? subText({ text: row.getValue("description") })
                 : "aucune description"}
-            </div>
+            </p>
           );
         },
       },
@@ -226,13 +217,13 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
         header: ({ column }) => {
           return (
             <span
-              className="tablehead cursor-pointer flex items-center gap-1"
+              className="tablehead"
               onClick={() =>
                 column.toggleSorting(column.getIsSorted() === "asc")
               }
             >
               {"Type de catégorie"}
-              <ArrowUpDown className="h-3 w-3" />
+              <ArrowUpDown />
             </span>
           );
         },
@@ -262,11 +253,8 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
 
           return (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant={"outline"} size="sm">
-                  {"Actions"}
-                  <ChevronDown className="ml-2 h-3 w-3" />
-                </Button>
+              <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+                <Ellipsis />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>

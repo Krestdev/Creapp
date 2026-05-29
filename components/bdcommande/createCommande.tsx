@@ -136,23 +136,91 @@ export default function CreateCotation({
   }
 
   return (
-    <div>
-      <div className="flex flex-col md:flex-row gap-4 pb-4">
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-4 max-w-3xl"
-          >
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid grid-cols-1 gap-4 @min-[1280px]:grid-cols-3"
+      >
+        <div className="order-2 @min-[1280px]:order-0 grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start h-fit">
+          <FormField
+            control={form.control}
+            name="titre"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel isRequired>Titre</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="ex. Fournitures pour Cédric et Samuel en Papier et stylos"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="date_limite"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel isRequired>{"Date limite de soumission"}</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        type="button"
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal h-10",
+                          !field.value && "text-muted-foreground",
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP", { locale: fr })
+                        ) : (
+                          <span>{"Choisir une date"}</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      disabled={(date) => date < new Date()}
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <div className="@min-[640px]:col-span-2 w-full p-3 rounded-sm border grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start">
+            <h3 className="@min-[640px]:col-span-2">{"Contact principal"}</h3>
+
             <FormField
               control={form.control}
-              name="titre"
+              name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>Titre</FormLabel>
-                  <FormControl className="w-full">
-                    <Input
-                      placeholder="ex. Fournitures pour Cédric et Samuel en Papier et stylos"
-                      {...field}
+                  <FormLabel isRequired>Nom</FormLabel>
+                  <FormControl>
+                    <SearchableSelect
+                      value={field.value ? String(field.value) : ""}
+                      onChange={field.onChange}
+                      options={
+                        users.map((r) => ({
+                          value: `${r.firstName} ${r.lastName}`,
+                          label: `${r.firstName} ${r.lastName}`,
+                        })) ?? []
+                      }
+                      placeholder="Sélectionnez un nom"
+                      width="w-full"
+                      allLabel=""
                     />
                   </FormControl>
                   <FormMessage />
@@ -162,123 +230,50 @@ export default function CreateCotation({
 
             <FormField
               control={form.control}
-              name="date_limite"
+              name="telephone"
               render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel isRequired>
-                    {"Date limite de soumission"}
-                  </FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl className="w-full">
-                        <Button
-                          type="button"
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground",
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP", { locale: fr })
-                          ) : (
-                            <span>{"Choisir une date"}</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        disabled={(date) => date < new Date()}
-                      />
-                    </PopoverContent>
-                  </Popover>
+                <FormItem>
+                  <FormLabel isRequired>Numéro de téléphone</FormLabel>
+                  <FormControl>
+                    <Input placeholder="ex. 06 12 34 56 78" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+          </div>
 
-            <div className="flex flex-col gap-4 border rounded-md bg-gray-50 p-4">
-              <h2>{"Contact principal"}</h2>
-              <p>
-                {
-                  "Il s'agit ici du contact principal qui sera affiché sur le bon de commande"
-                }
-              </p>
-
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>Nom</FormLabel>
-                    <FormControl className="w-[320px]">
-                      <SearchableSelect
-                        value={field.value ? String(field.value) : ""}
-                        onChange={field.onChange}
-                        options={
-                          users.map((r) => ({
-                            value: `${r.firstName} ${r.lastName}`,
-                            label: `${r.firstName} ${r.lastName}`,
-                          })) ?? []
-                        }
-                        placeholder="Sélectionnez un nom"
-                        width="w-full"
-                        allLabel=""
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="telephone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>Numéro de téléphone</FormLabel>
-                    <FormControl className="w-[320px]">
-                      <Input placeholder="ex. 06 12 34 56 78" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-          </form>
-        </Form>
-        <div className="flex flex-col gap-4 w-full border border-gray-200 rounded-md p-4">
-          <p className="text-[18px] font-semibold">{`Besoins (${requests.length})`}</p>
-          <Besoins
-            selected={selected}
-            setSelected={setSelected}
-            requests={requests}
-            categories={categories}
-          />
+          <div className="@min-[640px]:col-span-2 w-full inline-flex justify-end">
+            <Button
+              type="submit"
+              variant={"primary"}
+              disabled={createCommand.isPending}
+              isLoading={createCommand.isPending}
+            >
+              {"Créer la demande"}
+            </Button>
+          </div>
         </div>
-      </div>
-      <div className="w-full flex justify-end">
-        <Button
-          variant={"primary"}
-          onClick={form.handleSubmit(onSubmit)}
-          type="submit"
-          disabled={createCommand.isPending}
-          isLoading={createCommand.isPending}
-        >
-          {"Créer la demande"}
-        </Button>
-      </div>
-      <DetailOrder
-        open={successOpen}
-        onOpenChange={setSuccessOpen}
-        data={created}
-        message="Demande de cotation créée avec succès."
-      />
-    </div>
+
+        <div className="@min-[1280px]:col-span-2 flex flex-col border rounded bg-white overflow-hidden max-h-[70vh]">
+          <div className="overflow-y-auto p-4">
+            <p className="text-[18px] font-semibold mb-4">{`Besoins (${requests.length})`}</p>
+            <Besoins
+              selected={selected}
+              setSelected={setSelected}
+              requests={requests}
+              categories={categories}
+            />
+          </div>
+        </div>
+
+        <DetailOrder
+          open={successOpen}
+          onOpenChange={setSuccessOpen}
+          data={created}
+          message="Demande de cotation créée avec succès."
+        />
+      </form>
+    </Form>
   );
 }

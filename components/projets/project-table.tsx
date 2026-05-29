@@ -252,7 +252,8 @@ export function ProjectTable({
         const searchText = [
           project.reference || "",
           project.label || "",
-          project.chief && project.chief.firstName.concat(" ", project.chief.lastName),
+          project.chief &&
+            project.chief.firstName.concat(" ", project.chief.lastName),
         ]
           .map((text) => normalizeText(text))
           .join(" ");
@@ -286,7 +287,7 @@ export function ProjectTable({
         (project) =>
           project.chief &&
           project.chief.firstName.concat(" ", project.chief.lastName) ===
-          effectiveFilters.chiefFilter,
+            effectiveFilters.chiefFilter,
       );
     }
 
@@ -359,7 +360,9 @@ export function ProjectTable({
             </span>
           );
         },
-        cell: ({ row }) => <p className="normal-case">{row.getValue("reference")}</p>
+        cell: ({ row }) => (
+          <p className="normal-case">{row.getValue("reference")}</p>
+        ),
       },
       {
         accessorKey: "label",
@@ -423,7 +426,11 @@ export function ProjectTable({
             lastName: string;
             post: string;
           };
-          return <p className="normal-case">{chief ? chief.firstName + " " + chief.lastName : "Pas de chef"}</p>;
+          return (
+            <p className="normal-case">
+              {chief ? chief.firstName + " " + chief.lastName : "Pas de chef"}
+            </p>
+          );
         },
       },
       {
@@ -441,7 +448,9 @@ export function ProjectTable({
             </span>
           );
         },
-        cell: ({ row }) => <p className="normal-case">{getUserName(row.getValue("userId"))}</p>,
+        cell: ({ row }) => (
+          <p className="normal-case">{getUserName(row.getValue("userId"))}</p>
+        ),
       },
       {
         accessorKey: "status",
@@ -510,7 +519,7 @@ export function ProjectTable({
             <DropdownMenu>
               <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
                 <Ellipsis />
-            </DropdownMenuTrigger>
+              </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
                 <DropdownMenuItem
@@ -624,42 +633,39 @@ export function ProjectTable({
       rowSelection,
       globalFilter: effectiveFilters.globalFilter,
       columnPinning: {
-        right: ["actions"]
-      }
+        right: ["actions"],
+      },
     },
   });
 
   return (
     <div className="content">
-      <div className="flex flex-wrap justify-between gap-4">
-        <Sheet modal={false}>
-          <SheetTrigger asChild>
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les fitres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-5 grid gap-5">
-              <div className="grid gap-1.5">
-                <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-                <Input
-                  placeholder="Rechercher par nom"
-                  value={effectiveFilters.globalFilter ?? ""}
-                  onChange={(event) =>
-                    updateFilter("globalFilter", event.target.value)
-                  }
-                  className="w-full"
-                />
-              </div>
-
-              {/* Filtre par statut - Version DropdownMenu avec recherche */}
+      <div className="flex flex-wrap justify-between gap-4 items-center">
+        <div className="flex flex-wrap items-center gap-2">
+          <Input
+            placeholder="Rechercher par nom"
+            value={effectiveFilters.globalFilter ?? ""}
+            onChange={(event) =>
+              updateFilter("globalFilter", event.target.value)
+            }
+            className="w-full sm:w-[250px] h-9"
+          />
+          <Sheet modal={false}>
+            <SheetTrigger asChild>
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les fitres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-5 grid gap-5 mt-4">
+                {/* Filtre par statut - Version DropdownMenu avec recherche */}
               <div className="grid gap-1.5">
                 <Label>{"Statut"}</Label>
                 <DropdownMenu
@@ -760,7 +766,7 @@ export function ProjectTable({
                                 <badgeInfo.icon className="h-4 w-4" />
                               )}
                               <span>{badgeInfo.label}</span>
-{/*                               <Badge
+                              {/*                               <Badge
                                 variant="outline"
                                 className="ml-auto text-xs"
                               >
@@ -876,7 +882,8 @@ export function ProjectTable({
             </div>
           </SheetContent>
         </Sheet>
-        <DropdownMenu>
+      </div>
+      <DropdownMenu>
           <DropdownMenuTrigger asChild className="ml-auto">
             <Button variant="outline">
               {"Colonnes"}
@@ -926,12 +933,7 @@ export function ProjectTable({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header, index) => {
                   return (
-                    <TableHead
-                      key={header.id}
-                      className={
-                        index < headerGroup.headers.length - 1 ? "border-r" : ""
-                      }
-                    >
+                    <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -953,14 +955,7 @@ export function ProjectTable({
                   className={getRowColor(row.original.status)}
                 >
                   {row.getVisibleCells().map((cell, index) => (
-                    <TableCell
-                      key={cell.id}
-                      className={
-                        index < row.getVisibleCells().length - 1
-                          ? "border-r"
-                          : ""
-                      }
-                    >
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

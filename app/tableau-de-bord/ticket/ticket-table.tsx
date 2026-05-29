@@ -21,7 +21,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getRequestTypeBadge, subText } from "@/lib/utils";
+import { XAF, cn, getRequestTypeBadge, subText } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {} from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
@@ -44,7 +44,6 @@ import {
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
-
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
@@ -54,6 +53,7 @@ import {
   ArrowUpDown,
   BanIcon,
   ChevronDown,
+  Ellipsis,
   Eye,
   Flag,
   LucideCheck,
@@ -237,11 +237,7 @@ export function TicketTable({
       cell: ({ row }) => {
         const value = row.original;
         const invoice = value.facture;
-        return (
-          <div className="uppercase">
-            {invoice?.command.provider.name ?? "--"}
-          </div>
-        );
+        return invoice?.command.provider.name ?? "Aucun";
       },
     },
     {
@@ -278,13 +274,9 @@ export function TicketTable({
         );
       },
       cell: ({ row }) => {
-        const montant = Number.parseFloat(row.getValue("price"));
-        const formatted = new Intl.NumberFormat("fr-FR", {
-          style: "currency",
-          currency: "XAF",
-        }).format(montant);
+        const amount = row.original.price;
 
-        return <div className="font-medium">{formatted}</div>;
+        return <p className="normal-case">{XAF.format(amount)}</p>;
       },
     },
     {
@@ -361,7 +353,7 @@ export function TicketTable({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Statut"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </span>
         );
       },
@@ -381,15 +373,15 @@ export function TicketTable({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Date de creation"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
         return (
-          <div className="font-medium">
+          <p className="normal-case">
             {format(row.getValue("createdAt"), "dd/MM/yyyy")}
-          </div>
+          </p>
         );
       },
     },
@@ -402,11 +394,8 @@ export function TicketTable({
         const invoice = item.facture;
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
@@ -562,10 +551,7 @@ export function TicketTable({
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead
-                        key={header.id}
-                        className="border-r last:border-r-0"
-                      >
+                      <TableHead key={header.id}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
@@ -591,10 +577,7 @@ export function TicketTable({
                       className={cn(config?.rowClassName || "")}
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell
-                          key={cell.id}
-                          className="border-r last:border-r-0"
-                        >
+                        <TableCell key={cell.id}>
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext(),

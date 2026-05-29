@@ -16,6 +16,7 @@ import {
   CheckCircleIcon,
   ChevronDown,
   ClipboardPenIcon,
+  Ellipsis,
   Eye,
   Pencil,
   Settings2,
@@ -289,7 +290,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.id;
-        return <span>{`TR-${value}`}</span>;
+        return <p className="normal-case">{`TR-${value}`}</p>;
       },
     },
     {
@@ -307,7 +308,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.label;
-        return <span className="font-medium">{value}</span>;
+        return value;
       },
     },
     {
@@ -325,7 +326,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.amount;
-        return <span>{XAF.format(value)}</span>;
+        return <p className="normal-case">{XAF.format(value)}</p>;
       },
     },
     {
@@ -343,7 +344,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const source = row.original.from;
-        return <span>{source.label}</span>;
+        return <p className="normal-case">{source.label}</p>;
       },
     },
     {
@@ -361,7 +362,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       },
       cell: ({ row }) => {
         const target = row.original.to;
-        return <span>{target.label}</span>;
+        return <p className="normal-case">{target.label}</p>;
       },
     },
     {
@@ -380,9 +381,9 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       cell: ({ row }) => {
         const value = row.original.createdAt;
         return (
-          <span>
+          <p className="normal-case">
             {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
-          </span>
+          </p>
         );
       },
     },
@@ -402,11 +403,11 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
       cell: ({ row }) => {
         const value = row.original.date;
         return (
-          <span>
+          <p className="normal-case">
             {row.original.status === "APPROVED"
               ? format(new Date(value), "dd MMMM yyyy, p", { locale: fr })
               : "-"}
-          </span>
+          </p>
         );
       },
     },
@@ -446,9 +447,9 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
         const value = row.original.userId;
         const user = users.find((u) => u.id === value);
         return (
-          <span>
+          <p className="normal-case">
             {user ? user.firstName.concat(" ", user.lastName) : "N/A"}
-          </span>
+          </p>
         );
       },
     },
@@ -461,11 +462,8 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
@@ -567,36 +565,33 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
   return (
     <div className="flex flex-col gap-4">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <Sheet>
-          <SheetTrigger asChild>
-            <Button variant={"outline"}>
-              <Settings2 />
-              {"Filtres"}
-            </Button>
-          </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les fitres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-5 grid gap-5">
-              {/**Global Filter (Search) */}
-              <div className="grid gap-1.5">
-                <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-                <Input
-                  name="search"
-                  type="search"
-                  id="searchCommand"
-                  placeholder="Référence, libellé"
-                  value={searchFilter}
-                  onChange={(event) => setSearchFilter(event.target.value)}
-                  className="max-w-sm"
-                />
-              </div>
-              <div className="grid gap-1.5">
-                <Label htmlFor="statusFilter">{"Statut"}</Label>
+        <div className="flex items-center gap-3">
+          <Input
+            name="search"
+            type="search"
+            id="searchCommand"
+            placeholder="Recherche par référence, libellé, source, destination..."
+            value={searchFilter}
+            onChange={(event) => setSearchFilter(event.target.value)}
+            className="max-w-md h-10 bg-background"
+          />
+          <Sheet>
+            <SheetTrigger asChild>
+              <Button variant={"outline"}>
+                <Settings2 />
+                {"Filtres"}
+              </Button>
+            </SheetTrigger>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les fitres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-5 grid gap-5">
+                <div className="grid gap-1.5">
+                  <Label htmlFor="statusFilter">{"Statut"}</Label>
                 <Select
                   value={statusFilter}
                   onValueChange={(v) =>
@@ -638,36 +633,38 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
               {/* Filter by amount */}
               <div className="grid gap-1.5">
                 <Label>{"Montant"}</Label>
-                <Select
-                  value={amountTypeFilter}
-                  onValueChange={(v) =>
-                    setAmountTypeFilter(v as "greater" | "inferior" | "equal")
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="greater">{"Supérieur"}</SelectItem>
-                    <SelectItem value="equal">{"Égal"}</SelectItem>
-                    <SelectItem value="inferior">{"Inférieur"}</SelectItem>
-                  </SelectContent>
-                </Select>
               </div>
               <div className="grid gap-1.5">
                 <Label>{"Montant"}</Label>
-                <div className="relative">
-                  <Input
-                    type="number"
-                    placeholder="Ex. 250 000"
-                    value={amountFilter ?? 0}
-                    onChange={(e) => setAmountFilter(Number(e.target.value))}
-                    className="w-full pr-12"
-                  />
-                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                    {"FCFA"}
-                  </span>
-                </div>
+                <span className="grid grid-cols-2 gap-1.5">
+                  <Select
+                    value={amountTypeFilter}
+                    onValueChange={(v) =>
+                      setAmountTypeFilter(v as "greater" | "inferior" | "equal")
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner une période" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="greater">{"Supérieur"}</SelectItem>
+                      <SelectItem value="equal">{"Égal"}</SelectItem>
+                      <SelectItem value="inferior">{"Inférieur"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="Ex. 250 000"
+                      value={amountFilter ?? 0}
+                      onChange={(e) => setAmountFilter(Number(e.target.value))}
+                      className="w-full pr-12"
+                    />
+                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                      {"FCFA"}
+                    </span>
+                  </div>
+                </span>
               </div>
 
               {/* Filter by Date */}
@@ -770,6 +767,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
             </div>
           </SheetContent>
         </Sheet>
+        </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="bg-transparent">
@@ -822,10 +820,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead
-                      key={header.id}
-                      className="border-r last:border-r-0"
-                    >
+                    <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -846,10 +841,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="border-r last:border-r-0"
-                    >
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

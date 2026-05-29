@@ -121,7 +121,7 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -232,7 +232,7 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
       },
       cell: ({ row }) => {
         const priorite = row.getValue(
-          "priorite"
+          "priorite",
         ) as keyof typeof priorityConfig;
         const config = priorityConfig[priorite];
 
@@ -442,16 +442,13 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
                 <TableRow key={headerGroup.id}>
                   {headerGroup.headers.map((header) => {
                     return (
-                      <TableHead
-                        key={header.id}
-                        className="border-r last:border-r-0"
-                      >
+                      <TableHead key={header.id}>
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
                       </TableHead>
                     );
                   })}
@@ -466,13 +463,10 @@ export function BonsCommandeTable({ data }: BonsCommandeTableProps) {
                     data-state={row.getIsSelected() && "selected"}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className="border-r last:border-r-0"
-                      >
+                      <TableCell key={cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
-                          cell.getContext()
+                          cell.getContext(),
                         )}
                       </TableCell>
                     ))}

@@ -2,15 +2,15 @@
 import {
   type ColumnDef,
   type ColumnFiltersState,
-  PaginationOptions,
-  PaginationState,
-  type SortingState,
-  type VisibilityState,
   flexRender,
   getCoreRowModel,
   getFilteredRowModel,
   getSortedRowModel,
+  PaginationOptions,
+  PaginationState,
+  type SortingState,
   useReactTable,
+  type VisibilityState,
 } from "@tanstack/react-table";
 import {
   AlertCircle,
@@ -25,6 +25,7 @@ import {
   Coins,
   DollarSign,
   Download,
+  Ellipsis,
   Eye,
   FilePenLineIcon,
   Signature,
@@ -33,7 +34,6 @@ import {
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
-import DepenseDocument from "@/components/depense/depenseDoc";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -52,7 +52,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getRequestTypeBadge, XAF } from "@/lib/utils";
+import { cn, getRequestTypeBadge, subText, XAF } from "@/lib/utils";
 import {
   PaymentRequest,
   PayType,
@@ -70,12 +70,13 @@ import AddProove from "./addProove";
 import CancelTicket from "./cancel-ticket";
 import CompleteGas from "./complete-gas";
 import CompleteSettle from "./complete-settle";
+import Decharge from "./decharge";
 import { DepenseFiltersProps } from "./depenseFilters";
 import { NoticeFile } from "./notice";
 import PayExpense from "./pay-expense";
 import ShareExpense from "./share-expense";
 import ViewExpense from "./view-expense";
-import Decharge from "./decharge";
+import { TabBar, TabProps } from "@/components/base/TabBar";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -138,9 +139,10 @@ interface Props {
   providers: Array<Provider>;
   users: Array<User>;
   projects: Array<ProjectT>;
-  activeTab: DepenseFiltersProps["customFilters"]["tab"];
   pagination: PaginationState;
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
+  tabs: TabProps;
+  filters?: React.ReactNode;
 }
 
 function getPriorityBadge(priority: PaymentRequest["priority"]): {
@@ -234,9 +236,10 @@ function ExpensesTable({
   providers,
   users,
   projects,
-  activeTab,
   pagination,
   paginationOptions,
+  tabs,
+  filters,
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -277,7 +280,7 @@ function ExpensesTable({
         );
       },
       cell: ({ row }) => (
-        <div className="font-medium">{row.getValue("reference")}</div>
+        <p className="normal-case">{row.getValue("reference")}</p>
       ),
     },
     {
@@ -314,19 +317,17 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const isSelected = value.selected === true;
-        const transactionStatus = isSelected
-          ? value.transaction?.Type === "TRANSFER" &&
-            value.transaction?.status === "APPROVED"
-          : false;
+
         return (
-          <div className="max-w-[500px] flex gap-1.5">
-            {!!transactionStatus && (
+          <div className="flex gap-1.5 items-center">
+            {value.selected === true && value.transaction && (
               <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
                 <AsteriskIcon size={16} />
               </span>
             )}
-            <span className="line-clamp-1">{value.title ?? "--"}</span>
+            <span className="line-clamp-1">
+              {subText({ text: value.title ?? "--", length: 21 })}
+            </span>
           </div>
         );
       },
@@ -347,11 +348,7 @@ function ExpensesTable({
       cell: ({ row }) => {
         const value = row.original;
         const paytype = value.method?.label;
-        return (
-          <span className="line-clamp-1 first-letter:uppercase">
-            {paytype ?? "--"}
-          </span>
-        );
+        return paytype ?? "--";
       },
     },
     {
@@ -370,31 +367,52 @@ function ExpensesTable({
       cell: ({ row }) => {
         const value = row.original;
         const requestItem = value.request;
-
-        if (!requestItem) return <div>--</div>;
+        //New Value Recipient
+        if (value.recipient) {
+          return <p className="normal-case">{value.recipient}</p>;
+        }
 
         // Vérifier dans beneficiary (string)
-        if (requestItem.beneficiary && requestItem.beneficiary !== "me") {
+        if (
+          requestItem &&
+          requestItem.beneficiary &&
+          requestItem.beneficiary !== "me"
+        ) {
           const user = users.find(
             (x) => x.id === Number(requestItem.beneficiary),
           );
           if (user) {
-            return <div>{`${user.firstName} ${user.lastName}`}</div>;
+            return (
+              <p className="normal-case">
+                {subText({
+                  text: `${user.firstName} ${user.lastName}`,
+                  length: 21,
+                })}
+              </p>
+            );
           }
         }
 
         // Vérifier dans beneficiaryList (array)
-        if (requestItem.beficiaryList && requestItem.beficiaryList.length > 0) {
+        if (
+          requestItem &&
+          requestItem.beficiaryList &&
+          requestItem.beficiaryList.length > 0
+        ) {
           const names = requestItem.beficiaryList
             .map((b) => `${b.firstName || ""} ${b.lastName || ""}`.trim())
             .filter((name) => name)
             .join(", ");
           if (names) {
-            return <div>{names}</div>;
+            return (
+              <p className="normal-case">
+                {subText({ text: names, length: 21 })}
+              </p>
+            );
           }
         }
 
-        return <div>--</div>;
+        return <p className="normal-case">{"--"}</p>;
       },
     },
     {
@@ -412,7 +430,7 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        return <div>{value.facture?.command.provider.name ?? "--"}</div>;
+        return value.facture?.command.provider.name ?? "--";
       },
     },
     {
@@ -430,7 +448,7 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.getValue("price");
-        return <div className="font-medium">{XAF.format(Number(value))}</div>;
+        return <p className="normal-case">{XAF.format(Number(value))}</p>;
       },
     },
     {
@@ -442,7 +460,7 @@ function ExpensesTable({
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
             {"Priorité"}
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </span>
         );
       },
@@ -510,9 +528,9 @@ function ExpensesTable({
       cell: ({ row }) => {
         const value = row.original.createdAt;
         return (
-          <div>
+          <p className="normal-case">
             {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
-          </div>
+          </p>
         );
       },
     },
@@ -532,9 +550,9 @@ function ExpensesTable({
       cell: ({ row }) => {
         const value = row.original.updatedAt;
         return (
-          <div>
+          <p className="normal-case">
             {format(new Date(value), "dd MMMM yyyy, p", { locale: fr })}
-          </div>
+          </p>
         );
       },
     },
@@ -547,11 +565,8 @@ function ExpensesTable({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild className="w-fit">
-              <Button variant="ghost">
-                {"Actions"}
-                <ChevronDown />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
@@ -589,7 +604,7 @@ function ExpensesTable({
                   {"Compléter le paiement"}
                 </DropdownMenuItem>
               )}
-              {activeTab === "processed" && (
+              {tabs.selectedTab === "processed" && (
                 <>
                   <DropdownMenuItem
                     disabled={
@@ -615,7 +630,7 @@ function ExpensesTable({
                   </DropdownMenuItem>
                 </>
               )}
-              {activeTab === "validated" && (
+              {tabs.selectedTab === "validated" && (
                 <DropdownMenuItem
                   disabled={
                     item.status === "unsigned" ||
@@ -705,8 +720,14 @@ function ExpensesTable({
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-4">
-        <div className="flex flex-wrap items-end gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <TabBar
+          tabs={tabs.tabs}
+          setSelectedTab={tabs.setSelectedTab}
+          selectedTab={tabs.selectedTab}
+        />
+        <div className="flex flex-wrap items-center gap-3">
+          {filters}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="bg-transparent">
@@ -761,10 +782,7 @@ function ExpensesTable({
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead
-                      key={header.id}
-                      className="border-r last:border-r-0"
-                    >
+                    <TableHead key={header.id}>
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -790,10 +808,7 @@ function ExpensesTable({
                     className={cn(config.rowClassName)}
                   >
                     {row.getVisibleCells().map((cell) => (
-                      <TableCell
-                        key={cell.id}
-                        className="border-r last:border-r-0"
-                      >
+                      <TableCell key={cell.id}>
                         {flexRender(
                           cell.column.columnDef.cell,
                           cell.getContext(),

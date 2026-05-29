@@ -196,7 +196,7 @@ function ViewRequest({
 
           {/* Project */}
           {!!request.data?.data.projectId && (
-            <div className="view-group">
+            <div className="view-group col-span-full">
               <span className="view-icon">
                 <BriefcaseBusinessIcon />
               </span>
@@ -210,7 +210,7 @@ function ViewRequest({
           )}
 
           {/* Description */}
-          <div className="view-group">
+          <div className="view-group col-span-full">
             <span className="view-icon">
               <TextQuoteIcon />
             </span>
@@ -372,7 +372,7 @@ function ViewRequest({
           )}
 
           {/* Pour le compte de (facilitation) */}
-          {request.data?.data.type === "facilitation" && (
+          {request.data?.data.benFac && (
             <div className="view-group">
               <span className="view-icon">
                 <Users />
@@ -380,7 +380,7 @@ function ViewRequest({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Pour le compte de"}</p>
                 <div className="flex flex-col">
-                  {request.data?.data.benFac?.list?.map((ben) => {
+                  {request.data.data.benFac.list.map((ben) => {
                     return (
                       <p
                         key={ben.id}
@@ -467,45 +467,52 @@ function ViewRequest({
                     ? "Recepteur pour compte"
                     : "Bénéficiaires"}
                 </p>
-                {request.data?.data.type === "facilitation" ? (
-                  <p className="font-semibold capitalize">
-                    {users.find(
-                      (u) => u.id === Number(request.data?.data.beneficiary),
-                    )?.firstName +
-                      " " +
-                      users.find(
-                        (u) => u.id === Number(request.data?.data.beneficiary),
-                      )?.lastName}
-                  </p>
-                ) : (
-                  <div className="flex flex-col">
-                    {request.data?.data.beneficiary === "me" ? (
+                <div className="flex flex-col">
+                  {request.data.data.beneficiary.length > 0 ? (
+                    request.data.data.beneficiary === "me" ? (
                       <p className="font-semibold capitalize">
-                        {request.data?.data.user.firstName +
+                        {request.data.data.user.firstName +
                           " " +
-                          request.data?.data.user.lastName}
+                          request.data.data.user.lastName}
                       </p>
                     ) : (
-                      <div className="flex flex-col">
-                        {request.data?.data.beficiaryList?.map((ben) => {
-                          const beneficiary = users.find(
-                            (x) => x.id === ben.id,
-                          );
-                          return (
-                            <p
-                              key={ben.id}
-                              className="font-semibold capitalize"
-                            >{`${
-                              beneficiary?.firstName +
-                                " " +
-                                beneficiary?.lastName || ben.id
-                            }`}</p>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                )}
+                      <p className="font-semibold capitalize">
+                        {users.find(
+                          (u) => u.id === Number(request.data.data.beneficiary),
+                        )?.firstName +
+                          " " +
+                          users.find(
+                            (u) =>
+                              u.id === Number(request.data.data.beneficiary),
+                          )?.lastName}
+                      </p>
+                    )
+                  ) : request.data.data.beficiaryList &&
+                    request.data.data.beficiaryList.length > 0 ? (
+                    request.data.data.beficiaryList.map((ben) => {
+                      const beneficiary = users.find((x) => x.id === ben.id);
+                      return (
+                        <p
+                          key={ben.id}
+                          className="font-semibold capitalize"
+                        >{`${
+                          beneficiary?.firstName +
+                            " " +
+                            beneficiary?.lastName || ben.id
+                        }`}</p>
+                      );
+                    })
+                  ) : request.data.data.benFac ? (
+                    request.data.data.benFac.list.map((ben) => {
+                      return (
+                        <p
+                          key={ben.id}
+                          className="font-semibold capitalize"
+                        >{`${ben?.name} - ${XAF.format(ben?.amount)}`}</p>
+                      );
+                    })
+                  ) : null}
+                </div>
               </div>
             </div>
           )}

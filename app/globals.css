@@ -191,7 +191,7 @@
     @apply w-full text-sm px-2 text-gray-600 has-[>svg]:cursor-pointer inline-flex gap-2 items-center justify-between [&_svg]:size-3 sticky top-0 z-10;
   }
   .content {
-    @apply flex flex-col gap-4 @min-[640px]:gap-6;
+    @apply flex flex-col gap-4 @min-[640px]:gap-6 relative max-h-[calc(100vh-60px)];
   }
   .add-button {
     @apply w-full h-9 inline-flex items-center justify-center gap-2 border border-input bg-white text-sm font-medium [&_svg]:size-5 rounded-md transition-colors duration-150 hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed;

@@ -12,7 +12,14 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, Check, ChevronDown, Eye, Settings2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  Check,
+  ChevronDown,
+  Ellipsis,
+  Eye,
+  Settings2,
+} from "lucide-react";
 import * as React from "react";
 
 import { Badge } from "@/components/ui/badge";
@@ -28,13 +35,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -55,6 +55,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
+import { subText } from "@/lib/utils";
 import {
   CommandRequestT,
   Provider,
@@ -65,10 +66,9 @@ import {
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { useRouter } from "next/navigation";
 import { DevisGroup } from "./DevisGroup";
-import { subText } from "@/lib/utils";
-import { fr } from "date-fns/locale";
 
 interface QuotationGroupTableProps {
   providers: Array<Provider>;
@@ -168,18 +168,18 @@ export function QuotationGroupTable({
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Demande de cotation"}
-          <ArrowUpDown className="h-4 w-4" />
+          <ArrowUpDown />
         </span>
       ),
       cell: ({ row }) => {
         const group = row.original;
         return (
-          <div className="font-medium">
+          <p>
             {subText({ text: group.commandRequest.title, length: 21 })} -{" "}
             <span className="text-red-500">
               {group.commandRequest.reference}
             </span>
-          </div>
+          </p>
         );
       },
     },
@@ -192,7 +192,7 @@ export function QuotationGroupTable({
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
           {"Fournisseurs"}
-          <ArrowUpDown className="h-4 w-4" />
+          <ArrowUpDown />
         </span>
       ),
       cell: ({ row }) => {
@@ -222,9 +222,9 @@ export function QuotationGroupTable({
       header: () => <span className="tablehead">{"Mis à jour le"}</span>,
       cell: ({ row }) => {
         return (
-          <div>
+          <p className="normal-case">
             {format(row.getValue("createdAt"), "dd/MM/yyyy, p", { locale: fr })}
-          </div>
+          </p>
         );
       },
     },
@@ -237,11 +237,8 @@ export function QuotationGroupTable({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" size="sm">
-                {"Actions"}
-                <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
+            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
+              <Ellipsis />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions du groupe"}</DropdownMenuLabel>
@@ -325,6 +322,13 @@ export function QuotationGroupTable({
       {/* BARRE DE FILTRES */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
+          <Input
+            id="searchGroup"
+            type="search"
+            placeholder="Référence, titre, fournisseur..."
+            value={globalFilter ?? ""}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+          />
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="outline">
@@ -332,259 +336,246 @@ export function QuotationGroupTable({
                 {"Filtres"}
               </Button>
             </SheetTrigger>
-            <SheetContent className="overflow-y-auto">
+            <SheetContent className="px-3 overflow-y-auto">
               <SheetHeader>
                 <SheetTitle>{"Filtres"}</SheetTitle>
                 <SheetDescription>
                   {"Configurer les filtres pour affiner vos données"}
                 </SheetDescription>
               </SheetHeader>
-              <div className="space-y-5 px-5">
-                <div className="grid gap-2">
-                  <Label htmlFor="searchGroup">{"Recherche globale"}</Label>
-                  <Input
-                    id="searchGroup"
-                    type="search"
-                    placeholder="Référence, titre, fournisseur..."
-                    value={globalFilter ?? ""}
-                    onChange={(e) => setGlobalFilter(e.target.value)}
-                  />
-                </div>
-
-                {/* Filtre par fournisseur */}
-                <div className="grid gap-2">
-                  <Label>{"Fournisseur"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {providerFilter === "all"
-                            ? "Tous les fournisseurs"
-                            : providers.find(
-                                (p) => p.id.toString() === providerFilter,
-                              )?.name || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                        <Input
-                          placeholder="Rechercher un fournisseur..."
-                          className="h-8"
-                          value={providerSearch}
-                          onChange={(e) => setProviderSearch(e.target.value)}
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
+              {/* Filtre par fournisseur */}
+              <div className="grid gap-2">
+                <Label>{"Fournisseur"}</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {providerFilter === "all"
+                          ? "Tous les fournisseurs"
+                          : providers.find(
+                              (p) => p.id.toString() === providerFilter,
+                            )?.name || "Sélectionner"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher un fournisseur..."
+                        className="h-8"
+                        value={providerSearch}
+                        onChange={(e) => setProviderSearch(e.target.value)}
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setProviderFilter("all");
+                        setProviderSearch("");
+                      }}
+                      className={providerFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Tous les fournisseurs</span>
                       </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setProviderFilter("all");
-                          setProviderSearch("");
-                        }}
-                        className={providerFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <div className="flex items-center gap-2">
-                          <span>Tous les fournisseurs</span>
-                        </div>
-                      </DropdownMenuItem>
-                      {providers
-                        .filter((provider) =>
-                          provider.name
-                            .toLowerCase()
-                            .includes(providerSearch.toLowerCase()),
-                        )
-                        .map((provider) => (
-                          <DropdownMenuItem
-                            key={provider.id}
-                            onClick={() => {
-                              setProviderFilter(provider.id.toString());
-                              setProviderSearch("");
-                            }}
-                            className={
-                              providerFilter === provider.id.toString()
-                                ? "bg-accent"
-                                : ""
-                            }
-                          >
-                            <div className="flex items-center gap-2">
-                              <span>{provider.name}</span>
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
-                      {providers.filter((provider) =>
+                    </DropdownMenuItem>
+                    {providers
+                      .filter((provider) =>
                         provider.name
                           .toLowerCase()
                           .includes(providerSearch.toLowerCase()),
-                      ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun fournisseur trouvé
-                        </div>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Filtre par demande de cotation */}
-                <div className="grid gap-2">
-                  <Label>{"Demande de cotation"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {commandRequestFilter === "all"
-                            ? "Toutes les demandes"
-                            : commandRequests.find(
-                                (q) => q.id.toString() === commandRequestFilter,
-                              )?.title || "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-                      <div className="p-2 sticky top-0 bg-popover z-10 border-b">
-                        <Input
-                          placeholder="Rechercher une demande..."
-                          className="h-8"
-                          value={commandRequestSearch}
-                          onChange={(e) =>
-                            setCommandRequestSearch(e.target.value)
+                      )
+                      .map((provider) => (
+                        <DropdownMenuItem
+                          key={provider.id}
+                          onClick={() => {
+                            setProviderFilter(provider.id.toString());
+                            setProviderSearch("");
+                          }}
+                          className={
+                            providerFilter === provider.id.toString()
+                              ? "bg-accent"
+                              : ""
                           }
-                          onMouseDown={(e) => e.stopPropagation()}
-                          onClick={(e) => e.stopPropagation()}
-                          onKeyDown={(e) => e.stopPropagation()}
-                          autoFocus
-                        />
+                        >
+                          <div className="flex items-center gap-2">
+                            <span>{provider.name}</span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    {providers.filter((provider) =>
+                      provider.name
+                        .toLowerCase()
+                        .includes(providerSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun fournisseur trouvé
                       </div>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setCommandRequestFilter("all");
-                          setCommandRequestSearch("");
-                        }}
-                        className={
-                          commandRequestFilter === "all" ? "bg-accent" : ""
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              {/* Filtre par demande de cotation */}
+              <div className="grid gap-2">
+                <Label>{"Demande de cotation"}</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {commandRequestFilter === "all"
+                          ? "Toutes les demandes"
+                          : commandRequests.find(
+                              (q) => q.id.toString() === commandRequestFilter,
+                            )?.title || "Sélectionner"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
+                    <div className="p-2 sticky top-0 bg-popover z-10 border-b">
+                      <Input
+                        placeholder="Rechercher une demande..."
+                        className="h-8"
+                        value={commandRequestSearch}
+                        onChange={(e) =>
+                          setCommandRequestSearch(e.target.value)
                         }
-                      >
-                        <div className="flex items-center gap-2">
-                          <span>Toutes les demandes</span>
-                        </div>
-                      </DropdownMenuItem>
-                      {commandRequests
-                        .filter((request) =>
-                          request.title
-                            .toLowerCase()
-                            .includes(commandRequestSearch.toLowerCase()),
-                        )
-                        .map((request) => (
-                          <DropdownMenuItem
-                            key={request.id}
-                            onClick={() => {
-                              setCommandRequestFilter(request.id.toString());
-                              setCommandRequestSearch("");
-                            }}
-                            className={
-                              commandRequestFilter === request.id.toString()
-                                ? "bg-accent"
-                                : ""
-                            }
-                          >
-                            <div className="flex items-center gap-2">
-                              <span>{request.title}</span>
-                            </div>
-                          </DropdownMenuItem>
-                        ))}
-                      {commandRequests.filter((request) =>
+                        onMouseDown={(e) => e.stopPropagation()}
+                        onClick={(e) => e.stopPropagation()}
+                        onKeyDown={(e) => e.stopPropagation()}
+                        autoFocus
+                      />
+                    </div>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setCommandRequestFilter("all");
+                        setCommandRequestSearch("");
+                      }}
+                      className={
+                        commandRequestFilter === "all" ? "bg-accent" : ""
+                      }
+                    >
+                      <div className="flex items-center gap-2">
+                        <span>Toutes les demandes</span>
+                      </div>
+                    </DropdownMenuItem>
+                    {commandRequests
+                      .filter((request) =>
                         request.title
                           .toLowerCase()
                           .includes(commandRequestSearch.toLowerCase()),
-                      ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucune demande trouvée
-                        </div>
-                      )}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                {/* Filtre par statut */}
-                <div className="grid gap-2">
-                  <Label>{"Statut"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {statusFilter === "all"
-                            ? "Tous les statuts"
-                            : statusFilter === "NOT_PROCESSED"
-                              ? "Non traité"
-                              : statusFilter === "IN_PROGRESS"
-                                ? "En cours"
-                                : statusFilter === "PROCESSED"
-                                  ? "Traité"
-                                  : "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setStatusFilter("all");
-                        }}
-                        className={statusFilter === "all" ? "bg-accent" : ""}
-                      >
-                        <span>Tous les statuts</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setStatusFilter("NOT_PROCESSED")}
-                        className={
-                          statusFilter === "NOT_PROCESSED" ? "bg-accent" : ""
-                        }
-                      >
-                        <span>Non traité</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setStatusFilter("IN_PROGRESS")}
-                        className={
-                          statusFilter === "IN_PROGRESS" ? "bg-accent" : ""
-                        }
-                      >
-                        <span>En cours</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setStatusFilter("PROCESSED")}
-                        className={
-                          statusFilter === "PROCESSED" ? "bg-accent" : ""
-                        }
-                      >
-                        <span>Traité</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                <Button
-                  variant="outline"
-                  onClick={resetAllFilters}
-                  className="w-full"
-                >
-                  {"Réinitialiser les filtres"}
-                </Button>
+                      )
+                      .map((request) => (
+                        <DropdownMenuItem
+                          key={request.id}
+                          onClick={() => {
+                            setCommandRequestFilter(request.id.toString());
+                            setCommandRequestSearch("");
+                          }}
+                          className={
+                            commandRequestFilter === request.id.toString()
+                              ? "bg-accent"
+                              : ""
+                          }
+                        >
+                          <div className="flex items-center gap-2">
+                            <span>{request.title}</span>
+                          </div>
+                        </DropdownMenuItem>
+                      ))}
+                    {commandRequests.filter((request) =>
+                      request.title
+                        .toLowerCase()
+                        .includes(commandRequestSearch.toLowerCase()),
+                    ).length === 0 && (
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucune demande trouvée
+                      </div>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
+
+              {/* Filtre par statut */}
+              <div className="grid gap-2">
+                <Label>{"Statut"}</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {statusFilter === "all"
+                          ? "Tous les statuts"
+                          : statusFilter === "NOT_PROCESSED"
+                            ? "Non traité"
+                            : statusFilter === "IN_PROGRESS"
+                              ? "En cours"
+                              : statusFilter === "PROCESSED"
+                                ? "Traité"
+                                : "Sélectionner"}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setStatusFilter("all");
+                      }}
+                      className={statusFilter === "all" ? "bg-accent" : ""}
+                    >
+                      <span>Tous les statuts</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setStatusFilter("NOT_PROCESSED")}
+                      className={
+                        statusFilter === "NOT_PROCESSED" ? "bg-accent" : ""
+                      }
+                    >
+                      <span>Non traité</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setStatusFilter("IN_PROGRESS")}
+                      className={
+                        statusFilter === "IN_PROGRESS" ? "bg-accent" : ""
+                      }
+                    >
+                      <span>En cours</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setStatusFilter("PROCESSED")}
+                      className={
+                        statusFilter === "PROCESSED" ? "bg-accent" : ""
+                      }
+                    >
+                      <span>Traité</span>
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={resetAllFilters}
+                className="w-full"
+              >
+                {"Réinitialiser les filtres"}
+              </Button>
             </SheetContent>
           </Sheet>
 
@@ -657,10 +648,7 @@ export function QuotationGroupTable({
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead
-                    key={header.id}
-                    className="border-r last:border-r-0"
-                  >
+                  <TableHead key={header.id}>
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -681,10 +669,7 @@ export function QuotationGroupTable({
                   className="hover:bg-muted/50"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell
-                      key={cell.id}
-                      className="border-r last:border-r-0"
-                    >
+                    <TableCell key={cell.id}>
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),

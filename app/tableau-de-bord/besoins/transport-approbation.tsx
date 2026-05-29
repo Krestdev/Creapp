@@ -28,6 +28,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
@@ -41,31 +42,28 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { units } from "@/data/unit";
-import { useStore } from "@/providers/datastore";
+import { queryKeys } from "@/lib/query-keys";
+import { XAF } from "@/lib/utils";
+import { categoryQ } from "@/queries/categoryModule";
+import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
-import { PRIORITIES, ProjectT, RequestModelT, User } from "@/types/types";
+import { PRIORITIES, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
-import FilesUpload from "../comp-547";
-import { Label } from "../ui/label";
-import { queryKeys } from "@/lib/query-keys";
-import { categoryQ } from "@/queries/categoryModule";
-import { projectQ } from "@/queries/projectModule";
+import { beneficiaryArray } from "./creer/create-type-transport";
 
 interface Props {
   open: boolean;
-  setOpen: (open: boolean) => void;
+  onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
   request: RequestModelT;
   users: Array<User>;
-  onSuccess?: () => void;
 }
 
 const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
@@ -74,26 +72,19 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
 ];
 
 const formSchema = z.object({
-  quantity: z.coerce
-    .number()
-    .refine((val) => val > 0, "La quantité doit être supérieure à 0"),
-  benef: z.coerce.number().min(1, "Bénéficiaire requis"),
   dueDate: z.date({ required_error: "Date requise" }),
-  unit: z.string().min(1, "Unité requise"),
   priority: z.enum(REQUEST_PRIORITIES),
-  paytype: z.enum(["cash", "chq", "ov"], {
-    required_error: "Sélectionner le moyen de payement",
-    invalid_type_error: "Sélectionner le moyen de payement",
-  }),
+  list: z.array(beneficiaryArray).min(1, "Veuillez ajouter un bénéficiaire"),
 });
 
-export default function BesoinLastValSettle({
+export default function TransportApprobation({
   open,
-  setOpen,
+  onOpenChange,
   request,
   users,
-  onSuccess,
 }: Props) {
+  const [openDate, setOpenDate] = useState(false);
+
   const getCategory = useQuery({
     queryKey: queryKeys.category(request.categoryId!),
     queryFn: () => categoryQ.getCategory(request.categoryId!),
@@ -105,37 +96,27 @@ export default function BesoinLastValSettle({
     enabled: !!request.projectId,
   });
 
-  const [openDate, setOpenDate] = useState(false);
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      quantity: request.quantity,
-      benef: request.benef?.[0] ?? Number(request.beneficiary),
       priority: (request.priority as any) || "low",
-      unit: request.unit,
       dueDate: request.dueDate ? new Date(request.dueDate) : new Date(),
-      paytype: undefined,
+      list: request.benFac?.list ?? [],
     },
   });
-
-  const beneficiary =
-    request.beneficiary === "me"
-      ? users.find((u) => u.id === request.userId)
-      : request.beneficiary.length > 0
-        ? users.find((u) => u.id === Number(request.beneficiary))
-        : users.find((u) => u.id === request.benef?.[0]);
 
   // Réinitialiser le formulaire quand la requête change ou à l'ouverture
   useEffect(() => {
     if (open) {
       form.reset({
-        quantity: request.quantity,
-        benef: Number(request.beneficiary),
-        priority: (request.priority as any) || "low",
-        unit: request.unit,
+        priority: request.priority || "low",
         dueDate: request.dueDate ? new Date(request.dueDate) : new Date(),
-        paytype: undefined,
+        list:
+          request.benFac?.list.map((l) => ({
+            id: l.id,
+            name: l.name,
+            amount: l.amount,
+          })) ?? [],
       });
     }
   }, [open, request, form]);
@@ -149,28 +130,36 @@ export default function BesoinLastValSettle({
       request: Partial<RequestModelT>;
     }) => requestQ.validate({ id, request }),
     onSuccess: () => {
-      toast.success("Besoin modifié et approuvé !");
-      setOpen(false);
-      onSuccess?.();
+      toast.success("Le Besoin a été approuvé !");
+      onOpenChange(false);
     },
-    onError: () => toast.error("Erreur lors de la validation"),
+    onError: () =>
+      toast.error("Une erreur a été rencontré lors de la validation !"),
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     validateRequest.mutate({
       id: request.id,
       request: {
-        paytype: values.paytype,
-        priority: values.priority,
         dueDate: values.dueDate,
-        unit: values.unit,
-        quantity: values.quantity,
+        priority: values.priority,
+        benFac: { list: values.list },
+        amount: values.list.reduce((acc, el) => acc + el.amount, 0),
       },
     });
   };
 
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "list",
+  });
+
+  const list = form.watch("list");
+  const amount = list.reduce((a, b) => a + b.amount, 0);
+  const listError = form.getFieldState("list").error?.message;
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"secondary"}>
           <DialogTitle>{"Approbation & Modification"}</DialogTitle>
@@ -184,7 +173,7 @@ export default function BesoinLastValSettle({
             onSubmit={form.handleSubmit(onSubmit)}
             className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3"
           >
-            {/* Title */}
+            {/* Titre */}
             <div className="w-full grid gap-2">
               <Label>{"Titre"}</Label>
               <Input value={request.label} disabled />
@@ -194,7 +183,7 @@ export default function BesoinLastValSettle({
               <Label>{"Description"}</Label>
               <Textarea value={request.description} disabled />
             </div>
-            {/* Category */}
+            {/* Catégorie */}
             <div className="w-full grid gap-2">
               <Label>{"Catégorie"}</Label>
               <Input
@@ -208,7 +197,7 @@ export default function BesoinLastValSettle({
                 disabled
               />
             </div>
-            {/* Project */}
+            {/* Projet */}
             <div className="w-full grid gap-2">
               <Label>{"Projet"}</Label>
               <Input
@@ -222,60 +211,107 @@ export default function BesoinLastValSettle({
                 disabled
               />
             </div>
-            {/**Beneficiary */}
-            <div className="w-full grid gap-2">
-              <Label>{"Bénéficiaire"}</Label>
-              <Input
-                disabled
-                value={
-                  beneficiary
-                    ? beneficiary.firstName.concat(" ", beneficiary.lastName)
-                    : "--"
-                }
-              />
+
+            <div className="w-full @min-[560px]:col-span-2 grid gap-3">
+              <div className="flex items-center justify-between">
+                <FormLabel isRequired>{"Bénéficiaires"}</FormLabel>
+                <div className="text-sm text-muted-foreground">
+                  {"Total: "}
+                  <span>{XAF.format(amount)}</span>
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                {fields.map((field, index) => (
+                  <div
+                    key={field.id}
+                    className="p-4 rounded-md border grid grid-cols-1 @min-[560px]:grid-cols-2 gap-3 place-items-start"
+                  >
+                    <FormField
+                      control={form.control}
+                      name={`list.${index}.amount`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{"Montant (FCFA)"}</FormLabel>
+                          <FormControl>
+                            <div className="relative">
+                              <Input
+                                {...field}
+                                type="number"
+                                placeholder="Ex. 30"
+                                onChange={(e) => {
+                                  const value =
+                                    e.target.value === ""
+                                      ? 0
+                                      : parseFloat(e.target.value);
+                                  field.onChange(value);
+                                }}
+                              />
+                              <p className="absolute right-2 top-1/2 -translate-y-1/2">
+                                {"FCFA"}
+                              </p>
+                            </div>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+
+                    <FormField
+                      control={form.control}
+                      name={`list.${index}.id`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{`Beneficiaire`}</FormLabel>
+                          <FormControl>
+                            <Combobox
+                              items={users}
+                              value={
+                                users.find((user) => user.id === field.value) ??
+                                null
+                              }
+                              onValueChange={(v) => {
+                                field.onChange(v?.id ?? "");
+                                form.setValue(
+                                  `list.${index}.name`,
+                                  v?.firstName.concat(" ", v.lastName) ?? "",
+                                );
+                              }}
+                              itemToStringLabel={(v) =>
+                                v.firstName.concat(" ", v.lastName)
+                              }
+                            >
+                              <ComboboxInput placeholder="Sélectionner" />
+                              <ComboboxContent>
+                                <ComboboxEmpty>
+                                  {"Aucun utilisateur enregistré"}
+                                </ComboboxEmpty>
+                                <ComboboxList>
+                                  {(item: User) => (
+                                    <ComboboxItem key={item.id} value={item}>
+                                      {item.firstName.concat(
+                                        " ",
+                                        item.lastName,
+                                      )}
+                                    </ComboboxItem>
+                                  )}
+                                </ComboboxList>
+                              </ComboboxContent>
+                            </Combobox>
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                ))}
+              </div>
+              {listError && (
+                <p className="text-sm font-medium text-destructive">
+                  {listError}
+                </p>
+              )}
             </div>
-
-            {/* Quantité */}
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Quantité"}</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Unité */}
-            <FormField
-              control={form.control}
-              name="unit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Unité"}</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {units.map((u) => (
-                        <SelectItem key={u.value} value={u.value}>
-                          {u.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             {/* Priorité */}
             <FormField
               control={form.control}
@@ -345,52 +381,13 @@ export default function BesoinLastValSettle({
                 </FormItem>
               )}
             />
-
-            {/* Moyen de paiement */}
-            <FormField
-              control={form.control}
-              name="paytype"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
-                  <FormControl>
-                    <Select
-                      defaultValue={
-                        field.value ? String(field.value) : undefined
-                      }
-                      onValueChange={field.onChange}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="cash">{"Espèces"}</SelectItem>
-                        <SelectItem value="chq">{"Chèque"}</SelectItem>
-                        <SelectItem value="ov">{"Virement"}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* JUSTIFICATIF */}
-            <div className="w-full grid gap-2 md:col-span-2">
-              <Label>{"Justificatif"}</Label>
-              <FilesUpload
-                disabled
-                value={request.proof}
-                onChange={() => {}}
-                name={"proof"}
-                acceptTypes="all"
-                multiple={false}
-                maxFiles={1}
-              />
-            </div>
             <DialogFooter className="col-span-full">
               <DialogClose asChild>
-                <Button type="button" variant="outline">
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={validateRequest.isPending}
+                >
                   {"Annuler"}
                 </Button>
               </DialogClose>
@@ -398,8 +395,9 @@ export default function BesoinLastValSettle({
                 type="submit"
                 disabled={validateRequest.isPending}
                 isLoading={validateRequest.isPending}
+                variant={"success"}
               >
-                {"Mettre à jour et Approuver"}
+                {"Approuver"}
               </Button>
             </DialogFooter>
           </form>
