@@ -122,10 +122,10 @@ export function ValidationModal({
     result === "error"
       ? "bg-gradient-to-r from-[#B91C1C] to-[#7F1D1D]"
       : result === "success"
-      ? "bg-gradient-to-r from-[#15803D] to-[#0B411F]"
-      : isApprove
-      ? "bg-gradient-to-r from-[#15803D] to-[#0B411F]"
-      : "bg-gradient-to-r from-[#B91C1C] to-[#7F1D1D]";
+        ? "bg-gradient-to-r from-[#15803D] to-[#0B411F]"
+        : isApprove
+          ? "bg-gradient-to-r from-[#15803D] to-[#0B411F]"
+          : "bg-gradient-to-r from-[#B91C1C] to-[#7F1D1D]";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

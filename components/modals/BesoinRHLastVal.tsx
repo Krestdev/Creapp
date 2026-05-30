@@ -67,7 +67,8 @@ const formSchema = z.object({
       message:
         "La date de début doit être antérieure ou égale à la date de fin",
       path: ["from"],
-    }),
+    })
+    .optional(), // @jason You have to look at this
   montant: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   date_limite: z.date().min(today, "La date limite doit être dans le futur"),
   priority: z.enum(["low", "medium", "high", "urgent"]),
@@ -187,6 +188,8 @@ export default function BesoinRHLastVal({
       return;
     }
 
+    console.log("hello");
+
     validateRequest.mutate({
       id: requestData.id,
       request: {
@@ -196,6 +199,8 @@ export default function BesoinRHLastVal({
       },
     });
   }
+
+  console.log(form.formState.errors);
 
   // ----------------------------------------------------------------------
   // RENDER
