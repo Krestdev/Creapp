@@ -21,6 +21,14 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
 
 interface Props {
   users: User[];
@@ -108,14 +116,34 @@ function NewServiceForm({ users }: Props) {
             <FormItem>
               <FormLabel isRequired>{"Chef de service"}</FormLabel>
               <FormControl>
-                <SearchableSelect
+                {/* <SearchableSelect
                   value={field.value ? String(field.value) : undefined}
                   onChange={(val) =>
                     field.onChange(val ? Number(val) : undefined)
                   }
                   options={headOptions}
                   placeholder="Sélectionner un chef de service"
-                />
+                /> */}
+                <Combobox
+                  items={users}
+                  value={users.find((user) => user.id === field.value) ?? null}
+                  onValueChange={(v) => field.onChange(v?.id ?? "")}
+                  itemToStringLabel={(v) => v.firstName.concat(" ", v.lastName)}
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>
+                      {"Aucun utilisateur enregistré"}
+                    </ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: User) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.firstName.concat(" ", item.lastName)}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
               </FormControl>
               <FormMessage />
             </FormItem>
