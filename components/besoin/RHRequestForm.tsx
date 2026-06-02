@@ -150,9 +150,10 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
       form.reset();
     },
 
-    onError: (error: any) => {
-      console.error("Erreur lors de la soumission:", error);
-      toast.error("Une erreur est survenue lors de la soumission.");
+    onError: (error: Error) => {
+      toast.error("Erreur lors de la soumission:", {
+        description: error.message,
+      });
     },
   });
 

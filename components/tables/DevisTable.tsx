@@ -86,6 +86,7 @@ import { format } from "date-fns";
 import { Pagination } from "../base/pagination";
 import { DevisModal } from "../modals/DevisModal";
 import { Badge, badgeVariants } from "../ui/badge";
+import EditApprovedQuotation from "@/app/tableau-de-bord/(sales)/commande/devis/edit-approved-quotation";
 
 interface DevisTableProps {
   data: Quotation[];
@@ -139,6 +140,7 @@ export function DevisTable({
 
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
   const [toCancel, setToCancel] = React.useState(false);
+  const [modifyDialog, setModifyDialog] = React.useState(false);
   const [isDevisModalOpen, setIsDevisModalOpen] = React.useState(false);
   const [selectedDevis, setSelectedDevis] = React.useState<
     Quotation | undefined
@@ -497,6 +499,17 @@ export function DevisTable({
                 <Trash />
                 {"Annuler"}
               </DropdownMenuItem>
+              {/* <DropdownMenuItem
+                onClick={() => {
+                  setSelectedDevis(item);
+                  setModifyDialog(true);
+                }}
+                variant="primary"
+                disabled={item.status !== "APPROVED"}
+              >
+                <LucidePen />
+                {"Demande de modification"}
+              </DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -1103,6 +1116,13 @@ export function DevisTable({
         <CancelQuotation
           open={toCancel}
           openChange={setToCancel}
+          quotation={selectedDevis}
+        />
+      )}
+      {selectedDevis && (
+        <EditApprovedQuotation
+          open={modifyDialog}
+          openChange={setModifyDialog}
           quotation={selectedDevis}
         />
       )}

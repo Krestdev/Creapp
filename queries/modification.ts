@@ -3,7 +3,7 @@ import { modification } from "@/types/types";
 
 export interface modificationPayload extends Omit<
   modification,
-  "id" | "createdAt" | "updatedAt"
+  "id" | "createdAt" | "updatedAt" | "status"
 > {}
 
 class modificationQuery {
@@ -18,7 +18,6 @@ class modificationQuery {
   create = async (
     payload: modificationPayload,
   ): Promise<{ data: modification }> => {
-    const formData = new FormData();
     return api.post(this.route, payload).then((response) => {
       return response.data;
     });
@@ -26,7 +25,7 @@ class modificationQuery {
 
   update = async (
     id: number,
-    payload: modificationPayload,
+    payload: Partial<modification>,
   ): Promise<{ data: modification }> => {
     return api.put(`${this.route}/${id}`, payload).then((response) => {
       return response.data;

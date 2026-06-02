@@ -264,6 +264,7 @@ export type RequestModelT = {
   decision?: "APPROVED" | "REJECTED" | "PENDING";
   serviceChiefId?: number;
   user: { firstName: string; lastName: string };
+  isUsed?: boolean;
 };
 
 export type TableData = {
@@ -380,6 +381,7 @@ export const QUOTATION_STATUS = [
   { value: "APPROVED", name: "Approuvé" },
   { value: "REJECTED", name: "Rejeté" },
   { value: "PENDING", name: "En attente" },
+  { value: "CANCELLED", name: "Annulé" },
 ] as const;
 
 export const QUOTATION_ELEMENT_STATUS = [
@@ -854,12 +856,14 @@ export type Service = {
 
 export type modification = {
   id: number;
-  action: "edit" | "cancel";
-  description: string | null;
-  requestId?: number | null;
-  devisId?: number | null;
-  commandId?: number | null;
-  paymentId?: number | null;
+  action: "CANCEL"|"UPDATE";
+  description?: string;
+  changes?: any;
+  status: "PENDING"|"APPROVED"|"REJECTED";
+  requestId?: number;
+  devisId?: number;
+  commandId?: number;
+  paymentId?: number;
   transactionId?: number | null;
   validatorId?: number | null;
   requestorId?: number | null;

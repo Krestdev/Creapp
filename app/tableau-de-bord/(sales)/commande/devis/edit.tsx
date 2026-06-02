@@ -42,6 +42,7 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import AddElement from "./creer/addElement";
+import { queryKeys } from "@/lib/query-keys";
 
 // ─── Schema (no proof) ───────────────────────────────────────────────────────
 
@@ -103,17 +104,17 @@ function EditQuotation({ open, openChange, quotation }: Props) {
   // ── Queries ─────────────────────────────────────────────────────────────────
 
   const commandRequestData = useQuery({
-    queryKey: ["command"],
+    queryKey: queryKeys.quotationRequest(quotation.commandRequestId),
     queryFn: async () => commandRqstQ.getOne(quotation.commandRequestId),
   });
 
   const quotationsData = useQuery({
-    queryKey: ["quotations"],
+    queryKey: queryKeys.quotations,
     queryFn: quotationQ.getAll,
   });
 
   const providersData = useQuery({
-    queryKey: ["providers"],
+    queryKey: queryKeys.providers,
     queryFn: providerQ.getAll,
   });
 

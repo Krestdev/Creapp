@@ -187,9 +187,6 @@ export default function BesoinRHLastVal({
       toast.error("ID de la demande manquant");
       return;
     }
-
-    console.log("hello");
-
     validateRequest.mutate({
       id: requestData.id,
       request: {
