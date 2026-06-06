@@ -124,7 +124,7 @@ function EditTransportRequest({
     defaultValues: {
       label: request.label,
       description: request.description,
-      list: request.benFac?.list,
+      list: request.benFac?.list || [],
       priority: request.priority,
       projectId: request.projectId,
       dueDate: request.dueDate
