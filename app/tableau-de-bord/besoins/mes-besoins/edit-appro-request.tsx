@@ -1,14 +1,7 @@
 "use client";
+import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
 import {
   Dialog,
   DialogClose,
@@ -32,31 +25,22 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { units } from "@/data/unit";
-import { useStore } from "@/providers/datastore";
-import { requestQ } from "@/queries/requestModule";
-import { PRIORITIES, ProjectT, RequestModelT, User } from "@/types/types";
+import { newRequestApprovisionement, requestQ } from "@/queries/requestModule";
+import { Category, PRIORITIES, ProjectT, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
 interface Props {
   request: RequestModelT;
-  users: Array<User>;
   projects: Array<ProjectT>;
+  categories: Array<Category>;
   open: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -74,31 +58,33 @@ const formSchema = z.object({
     .string({ message: "Veuillez renseigner un titre" })
     .min(5, { message: "Trop court" })
     .max(50, { message: "Trop long" }),
-  projectId: z.coerce.number({ message: "Veuillez définir un projet" }),
   description: z.string({ message: "Veuillez renseigner une description" }),
-  quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
-  benef: z.coerce.number().optional(),
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
+  projectId: z.coerce.number({
+    message: "Veuillez sélectionner un projet",
+  }),
+  amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
       const d = new Date(val);
-      return !isNaN(d.getTime());
+      return !isNaN(d.getTime()) && d >= today;
     },
     { message: "Date invalide" },
   ),
-  unit: z.string(),
   priority: z.enum(REQUEST_PRIORITIES),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-function EditTypeOthers({
+function EditApproRequest({
   request,
-  users,
   projects,
+  categories,
   open,
   onOpenChange,
 }: Props) {
-  const { user } = useStore();
   const [dueDate, setDueDate] = useState<boolean>(false);
 
   const form = useForm<FormValues>({
@@ -106,35 +92,32 @@ function EditTypeOthers({
     defaultValues: {
       label: request.label,
       description: request.description,
-      quantity: request.quantity,
-      benef: request.benef?.[0],
+      amount: request.amount,
+      dueDate: format(request.dueDate, "yyyy-MM-dd"),
       priority: request.priority,
-      unit: request.unit,
+      categoryId:
+        categories.find((c) => c.type.type === "appro")?.id || undefined,
       projectId: request.projectId,
-      dueDate: format(new Date(request.dueDate || ""), "yyyy-MM-dd"),
     },
   });
 
-  // Remplir le formulaire avec les données existantes
+  // Update values on Open
   useEffect(() => {
     if (open && request) {
       form.reset({
-        label: request.label || "",
-        description: request.description || "",
-        quantity: request.quantity || 1,
-        unit: request.unit || "",
-        benef: request.benef?.[0] || undefined,
-        dueDate: request.dueDate
-          ? format(new Date(request.dueDate), "yyyy-MM-dd")
-          : format(new Date(), "yyyy-MM-dd"),
-        priority: request.priority || "low",
+        label: request.label,
+        description: request.description,
+        amount: request.amount,
+        dueDate: format(request.dueDate, "yyyy-MM-dd"),
+        priority: request.priority,
+        categoryId: request.categoryId,
         projectId: request.projectId,
       });
     }
   }, [request, form, open]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: async (payload: any) => {
+    mutationFn: async (payload: Partial<newRequestApprovisionement>) => {
       return requestQ.update(request.id, payload);
     },
     onSuccess: () => {
@@ -148,44 +131,17 @@ function EditTypeOthers({
     },
   });
 
-  const onSubmit = useCallback(
-    (values: FormValues) => {
-      // Validation supplémentaire
-      if (!values.projectId) {
-        toast.error("Veuillez sélectionner un projet");
-        return;
-      }
+  const onSubmit = (values: FormValues) => {
+    const { dueDate, ...rest } = values;
+    mutate({ ...rest, dueDate: new Date(dueDate) });
+  };
 
-      const payload = {
-        label: values.label,
-        description: values.description,
-        quantity: values.quantity,
-        unit: values.unit,
-        benef: values.benef ? [values.benef] : [],
-        dueDate: new Date(values.dueDate),
-        priority: values.priority,
-        projectId: values.projectId,
-      };
-
-      mutate(payload);
-    },
-    [mutate],
-  );
-
-  // Gérer la fermeture du modal
-  const handleOpenChange = useCallback(
-    (newOpen: boolean) => {
-      if (!newOpen) {
-        // Réinitialiser le formulaire lors de la fermeture
-        form.reset();
-      }
-      onOpenChange(newOpen);
-    },
-    [form, onOpenChange],
-  );
+  const dayStart = new Date();
+  dayStart.setDate(dayStart.getDate() - 1);
+  dayStart.setHours(0, 0, 0, 0);
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"secondary"}>
           <DialogTitle>
@@ -207,68 +163,108 @@ function EditTypeOthers({
               control={form.control}
               name="label"
               render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <FormLabel isRequired>Titre</FormLabel>
+                <FormItem>
+                  <FormLabel isRequired>{"Titre"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex. Thé" {...field} />
+                    <Input placeholder="Ex. Carburant" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            {/* Category */}
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => {
+                // ✅ On filtre d'abord pour plus de clarté
+                const approCategories = categories.filter(
+                  (c) => c.type.type === "appro",
+                );
 
+                // ✅ Correction ici : String(c.id) === String(field.value)
+                const selectedCategory = approCategories.find(
+                  (c) => String(c.id) === String(field.value),
+                );
+
+                return (
+                  <FormItem>
+                    <FormLabel isRequired>{"Categorie"}</FormLabel>
+                    <FormControl>
+                      <SearchableSelect
+                        onChange={field.onChange}
+                        options={approCategories.map((c) => ({
+                          value: c.id!.toString(),
+                          label: c.label,
+                        }))}
+                        value={field.value ? String(field.value) : ""}
+                        width="w-full"
+                        allLabel=""
+                        placeholder="Sélectionner une catégorie"
+                      />
+                    </FormControl>
+
+                    {/* ✅ Affichage de la description sous le SearchableSelect */}
+                    {selectedCategory?.description && (
+                      <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
+                        {selectedCategory.description}
+                      </div>
+                    )}
+
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem className="col-span-full">
-                  <FormLabel isRequired>{"Description"}</FormLabel>
+                  <FormLabel isRequired>{"Motif"}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Décrivez votre besoin" {...field} />
+                    <Textarea placeholder="Ex. Carburant" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             {/* Project */}
             <FormField
               control={form.control}
               name="projectId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Projet"}</FormLabel>
-                  <FormControl>
-                    <Combobox
-                      items={projects}
-                      value={projects.find((p) => p.id === field.value) ?? null}
-                      onValueChange={(v) => field.onChange(v?.id ?? "")}
-                    >
-                      <ComboboxInput placeholder="Sélectionner" />
-                      <ComboboxContent>
-                        <ComboboxEmpty>
-                          {"Aucun projet enregistré"}
-                        </ComboboxEmpty>
-                        <ComboboxList>
-                          {(item: ProjectT) => (
-                            <ComboboxItem key={item.id} value={item}>
-                              {item.label}
-                            </ComboboxItem>
-                          )}
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
-                  </FormControl>
+                  <FormLabel isRequired>{"Projet concerné"}</FormLabel>
+                  <SearchableSelect
+                    onChange={field.onChange}
+                    options={
+                      projects
+                        .filter(
+                          (p) =>
+                            p.status !== "cancelled" &&
+                            p.status !== "Completed" &&
+                            p.status !== "on-hold",
+                        )
+                        .map((p) => ({
+                          value: p.id!.toString(),
+                          label: p.label,
+                        })) ?? []
+                    }
+                    value={field.value?.toString() || ""}
+                    width="w-full"
+                    allLabel=""
+                  />
                   <FormMessage />
                 </FormItem>
               )}
             />
-
             {/* Date limite de soumission */}
             <FormField
               control={form.control}
               name="dueDate"
               render={({ field }) => {
+                // Convertir la valeur string en Date pour le calendrier
                 const selectedDate = field.value
                   ? new Date(field.value)
                   : undefined;
@@ -303,7 +299,7 @@ function EditTypeOthers({
                             >
                               <CalendarIcon className="size-3.5" />
                               <span className="sr-only">
-                                Sélectionner une date
+                                {"Sélectionner une date"}
                               </span>
                             </Button>
                           </PopoverTrigger>
@@ -324,7 +320,7 @@ function EditTypeOthers({
                                 field.onChange(value);
                                 setDueDate(false);
                               }}
-                              disabled={(date) => date < today}
+                              disabled={(date) => date <= dayStart}
                             />
                           </PopoverContent>
                         </Popover>
@@ -335,107 +331,15 @@ function EditTypeOthers({
                 );
               }}
             />
-
+            {/* Vehicle */}
             <FormField
               control={form.control}
-              name="quantity"
+              name="amount"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Quantité"}</FormLabel>
+                  <FormLabel isRequired>{"Montant"}</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="Ex. 3" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Unité */}
-            <FormField
-              control={form.control}
-              name="unit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Unité"}</FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {units.map((unit) => (
-                          <SelectItem key={unit.value} value={unit.value}>
-                            {unit.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Priorité */}
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Priorité"}</FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PRIORITIES.map((priority) => (
-                          <SelectItem
-                            key={priority.value}
-                            value={priority.value}
-                          >
-                            {priority.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="benef"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
-                  <FormControl>
-                    <Combobox
-                      items={users}
-                      value={
-                        users.find((user) => user.id === field.value) ?? null
-                      }
-                      onValueChange={(v) => field.onChange(v?.id ?? "")}
-                      itemToStringLabel={(v) =>
-                        v.firstName.concat(" ", v.lastName)
-                      }
-                    >
-                      <ComboboxInput placeholder="Sélectionner" />
-                      <ComboboxContent>
-                        <ComboboxEmpty>
-                          {"Aucun utilisateur enregistré"}
-                        </ComboboxEmpty>
-                        <ComboboxList>
-                          {(item: User) => (
-                            <ComboboxItem key={item.id} value={item}>
-                              {item.firstName.concat(" ", item.lastName)}
-                            </ComboboxItem>
-                          )}
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
+                    <Input placeholder="Ex. 100" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -443,7 +347,7 @@ function EditTypeOthers({
             />
 
             {/* Boutons */}
-            <DialogFooter className="w-full col-span-full mt-4">
+            <DialogFooter className="w-full col-span-full">
               <DialogClose asChild>
                 <Button type="button" variant="outline" disabled={isPending}>
                   {"Annuler"}
@@ -465,4 +369,4 @@ function EditTypeOthers({
   );
 }
 
-export default EditTypeOthers;
+export default EditApproRequest;

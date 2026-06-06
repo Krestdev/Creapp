@@ -71,6 +71,10 @@ import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
+import EditApproRequest from "./edit-appro-request";
+import EditGasRequest from "./edit-gas-request";
+import EditTaxesRequest from "./edit-taxes-request";
+import EditTransportRequest from "./edit-transport-request";
 
 const statusConfig = {
   pending: {
@@ -148,6 +152,13 @@ export function TableMyRequests({
   const [isUpdateOthersModalOpen, setIsUpdateOthersModalOpen] =
     React.useState(false);
   const [isUpdateSettleModalOpen, setIsUpdateSettleModalOpen] =
+    React.useState(false);
+  const [isUpdateApproModalOpen, setIsUpdateApproModalOpen] =
+    React.useState(false);
+  const [isUpdateGasModalOpen, setIsUpdateGasModalOpen] = React.useState(false);
+  const [isUpdateTransportModalOpen, setIsUpdateTransportModalOpen] =
+    React.useState(false);
+  const [isUpdateTaxesModalOpen, setIsUpdateTaxesModalOpen] =
     React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
@@ -406,7 +417,15 @@ export function TableMyRequests({
                           ? setIsUpdateOthersModalOpen(true)
                           : item.type === "settle"
                             ? setIsUpdateSettleModalOpen(true)
-                            : setIsUpdateModalOpen(true);
+                            : item.type === "appro"
+                              ? setIsUpdateApproModalOpen(true)
+                              : item.type === "gas"
+                                ? setIsUpdateGasModalOpen(true)
+                                : item.type === "transport"
+                                  ? setIsUpdateTransportModalOpen(true)
+                                  : item.type === "taxes"
+                                    ? setIsUpdateTaxesModalOpen(true)
+                                    : setIsUpdateModalOpen(true);
                   }}
                   disabled={
                     item.state !== "pending" ||
@@ -650,6 +669,35 @@ export function TableMyRequests({
             projects={projects}
             open={isUpdateSettleModalOpen}
             onOpenChange={setIsUpdateSettleModalOpen}
+          />
+          <EditApproRequest
+            request={selectedItem}
+            categories={categories}
+            projects={projects}
+            open={isUpdateApproModalOpen}
+            onOpenChange={setIsUpdateApproModalOpen}
+          />
+          <EditGasRequest
+            request={selectedItem}
+            categories={categories}
+            open={isUpdateGasModalOpen}
+            onOpenChange={setIsUpdateGasModalOpen}
+          />
+          <EditTaxesRequest
+            request={selectedItem}
+            categories={categories}
+            open={isUpdateTaxesModalOpen}
+            onOpenChange={setIsUpdateTaxesModalOpen}
+            users={users}
+            projects={projects}
+          />
+          <EditTransportRequest
+            request={selectedItem}
+            users={users}
+            categories={categories}
+            projects={projects}
+            open={isUpdateTransportModalOpen}
+            onOpenChange={setIsUpdateTransportModalOpen}
           />
         </>
       )}

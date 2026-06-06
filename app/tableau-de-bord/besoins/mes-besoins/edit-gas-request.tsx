@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -32,31 +33,23 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { units } from "@/data/unit";
-import { useStore } from "@/providers/datastore";
-import { requestQ } from "@/queries/requestModule";
-import { PRIORITIES, ProjectT, RequestModelT, User } from "@/types/types";
+import { queryKeys } from "@/lib/query-keys";
+import { newRequestGas, requestQ } from "@/queries/requestModule";
+import { vehicleQ } from "@/queries/vehicule";
+import { Category, PRIORITIES, RequestModelT, Vehicle } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
 interface Props {
   request: RequestModelT;
-  users: Array<User>;
-  projects: Array<ProjectT>;
+  categories: Array<Category>;
   open: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
@@ -74,14 +67,19 @@ const formSchema = z.object({
     .string({ message: "Veuillez renseigner un titre" })
     .min(5, { message: "Trop court" })
     .max(50, { message: "Trop long" }),
-  projectId: z.coerce.number({ message: "Veuillez définir un projet" }),
   description: z.string({ message: "Veuillez renseigner une description" }),
-  quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
-  benef: z.coerce.number().optional(),
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
+  amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
+  vehiclesId: z.coerce.number(),
+  km: z.coerce.number(),
+  liters: z.coerce.number(),
+  benef: z.coerce.number(),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
       const d = new Date(val);
-      return !isNaN(d.getTime());
+      return !isNaN(d.getTime()) && d >= today;
     },
     { message: "Date invalide" },
   ),
@@ -91,50 +89,54 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function EditTypeOthers({
-  request,
-  users,
-  projects,
-  open,
-  onOpenChange,
-}: Props) {
-  const { user } = useStore();
+function EditGasRequest({ request, categories, open, onOpenChange }: Props) {
   const [dueDate, setDueDate] = useState<boolean>(false);
+
+  const getVehicles = useQuery({
+    queryKey: queryKeys.vehicles,
+    queryFn: vehicleQ.getAll,
+  });
+
+  const vehicles = getVehicles.data ? getVehicles.data.data : [];
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      label: request.label,
-      description: request.description,
-      quantity: request.quantity,
-      benef: request.benef?.[0],
-      priority: request.priority,
-      unit: request.unit,
-      projectId: request.projectId,
-      dueDate: format(new Date(request.dueDate || ""), "yyyy-MM-dd"),
+      label: request.label || "Recharge de carburant",
+      description: request.description || "",
+      amount: request.amount || 100,
+      liters: request.liters || 1,
+      benef: request.benef?.[0] || undefined,
+      dueDate: format(request.dueDate || new Date(), "yyyy-MM-dd"),
+      priority: request.priority || "low",
+      vehiclesId: request.vehiclesId || undefined,
+      km: request.km || 1,
+      unit: request.unit || "km",
+      categoryId: request.categoryId || undefined,
     },
   });
 
-  // Remplir le formulaire avec les données existantes
+  // Update form on open
   useEffect(() => {
     if (open && request) {
       form.reset({
-        label: request.label || "",
+        label: request.label || "Recharge de carburant",
         description: request.description || "",
-        quantity: request.quantity || 1,
-        unit: request.unit || "",
+        amount: request.amount || 100,
+        liters: request.liters || 1,
         benef: request.benef?.[0] || undefined,
-        dueDate: request.dueDate
-          ? format(new Date(request.dueDate), "yyyy-MM-dd")
-          : format(new Date(), "yyyy-MM-dd"),
+        dueDate: format(request.dueDate || new Date(), "yyyy-MM-dd"),
         priority: request.priority || "low",
-        projectId: request.projectId,
+        vehiclesId: request.vehiclesId || undefined,
+        km: request.km || 1,
+        unit: request.unit || "km",
+        categoryId: request.categoryId || undefined,
       });
     }
   }, [request, form, open]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: async (payload: any) => {
+    mutationFn: async (payload: Partial<newRequestGas>) => {
       return requestQ.update(request.id, payload);
     },
     onSuccess: () => {
@@ -148,44 +150,17 @@ function EditTypeOthers({
     },
   });
 
-  const onSubmit = useCallback(
-    (values: FormValues) => {
-      // Validation supplémentaire
-      if (!values.projectId) {
-        toast.error("Veuillez sélectionner un projet");
-        return;
-      }
+  const onSubmit = (values: FormValues) => {
+    const { dueDate, benef, ...rest } = values;
+    mutate({ dueDate: new Date(dueDate), benef: [benef!], ...rest });
+  };
 
-      const payload = {
-        label: values.label,
-        description: values.description,
-        quantity: values.quantity,
-        unit: values.unit,
-        benef: values.benef ? [values.benef] : [],
-        dueDate: new Date(values.dueDate),
-        priority: values.priority,
-        projectId: values.projectId,
-      };
-
-      mutate(payload);
-    },
-    [mutate],
-  );
-
-  // Gérer la fermeture du modal
-  const handleOpenChange = useCallback(
-    (newOpen: boolean) => {
-      if (!newOpen) {
-        // Réinitialiser le formulaire lors de la fermeture
-        form.reset();
-      }
-      onOpenChange(newOpen);
-    },
-    [form, onOpenChange],
-  );
+  const dayStart = new Date();
+  dayStart.setDate(dayStart.getDate() - 1);
+  dayStart.setHours(0, 0, 0, 0);
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"secondary"}>
           <DialogTitle>
@@ -207,68 +182,77 @@ function EditTypeOthers({
               control={form.control}
               name="label"
               render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <FormLabel isRequired>Titre</FormLabel>
+                <FormItem>
+                  <FormLabel isRequired>{"Titre"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex. Thé" {...field} />
+                    <Input placeholder="Ex. Carburant" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            {/* Category */}
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => {
+                const gasCategories = categories.filter(
+                  (c) => c.type.type === "gas",
+                );
 
+                // ✅ Utilisation de String() pour assurer la correspondance
+                const selectedCategory = gasCategories.find(
+                  (c) => String(c.id) === String(field.value),
+                );
+
+                return (
+                  <FormItem>
+                    <FormLabel isRequired>{"Categorie"}</FormLabel>
+                    <FormControl>
+                      <SearchableSelect
+                        onChange={field.onChange}
+                        options={gasCategories.map((c) => ({
+                          value: c.id!.toString(),
+                          label: c.label,
+                        }))}
+                        value={field.value ? String(field.value) : ""}
+                        width="w-full"
+                        allLabel=""
+                        placeholder="Sélectionner une catégorie"
+                      />
+                    </FormControl>
+
+                    {/* ✅ Affichage de la description sous le SearchableSelect */}
+                    {selectedCategory?.description && (
+                      <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
+                        {selectedCategory.description}
+                      </div>
+                    )}
+
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
+            />
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem className="col-span-full">
-                  <FormLabel isRequired>{"Description"}</FormLabel>
+                  <FormLabel isRequired>{"Motif"}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Décrivez votre besoin" {...field} />
+                    <Textarea {...field} placeholder="Description" />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            {/* Project */}
-            <FormField
-              control={form.control}
-              name="projectId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Projet"}</FormLabel>
-                  <FormControl>
-                    <Combobox
-                      items={projects}
-                      value={projects.find((p) => p.id === field.value) ?? null}
-                      onValueChange={(v) => field.onChange(v?.id ?? "")}
-                    >
-                      <ComboboxInput placeholder="Sélectionner" />
-                      <ComboboxContent>
-                        <ComboboxEmpty>
-                          {"Aucun projet enregistré"}
-                        </ComboboxEmpty>
-                        <ComboboxList>
-                          {(item: ProjectT) => (
-                            <ComboboxItem key={item.id} value={item}>
-                              {item.label}
-                            </ComboboxItem>
-                          )}
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Date limite de soumission */}
+            {/* DATE LIMITE */}
             <FormField
               control={form.control}
               name="dueDate"
               render={({ field }) => {
+                // Convertir la valeur string en Date pour le calendrier
                 const selectedDate = field.value
                   ? new Date(field.value)
                   : undefined;
@@ -303,7 +287,7 @@ function EditTypeOthers({
                             >
                               <CalendarIcon className="size-3.5" />
                               <span className="sr-only">
-                                Sélectionner une date
+                                {"Sélectionner une date"}
                               </span>
                             </Button>
                           </PopoverTrigger>
@@ -324,7 +308,7 @@ function EditTypeOthers({
                                 field.onChange(value);
                                 setDueDate(false);
                               }}
-                              disabled={(date) => date < today}
+                              disabled={(date) => date <= dayStart}
                             />
                           </PopoverContent>
                         </Popover>
@@ -335,102 +319,40 @@ function EditTypeOthers({
                 );
               }}
             />
-
+            {/* Vehicle */}
             <FormField
               control={form.control}
-              name="quantity"
+              name="vehiclesId"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>{"Quantité"}</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Ex. 3" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Unité */}
-            <FormField
-              control={form.control}
-              name="unit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Unité"}</FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {units.map((unit) => (
-                          <SelectItem key={unit.value} value={unit.value}>
-                            {unit.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Priorité */}
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Priorité"}</FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PRIORITIES.map((priority) => (
-                          <SelectItem
-                            key={priority.value}
-                            value={priority.value}
-                          >
-                            {priority.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="benef"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
+                  <FormLabel isRequired>{"Véhicule"}</FormLabel>
                   <FormControl>
                     <Combobox
-                      items={users}
+                      items={vehicles}
                       value={
-                        users.find((user) => user.id === field.value) ?? null
+                        vehicles.find(
+                          (vehicle) => vehicle.id === field.value,
+                        ) ?? null
                       }
                       onValueChange={(v) => field.onChange(v?.id ?? "")}
                       itemToStringLabel={(v) =>
-                        v.firstName.concat(" ", v.lastName)
+                        v.mark.concat(" - ", v.label, " - ", v.matricule)
                       }
                     >
                       <ComboboxInput placeholder="Sélectionner" />
                       <ComboboxContent>
                         <ComboboxEmpty>
-                          {"Aucun utilisateur enregistré"}
+                          {"Aucun véhicule enregistré"}
                         </ComboboxEmpty>
                         <ComboboxList>
-                          {(item: User) => (
+                          {(item: Vehicle) => (
                             <ComboboxItem key={item.id} value={item}>
-                              {item.firstName.concat(" ", item.lastName)}
+                              {item.mark.concat(
+                                " - ",
+                                item.label,
+                                " - ",
+                                item.matricule,
+                              )}
                             </ComboboxItem>
                           )}
                         </ComboboxList>
@@ -441,7 +363,6 @@ function EditTypeOthers({
                 </FormItem>
               )}
             />
-
             {/* Boutons */}
             <DialogFooter className="w-full col-span-full mt-4">
               <DialogClose asChild>
@@ -465,4 +386,4 @@ function EditTypeOthers({
   );
 }
 
-export default EditTypeOthers;
+export default EditGasRequest;
