@@ -41,6 +41,7 @@ import {
   PRIORITIES,
   Provider,
   Quotation,
+  RECEPTION_MODES,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -54,6 +55,11 @@ import z from "zod";
 const PO_PRIORITIES = PRIORITIES.map((s) => s.value) as [
   (typeof PRIORITIES)[number]["value"],
   ...(typeof PRIORITIES)[number]["value"][],
+];
+
+const PAYMENT_CONDITION_MODES = RECEPTION_MODES.map((s) => s.value) as [
+  (typeof RECEPTION_MODES)[number]["value"],
+  ...(typeof RECEPTION_MODES)[number]["value"][],
 ];
 
 const paymentSchema = z.object({
@@ -114,6 +120,8 @@ export const formSchema = z
     conditions: z
       .array(z.number())
       .min(1, "Veuillez sélectionner au moins une condition"),
+    payDelay: z.coerce.number().min(1, "Veuillez saisir un délai"),
+    receptionMode: z.enum(PAYMENT_CONDITION_MODES),
   })
   .superRefine((data, ctx) => {
     if (data.hasPenalties) {
@@ -179,6 +187,8 @@ function CreateForm({
       keepTaxes: false,
       hasPrecompt: false,
       conditions: [],
+      payDelay: 0,
+      receptionMode: undefined,
     },
   });
 
@@ -194,6 +204,10 @@ function CreateForm({
       }
     }
   }, [paymentType, form]);
+
+  const hasDelay =
+    form.watch("receptionMode") === "FULL" ||
+    form.watch("receptionMode") === "PARTIAL";
 
   const deviId = form.watch("deviId");
   const precompte = form.watch("hasPrecompt");
@@ -279,6 +293,8 @@ function CreateForm({
         escompteRate: 0,
         keepTaxes: false,
         conditions: [],
+        payDelay: 0,
+        receptionMode: undefined,
       });
     },
     onError: (error: Error) => {
@@ -330,6 +346,10 @@ function CreateForm({
         hasPrecompt: values.hasPrecompt,
         netToPay: netToPay,
         object: values.object,
+        payDelay: !hasDelay ? 0 : values.payDelay,
+        isPayConditionedByReception:
+          values.receptionMode === "NONE" ? false : true,
+        receptionMode: values.receptionMode,
       },
       conditions: values.conditions,
       ids: ids,
@@ -764,6 +784,50 @@ function CreateForm({
           />
           <FormMessage />
         </div>
+        <FormField
+          control={form.control}
+          name="receptionMode"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel isRequired>{"Condition de paiement"}</FormLabel>
+              <FormControl>
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionnnez un mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {RECEPTION_MODES.map((m) => (
+                      <SelectItem key={m.value} value={m.value}>
+                        {m.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        {hasDelay && (
+          <FormField
+            control={form.control}
+            name="payDelay"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel isRequired>{"Délai de paiement"}</FormLabel>
+                <FormControl>
+                  <Input type="number" {...field} placeholder="ex. 30" />
+                </FormControl>
+                <FormDescription>
+                  {
+                    "Nombre de jours aprés la livraison pour effectuer le paiement"
+                  }
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        )}
         <FormField
           control={form.control}
           name="paymentTerms"

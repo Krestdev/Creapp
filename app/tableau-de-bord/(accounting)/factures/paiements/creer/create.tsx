@@ -32,11 +32,14 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { XAF } from "@/lib/utils";
+import { queryKeys } from "@/lib/query-keys";
+import { isPayDateValid, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { NewPayment, paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
-import { Invoice, PRIORITIES, ProjectT } from "@/types/types";
+import { purchaseQ } from "@/queries/purchase-order";
+import { receptionQ } from "@/queries/reception";
+import { BonsCommande, Invoice, PRIORITIES, ProjectT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -136,7 +139,7 @@ function CreatePaiement({ invoices, projects }: Props) {
   today.setDate(today.getDate() + 3);
 
   const getPaymentType = useQuery({
-    queryKey: ["paymentTypes"],
+    queryKey: queryKeys.paymentTypes,
     queryFn: payTypeQ.getAll,
   });
 
@@ -190,6 +193,8 @@ function CreatePaiement({ invoices, projects }: Props) {
     return filteredInvoices.find((p) => p.id === invoiceId);
   }, [filteredInvoices, invoiceId]);
 
+  const purchase = invoice?.command;
+
   const toPay = invoice?.rest;
 
   const rest = !!toPay && toPay >= 0 ? toPay : 0;
@@ -205,6 +210,12 @@ function CreatePaiement({ invoices, projects }: Props) {
       form.setValue("price", rest);
     }
   }, [invoiceId]);
+
+  const getReception = useQuery({
+    queryKey: queryKeys.receptionByPurchase(Number(purchase?.id!)),
+    queryFn: async () => receptionQ.getByPurchase(purchase?.id!),
+    enabled: !!purchase,
+  });
 
   function onSubmit(values: FormValues) {
     // Validation supplémentaire pour le moyen de paiement
@@ -243,6 +254,26 @@ function CreatePaiement({ invoices, projects }: Props) {
       return form.setError("price", {
         message: "Votre montant est supérieur au reste à payer",
       });
+    }
+    if (!purchase) {
+      toast.error("Aucun Bon de commande trouvé");
+      return form.setError("invoiceId", {
+        message: "Aucun Bon de commande trouvé",
+      });
+    }
+    if (!getReception.data) {
+      toast.error("Erreur lors du chargement du Bon de commande");
+      return form.setError("invoiceId", {
+        message: "Erreur lors du chargement du Bon de commande",
+      });
+    }
+    const validation = isPayDateValid({
+      purchase,
+      reception: getReception.data.data,
+    });
+    if (validation.status === false) {
+      toast.error(validation.error);
+      return;
     }
     const payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId"> =
       {

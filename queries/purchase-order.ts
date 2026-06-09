@@ -53,6 +53,12 @@ class PurchaseOrder {
     });
   };
 
+  getOne = async (id: number): Promise<{ data: BonsCommande }> => {
+    return api.get(`${this.route}/${id}`).then((response) => {
+      return response.data;
+    });
+  };
+
   //Pending for validation count
   getPendingCount = async (): Promise<{ data: number }> => {
     return api.get(`${this.route}/pending/count`).then((response) => {

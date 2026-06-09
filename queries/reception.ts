@@ -17,9 +17,15 @@ class ReceptionQuery {
     });
   };
 
+  getByPurchase = async (id: number): Promise<{ data: Reception }> => {
+    return api.get(`${this.route}/command/${id}`).then((response) => {
+      return response.data;
+    });
+  };
+
   update = async (
     id: number,
-    data: Reception
+    data: Reception,
   ): Promise<{ data: Array<Reception> }> => {
     return api.put(`${this.route}/${id}`, data).then((response) => {
       return response.data;
@@ -29,11 +35,11 @@ class ReceptionQuery {
     id,
     Deliverables,
     proof,
-    note
+    note,
   }: ReceptionCompletion): Promise<{ data: Reception }> => {
     const formData = new FormData();
     formData.append("Deliverables", JSON.stringify(Deliverables));
-    formData.append("note", note)
+    formData.append("note", note);
     if (proof && proof.length > 0) {
       proof.forEach((file) => {
         formData.append("Proof", file);

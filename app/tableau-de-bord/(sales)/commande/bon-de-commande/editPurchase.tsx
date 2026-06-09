@@ -43,6 +43,7 @@ import {
   PayType,
   PRIORITIES,
   Quotation,
+  RECEPTION_MODES,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
@@ -69,6 +70,11 @@ const PO_PRIORITIES = PRIORITIES.map((s) => s.value) as [
 const PO_METHODS = PAYMENT_METHOD.map((s) => s.value) as [
   (typeof PAYMENT_METHOD)[number]["value"],
   ...(typeof PAYMENT_METHOD)[number]["value"][],
+];
+
+const PAYMENT_CONDITION_MODES = RECEPTION_MODES.map((s) => s.value) as [
+  (typeof RECEPTION_MODES)[number]["value"],
+  ...(typeof RECEPTION_MODES)[number]["value"][],
 ];
 
 const paymentSchema = z.object({
@@ -129,6 +135,8 @@ export const formSchema = z
     conditions: z
       .array(z.number())
       .min(1, "Veuillez sélectionner au moins une condition"),
+    payDelay: z.coerce.number().min(1, "Veuillez saisir un délai"),
+    receptionMode: z.enum(PAYMENT_CONDITION_MODES),
   })
   .superRefine((data, ctx) => {
     if (data.hasPenalties) {
@@ -217,8 +225,14 @@ function EditPurchase({
       keepTaxes: purchaseOrder.keepTaxes ?? false,
       hasPrecompt: purchaseOrder.hasPrecompt ?? false,
       conditions: purchaseOrder.commandConditions.map((c) => c.id) ?? [],
+      payDelay: purchaseOrder.payDelay ?? 0,
+      receptionMode: purchaseOrder.receptionMode,
     },
   });
+
+  const hasDelay =
+    form.watch("receptionMode") === "FULL" ||
+    form.watch("receptionMode") === "PARTIAL";
 
   //console.log(form.formState.errors);
   //console.log(form.getValues("instalments"));
@@ -243,6 +257,8 @@ function EditPurchase({
         keepTaxes: purchaseOrder.keepTaxes ?? false,
         hasPrecompt: purchaseOrder.hasPrecompt ?? false,
         conditions: purchaseOrder.commandConditions.map((c) => c.id) ?? [],
+        payDelay: purchaseOrder.payDelay ?? 0,
+        receptionMode: purchaseOrder.receptionMode,
       });
     }
   }, [open]);
@@ -310,6 +326,10 @@ function EditPurchase({
       escompteRate: values.escompteRate,
       keepTaxes: values.keepTaxes,
       hasPrecompt: values.hasPrecompt,
+      payDelay: values.payDelay,
+      receptionMode: values.receptionMode,
+      isPayConditionedByReception:
+        values.receptionMode === "NONE" ? false : true,
     };
 
     mutate(payload);
@@ -750,6 +770,50 @@ function EditPurchase({
               />
               <FormMessage />
             </div>
+            <FormField
+              control={form.control}
+              name="receptionMode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Condition de paiement"}</FormLabel>
+                  <FormControl>
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionnnez un mode" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {RECEPTION_MODES.map((m) => (
+                          <SelectItem key={m.value} value={m.value}>
+                            {m.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {hasDelay && (
+              <FormField
+                control={form.control}
+                name="payDelay"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Délai de paiement"}</FormLabel>
+                    <FormControl>
+                      <Input type="number" {...field} placeholder="ex. 30" />
+                    </FormControl>
+                    <FormDescription>
+                      {
+                        "Nombre de jours aprés la livraison pour effectuer le paiement"
+                      }
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <FormField
               control={form.control}
               name="paymentTerms"

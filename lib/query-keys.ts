@@ -69,7 +69,7 @@ export const queryKeys = {
 
   // ----QuotationRequest -----------------------
   quotationRequests: ["quotations-requests"] as const,
-  quotationRequest : (id: number) => ["quotations-request", id] as const,
+  quotationRequest: (id: number) => ["quotations-request", id] as const,
 
   // ─── Banks ─────────────────────────────────────────────────────────────────
   banks: ["banks"] as const,
@@ -98,6 +98,7 @@ export const queryKeys = {
   // ─── Receptions ────────────────────────────────────────────────────────────
   receptions: ["receptions"] as const,
   reception: (id: number) => ["reception", id] as const,
+  receptionByPurchase: (id: number) => ["reception-purchase", id] as const,
 
   // ─── Users ─────────────────────────────────────────────────────────────────
   users: ["users"] as const,

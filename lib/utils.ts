@@ -15,6 +15,7 @@ import {
   PayType,
   Quotation,
   PRIORITIES,
+  Reception,
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { clsx, type ClassValue } from "clsx";
@@ -327,7 +328,7 @@ export function getRequestTypeBadge({ type, requestTypes }: typesProps): {
     case "appro":
       return { label, variant: "fuchsia" };
     case "settle":
-      return { label, variant: "indigo"}
+      return { label, variant: "indigo" };
     default:
       return { label, variant: "outline" };
   }
@@ -494,4 +495,90 @@ export const getModifiedProps = ({
   if (!oldReq || oldReq.length === 0) return [];
   //const oldValues = oldReq.
   return [];
+};
+
+export const isPayDateValid = ({
+  purchase,
+  reception,
+}: {
+  purchase: BonsCommande;
+  reception: Reception;
+}): { status: boolean; error?: string } => {
+  const { receptionMode, payDelay, isPayConditionedByReception } = purchase;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+
+  // If payment is not conditioned by reception, check only the raw delay from today
+  if (isPayConditionedByReception === false) {
+    const delayDate = new Date(
+      today.getTime() + payDelay * 24 * 60 * 60 * 1000,
+    );
+    return {
+      status: today.getTime() >= delayDate.getTime(),
+      error:
+        today.getTime() < delayDate.getTime()
+          ? `Le délai de paiement de ${payDelay} jour(s) n'est pas encore écoulé.`
+          : undefined,
+    };
+  }
+
+  if (receptionMode === "FULL") {
+    const allDelivered = reception.Deliverables.every(
+      (d) => d.isDelivered === true,
+    );
+    if (!allDelivered)
+      return {
+        status: false,
+        error:
+          "Le bon de commande doit être entièrement réceptionné avant le paiement",
+      };
+
+    // Most recent updatedAt among all deliverables
+    const mostRecent = reception.Deliverables.reduce((latest, d) => {
+      const t = new Date(d.updatedAt).getTime();
+      return t > latest ? t : latest;
+    }, 0);
+
+    const delayDate = new Date(mostRecent + payDelay * 24 * 60 * 60 * 1000);
+    return {
+      status: today.getTime() >= delayDate.getTime(),
+      error:
+        today.getTime() < delayDate.getTime()
+          ? `Le délai de paiement de ${payDelay} jour(s) n'est pas encore écoulé.`
+          : undefined,
+    };
+  }
+
+  if (receptionMode === "PARTIAL") {
+    const anyDelivered = reception.Deliverables.some(
+      (d) => d.isDelivered === true,
+    );
+    if (!anyDelivered)
+      return {
+        status: false,
+        error:
+          "Le bon de commande doit être réceptionné au moins partiellement avant le paiement",
+      };
+
+    // Oldest updatedAt among delivered deliverables only
+    const oldest = reception.Deliverables.filter((d) => d.isDelivered).reduce(
+      (oldest, d) => {
+        const t = new Date(d.updatedAt).getTime();
+        return t < oldest ? t : oldest;
+      },
+      0,
+    );
+
+    const delayDate = new Date(oldest + payDelay * 24 * 60 * 60 * 1000);
+    return {
+      status: today.getTime() >= delayDate.getTime(),
+      error:
+        today.getTime() < delayDate.getTime()
+          ? `Le délai de paiement de ${payDelay} jour(s) n'est pas encore écoulé.`
+          : undefined,
+    };
+  }
+
+  return { status: false, error: "La réception est vide" };
 };

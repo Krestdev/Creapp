@@ -498,6 +498,12 @@ export const PRIORITIES = [
   { value: "urgent", name: "Urgent" },
 ] as const;
 
+export const RECEPTION_MODES = [
+  { value: "PARTIAL", name: "Partielle" },
+  { value: "FULL", name: "Complète" },
+  { value: "NONE", name: "Aucune Condition" },
+] as const;
+
 export type BonsCommande = {
   id: number;
   reference: string;
@@ -540,6 +546,9 @@ export type BonsCommande = {
     decision: "APPROVED" | "REJECTED";
   };
   object?: string;
+  payDelay: number;
+  isPayConditionedByReception: boolean;
+  receptionMode: (typeof RECEPTION_MODES)[number]["value"];
 };
 
 export const INVOICE_STATUS = [
@@ -856,10 +865,10 @@ export type Service = {
 
 export type modification = {
   id: number;
-  action: "CANCEL"|"UPDATE";
+  action: "CANCEL" | "UPDATE";
   description?: string;
   changes?: any;
-  status: "PENDING"|"APPROVED"|"REJECTED";
+  status: "PENDING" | "APPROVED" | "REJECTED";
   requestId?: number;
   devisId?: number;
   commandId?: number;
