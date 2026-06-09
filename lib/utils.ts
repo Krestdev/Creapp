@@ -502,7 +502,7 @@ export const isPayDateValid = ({
   reception,
 }: {
   purchase: BonsCommande;
-  reception: Reception;
+  reception?: Reception;
 }): { status: boolean; error?: string } => {
   const { receptionMode, payDelay, isPayConditionedByReception } = purchase;
 
@@ -524,6 +524,8 @@ export const isPayDateValid = ({
   }
 
   if (receptionMode === "FULL") {
+    if (!reception)
+      return { status: false, error: "Réception introuvable pour ce bon de commande." };
     const allDelivered = reception.Deliverables.every(
       (d) => d.isDelivered === true,
     );
@@ -551,6 +553,8 @@ export const isPayDateValid = ({
   }
 
   if (receptionMode === "PARTIAL") {
+    if (!reception)
+      return { status: false, error: "Réception introuvable pour ce bon de commande." };
     const anyDelivered = reception.Deliverables.some(
       (d) => d.isDelivered === true,
     );

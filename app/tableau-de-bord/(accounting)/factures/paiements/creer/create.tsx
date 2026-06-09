@@ -261,17 +261,17 @@ function CreatePaiement({ invoices, projects }: Props) {
         message: "Aucun Bon de commande trouvé",
       });
     }
-    if (!getReception.data) {
-      toast.error("Erreur lors du chargement du Bon de commande");
+    if (purchase.isPayConditionedByReception && !getReception.data) {
+      toast.error("Erreur lors du chargement de la réception");
       return form.setError("invoiceId", {
-        message: "Erreur lors du chargement du Bon de commande",
+        message: "Erreur lors du chargement de la réception",
       });
     }
     const validation = isPayDateValid({
       purchase,
-      reception: getReception.data.data,
+      reception: getReception.data?.data,
     });
-    if (validation.status === false) {
+    if (!validation.status) {
       toast.error(validation.error);
       return;
     }
