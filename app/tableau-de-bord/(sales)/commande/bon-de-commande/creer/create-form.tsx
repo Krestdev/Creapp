@@ -120,7 +120,7 @@ export const formSchema = z
     conditions: z
       .array(z.number())
       .min(1, "Veuillez sélectionner au moins une condition"),
-    payDelay: z.coerce.number().min(1, "Veuillez saisir un délai"),
+    payDelay: z.coerce.number().min(0, "Veuillez saisir un délai"),
     receptionMode: z.enum(PAYMENT_CONDITION_MODES),
   })
   .superRefine((data, ctx) => {
