@@ -10,7 +10,7 @@ import CreatePaiement from "./create";
 
 function Page() {
   const getInvoices = useQuery({
-    queryKey: queryKeys.invoices,
+    queryKey: queryKeys.invoicesPayments,
     queryFn: invoiceQ.getAll,
   });
 

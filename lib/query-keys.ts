@@ -116,6 +116,7 @@ export const queryKeys = {
 
   // ─── Invoices ──────────────────────────────────────────────────────────────
   invoices: ["invoices"] as const,
+  invoicesPayments: ["invoices-payments"] as const,
   invoice: (id: number) => ["invoice", id] as const,
 
   // ─── Services ──────────────────────────────────────────────────────────────
