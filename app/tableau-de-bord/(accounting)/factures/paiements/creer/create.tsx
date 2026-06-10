@@ -131,6 +131,8 @@ function CreatePaiement({ invoices, projects }: Props) {
     );
   }, [projects, searchProject]);
   const [dueDate, setDueDate] = React.useState<boolean>(false);
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
   const today = new Date(); //On part sur 3 jours de delai de base :)
   today.setDate(today.getDate() + 3);
 
@@ -535,7 +537,7 @@ function CreatePaiement({ invoices, projects }: Props) {
                             field.onChange(value);
                             setDueDate(false);
                           }}
-                          disabled={(date) => date < new Date()}
+                          disabled={(date) => date < currentDate}
                         />
                       </PopoverContent>
                     </Popover>
