@@ -707,7 +707,6 @@ export function PurchaseTable({
               </SheetHeader>
 
               <div className="space-y-5 px-5">
-
                 {/* Filtre par statut avec recherche */}
                 <div className="grid gap-1.5">
                   <Label>{"Statut"}</Label>

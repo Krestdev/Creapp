@@ -37,7 +37,14 @@ export type updatePoPayload = Omit<
   | "netToPay"
   | "commandConditions"
   | "invoice"
->;
+  | "instalments"
+> & {
+  instalments: Array<{
+    percentage: number;
+    deadLine?: Date | undefined;
+  }>;
+  conditions: Array<number>;
+};
 
 export type AddFileProps = {
   id: number;

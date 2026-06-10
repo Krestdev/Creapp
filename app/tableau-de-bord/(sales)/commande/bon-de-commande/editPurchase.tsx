@@ -322,7 +322,12 @@ function EditPurchase({
       deliveryLocation: values.deliveryLocation,
       hasPenalties: values.hasPenalties,
       penaltyMode: values.penaltyMode,
-      instalments: purchaseOrder.instalments,
+      instalments: values.instalments.map((instalment) => ({
+        percentage: instalment.percentage,
+        deadLine: instalment.deadLine
+          ? new Date(instalment.deadLine)
+          : undefined,
+      })),
       escompteRate: values.escompteRate,
       keepTaxes: values.keepTaxes,
       hasPrecompt: values.hasPrecompt,
@@ -330,12 +335,14 @@ function EditPurchase({
       receptionMode: values.receptionMode,
       isPayConditionedByReception:
         values.receptionMode === "NONE" ? false : true,
+      conditions: values.conditions,
     };
 
     mutate(payload);
   }
 
   const penalty = form.watch("hasPenalties");
+  console.log(form.formState.errors);
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
@@ -752,24 +759,29 @@ function EditPurchase({
                 )}
               </div>
             </div>
-            <div className="col-span-2 w-full space-y-2">
-              <FormLabel isRequired>
-                {"Conditions du bon de commande"}
-              </FormLabel>
-              <MultiSelectConditions
-                display="Conditions"
-                conditions={conditions}
-                selected={selectedConditions}
-                onChange={(selected) => {
-                  setSelectedConditions(selected);
-                  form.setValue(
-                    "conditions",
-                    selected.map((r) => r.id),
-                  );
-                }}
-              />
-              <FormMessage />
-            </div>
+            <FormField
+              control={form.control}
+              name="conditions"
+              render={({ field }) => (
+                <FormItem className="col-span-full">
+                  <FormLabel isRequired>
+                    {"Conditions du bon de commande"}
+                  </FormLabel>
+                  <FormControl>
+                    <MultiSelectConditions
+                      display="Conditions"
+                      conditions={conditions}
+                      selected={selectedConditions}
+                      onChange={(selected) => {
+                        setSelectedConditions(selected);
+                        field.onChange(selected.map((r) => r.id));
+                      }}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <FormField
               control={form.control}
               name="receptionMode"
