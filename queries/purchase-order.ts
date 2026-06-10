@@ -39,10 +39,10 @@ export type updatePoPayload = Omit<
   | "invoice"
   | "instalments"
 > & {
-  instalments: Array<{
+  /* instalments: Array<{
     percentage: number;
     deadLine?: Date | undefined;
-  }>;
+  }>; */
   conditions: Array<number>;
 };
 

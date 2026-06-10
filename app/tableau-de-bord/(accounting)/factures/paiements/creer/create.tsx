@@ -121,10 +121,6 @@ function CreatePaiement({ invoices, projects }: Props) {
 
   const router = useRouter();
 
-  const filteredInvoices = React.useMemo(() => {
-    return invoices.filter((invoice) => invoice.rest > 0);
-  }, [invoices]);
-
   const [searchProject, setSearchProject] = React.useState<string>("");
   const filteredProjects = React.useMemo(() => {
     if (!searchProject) {
@@ -190,8 +186,8 @@ function CreatePaiement({ invoices, projects }: Props) {
   }, [getPaymentType.data, methodValue, form]);
 
   const invoice = React.useMemo(() => {
-    return filteredInvoices.find((p) => p.id === invoiceId);
-  }, [filteredInvoices, invoiceId]);
+    return invoices.find((p) => p.id === invoiceId);
+  }, [invoices, invoiceId]);
 
   const purchase = invoice?.command;
 
@@ -273,7 +269,9 @@ function CreatePaiement({ invoices, projects }: Props) {
     });
     if (!validation.status) {
       toast.error(validation.error);
-      return;
+      return form.setError("invoiceId", {
+        message: validation.error,
+      });
     }
     const payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId"> =
       {
@@ -318,12 +316,12 @@ function CreatePaiement({ invoices, projects }: Props) {
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    {filteredInvoices.length === 0 ? (
+                    {invoices.length === 0 ? (
                       <SelectItem value="no-option" disabled>
                         {"Aucune facture enregistrée"}
                       </SelectItem>
                     ) : (
-                      filteredInvoices.map((request) => (
+                      invoices.map((request) => (
                         <SelectItem key={request.id} value={String(request.id)}>
                           {`${request.title} - ${request.command.provider.name}`}
                         </SelectItem>

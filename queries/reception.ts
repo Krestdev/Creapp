@@ -17,7 +17,7 @@ class ReceptionQuery {
     });
   };
 
-  getByPurchase = async (id: number): Promise<{ data: Reception }> => {
+  getByPurchase = async (id: number): Promise<{ data: Array<Reception> }> => {
     return api.get(`${this.route}/command/${id}`).then((response) => {
       return response.data;
     });

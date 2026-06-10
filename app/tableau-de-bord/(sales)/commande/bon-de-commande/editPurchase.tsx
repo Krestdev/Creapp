@@ -261,7 +261,7 @@ function EditPurchase({
         receptionMode: purchaseOrder.receptionMode,
       });
     }
-  }, [open]);
+  }, [open, purchaseOrder]);
 
   // Mettre à jour les échéances de paiement lorsque les données sont chargées
   React.useEffect(() => {
@@ -322,12 +322,12 @@ function EditPurchase({
       deliveryLocation: values.deliveryLocation,
       hasPenalties: values.hasPenalties,
       penaltyMode: values.penaltyMode,
-      instalments: values.instalments.map((instalment) => ({
+      /* instalments: values.instalments.map((instalment) => ({
         percentage: instalment.percentage,
         deadLine: instalment.deadLine
           ? new Date(instalment.deadLine)
           : undefined,
-      })),
+      })), */
       escompteRate: values.escompteRate,
       keepTaxes: values.keepTaxes,
       hasPrecompt: values.hasPrecompt,

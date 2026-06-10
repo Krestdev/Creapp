@@ -36,7 +36,9 @@ function Page() {
           color={"blue"}
         />
         <CreatePaiement
-          invoices={getInvoices.data.data.filter((x) => x.status === "UNPAID")}
+          invoices={getInvoices.data.data.filter(
+            (x) => x.status === "UNPAID" && x.rest > 0,
+          )}
           projects={getProjects.data.data}
         />
       </div>

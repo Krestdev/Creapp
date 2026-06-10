@@ -502,7 +502,7 @@ export const isPayDateValid = ({
   reception,
 }: {
   purchase: BonsCommande;
-  reception?: Reception;
+  reception?: Array<Reception>;
 }): { status: boolean; error?: string } => {
   const { receptionMode, payDelay, isPayConditionedByReception } = purchase;
 
@@ -511,24 +511,20 @@ export const isPayDateValid = ({
 
   // If payment is not conditioned by reception, check only the raw delay from today
   if (isPayConditionedByReception === false) {
-    const delayDate = new Date(
-      today.getTime() + payDelay * 24 * 60 * 60 * 1000,
-    );
     return {
-      status: today.getTime() >= delayDate.getTime(),
-      error:
-        today.getTime() < delayDate.getTime()
-          ? `Le délai de paiement de ${payDelay} jour(s) n'est pas encore écoulé.`
-          : undefined,
+      status: true,
     };
   }
 
   if (receptionMode === "FULL") {
-    if (!reception)
-      return { status: false, error: "Réception introuvable pour ce bon de commande." };
-    const allDelivered = reception.Deliverables.every(
-      (d) => d.isDelivered === true,
-    );
+    if (!reception || reception.length === 0)
+      return {
+        status: false,
+        error: "Réception introuvable pour ce bon de commande.",
+      };
+
+    const allDeliverables = reception.flatMap((r) => r.Deliverables);
+    const allDelivered = allDeliverables.every((d) => d.isDelivered === true);
     if (!allDelivered)
       return {
         status: false,
@@ -536,8 +532,8 @@ export const isPayDateValid = ({
           "Le bon de commande doit être entièrement réceptionné avant le paiement",
       };
 
-    // Most recent updatedAt among all deliverables
-    const mostRecent = reception.Deliverables.reduce((latest, d) => {
+    // Most recent updatedAt among all deliverables across all receptions
+    const mostRecent = allDeliverables.reduce((latest, d) => {
       const t = new Date(d.updatedAt).getTime();
       return t > latest ? t : latest;
     }, 0);
@@ -553,11 +549,14 @@ export const isPayDateValid = ({
   }
 
   if (receptionMode === "PARTIAL") {
-    if (!reception)
-      return { status: false, error: "Réception introuvable pour ce bon de commande." };
-    const anyDelivered = reception.Deliverables.some(
-      (d) => d.isDelivered === true,
-    );
+    if (!reception || reception.length === 0)
+      return {
+        status: false,
+        error: "Réception introuvable pour ce bon de commande.",
+      };
+
+    const allDeliverables = reception.flatMap((r) => r.Deliverables);
+    const anyDelivered = allDeliverables.some((d) => d.isDelivered === true);
     if (!anyDelivered)
       return {
         status: false,
@@ -565,14 +564,13 @@ export const isPayDateValid = ({
           "Le bon de commande doit être réceptionné au moins partiellement avant le paiement",
       };
 
-    // Oldest updatedAt among delivered deliverables only
-    const oldest = reception.Deliverables.filter((d) => d.isDelivered).reduce(
-      (oldest, d) => {
+    // Oldest updatedAt among delivered deliverables only, across all receptions
+    const oldest = allDeliverables
+      .filter((d) => d.isDelivered)
+      .reduce((oldest, d) => {
         const t = new Date(d.updatedAt).getTime();
         return t < oldest ? t : oldest;
-      },
-      0,
-    );
+      }, Infinity);
 
     const delayDate = new Date(oldest + payDelay * 24 * 60 * 60 * 1000);
     return {
