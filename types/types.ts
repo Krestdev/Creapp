@@ -499,8 +499,8 @@ export const PRIORITIES = [
 ] as const;
 
 export const RECEPTION_MODES = [
-  { value: "PARTIAL", name: "Partielle" },
-  { value: "FULL", name: "Complète" },
+  { value: "PARTIAL", name: "Réception partielle" },
+  { value: "FULL", name: "Réception complète" },
   { value: "NONE", name: "Aucune Condition" },
 ] as const;
 
