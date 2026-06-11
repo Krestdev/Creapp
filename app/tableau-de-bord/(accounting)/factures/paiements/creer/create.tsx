@@ -324,7 +324,21 @@ function CreatePaiement({ invoices, projects }: Props) {
                       </SelectItem>
                     ) : (
                       invoices.map((request) => (
-                        <SelectItem key={request.id} value={String(request.id)}>
+                        <SelectItem
+                          key={request.id}
+                          value={String(request.id)}
+                          disabled={
+                            request.amount -
+                              request.payment
+                                .filter(
+                                  (p) =>
+                                    p.status !== "cancelled" &&
+                                    p.status !== "rejected",
+                                )
+                                .reduce((total, p) => total + p.price, 0) <=
+                            0
+                          }
+                        >
                           {`${request.title} - ${request.command.provider.name}`}
                         </SelectItem>
                       ))
