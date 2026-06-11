@@ -193,7 +193,12 @@ function CreatePaiement({ invoices, projects }: Props) {
 
   const purchase = invoice?.command;
 
-  const toPay = invoice?.rest;
+  const toPay = invoice
+    ? invoice.amount -
+      invoice.payment
+        .filter((p) => p.status !== "cancelled" && p.status !== "rejected")
+        .reduce((total, p) => total + p.price, 0)
+    : 0;
 
   const rest = !!toPay && toPay >= 0 ? toPay : 0;
 

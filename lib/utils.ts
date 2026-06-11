@@ -507,7 +507,7 @@ export const isPayDateValid = ({
   const { receptionMode, payDelay, isPayConditionedByReception } = purchase;
 
   const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  //today.setHours(0, 0, 0, 0);
 
   // If payment is not conditioned by reception, check only the raw delay from today
   if (isPayConditionedByReception === false) {
@@ -539,6 +539,7 @@ export const isPayDateValid = ({
     }, 0);
 
     const delayDate = new Date(mostRecent + payDelay * 24 * 60 * 60 * 1000);
+    delayDate.setHours(0, 0, 0, 0);
     return {
       status: today.getTime() >= delayDate.getTime(),
       error:
@@ -573,6 +574,7 @@ export const isPayDateValid = ({
       }, Infinity);
 
     const delayDate = new Date(oldest + payDelay * 24 * 60 * 60 * 1000);
+    delayDate.setHours(0, 0, 0, 0);
     return {
       status: today.getTime() >= delayDate.getTime(),
       error:
