@@ -334,6 +334,26 @@ export function getRequestTypeBadge({ type, requestTypes }: typesProps): {
   }
 }
 
+export const getPurchaseStatusBadge = (
+  status: BonsCommande["status"],
+): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} => {
+  switch (status) {
+    case "PENDING":
+      return { label: "En attente", variant: "amber" };
+    case "IN-REVIEW":
+      return { label: "En révision", variant: "primary" };
+    case "APPROVED":
+      return { label: "Approuvé", variant: "success" };
+    case "REJECTED":
+      return { label: "Rejeté", variant: "destructive" };
+    default:
+      return { label: "Inconnu", variant: "outline" };
+  }
+};
+
 export function getBankTypeBadge({ type }: { type: Bank["type"] }): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];

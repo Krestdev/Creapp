@@ -66,6 +66,8 @@ export const PAY_STATUS = [
   { value: "signed", name: "Signé" },
 ] as const;
 
+export type Priority = (typeof PRIORITIES)[number]["value"];
+
 export type PaymentRequest = {
   id: number;
   reference: string;
@@ -89,7 +91,7 @@ export type PaymentRequest = {
   liters?: number;
 
   price: number;
-  priority: (typeof PRIORITIES)[number]["value"];
+  priority: Priority;
   isPartial: boolean;
   reason?: string;
   userId: number;
@@ -221,7 +223,7 @@ export type RequestModelT = {
     | { id: number; firstName: string; lastName: string; email: string }[]
     | null;
   state: (typeof REQUEST_STATUS)[number]["value"];
-  priority: "medium" | "high" | "low" | "urgent";
+  priority: Priority;
   projectId?: number;
   project?: ProjectT;
   categoryId?: number;
@@ -240,7 +242,7 @@ export type RequestModelT = {
   requestOlds?: Array<{
     id: number;
     dueDate: Date;
-    priority: "medium" | "high" | "low" | "urgent";
+    priority: Priority;
     quantity: number;
     unit: string;
     amount?: number;
@@ -428,7 +430,7 @@ export type Quotation = {
   isPartial?: boolean;
   amount?: number;
   paymentMethod?: string;
-  priority?: string;
+  priority?: Priority;
   commandRequest: CommandRequestT;
 };
 
@@ -512,7 +514,7 @@ export type BonsCommande = {
   providerId: number;
   provider: Provider;
   amountBase: number;
-  priority: (typeof PRIORITIES)[number]["value"];
+  priority: Priority;
   status: (typeof PURCHASE_ORDER_STATUS)[number]["value"];
   penaltyMode?: string;
   hasPenalties?: boolean;

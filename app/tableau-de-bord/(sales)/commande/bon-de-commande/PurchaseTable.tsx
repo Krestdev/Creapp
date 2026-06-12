@@ -1,5 +1,11 @@
 "use client";
 
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -19,17 +25,12 @@ import {
   Ellipsis,
   Eye,
   FileSpreadsheetIcon,
+  FileText,
   FileTextIcon,
   Pencil,
   Settings2,
 } from "lucide-react";
 import * as React from "react";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 
 import { Pagination } from "@/components/base/pagination";
 import {
@@ -72,7 +73,12 @@ import {
   ProgressValue,
 } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
-import { subText, totalAmountPurchase, XAF } from "@/lib/utils";
+import {
+  getPurchaseStatusBadge,
+  subText,
+  totalAmountPurchase,
+  XAF,
+} from "@/lib/utils";
 import {
   BonsCommande,
   CommandCondition,
@@ -87,6 +93,7 @@ import {
 import { format } from "date-fns";
 import AddSignedFile from "./add-signed-file";
 import EditPurchase from "./editPurchase";
+import ViewDocument from "./view-document";
 import ViewPurchase from "./viewPurchase";
 import ViewSignedPurchase from "./viewSignedPurchase";
 
@@ -101,26 +108,6 @@ interface BonsCommandeTableProps {
 
 type Status = (typeof PURCHASE_ORDER_STATUS)[number]["value"];
 type Priority = (typeof PRIORITIES)[number]["value"];
-
-const getStatusLabel = (
-  status: Status,
-): {
-  label: string;
-  variant: VariantProps<typeof badgeVariants>["variant"];
-} => {
-  switch (status) {
-    case "PENDING":
-      return { label: "En attente", variant: "amber" };
-    case "IN-REVIEW":
-      return { label: "En révision", variant: "primary" };
-    case "APPROVED":
-      return { label: "Approuvé", variant: "success" };
-    case "REJECTED":
-      return { label: "Rejeté", variant: "destructive" };
-    default:
-      return { label: "Inconnu", variant: "outline" };
-  }
-};
 
 const getPriorityLabel = (
   priority: Priority,
@@ -244,6 +231,8 @@ export function PurchaseTable({
 
   //ViewModal
   const [view, setView] = React.useState<boolean>(false);
+  //ViewDocumentModal
+  const [viewDocument, setViewDocument] = React.useState<boolean>(false);
   //EditModal
   const [edit, setEdit] = React.useState<boolean>(false);
   //Complete Modal
@@ -454,7 +443,7 @@ export function PurchaseTable({
       header: () => <span className="tablehead">{"Statut"}</span>,
       cell: ({ row }) => {
         const value = row.getValue("status") as Status;
-        const { label, variant } = getStatusLabel(value);
+        const { label, variant } = getPurchaseStatusBadge(value);
         return <Badge variant={variant}>{label}</Badge>;
       },
     },
@@ -517,6 +506,16 @@ export function PurchaseTable({
               >
                 <Eye />
                 {"Voir"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => {
+                  setSelectedValue(item);
+                  setViewDocument(true);
+                }}
+              >
+                <FileText />
+                {"Prévisualisation"}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
@@ -1189,7 +1188,7 @@ export function PurchaseTable({
 
               {statusFilter !== "all" && (
                 <Badge variant="default" className="font-normal">
-                  {`Statut: ${getStatusLabel(statusFilter).label}`}
+                  {`Statut: ${getPurchaseStatusBadge(statusFilter).label}`}
                 </Badge>
               )}
 
@@ -1361,6 +1360,15 @@ export function PurchaseTable({
         <ViewPurchase
           open={view}
           openChange={setView}
+          purchaseOrder={selectedValue}
+          users={users}
+        />
+      )}
+
+      {selectedValue && (
+        <ViewDocument
+          open={viewDocument}
+          openChange={setViewDocument}
           purchaseOrder={selectedValue}
           users={users}
         />
