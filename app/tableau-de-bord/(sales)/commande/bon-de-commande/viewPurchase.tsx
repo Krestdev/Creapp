@@ -18,13 +18,12 @@ import {
   XAF,
 } from "@/lib/utils";
 import { payTypeQ } from "@/queries/payType";
-import { BonsCommande, RECEPTION_MODES, User } from "@/types/types";
+import { BonsCommande, User } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   BadgeInfoIcon,
-  CalendarClockIcon,
   CalendarFoldIcon,
   CalendarIcon,
   CircleDollarSign,
@@ -33,7 +32,6 @@ import {
   LucideHash,
   MapPinIcon,
   MessageSquareWarningIcon,
-  PackageIcon,
   ScrollTextIcon,
   SquareAsteriskIcon,
   SquareUserRound,
@@ -58,6 +56,17 @@ function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
     priority: purchaseOrder.priority,
   });
   const status = getPurchaseStatusBadge(purchaseOrder.status);
+
+  const paymentConditions = (purchase: BonsCommande): string => {
+    switch (purchase.receptionMode) {
+      case "FULL":
+        return `(${purchase.payDelay}) jours après réception totale`;
+      case "PARTIAL":
+        return `(${purchase.payDelay}) jours après réception partielle ou totale`;
+      default:
+        return "À la commande";
+    }
+  };
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
@@ -239,10 +248,7 @@ function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
             <div className="flex flex-col">
               <p className="view-group-title">{"Conditions de paiement"}</p>
               <p className="font-semibold">
-                {purchaseOrder.paymentTerms &&
-                purchaseOrder.paymentTerms.trim() !== ""
-                  ? purchaseOrder.paymentTerms
-                  : "N/A"}
+                {paymentConditions(purchaseOrder)}
               </p>
             </div>
           </div>
@@ -252,41 +258,26 @@ function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
               <ListOrderedIcon />
             </span>
             <div className="w-full flex flex-col">
-              <p className="view-group-title">{"Conditions"}</p>
+              <p className="view-group-title">
+                {"Conditions du Bon de commande"}
+              </p>
               <div className="grid gap-1">
                 {purchaseOrder.commandConditions.map((c, id) => (
                   <div key={id}>
-                    <p className="font-semibold">{c.title}</p>
+                    {/* <p className="font-semibold">{c.title}</p> */}
                     <p className="text-xs text-gray-600">{c.content}</p>
                   </div>
                 ))}
+                {purchaseOrder.paymentTerms &&
+                  purchaseOrder.paymentTerms.trim() !== "" && (
+                    <div>
+                      {/* <p className="font-semibold">{"Conditions additionnelles"}</p> */}
+                      <p className="text-xs text-gray-600">
+                        {purchaseOrder.paymentTerms}
+                      </p>
+                    </div>
+                  )}
               </div>
-            </div>
-          </div>
-          {/**Reception Mode */}
-          <div className="view-group">
-            <span className="view-icon">
-              <PackageIcon />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Mode de réception"}</p>
-              <p className="font-semibold">
-                {RECEPTION_MODES.find(
-                  (r) => r.value === purchaseOrder.receptionMode,
-                )?.name ?? "N/A"}
-              </p>
-            </div>
-          </div>
-          {/**Delay */}
-          <div className="view-group">
-            <span className="view-icon">
-              <CalendarClockIcon />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Delai de paiement"}</p>
-              <p className="font-semibold">
-                {`${purchaseOrder.payDelay} jour(s)`}
-              </p>
             </div>
           </div>
         </div>
