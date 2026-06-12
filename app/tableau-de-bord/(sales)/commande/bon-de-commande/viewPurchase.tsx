@@ -265,14 +265,16 @@ function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
                 {purchaseOrder.commandConditions.map((c, id) => (
                   <div key={id}>
                     {/* <p className="font-semibold">{c.title}</p> */}
-                    <p className="text-xs">{c.content}</p>
+                    <p className="text-xs font-semibold">{c.content}</p>
                   </div>
                 ))}
                 {purchaseOrder.paymentTerms &&
                   purchaseOrder.paymentTerms.trim() !== "" && (
                     <div>
                       {/* <p className="font-semibold">{"Conditions additionnelles"}</p> */}
-                      <p className="text-xs">{purchaseOrder.paymentTerms}</p>
+                      <p className="text-xs font-semibold">
+                        {purchaseOrder.paymentTerms}
+                      </p>
                     </div>
                   )}
               </div>
