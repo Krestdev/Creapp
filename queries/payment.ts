@@ -412,6 +412,16 @@ class PaymentQueries {
       .then((res) => res.data);
   };
 
+  updatePaymentMethod = async (id: number, data: { methodId: number }) => {
+    const formData = new FormData();
+    formData.append("methodId", data.methodId.toString());
+    return api
+      .put(`${this.route}/${id}`, formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then((res) => res.data);
+  };
+
   approveInvoice = async (id: number): Promise<{ data: PaymentRequest }> => {
     const formData = new FormData();
     formData.append("status", "accepted");

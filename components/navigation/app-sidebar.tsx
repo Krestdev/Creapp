@@ -372,7 +372,7 @@ function AppSidebar() {
     },
     {
       pageId: "PG-91",
-      authorized: ["VOLT", "SUPERADMIN"],
+      authorized: ["VOLT", "ACCOUNTANT", "SUPERADMIN"],
       title: "Dépenses",
       className: "text-emerald-800",
       items: [

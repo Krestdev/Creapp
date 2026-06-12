@@ -29,6 +29,7 @@ import {
   Eye,
   FilePenLineIcon,
   Signature,
+  SquarePenIcon,
   XCircle,
 } from "lucide-react";
 import * as React from "react";
@@ -52,7 +53,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getRequestTypeBadge, subText, XAF } from "@/lib/utils";
+import { cn, getRequestTypeBadge, isRole, subText, XAF } from "@/lib/utils";
 import {
   PaymentRequest,
   PayType,
@@ -77,6 +78,8 @@ import PayExpense from "./pay-expense";
 import ShareExpense from "./share-expense";
 import ViewExpense from "./view-expense";
 import { TabBar, TabProps } from "@/components/base/TabBar";
+import { useStore } from "@/providers/datastore";
+import EditPaymentMethodDepenses from "./edit-payment-method";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -241,6 +244,10 @@ function ExpensesTable({
   tabs,
   filters,
 }: Props) {
+  const { user } = useStore();
+  const auth = isRole({ roleList: user?.role ?? [], role: "trésorier" });
+  const accountant = isRole({ roleList: user?.role ?? [], role: "comptable" });
+
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -264,6 +271,7 @@ function ExpensesTable({
   const [showShare, setShowShare] = React.useState<boolean>(false);
   const [showAddFile, setShowAddFile] = React.useState<boolean>(false);
   const [showCancel, setShowCancel] = React.useState<boolean>(false);
+  const [editDialog, setEditDialog] = React.useState<boolean>(false);
 
   const columns: ColumnDef<PaymentRequest>[] = [
     {
@@ -585,6 +593,7 @@ function ExpensesTable({
                     setSelected(item);
                     setShowAddFile(true);
                   }}
+                  disabled={!auth}
                 >
                   <FilePenLineIcon />
                   {"Ajouter la preuve"}
@@ -608,9 +617,10 @@ function ExpensesTable({
                 <>
                   <DropdownMenuItem
                     disabled={
-                      item.status !== "pending_depense" &&
-                      item.status !== "signed" &&
-                      item.status !== "simple_signed"
+                      (item.status !== "pending_depense" &&
+                        item.status !== "signed" &&
+                        item.status !== "simple_signed") ||
+                      !auth
                     }
                     onClick={() => {
                       setSelected(item);
@@ -635,7 +645,8 @@ function ExpensesTable({
                   disabled={
                     item.status === "unsigned" ||
                     (item.type === "gas" && !isGasComplete(item)) ||
-                    (item.type === "settle" && !isSettleComplete(item))
+                    (item.type === "settle" && !isSettleComplete(item)) ||
+                    !auth
                   }
                   onClick={() => {
                     setSelected(item);
@@ -646,7 +657,7 @@ function ExpensesTable({
                   {"Traiter"}
                 </DropdownMenuItem>
               )}
-              {!!item.invoiceId && (
+              {!!item.invoiceId && !!auth && (
                 <DropdownMenuItem disabled={item.status !== "paid"}>
                   <PDFDownloadLink
                     document={<NoticeFile payment={item} />}
@@ -672,11 +683,25 @@ function ExpensesTable({
                 }}
                 disabled={
                   item.type === "achat" ||
-                  ["paid", "cancelled", "rejected"].includes(item.status)
+                  ["paid", "cancelled", "rejected"].includes(item.status) ||
+                  !auth
                 }
               >
                 <BanIcon />
                 {"Annulation"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => {
+                  setSelected(item);
+                  setEditDialog(true);
+                }}
+                disabled={
+                  ["paid", "cancelled", "rejected"].includes(item.status) ||
+                  !accountant
+                }
+              >
+                <SquarePenIcon />
+                {"Modifier le moyen de paiement"}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -883,6 +908,12 @@ function ExpensesTable({
             data={selected}
             open={showCancel}
             openChange={setShowCancel}
+          />
+          <EditPaymentMethodDepenses
+            payment={selected}
+            payTypes={paymentTypes}
+            openChange={setEditDialog}
+            open={editDialog}
           />
         </>
       )}
