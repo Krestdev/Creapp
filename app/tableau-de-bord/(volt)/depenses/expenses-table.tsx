@@ -328,7 +328,7 @@ function ExpensesTable({
 
         return (
           <div className="flex gap-1.5 items-center">
-            {value.selected === true && value.transaction && (
+            {value.selected === true && value.paymentApproId && (
               <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
                 <AsteriskIcon size={16} />
               </span>
