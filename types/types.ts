@@ -47,8 +47,8 @@ export const PAYMENT_TYPES = [
 ] as const;
 
 export const PAYMENT_METHOD = [
-  { value: "checks", name: "Chèque" },
-  { value: "bank-transfer", name: "Virement" },
+  { value: "chq", name: "Chèque" },
+  { value: "ov", name: "Virement" },
   { value: "cash", name: "Espèces" },
 ] as const;
 
