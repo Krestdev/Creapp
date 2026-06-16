@@ -18,10 +18,10 @@ import { Label } from "@/components/ui/label";
 import {
   DateFilter,
   PAYMENT_METHOD,
-  PAYMENT_TYPES,
   PaymentRequest,
   PRIORITIES,
   Provider,
+  RequestType,
   User,
 } from "@/types/types";
 import { format } from "date-fns";
@@ -39,7 +39,7 @@ export interface DepenseFiltersProps {
     paymentMethod: "all" | string;
     tab: "validated" | "processed" | "paid" | "cancelled";
     isSelected: "all" | string;
-    type: "all" | PaymentRequest["type"];
+    type: "all" | string;
     date: DateFilter;
     from: string;
     to: string;
@@ -54,7 +54,7 @@ export interface DepenseFiltersProps {
     paymentMethod: "all" | string;
     tab: "validated" | "processed" | "paid" | "cancelled";
     isSelected: "all" | string;
-    type: "all" | PaymentRequest["type"];
+    type: "all" | string;
     date: DateFilter;
     from: string;
     to: string;
@@ -62,6 +62,7 @@ export interface DepenseFiltersProps {
   isCustomDateModalOpen: boolean;
   setIsCustomDateModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   setDateFilter: (filter: DateFilter) => void;
+  types: RequestType[];
   providers: Provider[];
   users: User[];
   resetAllFilters: () => void;
@@ -73,6 +74,7 @@ export default function DepenseFilters({
   isCustomDateModalOpen,
   setIsCustomDateModalOpen,
   setDateFilter,
+  types,
   providers,
   users,
   resetAllFilters,
@@ -421,8 +423,7 @@ export default function DepenseFilters({
               <span className="truncate">
                 {customFilters.type === "all"
                   ? "Tous les types"
-                  : PAYMENT_TYPES.find((t) => t.value === customFilters.type)
-                      ?.name}
+                  : types?.find((t) => t.type === customFilters.type)?.label}
               </span>
               <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
             </Button>
@@ -441,19 +442,19 @@ export default function DepenseFilters({
                 <span>Tous les types</span>
               </div>
             </DropdownMenuItem>
-            {PAYMENT_TYPES.map((type) => (
+            {types.map((type) => (
               <DropdownMenuItem
-                key={type.value}
+                key={type.id}
                 onClick={() => {
                   setCustomFilters({
                     ...customFilters,
-                    type: type.value,
+                    type: type.type ?? "",
                   });
                 }}
-                className={customFilters.type === type.value ? "bg-accent" : ""}
+                className={customFilters.type === type.type ? "bg-accent" : ""}
               >
                 <div className="flex items-center gap-2">
-                  <span>{type.name}</span>
+                  <span>{type.label}</span>
                 </div>
               </DropdownMenuItem>
             ))}

@@ -378,6 +378,7 @@ function Page() {
                     isCustomDateModalOpen={isCustomDateModalOpen}
                     setIsCustomDateModalOpen={setIsCustomDateModalOpen}
                     users={getUsers.data.data}
+                    types={getRequestType.data.data}
                     providers={getProviders.data.data}
                     setDateFilter={setDateFilter}
                     resetAllFilters={resetAllFilters}
