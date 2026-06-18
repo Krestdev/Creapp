@@ -51,7 +51,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getRequestTypeBadge, subText } from "@/lib/utils";
+import { cn, getRequestTypeBadge, subText, XAF } from "@/lib/utils";
 import {
   Category,
   ProjectT,
@@ -306,6 +306,44 @@ export function RequestsTable({
       },
     },
     {
+      accessorKey: "amount",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead cursor-pointer flex items-center"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Montant"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        const amount =
+          value.type !== "facilitation"
+            ? !!value.amount
+              ? XAF.format(value.amount)
+              : "Aucun"
+            : XAF.format(
+                value.benFac?.list?.reduce(
+                  (acc, item) => acc + item.amount,
+                  0,
+                ) || 0,
+              );
+        return (
+          <p
+            className={cn(
+              "normal-case",
+              amount === "N/A" ? "text-muted-foreground" : "font-medium",
+            )}
+          >
+            {amount}
+          </p>
+        );
+      },
+    },
+    {
       accessorKey: "createdAt",
       header: ({ column }) => {
         return (
@@ -503,7 +541,9 @@ export function RequestsTable({
                                   ? "Initié par"
                                   : column.id === "createdAt"
                                     ? "Date d'émission"
-                                    : column.id}
+                                    : column.id === "amount"
+                                      ? "Montant"
+                                      : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
