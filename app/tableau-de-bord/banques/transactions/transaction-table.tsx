@@ -478,7 +478,10 @@ function TransactionTable({
       },
       cell: ({ row }) => {
         const target = row.original.to;
-        return <p className="normal-case">{target.label}</p>;
+        const bankName = row.original?.toBankName;
+        return (
+          <p className="normal-case">{target?.label ?? bankName ?? "--"}</p>
+        );
       },
     },
     {

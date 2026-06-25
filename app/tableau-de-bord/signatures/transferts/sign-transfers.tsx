@@ -285,9 +285,9 @@ function SignTransfers({ data, banks, paymentMethods, users }: Props) {
         const destination = row.original.to;
         return (
           <span className="normal-case flex items-center gap-1.5">
-            {source.label}
+            {source?.label ?? row.original?.fromBankName ?? "--"}
             <ArrowRightIcon size={12} />
-            {destination.label}
+            {destination?.label ?? row.original?.toBankName ?? "--"}
           </span>
         );
       },

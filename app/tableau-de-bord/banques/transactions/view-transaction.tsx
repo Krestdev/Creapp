@@ -256,16 +256,9 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
               <ArrowUpToLineIcon />
             </span>
             <div className="flex flex-col">
-              <p className="view-group-title">
-                {/* {transaction.Type === "CREDIT"
-                  ? "Source"
-                  : transaction.Type === "DEBIT"
-                    ? "Compte débité"
-                    : "Compte d'origine"} */}
-                {"Mouvement"}
-              </p>
+              <p className="view-group-title">{"Mouvement"}</p>
               <div className="w-full flex flex-row items-center justify-between">
-                <p className="font-semibold">{`${transaction.from?.label ?? transaction.fromBankName ?? "--"} → ${transaction.to.label}`}</p>
+                <p className="font-semibold">{`${transaction.from?.label ?? transaction.fromBankName ?? "--"} → ${transaction.to.label ?? transaction.toBankName ?? "--"}`}</p>
               </div>
             </div>
           </div>
