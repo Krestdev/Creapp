@@ -265,7 +265,7 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
                 {"Mouvement"}
               </p>
               <div className="w-full flex flex-row items-center justify-between">
-                <p className="font-semibold">{`${transaction.from?.label ?? "--"} → ${transaction.to.label}`}</p>
+                <p className="font-semibold">{`${transaction.from?.label ?? transaction.fromBankName ?? "--"} → ${transaction.to.label}`}</p>
               </div>
             </div>
           </div>

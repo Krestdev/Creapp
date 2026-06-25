@@ -456,7 +456,11 @@ function TransactionTable({
       },
       cell: ({ row }) => {
         const source = row.original.from;
-        return <p className="normal-case">{source?.label ?? "--"}</p>;
+        return (
+          <p className="normal-case">
+            {source?.label ?? row.original?.fromBankName ?? "--"}
+          </p>
+        );
       },
     },
     {

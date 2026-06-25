@@ -725,6 +725,7 @@ export type TransactionBase = {
   docNumber?: string;
   methodId?: number;
   method?: PayType;
+  fromBankName?: string;
 };
 
 export type DebitTransaction = TransactionBase & {
