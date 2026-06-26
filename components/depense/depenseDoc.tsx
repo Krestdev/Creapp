@@ -308,7 +308,7 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
   const paymentEmitter = users.find((u) => u.id === paymentRequest.userId);
 
   const receiver = !!transaction
-    ? transaction.to.label
+    ? (transaction.to.label ?? transaction.toBankName ?? "--")
     : paymentRequest.type === "achat" && paymentEmitter
       ? paymentEmitter.firstName.concat(" ", paymentEmitter.lastName)
       : (beneficiaryName ?? emitter);
