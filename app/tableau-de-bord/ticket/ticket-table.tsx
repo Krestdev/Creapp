@@ -23,9 +23,10 @@ import {
 } from "@/components/ui/table";
 import { XAF, cn, getRequestTypeBadge, subText } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import {} from "@/queries/commandRqstModule";
+import { } from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
 import {
+  DateFilter,
   PRIORITIES,
   PayType,
   PaymentRequest,
@@ -57,12 +58,16 @@ import {
   Eye,
   Flag,
   LucideCheck,
+  Settings2,
 } from "lucide-react";
-import { useState } from "react";
+import { SetStateAction, useState } from "react";
 import { toast } from "sonner";
 import ViewExpense from "../(volt)/depenses/view-expense";
 import CardTicket from "./card-ticket";
 import RejectTicket from "./reject-ticket";
+import TicketFilters, { TicketFiltersProps } from "./ticketFilters";
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
+import { Input } from "@/components/ui/input";
 
 interface TicketsTableProps {
   data: PaymentRequest[];
@@ -72,6 +77,14 @@ interface TicketsTableProps {
   payTypes: Array<PayType>;
   pagination: PaginationState;
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
+  filters: {
+    customFilters: TicketFiltersProps["customFilters"];
+    setCustomFilters: TicketFiltersProps["setCustomFilters"];
+    setDateFilter: TicketFiltersProps["setDateFilter"];
+    resetAllFilters: TicketFiltersProps["resetAllFilters"];
+    isCustomDateModalOpen: TicketFiltersProps["isCustomDateModalOpen"];
+    setIsCustomDateModalOpen: TicketFiltersProps["setIsCustomDateModalOpen"];
+  };
 }
 
 const getPriorityBadge = (
@@ -148,6 +161,7 @@ export function TicketTable({
   payTypes,
   pagination,
   paginationOptions,
+  filters,
 }: TicketsTableProps) {
   const [sorting, setSorting] = useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -163,6 +177,8 @@ export function TicketTable({
   const [openPaiementModal, setOpenPaiementModal] = useState(false);
   const [openRejectModal, setOpenRejectModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<PaymentRequest>();
+  const [search, setSearch] = useState(filters.customFilters.search);
+
 
   const [message, setMessage] = useState<string>("");
 
@@ -489,6 +505,57 @@ export function TicketTable({
     <div className="content">
       <div className="flex flex-wrap gap-4 items-center justify-between">
         <div className="flex gap-4 items-center">
+          <div className="flex flex-wrap items-center gap-2">
+            <Input
+              placeholder="Titre, référence"
+              type="search"
+              value={search}
+              onChange={(e) => {
+                setSearch(e.target.value);
+                if (e.target.value === "") {
+                  filters.setCustomFilters({
+                    ...filters.customFilters,
+                    search: "",
+                  });
+                }
+              }}
+              className="w-full sm:w-[250px] h-9"
+            />
+            <Button
+              onClick={() => {
+                filters.setCustomFilters({
+                  ...filters.customFilters,
+                  search: search,
+                });
+              }}
+            >
+              {"Rechercher"}
+            </Button>
+            <Sheet>
+              <SheetTrigger asChild className="w-fit">
+                <Button variant={"outline"}>
+                  <Settings2 />
+                  {"Filtres"}
+                </Button>
+              </SheetTrigger>
+              <SheetContent className="px-3">
+                <SheetHeader>
+                  <SheetTitle>{"Filtres"}</SheetTitle>
+                  <SheetDescription>
+                    {"Configurer les filtres pour affiner les données"}
+                  </SheetDescription>
+                </SheetHeader>
+                <TicketFilters
+                  customFilters={filters.customFilters}
+                  setCustomFilters={filters.setCustomFilters}
+                  setDateFilter={filters.setDateFilter}
+                  resetAllFilters={filters.resetAllFilters}
+                  isCustomDateModalOpen={filters.isCustomDateModalOpen}
+                  setIsCustomDateModalOpen={filters.setIsCustomDateModalOpen}
+                />
+              </SheetContent>
+            </Sheet>
+          </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" className="ml-auto bg-transparent">
@@ -555,9 +622,9 @@ export function TicketTable({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                       </TableHead>
                     );
                   })}

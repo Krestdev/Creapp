@@ -223,28 +223,32 @@ function Page() {
           selectedTab={customFilters.tab}
           className="w-fit"
         />
-        {data.data.length > 0 ? (
-          <TicketTable
-            data={data.data}
-            requestTypeData={getRequestType.data.data}
-            users={getUsers.data.data}
-            projects={getProjects.data.data}
-            payTypes={getPayTypes.data.data}
-            pagination={pagination}
-            paginationOptions={{
-              onPaginationChange: (updater) => {
-                setPagination((prev) => {
-                  const nextPagination =
-                    typeof updater === "function" ? updater(prev) : updater;
-                  return { ...prev, ...nextPagination };
-                });
-              },
-              rowCount: data.count,
-            }}
-          />
-        ) : (
-          <Empty message={"Aucun ticket disponible"} />
-        )}
+        <TicketTable
+          data={data.data}
+          requestTypeData={getRequestType.data.data}
+          users={getUsers.data.data}
+          projects={getProjects.data.data}
+          payTypes={getPayTypes.data.data}
+          pagination={pagination}
+          paginationOptions={{
+            onPaginationChange: (updater) => {
+              setPagination((prev) => {
+                const nextPagination =
+                  typeof updater === "function" ? updater(prev) : updater;
+                return { ...prev, ...nextPagination };
+              });
+            },
+            rowCount: data.count,
+          }}
+          filters={{
+            customFilters,
+            setCustomFilters,
+            setDateFilter,
+            resetAllFilters,
+            isCustomDateModalOpen,
+            setIsCustomDateModalOpen
+          }}
+        />
       </div>
     );
   }

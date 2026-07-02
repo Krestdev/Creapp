@@ -227,7 +227,7 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
                   <p className="view-group-title">{"Signé par"}</p>
                   <div className="w-full grid gap-2">
                     {transaction.signers?.length === 0 ||
-                    !transaction.signers ? (
+                      !transaction.signers ? (
                       <p className="text-sm">
                         {"Aucune signature enregistrée"}
                       </p>
