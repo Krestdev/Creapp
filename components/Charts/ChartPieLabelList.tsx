@@ -238,7 +238,7 @@ export function ChartPieLabelList({
               layout="vertical"
               align="right"
               verticalAlign="middle"
-              className="flex-col items-start! gap-2 ml-4"
+              className="flex-col items-start! gap-2 ml-4 [&>div]:max-w-[140px] [&>div]:whitespace-normal [&>div]:break-words [&>div]:items-start [&>div>div]:mt-1 [&>div>svg]:mt-0.5"
             />
           </PieChart>
         </ChartContainer>
