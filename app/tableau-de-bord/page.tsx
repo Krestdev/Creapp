@@ -29,7 +29,7 @@ import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { DateFilter } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { format, isSameDay, subDays, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Settings2 } from "lucide-react";
 import React from "react";
@@ -94,7 +94,7 @@ const DashboardPage = () => {
         from: customFilters.from || undefined,
         to: customFilters.to || undefined,
       }),
-    enabled: volt_manager || volt || super_admin,
+    enabled: !!user?.id,
   });
 
   const dashboardPaidData = useQuery({
@@ -112,6 +112,117 @@ const DashboardPage = () => {
     queryKey: queryKeys.requestTypes,
     queryFn: requestTypeQ.getAll,
   });
+
+  const filterByDate = React.useCallback((data: any[] = []) => {
+    if (!data || data.length === 0) return [];
+    if (!dateFilter) return data;
+
+    const now = new Date();
+
+    switch (dateFilter) {
+      case "today": {
+        return data.filter((item) => {
+          try {
+            return isSameDay(new Date(item.createdAt), now);
+          } catch {
+            return false;
+          }
+        });
+      }
+
+      case "week": {
+        const startDate = subDays(now, 6);
+        startDate.setHours(0, 0, 0, 0);
+        return data.filter((item) => {
+          try {
+            const itemDate = new Date(item.createdAt);
+            return itemDate >= startDate && itemDate <= now;
+          } catch {
+            return false;
+          }
+        });
+      }
+
+      case "month": {
+        const startDate = startOfMonth(now);
+        const endDate = endOfMonth(now);
+        return data.filter((item) => {
+          try {
+            const itemDate = new Date(item.createdAt);
+            return itemDate >= startDate && itemDate <= endDate;
+          } catch {
+            return false;
+          }
+        });
+      }
+
+      case "year": {
+        const startDate = new Date(now.getFullYear(), 0, 1);
+        const endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+        return data.filter((item) => {
+          try {
+            const itemDate = new Date(item.createdAt);
+            return itemDate >= startDate && itemDate <= endDate;
+          } catch {
+            return false;
+          }
+        });
+      }
+
+      case "custom": {
+        if (!customFilters.from || !customFilters.to) return data;
+        const startDate = new Date(customFilters.from);
+        const endDate = new Date(customFilters.to);
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          return data;
+        }
+        return data.filter((item) => {
+          try {
+            const itemDate = new Date(item.createdAt);
+            return isWithinInterval(itemDate, { start: startDate, end: endDate });
+          } catch {
+            return false;
+          }
+        });
+      }
+
+      default:
+        return data;
+    }
+  }, [dateFilter, customFilters.from, customFilters.to]);
+
+  const filteredSubmited = React.useMemo(() => {
+    return filterByDate(getRequestsGraph.data?.data?.submited || []);
+  }, [getRequestsGraph.data?.data?.submited, filterByDate]);
+
+  const filteredValidator = React.useMemo(() => {
+    return filterByDate(getRequestsGraph.data?.data?.validator || []);
+  }, [getRequestsGraph.data?.data?.validator, filterByDate]);
+
+  const filteredAll = React.useMemo(() => {
+    return filterByDate(getRequestsGraph.data?.data?.all || []);
+  }, [getRequestsGraph.data?.data?.all, filterByDate]);
+
+  const filteredPayments = React.useMemo(() => {
+    return filterByDate(dashboardPaidData.data?.payments || []);
+  }, [dashboardPaidData.data?.payments, filterByDate]);
+
+  const filteredTotalPaid = React.useMemo(() => {
+    return filteredPayments.reduce((acc, p) => acc + (p.price || 0), 0);
+  }, [filteredPayments]);
+
+  const getStatusCount = React.useCallback((items: any[], status: 'approuvé' | 'rejetté' | 'enAttente') => {
+    return items.filter(item => {
+      const s = (item.state || '').toLowerCase();
+      if (status === 'approuvé') {
+        return ["approved", "store", "approv", "valid"].some(key => s.includes(key));
+      }
+      if (status === 'rejetté') {
+        return ["rejected", "rejet", "refus"].some(key => s.includes(key));
+      }
+      return ["pending", "reviews", "wait", "attente"].some(key => s.includes(key));
+    }).length;
+  }, []);
 
   const getSubtitle = () => {
     if (dateFilter === "custom" && customFilters.from && customFilters.to) {
@@ -218,29 +329,29 @@ const DashboardPage = () => {
     const statistics: Array<StatisticProps> = [
       {
         title: "En attente de validation",
-        value: String(getRequestsStats.data.data.awaiting),
+        value: String(getStatusCount(filteredValidator, 'enAttente')),
         variant: "primary",
         more: {
           title: "Besoins rejetés",
-          value: String(getRequestsStats.data.data.rejected),
+          value: String(getStatusCount(filteredSubmited, 'rejetté')),
         },
       },
       {
         title: "Mes besoins soumis",
-        value: String(getRequestsStats.data.data.submited),
+        value: String(filteredSubmited.length),
         variant: "secondary",
         more: {
           title: "Mes besoins approuvés",
-          value: String(getRequestsStats.data.data.approved),
+          value: String(getStatusCount(filteredSubmited, 'approuvé')),
         },
       },
       {
         title: "Total besoins soumis",
-        value: String(getRequestsStats.data.data.total),
+        value: String(filteredAll.length),
         variant: "default",
         more: {
           title: "Total besoins approuvés",
-          value: String(getRequestsStats.data.data.approvedTotal),
+          value: String(getStatusCount(filteredAll, 'approuvé')),
         },
       },
     ];
@@ -306,12 +417,16 @@ const DashboardPage = () => {
 
         {/* Graphique 1: Mes besoins */}
         <ChartAreaInteractive
-          filteredData={getRequestsGraph.data.submited}
+          filteredData={filteredSubmited}
           dateFilter={dateFilter}
-          customDateRange={{
-            from: new Date(customFilters.from),
-            to: new Date(customFilters.to),
-          }}
+          customDateRange={
+            customFilters.from && customFilters.to
+              ? {
+                  from: new Date(customFilters.from),
+                  to: new Date(customFilters.to),
+                }
+              : undefined
+          }
           title="Mes besoins"
           description={getSubtitle()}
           type="my"
@@ -320,12 +435,16 @@ const DashboardPage = () => {
         {/* Graphique 2: Besoins reçus */}
         {manager && (
           <ChartAreaInteractive
-            filteredData={getRequestsGraph.data.validator}
+            filteredData={filteredValidator}
             dateFilter={dateFilter}
-            customDateRange={{
-              from: new Date(customFilters.from),
-              to: new Date(customFilters.to),
-            }}
+            customDateRange={
+              customFilters.from && customFilters.to
+                ? {
+                    from: new Date(customFilters.from),
+                    to: new Date(customFilters.to),
+                  }
+                : undefined
+            }
             title="Besoins reçus"
             description={getReceivedSubtitle()}
             type="all"
@@ -334,12 +453,16 @@ const DashboardPage = () => {
 
         {super_admin && (
           <ChartAreaInteractiveAll
-            filteredData={getRequestsGraph.data.all}
+            filteredData={filteredAll}
             dateFilter={dateFilter}
-            customDateRange={{
-              from: new Date(customFilters.from),
-              to: new Date(customFilters.to),
-            }}
+            customDateRange={
+              customFilters.from && customFilters.to
+                ? {
+                    from: new Date(customFilters.from),
+                    to: new Date(customFilters.to),
+                  }
+                : undefined
+            }
             title="Tous les besoins"
             description={getAllSubtitle()}
             type="all"
@@ -352,14 +475,14 @@ const DashboardPage = () => {
               <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
                 <CardTitle>{"Dépenses"}</CardTitle>
                 <CardDescription>
-                  {`Dépenses totales: ${XAF.format(dashboardPaidData.data.total)}`}
+                  {`Dépenses totales: ${XAF.format(filteredTotalPaid)}`}
                 </CardDescription>
               </div>
             </CardHeader>
             <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Dépense par type */}
               <ChartPieLabelList
-                data={dashboardPaidData.data.payments}
+                data={filteredPayments}
                 chartType="type"
                 title="Répartition par type"
                 description="Répartition par type de paiement"
@@ -367,7 +490,7 @@ const DashboardPage = () => {
               />
               {/* Dépense par fournisseur */}
               <ChartPieLabelList
-                data={dashboardPaidData.data.payments}
+                data={filteredPayments}
                 chartType="fournisseur"
                 title="Répartition par fournisseur"
                 description="Répartition par fournisseur"

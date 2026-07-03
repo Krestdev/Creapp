@@ -76,6 +76,7 @@ export default function DashboardFilters({
                 setDateFilter(undefined);
                 setCustomFilters({
                   ...customFilters,
+                  date: undefined,
                   from: "",
                   to: "",
                 });
@@ -87,6 +88,7 @@ export default function DashboardFilters({
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
+                setDateFilter("today");
                 setCustomFilters({ ...customFilters, date: "today" });
                 setIsCustomDateModalOpen(false);
               }}
@@ -96,6 +98,7 @@ export default function DashboardFilters({
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
+                setDateFilter("week");
                 setCustomFilters({ ...customFilters, date: "week" });
                 setIsCustomDateModalOpen(false);
               }}
@@ -105,6 +108,7 @@ export default function DashboardFilters({
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
+                setDateFilter("month");
                 setCustomFilters({ ...customFilters, date: "month" });
                 setIsCustomDateModalOpen(false);
               }}
@@ -114,6 +118,7 @@ export default function DashboardFilters({
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
+                setDateFilter("year");
                 setCustomFilters({ ...customFilters, date: "year" });
                 setIsCustomDateModalOpen(false);
               }}
@@ -123,6 +128,7 @@ export default function DashboardFilters({
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
+                setDateFilter("custom");
                 setCustomFilters({ ...customFilters, date: "custom" });
                 setIsCustomDateModalOpen(true);
               }}
@@ -179,8 +185,10 @@ export default function DashboardFilters({
               <Button
                 className="w-full"
                 onClick={() => {
+                  setDateFilter(undefined);
                   setCustomFilters({
                     ...customFilters,
+                    date: undefined,
                     from: "",
                     to: "",
                   });

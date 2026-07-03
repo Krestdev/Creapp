@@ -310,9 +310,11 @@ class RequestQueries {
   getDashboardGraph = async (
     params?: Record<string, any>,
   ): Promise<{
-    submited: RequestModelT[];
-    validator: RequestModelT[];
-    all: RequestModelT[];
+    data: {
+      submited: RequestModelT[];
+      validator: RequestModelT[];
+      all: RequestModelT[];
+    }
   }> => {
     return api
       .get(`${this.route}/board/requests/graph`, { params })
@@ -399,11 +401,11 @@ class RequestQueries {
   // Valider une demande (pour le DERNIER validateur)
   validate = async ({
     id, request
-  }:{
+  }: {
     id: number, //requestModelT[id]
     request: Partial<RequestModelT>
   }
-    
+
   ): Promise<{ data: RequestModelT }> => {
     return api
       .put(`${this.route}/validate/${id}`, request)
@@ -418,12 +420,12 @@ class RequestQueries {
       userId: number;
       decision?: string;
       validator?:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
+      | {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
+      | undefined;
     },
   ): Promise<{ data: RequestModelT }> => {
     return api
