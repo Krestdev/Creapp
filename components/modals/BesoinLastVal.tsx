@@ -56,6 +56,7 @@ const formSchema = z.object({
   quantity: z.coerce.number().optional(),
   unit: z.string().optional(),
   amount: z.coerce.number().optional(),
+  decision: z.string().max(255, { message: "Trop long" }).optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -114,10 +115,12 @@ export function BesoinLastVal({
     mutationFn: async ({
       id,
       request,
+      decision,
     }: {
       id: number;
       request: Partial<RequestModelT>;
-    }) => requestQ.validate({ id, request }),
+      decision?: string;
+    }) => requestQ.validate({ id, request, decision }),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
       onOpenChange(false);
@@ -132,6 +135,7 @@ export function BesoinLastVal({
   useEffect(() => {
     if (open) {
       form.reset({
+        decision: "",
         dueDate: data.dueDate ? new Date(data.dueDate) : undefined,
         priority: (data.priority as any) || "low",
         quantity: data.quantity || undefined,
@@ -157,6 +161,7 @@ export function BesoinLastVal({
       validateRequest.mutate({
         id: data.id,
         request: payload,
+        decision: values.decision,
       });
     } catch {
       toast.error("Une erreur est survenue");
@@ -300,7 +305,9 @@ export function BesoinLastVal({
               name="dueDate"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel isRequired className="mb-1">{"Date limite"}</FormLabel>
+                  <FormLabel isRequired className="mb-1">
+                    {"Date limite"}
+                  </FormLabel>
                   <Popover open={openD} onOpenChange={setOpenD}>
                     <PopoverTrigger asChild>
                       <FormControl>
@@ -417,6 +424,21 @@ export function BesoinLastVal({
                 )}
               />
             )}
+
+            {/* DECISION */}
+            <FormField
+              control={form.control}
+              name="decision"
+              render={({ field }) => (
+                <FormItem className="col-span-full">
+                  <FormLabel>{"Commentaire (optionnel)"}</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Laisser un commentaire" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Footer */}
             <DialogFooter className="col-span-full mt-4">

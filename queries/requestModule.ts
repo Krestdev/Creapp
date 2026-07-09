@@ -314,7 +314,7 @@ class RequestQueries {
       submited: RequestModelT[];
       validator: RequestModelT[];
       all: RequestModelT[];
-    }
+    };
   }> => {
     return api
       .get(`${this.route}/board/requests/graph`, { params })
@@ -400,15 +400,20 @@ class RequestQueries {
 
   // Valider une demande (pour le DERNIER validateur)
   validate = async ({
-    id, request
+    id,
+    request,
+    decision,
   }: {
-    id: number, //requestModelT[id]
-    request: Partial<RequestModelT>
-  }
-
-  ): Promise<{ data: RequestModelT }> => {
+    id: number; //requestModelT[id]
+    request: Partial<RequestModelT>;
+    decision?: string;
+  }): Promise<{ data: RequestModelT }> => {
+    const data =
+      decision && decision.trim().length > 0
+        ? { ...request, decision: decision }
+        : request;
     return api
-      .put(`${this.route}/validate/${id}`, request)
+      .put(`${this.route}/validate/${id}`, data)
       .then((res) => res.data);
   };
 
@@ -420,12 +425,12 @@ class RequestQueries {
       userId: number;
       decision?: string;
       validator?:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     },
   ): Promise<{ data: RequestModelT }> => {
     return api

@@ -75,6 +75,7 @@ const formSchema = z.object({
   dueDate: z.date({ required_error: "Date requise" }),
   priority: z.enum(REQUEST_PRIORITIES),
   list: z.array(beneficiaryArray).min(1, "Veuillez ajouter un bénéficiaire"),
+  decision: z.string().max(255, { message: "Trop long" }).optional(),
 });
 
 export default function TransportApprobation({
@@ -99,6 +100,7 @@ export default function TransportApprobation({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      decision: "",
       priority: (request.priority as any) || "low",
       dueDate: request.dueDate ? new Date(request.dueDate) : new Date(),
       list: request.benFac?.list ?? [],
@@ -125,10 +127,12 @@ export default function TransportApprobation({
     mutationFn: async ({
       id,
       request,
+      decision,
     }: {
       id: number;
       request: Partial<RequestModelT>;
-    }) => requestQ.validate({ id, request }),
+      decision?: string;
+    }) => requestQ.validate({ id, request, decision }),
     onSuccess: () => {
       toast.success("Le Besoin a été approuvé !");
       onOpenChange(false);
@@ -146,6 +150,7 @@ export default function TransportApprobation({
         benFac: { list: values.list },
         amount: values.list.reduce((acc, el) => acc + el.amount, 0),
       },
+      decision: values.decision,
     });
   };
 
@@ -377,6 +382,20 @@ export default function TransportApprobation({
                       />
                     </PopoverContent>
                   </Popover>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {/**Decision */}
+            <FormField
+              control={form.control}
+              name="decision"
+              render={({ field }) => (
+                <FormItem className="col-span-full">
+                  <FormLabel>{"Commentaire (optionnel)"}</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Laisser un commentaire" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}

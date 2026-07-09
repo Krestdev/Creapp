@@ -39,6 +39,7 @@ import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
+import { Textarea } from "../ui/textarea";
 
 interface Props {
   open: boolean;
@@ -58,6 +59,7 @@ const formSchema = z.object({
     },
     { message: "Date invalide" },
   ),
+  decision: z.string().max(255, { message: "Trop long" }).optional(),
 });
 
 function BesoinLastApproVall({ open, setOpen, requestData }: Props) {
@@ -92,10 +94,12 @@ function BesoinLastApproVall({ open, setOpen, requestData }: Props) {
     mutationFn: async ({
       id,
       request,
+      decision,
     }: {
       id: number;
       request: Partial<RequestModelT>;
-    }) => requestQ.validate({ id, request }),
+      decision?: string;
+    }) => requestQ.validate({ id, request, decision }),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
       setOpen(false);
@@ -116,6 +120,10 @@ function BesoinLastApproVall({ open, setOpen, requestData }: Props) {
         amount: values.amount,
         dueDate: new Date(values.dueDate),
       },
+      decision:
+        values.decision && values.decision.trim().length > 0
+          ? values.decision
+          : undefined,
     });
   };
 
@@ -258,6 +266,23 @@ function BesoinLastApproVall({ open, setOpen, requestData }: Props) {
                   <FormLabel isRequired>{"Montant"}</FormLabel>
                   <FormControl>
                     <Input placeholder="Ex. 100" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            {/*Decision*/}
+            <FormField
+              control={form.control}
+              name="decision"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Commentaire"}</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Laissez un commentaire..."
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
