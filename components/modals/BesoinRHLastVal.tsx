@@ -49,6 +49,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+import { Textarea } from "../ui/textarea";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -72,6 +73,7 @@ const formSchema = z.object({
   montant: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   date_limite: z.date().min(today, "La date limite doit être dans le futur"),
   priority: z.enum(["low", "medium", "high", "urgent"]),
+  decision: z.string().max(255, { message: "Trop long" }).optional(),
 });
 
 interface BesoinRHLastValProps {
@@ -131,6 +133,7 @@ export default function BesoinRHLastVal({
       periode: { from: requestData.period?.from, to: requestData.period?.to },
       date_limite: requestData.dueDate,
       priority: requestData.priority,
+      decision: "",
     },
   });
 
@@ -168,10 +171,12 @@ export default function BesoinRHLastVal({
     mutationFn: async ({
       id,
       request,
+      decision,
     }: {
       id: number;
       request: Partial<RequestModelT>;
-    }) => requestQ.validate({ id, request }),
+      decision?: string;
+    }) => requestQ.validate({ id, request, decision }),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
       setOpen(false);
@@ -194,6 +199,7 @@ export default function BesoinRHLastVal({
         dueDate: values.date_limite,
         priority: values?.priority || "medium",
       },
+      decision: values.decision,
     });
   }
 
@@ -380,6 +386,20 @@ export default function BesoinRHLastVal({
                 maxFiles={1}
               />
             </div>
+            {/**Decision */}
+            <FormField
+              control={form.control}
+              name="decision"
+              render={({ field }) => (
+                <FormItem className="col-span-full">
+                  <FormLabel>{"Commentaire (optionnel)"}</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Laisser un commentaire" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <DialogFooter className="@min-[540px]/dialog:col-span-2">
               <DialogClose asChild>

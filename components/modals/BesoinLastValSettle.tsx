@@ -85,6 +85,7 @@ const formSchema = z.object({
     required_error: "Sélectionner le moyen de payement",
     invalid_type_error: "Sélectionner le moyen de payement",
   }),
+  decision: z.string().max(255, { message: "Trop long" }).optional(),
 });
 
 export default function BesoinLastValSettle({
@@ -130,6 +131,7 @@ export default function BesoinLastValSettle({
   useEffect(() => {
     if (open) {
       form.reset({
+        decision: "",
         quantity: request.quantity,
         benef: Number(request.beneficiary),
         priority: (request.priority as any) || "low",
@@ -144,10 +146,12 @@ export default function BesoinLastValSettle({
     mutationFn: async ({
       id,
       request,
+      decision,
     }: {
       id: number;
       request: Partial<RequestModelT>;
-    }) => requestQ.validate({ id, request }),
+      decision?: string;
+    }) => requestQ.validate({ id, request, decision }),
     onSuccess: () => {
       toast.success("Besoin modifié et approuvé !");
       setOpen(false);
@@ -159,6 +163,7 @@ export default function BesoinLastValSettle({
   const onSubmit = (values: z.infer<typeof formSchema>) => {
     validateRequest.mutate({
       id: request.id,
+      decision: values.decision,
       request: {
         paytype: values.paytype,
         priority: values.priority,
@@ -388,6 +393,20 @@ export default function BesoinLastValSettle({
                 maxFiles={1}
               />
             </div>
+            {/**Decision */}
+            <FormField
+              control={form.control}
+              name="decision"
+              render={({ field }) => (
+                <FormItem className="col-span-full">
+                  <FormLabel>{"Commentaire (optionnel)"}</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Laisser un commentaire" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <DialogFooter className="col-span-full">
               <DialogClose asChild>
                 <Button type="button" variant="outline">

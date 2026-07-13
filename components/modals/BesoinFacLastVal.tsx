@@ -49,6 +49,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 import BeneficiairesList from "../besoin/AddBenef";
 import FilesUpload from "../comp-547";
+import { Textarea } from "../ui/textarea";
 
 // ----------------------------------------------------------------------
 // VALIDATION
@@ -74,6 +75,7 @@ const formSchema = z.object({
     required_error: "Sélectionner le moyen de payement",
     invalid_type_error: "Sélectionner le moyen de payement",
   }),
+  decision: z.string().max(255, { message: "Trop long" }).optional(),
 });
 
 interface UpdateFacilitationRequestProps {
@@ -118,6 +120,7 @@ export default function BesoinFacLastVal({
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      decision: "",
       delai: new Date(),
       justificatif: [],
       priority: requestData.priority || "medium",
@@ -140,6 +143,7 @@ export default function BesoinFacLastVal({
         );
       }
       form.reset({
+        decision: "",
         paytype: undefined,
         delai: requestData.dueDate ? new Date(requestData.dueDate) : new Date(),
         justificatif: requestData.proof,
@@ -155,10 +159,12 @@ export default function BesoinFacLastVal({
     mutationFn: async ({
       id,
       request,
+      decision,
     }: {
       id: number;
       request: Partial<RequestModelT>;
-    }) => requestQ.validate({ id, request }),
+      decision?: string;
+    }) => requestQ.validate({ id, request, decision }),
     onSuccess: () => {
       toast.success("Besoin approuvé avec succès !");
       setOpen(false);
@@ -177,6 +183,7 @@ export default function BesoinFacLastVal({
 
     validateRequest.mutate({
       id: requestData.id,
+      decision: values.decision,
       request: {
         paytype: values.paytype,
         dueDate: values.delai,
@@ -395,6 +402,21 @@ export default function BesoinFacLastVal({
                       multiple={false}
                       maxFiles={1}
                     />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {/* DECISION */}
+            <FormField
+              control={form.control}
+              name="decision"
+              render={({ field }) => (
+                <FormItem className="@min-[540px]/dialog:col-span-2">
+                  <FormLabel>{"Commentaire (optionnel)"}</FormLabel>
+                  <FormControl>
+                    <Textarea placeholder="Laisser un commentaire" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
