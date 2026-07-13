@@ -3,6 +3,7 @@
 import StatsCard from "@/components/base/StatsCard";
 import { ChartAreaInteractiveAll } from "@/components/Charts/BarcharAll";
 import { ChartAreaInteractive } from "@/components/Charts/BarChart";
+import { ChartBar } from "@/components/Charts/bar-chart";
 import { ChartPieLabelList } from "@/components/Charts/ChartPieLabelList";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
@@ -39,6 +40,9 @@ import {
   StatisticProps,
 } from "@/components/base/TitleValueCard";
 import { paymentQ } from "@/queries/payment";
+import BarChartType from "@/components/Charts/BarChartType";
+import { ChartExpenseEvolution } from "@/components/Charts/ChartExpenseEvolution";
+import { ChartGlobalState } from "@/components/Charts/ChartGlobalState";
 
 const DashboardPage = () => {
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
@@ -101,6 +105,38 @@ const DashboardPage = () => {
     queryKey: queryKeys.dashboardPaidData(dateFilter, customFilters),
     queryFn: () =>
       paymentQ.getDashboardPaidData({
+        date: customFilters.date || undefined,
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
+    enabled: !!user?.id,
+  });
+
+  const paidExpenses = useQuery({
+    queryKey: queryKeys.depenses("paid", dateFilter, customFilters),
+    queryFn: () =>
+      paymentQ.getDepenses({
+        pageIndex: 0,
+        pageSize: 15,
+        tab: "paid",
+        amount: 0,
+        amountType: "greater",
+        date: customFilters.date || undefined,
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
+    enabled: !!user?.id,
+  });
+
+  const cancelledExpenses = useQuery({
+    queryKey: queryKeys.depenses("cancelled", dateFilter, customFilters),
+    queryFn: () =>
+      paymentQ.getDepenses({
+        pageIndex: 0,
+        pageSize: 15,
+        tab: "cancelled",
+        amount: 0,
+        amountType: "greater",
         date: customFilters.date || undefined,
         from: customFilters.from || undefined,
         to: customFilters.to || undefined,
@@ -211,6 +247,28 @@ const DashboardPage = () => {
     return filteredPayments.reduce((acc, p) => acc + (p.price || 0), 0);
   }, [filteredPayments]);
 
+  const requestTypeDistributionData = React.useMemo(() => {
+    // Utiliser filteredAll si disponible (ex: pour les admins), sinon filteredSubmited
+    const dataSource = filteredAll.length > 0 ? filteredAll : filteredSubmited;
+    if (!dataSource || dataSource.length === 0) return [];
+
+    const groups: Record<string, number> = {};
+    const types = requestType.data?.data || [];
+
+    dataSource.forEach((req: any) => {
+      const typeObj = types.find((t: any) => t.type === req.type);
+      const label = typeObj ? typeObj.label : (req.type || "Inconnu");
+      groups[label] = (groups[label] || 0) + 1;
+    });
+
+    return Object.entries(groups)
+      .map(([period, value]) => ({
+        period,
+        value,
+      }))
+      .sort((a, b) => b.value - a.value);
+  }, [filteredAll, filteredSubmited, requestType.data?.data]);
+
   const getStatusCount = React.useCallback((items: any[], status: 'approuvé' | 'rejetté' | 'enAttente') => {
     return items.filter(item => {
       const s = (item.state || '').toLowerCase();
@@ -302,13 +360,17 @@ const DashboardPage = () => {
   if (
     getRequestsStats.isLoading ||
     requestType.isLoading ||
-    getRequestsGraph.isLoading
+    getRequestsGraph.isLoading ||
+    paidExpenses.isLoading ||
+    cancelledExpenses.isLoading
   )
     return <LoadingPage />;
   if (
     getRequestsStats.isError ||
     requestType.isError ||
-    getRequestsGraph.isError
+    getRequestsGraph.isError ||
+    paidExpenses.isError ||
+    cancelledExpenses.isError
   )
     return (
       <ErrorPage
@@ -316,6 +378,8 @@ const DashboardPage = () => {
           getRequestsStats.error ||
           requestType.error ||
           getRequestsGraph.error ||
+          paidExpenses.error ||
+          cancelledExpenses.error ||
           undefined
         }
       />
@@ -324,9 +388,20 @@ const DashboardPage = () => {
     getRequestsStats.isSuccess &&
     requestType.isSuccess &&
     user &&
-    getRequestsGraph.isSuccess
+    getRequestsGraph.isSuccess &&
+    paidExpenses.isSuccess &&
+    cancelledExpenses.isSuccess
   ) {
     const statistics: Array<StatisticProps> = [
+      {
+        title: "Total besoins soumis",
+        value: String(filteredAll.length),
+        variant: "default",
+        more: {
+          title: "Total besoins approuvés",
+          value: String(getStatusCount(filteredAll, 'approuvé')),
+        },
+      },
       {
         title: "En attente de validation",
         value: String(getStatusCount(filteredValidator, 'enAttente')),
@@ -346,15 +421,19 @@ const DashboardPage = () => {
         },
       },
       {
-        title: "Total besoins soumis",
-        value: String(filteredAll.length),
-        variant: "default",
+        title: "Paiement effectués",
+        value: String(paidExpenses.data?.count || 0),
+        variant: "dark",
         more: {
-          title: "Total besoins approuvés",
-          value: String(getStatusCount(filteredAll, 'approuvé')),
+          title: "Paiement annulé",
+          value: String(cancelledExpenses.data?.count || 0),
         },
       },
+
     ];
+
+    console.log("distribution data", requestTypeDistributionData);
+
 
     return (
       <div className="content">
@@ -415,6 +494,20 @@ const DashboardPage = () => {
             ))}
         </div>
 
+        {/* Barchart: Type de besoins soumis */}
+        {manager && (
+          <BarChartType
+            requestTypeDistributionData={requestTypeDistributionData}
+          />
+        )}
+
+        {/* Suivi Global des Besoins (BarChart Horizontal) */}
+        {(manager || super_admin) && (
+          <ChartGlobalState
+            filteredData={filteredAll.length > 0 ? filteredAll : filteredSubmited}
+          />
+        )}
+
         {/* Graphique 1: Mes besoins */}
         <ChartAreaInteractive
           filteredData={filteredSubmited}
@@ -422,9 +515,9 @@ const DashboardPage = () => {
           customDateRange={
             customFilters.from && customFilters.to
               ? {
-                  from: new Date(customFilters.from),
-                  to: new Date(customFilters.to),
-                }
+                from: new Date(customFilters.from),
+                to: new Date(customFilters.to),
+              }
               : undefined
           }
           title="Mes besoins"
@@ -440,9 +533,9 @@ const DashboardPage = () => {
             customDateRange={
               customFilters.from && customFilters.to
                 ? {
-                    from: new Date(customFilters.from),
-                    to: new Date(customFilters.to),
-                  }
+                  from: new Date(customFilters.from),
+                  to: new Date(customFilters.to),
+                }
                 : undefined
             }
             title="Besoins reçus"
@@ -458,9 +551,9 @@ const DashboardPage = () => {
             customDateRange={
               customFilters.from && customFilters.to
                 ? {
-                    from: new Date(customFilters.from),
-                    to: new Date(customFilters.to),
-                  }
+                  from: new Date(customFilters.from),
+                  to: new Date(customFilters.to),
+                }
                 : undefined
             }
             title="Tous les besoins"
@@ -470,7 +563,22 @@ const DashboardPage = () => {
         )}
 
         {dashboardPaidData.data && (
-          <Card className="py-4">
+          <ChartExpenseEvolution
+            filteredData={filteredPayments}
+            dateFilter={dateFilter}
+            customDateRange={
+              customFilters.from && customFilters.to
+                ? {
+                    from: new Date(customFilters.from),
+                    to: new Date(customFilters.to),
+                  }
+                : undefined
+            }
+          />
+        )}
+
+        {dashboardPaidData.data && (
+          <Card className="py-4 mt-6">
             <CardHeader className="flex flex-col items-stretch border-b sm:flex-row">
               <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">
                 <CardTitle>{"Dépenses"}</CardTitle>
