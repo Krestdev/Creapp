@@ -50,6 +50,7 @@ interface BarChartProps {
     hideLabel?: boolean;
     valueFormatter?: (value: number, name: string, payload?: any) => string;
     labelFormatter?: (label: string) => string;
+    nameFormatter?: (name: string, payload?: any) => string;
   };
 
   footerContent?: React.ReactNode;
@@ -58,6 +59,7 @@ interface BarChartProps {
     label: string;
     period: string;
   };
+  hideTrend?: boolean;
 
   height?: number;
   margin?: { top?: number; right?: number; bottom?: number; left?: number };
@@ -101,6 +103,7 @@ export function ChartBar({
 
   footerContent,
   trend,
+  hideTrend = false,
 
   height = 280,
   margin = { top: 10, right: 16, left: 8, bottom: 0 },
@@ -139,6 +142,7 @@ export function ChartBar({
   };
 
   const calculatedTrend = React.useMemo(() => {
+    if (hideTrend) return undefined;
     if (trend) return trend;
 
     if (data.length > 1 && series.length > 0) {
@@ -221,7 +225,10 @@ export function ChartBar({
                           props?.payload
                         ) ?? defaultValueFormatter(Number(value));
 
-                      const label = finalChartConfig[name]?.label || (name as string);
+                      let label = finalChartConfig[name]?.label || (name as string);
+                      if (tooltipConfig.nameFormatter) {
+                        label = tooltipConfig.nameFormatter(name as string, props?.payload);
+                      }
                       return [formatted, label];
                     }}
                     labelFormatter={

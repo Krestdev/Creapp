@@ -109,14 +109,14 @@
   --chart-7: oklch(76.815% 0.20437 130.867);
   --chart-8: oklch(70.485% 0.18669 47.592);
   --chart-9: oklch(65.59% 0.21181 354.287);
-  --chart-10: oklch(58.541% 0.20415 277.126); 
-    /* Couleurs pour statuts spécifiques */
-  --status-approved: oklch(69.588% 0.14907 162.508); 
-  --status-pending: oklch(76.858% 0.1646 70.075); 
-  --status-rejected: oklch(63.681% 0.20784 25.315); 
-  --status-review: oklch(71.485% 0.12578 215.256); 
-  --status-paid: oklch(59.342% 0.18927 144.392); 
-  
+  --chart-10: oklch(58.541% 0.20415 277.126);
+  /* Couleurs pour statuts spécifiques */
+  --status-approved: oklch(69.588% 0.14907 162.508);
+  --status-pending: oklch(76.858% 0.1646 70.075);
+  --status-rejected: oklch(63.681% 0.20784 25.315);
+  --status-review: oklch(71.485% 0.12578 215.256);
+  --status-paid: oklch(59.342% 0.18927 144.392);
+
   /* Couleurs pour priorités */
   --priority-low: oklch(71.068% 0.0352 256.828);
   --priority-medium: oklch(62.31% 0.1881 259.83);
@@ -172,15 +172,23 @@
   * {
     @apply border-border outline-ring/50;
   }
+
   body {
     @apply bg-background font-sans text-foreground text-xs sm:text-sm lg:text-base;
   }
-  h1, h2, h3, h4, h5 {
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5 {
     @apply font-mono font-semibold tracking-[-1.2%];
   }
+
   h1 {
-    @apply text-[1.75rem] sm:text-[2rem] lg:text-[2.5rem] leading-[150%] ;
+    @apply text-[1.75rem] sm:text-[2rem] lg:text-[2.5rem] leading-[150%];
   }
+
   h2 {
     @apply text-[18px] leading-[120%] tracking-normal;
   }
@@ -190,24 +198,31 @@
   .tablehead {
     @apply w-full text-sm px-2 text-gray-600 has-[>svg]:cursor-pointer inline-flex gap-2 items-center justify-between [&_svg]:size-3 sticky top-0 z-10;
   }
+
   .content {
     @apply flex flex-col gap-4 @min-[640px]:gap-6 relative max-h-[calc(100vh-60px)];
   }
+
   .add-button {
     @apply w-full h-9 inline-flex items-center justify-center gap-2 border border-input bg-white text-sm font-medium [&_svg]:size-5 rounded-md transition-colors duration-150 hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed;
   }
+
   .view-group {
     @apply w-full flex gap-2 items-start justify-start text-sm;
   }
+
   .view-group-title {
     @apply text-gray-600
   }
+
   .view-icon {
     @apply size-10 rounded-full bg-gray-200 text-foreground flex items-center justify-center shrink-0;
   }
+
   .form-3xl {
     @apply max-w-3xl grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2 place-items-start;
   }
+
   .grid-stats-4 {
     @apply grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-3 @min-[1400px]:grid-cols-4 items-center gap-4 @min-[640px]:gap-5;
   }
@@ -221,25 +236,33 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f12f; /* Tailwind: bg-gray-100 */
-  border-radius: 9999px; /* Fully rounded */
+  background: #f1f1f12f;
+  /* Tailwind: bg-gray-100 */
+  border-radius: 9999px;
+  /* Fully rounded */
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #9e1348; /* Tailwind: bg-gray-400 */
-  border-radius: 9999px; /* Fully rounded */
+  background: #9e1348;
+  /* Tailwind: bg-gray-400 */
+  border-radius: 9999px;
+  /* Fully rounded */
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #9e13489f; /* Tailwind: bg-gray-600 */
+  background: #9e13489f;
+  /* Tailwind: bg-gray-600 */
 }
 
 .scrollbar-thin::-webkit-scrollbar {
-  height: 2px; /* pour la scrollbar horizontale */
-  width: 2px; /* pour la scrollbar verticale */
+  height: 2px;
+  /* pour la scrollbar horizontale */
+  width: 2px;
+  /* pour la scrollbar verticale */
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background-color: #9e1348; /* couleur du curseur */
+  background-color: #9e1348;
+  /* couleur du curseur */
   border-radius: 10px;
 }

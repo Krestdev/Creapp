@@ -23,11 +23,11 @@ function Roles({ data }: Props) {
         searchFilter.trim() === ""
           ? true
           : TranslateRole(r.label).toLocaleLowerCase().includes(search) ||
-            r.users?.some(
-              (u) =>
-                u.firstName.trim().toLocaleLowerCase().includes(search) ||
-                u.lastName.trim().toLocaleLowerCase().includes(search)
-            );
+          r.users?.some(
+            (u) =>
+              u.firstName.trim().toLocaleLowerCase().includes(search) ||
+              u.lastName.trim().toLocaleLowerCase().includes(search)
+          );
       return matchSearch;
     });
   }, [data, searchFilter]);
@@ -60,10 +60,10 @@ function Roles({ data }: Props) {
           className: "border-purple-200 bg-purple-50 text-purple-600",
         };
       case "ADMIN":
-      return {
-        description: "Accès à la configuration de l'application, gestion des utilisateurs et des rôles.",
-        className: "border-indigo-200 bg-indigo-50 text-indigo-600",
-      }
+        return {
+          description: "Accès à la configuration de l'application, gestion des utilisateurs et des rôles.",
+          className: "border-indigo-200 bg-indigo-50 text-indigo-600",
+        }
       case "VOLT":
         return {
           description:
@@ -125,7 +125,7 @@ function Roles({ data }: Props) {
                 <span className="text-sm font-semibold text-gray-900">
                   {"Utilisateurs"}
                 </span>
-                <p className="text-sm text-gray-800">
+                <p className="text-sm text-gray-800 line-clamp-3 truncate">
                   {!!role.users && role.users.length > 0 ? (
                     role.users
                       .map((user) => user.firstName.concat(" ", user.lastName))
@@ -135,7 +135,7 @@ function Roles({ data }: Props) {
                   )}
                 </p>
               </div>
-              <Button className="w-fit mt-auto ml-auto" onClick={()=>{setSelected(role); setOpen(true)}}>
+              <Button className="w-fit mt-auto ml-auto" onClick={() => { setSelected(role); setOpen(true) }}>
                 {"Voir plus"}
                 <ArrowRight />
               </Button>

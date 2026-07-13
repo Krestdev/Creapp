@@ -170,59 +170,59 @@ export function ShowRole({
           <DialogTitle className="uppercase">
             {`role - ${TranslateRole(role.label)}`}
           </DialogTitle>
-            {"Description du rôle"}
+          {"Description du rôle"}
         </DialogHeader>
 
         {/* Content */}
         <div className="grid gap-3">
-            {/* ID du rôle */}
-            <div className="view-group">
+          {/* ID du rôle */}
+          <div className="view-group">
             <span className="view-icon">
               <HashIcon />
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Identifiant"}</p>
               <Badge
-                  variant="blue"
-                >
-                  {`ROLE-${role.id.toString().padStart(3, "0")}`}
-                </Badge>
+                variant="blue"
+              >
+                {`ROLE-${role.id.toString().padStart(3, "0")}`}
+              </Badge>
             </div>
           </div>
-            {/* Code système */}
-            <div className="view-group">
+          {/* Code système */}
+          <div className="view-group">
             <span className="view-icon">
               <ShieldIcon />
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Code Système"}</p>
               <Badge variant="outline" className={getRoleColor(role.label)}>
-                  {role.label}
-                </Badge>
+                {role.label}
+              </Badge>
             </div>
           </div>
-            {/* Niveau d'accès */}
-            <div className="view-group">
+          {/* Niveau d'accès */}
+          <div className="view-group">
             <span className="view-icon">
               <ScanEyeIcon />
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Accès"}</p>
               <div className="flex items-center gap-2">
-                  {getAccesPages(role.label).map((page, index) => (
-                    <Badge
-                      key={index}
-                      variant="outline"
-                      className={accessLevel.color}
-                    >
-                      {page}
-                    </Badge>
-                  ))}
-                </div>
+                {getAccesPages(role.label).map((page, index) => (
+                  <Badge
+                    key={index}
+                    variant="outline"
+                    className={accessLevel.color}
+                  >
+                    {page}
+                  </Badge>
+                ))}
+              </div>
             </div>
           </div>
-            {/* Utilisateurs assignés */}
-            <div className="view-group">
+          {/* Utilisateurs assignés */}
+          <div className="view-group">
             <span className="view-icon">
               <UsersIcon />
             </span>
@@ -233,24 +233,41 @@ export function ShowRole({
               </p>
             </div>
           </div>
-            {/* Permissions */}
-            <div className="view-group">
+          {/* Liste scrollable des utilisateurs */}
+          <div className="view-group">
+            <span className="view-icon">
+              <UsersIcon />
+            </span>
+            <div className="flex flex-col w-full">
+              <p className="view-group-title">{"Utilisateurs"}</p>
+              <div className="flex flex-wrap gap-2 p-2 max-h-[100px] overflow-y-auto w-full border border-border">
+                {role.users?.map((user) => (
+                  <Badge key={user.id} variant="outline">
+                    {user.firstName} {user.lastName}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+
+          </div>
+          {/* Permissions */}
+          <div className="view-group">
             <span className="view-icon">
               <ShieldCheck />
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Statut"}</p>
               <div className="space-y-1 mt-1">
-                  {permissions.map((permission, index) => (
-                    <div key={index} className="flex items-center gap-2">
-                      <CheckCircle className="h-3 w-3 text-green-500" />
-                      <span className="text-xs text-black">{permission}</span>
-                    </div>
-                  ))}
-                </div>
+                {permissions.map((permission, index) => (
+                  <div key={index} className="flex items-center gap-2">
+                    <CheckCircle className="h-3 w-3 text-green-500" />
+                    <span className="text-xs text-black">{permission}</span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
-          <p className="text-sm text-gray-600 mt-2 flex gap-1 items-center"><InfoIcon className="text-sky-600" size={14}/>{"Tout utilisateur a accès à l'émission des besoins."}</p> 
+          <p className="text-sm text-gray-600 mt-2 flex gap-1 items-center"><InfoIcon className="text-sky-600" size={14} />{"Tout utilisateur a accès à l'émission des besoins."}</p>
         </div>
         <DialogFooter>
           <Button
