@@ -80,6 +80,7 @@ import ViewExpense from "./view-expense";
 import { TabBar, TabProps } from "@/components/base/TabBar";
 import { useStore } from "@/providers/datastore";
 import EditPaymentMethodDepenses from "./edit-payment-method";
+import { BoostedLegend } from "@/components/legends";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -329,9 +330,7 @@ function ExpensesTable({
         return (
           <div className="flex gap-1.5 items-center">
             {value.selected === true && value.paymentApproId && (
-              <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
-                <AsteriskIcon size={16} />
-              </span>
+              <BoostedLegend />
             )}
             <span className="line-clamp-1">
               {subText({ text: value.title ?? "--", length: 21 })}

@@ -15,7 +15,6 @@ import {
 import {
   AlertCircle,
   ArrowUpDown,
-  AsteriskIcon,
   Ban,
   CheckCircle,
   Clock,
@@ -35,6 +34,7 @@ import EditTypeSettle from "@/components/besoin/EditTypeSettle";
 import UpdateRequest from "@/components/besoin/UpdateRequest";
 import UpdateRequestFac from "@/components/besoin/UpdateRequestFac";
 import UpdateRHRequest from "@/components/besoin/UpdateRequestRH";
+import { ModifiedLegend } from "@/components/legends";
 import { ModalWarning } from "@/components/modals/modal-warning";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -258,11 +258,7 @@ export function TableMyRequests({
             modifier.unit !== original.unit;
         return (
           <div className="flex items-center gap-1.5">
-            {!!modified && (
-              <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
-                <AsteriskIcon size={16} />
-              </span>
-            )}
+            {!!modified && <ModifiedLegend />}
             <p className="first-letter:uppercase!">
               {subText({ text: row.getValue("label"), length: 21 })}
             </p>
