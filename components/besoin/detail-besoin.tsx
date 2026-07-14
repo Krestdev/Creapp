@@ -363,6 +363,36 @@ export function DetailBesoin({
             </div>
           )}
 
+          {/**Commentary */}
+          {["validated", "store"].includes(data.state) &&
+            data.validators.some(
+              (v) =>
+                v.decision &&
+                v.decision.startsWith("validated") &&
+                v.decision.trim().length > 11,
+            ) && (
+              <div className="view-group">
+                <span className="view-icon">
+                  <MessageSquareXIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Commentaire"}</p>
+                  <p className="text-destructive">
+                    {data.validators
+                      .filter(
+                        (r) =>
+                          r.decision?.startsWith("validated") &&
+                          r.decision?.length > 9,
+                      )
+                      .map((r) =>
+                        r.decision?.replace(/^validated - \s*/i, "").trim(),
+                      )
+                      .join(", ")}
+                  </p>
+                </div>
+              </div>
+            )}
+
           {/* Justificatif */}
           {data.type !== "speciaux" && data.type !== "achat" && (
             <div className="view-group">

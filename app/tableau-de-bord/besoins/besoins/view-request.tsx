@@ -298,6 +298,37 @@ function ViewRequest({
             </div>
           )}
 
+          {/**Commentary */}
+          {request.data &&
+            ["validated", "store"].includes(request.data.data.state) &&
+            request.data.data.validators.some(
+              (v) =>
+                v.decision &&
+                v.decision.startsWith("validated") &&
+                v.decision.trim().length > 11,
+            ) && (
+              <div className="view-group">
+                <span className="view-icon">
+                  <MessageSquareXIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Commentaire"}</p>
+                  <p className="text-destructive">
+                    {request.data.data.validators
+                      .filter(
+                        (r) =>
+                          r.decision?.startsWith("validated") &&
+                          r.decision?.length > 9,
+                      )
+                      .map((r) =>
+                        r.decision?.replace(/^validated - \s*/i, "").trim(),
+                      )
+                      .join(", ")}
+                  </p>
+                </div>
+              </div>
+            )}
+
           {/* Justificatif */}
           {request.data?.data.type !== "speciaux" &&
             request.data?.data.type !== "achat" && (

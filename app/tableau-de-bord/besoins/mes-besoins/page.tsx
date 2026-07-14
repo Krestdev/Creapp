@@ -5,6 +5,7 @@ import {
   StatisticProps,
 } from "@/components/base/TitleValueCard";
 import ErrorPage from "@/components/error-page";
+import { ModifiedLegend } from "@/components/legends";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { Button } from "@/components/ui/button";
@@ -161,7 +162,7 @@ const Page = () => {
         searchFilter.trim() === ""
           ? true
           : item.label.toLowerCase().includes(search) ||
-          item.ref.toLocaleLowerCase().includes(search);
+            item.ref.toLocaleLowerCase().includes(search);
       //Status Filter
       const matchStatus =
         statusFilter === "all" ? true : item.state === statusFilter;
@@ -369,8 +370,8 @@ const Page = () => {
                               {categoryFilter === "all"
                                 ? "Toutes les catégories"
                                 : uniqueCategories.find(
-                                  (c) => String(c.id) === categoryFilter,
-                                )?.name || "Sélectionner"}
+                                    (c) => String(c.id) === categoryFilter,
+                                  )?.name || "Sélectionner"}
                             </span>
                             <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                           </Button>
@@ -381,7 +382,9 @@ const Page = () => {
                               placeholder="Rechercher une catégorie..."
                               className="h-8"
                               value={categorySearch}
-                              onChange={(e) => setCategorySearch(e.target.value)}
+                              onChange={(e) =>
+                                setCategorySearch(e.target.value)
+                              }
                               onMouseDown={(e) => e.stopPropagation()}
                               onClick={(e) => e.stopPropagation()}
                               onKeyDown={(e) => e.stopPropagation()}
@@ -394,7 +397,9 @@ const Page = () => {
                               setCategoryFilter("all");
                               setCategorySearch("");
                             }}
-                            className={categoryFilter === "all" ? "bg-accent" : ""}
+                            className={
+                              categoryFilter === "all" ? "bg-accent" : ""
+                            }
                           >
                             <div className="flex items-center gap-2">
                               <span>Toutes les catégories</span>
@@ -420,7 +425,9 @@ const Page = () => {
                                 }
                               >
                                 <div className="flex items-center gap-2">
-                                  <span className="truncate">{category.name}</span>
+                                  <span className="truncate">
+                                    {category.name}
+                                  </span>
                                 </div>
                               </DropdownMenuItem>
                             ))}
@@ -429,10 +436,10 @@ const Page = () => {
                               .toLowerCase()
                               .includes(categorySearch.toLowerCase()),
                           ).length === 0 && (
-                              <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                                Aucune catégorie trouvée
-                              </div>
-                            )}
+                            <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                              Aucune catégorie trouvée
+                            </div>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -450,8 +457,8 @@ const Page = () => {
                               {projectFilter === "all"
                                 ? "Tous les projets"
                                 : uniqueProjects.find(
-                                  (p) => String(p.id) === projectFilter,
-                                )?.label || "Sélectionner"}
+                                    (p) => String(p.id) === projectFilter,
+                                  )?.label || "Sélectionner"}
                             </span>
                             <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                           </Button>
@@ -475,7 +482,9 @@ const Page = () => {
                               setProjectFilter("all");
                               setProjectSearch("");
                             }}
-                            className={projectFilter === "all" ? "bg-accent" : ""}
+                            className={
+                              projectFilter === "all" ? "bg-accent" : ""
+                            }
                           >
                             <div className="flex items-center gap-2">
                               <span>Tous les projets</span>
@@ -501,7 +510,9 @@ const Page = () => {
                                 }
                               >
                                 <div className="flex items-center gap-2">
-                                  <span className="truncate">{project.label}</span>
+                                  <span className="truncate">
+                                    {project.label}
+                                  </span>
                                 </div>
                               </DropdownMenuItem>
                             ))}
@@ -510,10 +521,10 @@ const Page = () => {
                               .toLowerCase()
                               .includes(projectSearch.toLowerCase()),
                           ).length === 0 && (
-                              <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                                Aucun projet trouvé
-                              </div>
-                            )}
+                            <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                              Aucun projet trouvé
+                            </div>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -530,8 +541,9 @@ const Page = () => {
                             <span className="truncate">
                               {statusFilter === "all"
                                 ? "Tous les statuts"
-                                : REQUEST_STATUS.find((s) => s.value === statusFilter)
-                                  ?.name || "Sélectionner"}
+                                : REQUEST_STATUS.find(
+                                    (s) => s.value === statusFilter,
+                                  )?.name || "Sélectionner"}
                             </span>
                             <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                           </Button>
@@ -555,7 +567,9 @@ const Page = () => {
                               setStatusFilter("all");
                               setStatusSearch("");
                             }}
-                            className={statusFilter === "all" ? "bg-accent" : ""}
+                            className={
+                              statusFilter === "all" ? "bg-accent" : ""
+                            }
                           >
                             <div className="flex items-center gap-2">
                               <span>Tous les statuts</span>
@@ -586,10 +600,10 @@ const Page = () => {
                               .toLowerCase()
                               .includes(statusSearch.toLowerCase()),
                           ).length === 0 && (
-                              <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                                Aucun statut trouvé
-                              </div>
-                            )}
+                            <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                              Aucun statut trouvé
+                            </div>
+                          )}
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
@@ -628,7 +642,9 @@ const Page = () => {
                               setCustomDateRange(undefined);
                               setIsCustomDateModalOpen(false);
                             }}
-                            className={dateFilter === undefined ? "bg-accent" : ""}
+                            className={
+                              dateFilter === undefined ? "bg-accent" : ""
+                            }
                           >
                             <span>Toutes les périodes</span>
                           </DropdownMenuItem>
@@ -637,7 +653,9 @@ const Page = () => {
                               setDateFilter("today");
                               setIsCustomDateModalOpen(false);
                             }}
-                            className={dateFilter === "today" ? "bg-accent" : ""}
+                            className={
+                              dateFilter === "today" ? "bg-accent" : ""
+                            }
                           >
                             <span>Aujourd'hui</span>
                           </DropdownMenuItem>
@@ -655,7 +673,9 @@ const Page = () => {
                               setDateFilter("month");
                               setIsCustomDateModalOpen(false);
                             }}
-                            className={dateFilter === "month" ? "bg-accent" : ""}
+                            className={
+                              dateFilter === "month" ? "bg-accent" : ""
+                            }
                           >
                             <span>Ce mois</span>
                           </DropdownMenuItem>
@@ -673,7 +693,9 @@ const Page = () => {
                               setDateFilter("custom");
                               setIsCustomDateModalOpen(true);
                             }}
-                            className={dateFilter === "custom" ? "bg-accent" : ""}
+                            className={
+                              dateFilter === "custom" ? "bg-accent" : ""
+                            }
                           >
                             <span>Personnalisé</span>
                           </DropdownMenuItem>
@@ -694,9 +716,9 @@ const Page = () => {
                             <span className="text-muted-foreground text-xs">
                               {customDateRange?.from && customDateRange.to
                                 ? `${format(
-                                  customDateRange.from,
-                                  "dd/MM/yyyy",
-                                )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                                    customDateRange.from,
+                                    "dd/MM/yyyy",
+                                  )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                                 : "Choisir"}
                             </span>
                           </Button>
@@ -757,6 +779,15 @@ const Page = () => {
             </div>
           }
         />
+        <section className="grid gap-2">
+          <h3>{"Légende"}</h3>
+          <div className="flex gap-3 items-center">
+            <div className="inline-flex gap-1.5 items-center">
+              <ModifiedLegend />
+              {"Besoin modifié"}
+            </div>
+          </div>
+        </section>
       </div>
     );
   }

@@ -31,6 +31,7 @@ import { Settings2 } from "lucide-react";
 import React from "react";
 import DepenseFilters, { DepenseFiltersProps } from "./depenseFilters";
 import ExpensesTable from "./expenses-table";
+import { BoostedLegend } from "@/components/legends";
 
 function Page() {
   const { user } = useStore();
@@ -388,6 +389,15 @@ function Page() {
             </div>
           }
         />
+        <section className="grid gap-2">
+          <h3>{"Légende"}</h3>
+          <div className="flex gap-3 items-center">
+            <div className="inline-flex gap-1.5 items-center">
+              <BoostedLegend />
+              {"Dépense approvisionnée"}
+            </div>
+          </div>
+        </section>
       </div>
     );
   }
