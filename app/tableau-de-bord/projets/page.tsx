@@ -3,7 +3,7 @@ import ProjectListPage from "@/components/projets/liste";
 import { NavLink } from "@/types/types";
 
 function Page() {
-  const links :Array<NavLink> = [
+  const links: Array<NavLink> = [
     {
       title: "Créer un Projet",
       href: "./projets/creer",
@@ -11,7 +11,6 @@ function Page() {
   ];
   return (
     <div className="content">
-      {/* page title */}
       <PageTitle
         title="Les Projets"
         subtitle="Consultez la liste des projets."

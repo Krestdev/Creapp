@@ -150,9 +150,9 @@ export default function DashboardFilters({
               <span className="text-muted-foreground text-xs">
                 {customFilters.from && customFilters.to
                   ? `${format(customFilters.from, "dd/MM/yyyy")} → ${format(
-                      customFilters.to,
-                      "dd/MM/yyyy",
-                    )}`
+                    customFilters.to,
+                    "dd/MM/yyyy",
+                  )}`
                   : "Choisir"}
               </span>
             </Button>
@@ -210,7 +210,6 @@ export default function DashboardFilters({
           </CollapsibleContent>
         </Collapsible>
       </div>
-      {/* Bouton pour réinitialiser les filtres */}
       <div className="flex items-end">
         <Button variant="outline" onClick={resetAllFilters} className="w-full">
           {"Réinitialiser"}

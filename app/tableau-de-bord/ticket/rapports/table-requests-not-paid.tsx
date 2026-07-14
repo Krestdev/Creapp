@@ -49,22 +49,17 @@ function NotPaidRequestsTable({ requests, tickets, users }: Props) {
   const filteredData: PaymentRequest[] = React.useMemo(() => {
     return tickets.filter((r) => {
       const search = searchFilter.toLocaleLowerCase();
-      //Search Filter
       const matchSearch =
         search.trim() === ""
           ? true
           : r.id === Number(search) ||
-            r.title.toLocaleLowerCase().includes(search);
-      //Category Filter
+          r.title.toLocaleLowerCase().includes(search);
       const matchCategory =
         categoryFilter === "all" ? true : r.type === categoryFilter;
-      //Project Filter
       const matchProject =
         projectFilter === "all" ? true : r.projectId === Number(projectFilter);
-      //User Filter
       const matchUser =
         userFilter === "all" ? true : r.benefId === Number(userFilter);
-      //Date Filter
       return matchSearch && matchCategory && matchProject && matchUser;
     });
   }, [

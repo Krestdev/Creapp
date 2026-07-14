@@ -78,7 +78,6 @@ export default function TicketFilters({
           }
         />
       </div>
-      {/**Priority Filter */}
       <div className="grid gap-1.5">
         <Label htmlFor="priority">Priorité</Label>
         <DropdownMenu>
@@ -88,7 +87,7 @@ export default function TicketFilters({
                 {customFilters.priority === "all"
                   ? "Toutes les priorités"
                   : PRIORITIES.find((p) => p.value === customFilters.priority)
-                      ?.name}
+                    ?.name}
               </span>
               <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
             </Button>
@@ -138,7 +137,7 @@ export default function TicketFilters({
                 {customFilters.type === "all"
                   ? "Tous les types"
                   : PAYMENT_TYPES.find((t) => t.value === customFilters.type)
-                      ?.name}
+                    ?.name}
               </span>
               <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
             </Button>
@@ -274,9 +273,9 @@ export default function TicketFilters({
               <span className="text-muted-foreground text-xs">
                 {customFilters.from && customFilters.to
                   ? `${format(customFilters.from, "dd/MM/yyyy")} → ${format(
-                      customFilters.to,
-                      "dd/MM/yyyy",
-                    )}`
+                    customFilters.to,
+                    "dd/MM/yyyy",
+                  )}`
                   : "Choisir"}
               </span>
             </Button>

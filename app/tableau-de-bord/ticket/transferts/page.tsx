@@ -21,7 +21,7 @@ function Page() {
   const filteredData = React.useMemo(() => {
     if (!data || !data?.data) return [];
     return data.data
-      .filter((x) => x.from !== null && x.to !== null) // from is possibly null
+      .filter((x) => x.from !== null && x.to !== null)
       .filter((x) => !x.from.type?.includes("CASH"));
   }, [data]);
   if (isLoading || getUsers.isLoading) {

@@ -47,7 +47,6 @@ import { VariantProps } from "class-variance-authority";
 import ViewExpense from "../../(volt)/depenses/view-expense";
 import SignExpense from "./sign-expense";
 
-// Configuration des couleurs pour les priorités
 const priorityConfig = {
   low: {
     label: "Basse",
@@ -328,11 +327,11 @@ function ExpensesTableSign({
 
         const priorityA =
           priorityOrder[
-            rowA.getValue(columnId) as keyof typeof priorityOrder
+          rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-            rowB.getValue(columnId) as keyof typeof priorityOrder
+          rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
 
         return priorityA - priorityB;
@@ -515,9 +514,9 @@ function ExpensesTableSign({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}

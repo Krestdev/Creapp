@@ -16,7 +16,7 @@ import { useQuery } from "@tanstack/react-query";
 export type Justificatif = {
   type: "file" | "image";
   nom: string;
-  taille: number; // en Ko ou Mo selon ton choix
+  taille: number;
 };
 
 export type Besoin = {
@@ -32,13 +32,13 @@ export interface BonCommandePaiement {
   titre: string;
   montant: number;
   priorite: "low" | "high" | "medium" | "urgent";
-  moyen?: string; // ex: "Espece", "Virement", etc.
+  moyen?: string;
   statut?: "pending" | "approved" | "rejected" | "in-review";
-  delai?: string; // date au format JJ/MM/AAAA
+  delai?: string;
   lieu?: string;
   emetteur?: string;
-  creeLe?: string; // date au format JJ/MM/AAAA
-  modifieLe?: string; // date au format JJ/MM/AAAA
+  creeLe?: string;
+  modifieLe?: string;
   justificatif?: Justificatif[];
   condition?: string;
   besoin?: Besoin[];
