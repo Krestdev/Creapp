@@ -243,7 +243,7 @@ const Page = () => {
               return { ...prev, ...nextPagination };
             });
           },
-          //rowCount: data.count,
+          rowCount: requestData.data.data.total,
         }}
         filters={{
           customFilters,
