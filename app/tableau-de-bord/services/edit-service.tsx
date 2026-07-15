@@ -55,7 +55,6 @@ function EditService({ open, openChange, service, users }: Props) {
     defaultValues: { label: "", description: "", headId: undefined, users: [] },
   });
 
-  // Populate form when dialog opens
   useEffect(() => {
     if (open && service) {
       form.reset({
@@ -101,15 +100,15 @@ function EditService({ open, openChange, service, users }: Props) {
         }),
         toAdd.length > 0
           ? addUsersMutation.mutateAsync({
-              id: service.id,
-              data: { users: toAdd },
-            })
+            id: service.id,
+            data: { users: toAdd },
+          })
           : Promise.resolve(),
         toRemove.length > 0
           ? removeUsersMutation.mutateAsync({
-              id: service.id,
-              data: { users: toRemove },
-            })
+            id: service.id,
+            data: { users: toRemove },
+          })
           : Promise.resolve(),
       ]);
       toast.success("Service modifié avec succès !");

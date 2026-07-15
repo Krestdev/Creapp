@@ -501,7 +501,6 @@ const DashboardPage = () => {
           />
         )}
 
-        {/* Suivi Global des Besoins (BarChart Horizontal) */}
         {(manager || super_admin) && (
           <ChartGlobalState
             filteredData={filteredAll.length > 0 ? filteredAll : filteredSubmited}
@@ -569,9 +568,9 @@ const DashboardPage = () => {
             customDateRange={
               customFilters.from && customFilters.to
                 ? {
-                    from: new Date(customFilters.from),
-                    to: new Date(customFilters.to),
-                  }
+                  from: new Date(customFilters.from),
+                  to: new Date(customFilters.to),
+                }
                 : undefined
             }
           />

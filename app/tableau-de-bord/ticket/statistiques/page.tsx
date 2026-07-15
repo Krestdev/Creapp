@@ -92,7 +92,6 @@ function Page() {
     setDateFilter(undefined);
     setCustomDateRange(undefined);
     setCustomOpen(false);
-    // Réinitialiser les recherches
     setTypeSearch("");
     setProviderSearch("");
     setMethodSearch("");
@@ -109,13 +108,12 @@ function Page() {
       const now = new Date();
       let startDate = new Date();
       let endDate = now;
-      //Filter by provider
       const matchProvider =
         providerFilter === "all"
           ? true
           : !!payment.invoiceId
             ? getInvoices.data?.data.find((p) => p.id === payment.invoiceId)
-                ?.command.providerId === Number(providerFilter)
+              ?.command.providerId === Number(providerFilter)
             : false;
       //Filter by type
       const matchType =
@@ -203,10 +201,10 @@ function Page() {
     const approvalRate =
       filteredData.length > 0
         ? (filteredData.filter(
-            (p) => p.status === "validated" || p.status === "paid",
-          ).length /
-            filteredData.length) *
-          100
+          (p) => p.status === "validated" || p.status === "paid",
+        ).length /
+          filteredData.length) *
+        100
         : 0;
 
     const pendingCount = filteredData.filter(
@@ -252,9 +250,8 @@ function Page() {
       variant: "secondary",
       more: {
         title: `${metrics.pendingCount} paiements`,
-        value: `${
-          Math.round((metrics.pendingAmount / metrics.totalAmount) * 100) || 0
-        }% du total`,
+        value: `${Math.round((metrics.pendingAmount / metrics.totalAmount) * 100) || 0
+          }% du total`,
       },
     },
     {
@@ -652,7 +649,7 @@ function Page() {
                         {typeFilter === "all"
                           ? "Tous les types"
                           : PAYMENT_TYPES.find((t) => t.value === typeFilter)
-                              ?.name || "Sélectionner"}
+                            ?.name || "Sélectionner"}
                       </span>
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                     </Button>
@@ -697,10 +694,10 @@ function Page() {
                     {PAYMENT_TYPES.filter((t) =>
                       t.name.toLowerCase().includes(typeSearch.toLowerCase()),
                     ).length === 0 && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Aucun type trouvé
-                      </div>
-                    )}
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun type trouvé
+                        </div>
+                      )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -718,8 +715,8 @@ function Page() {
                         {providerFilter === "all"
                           ? "Tous les fournisseurs"
                           : getProviders.data.data.find(
-                              (p) => String(p.id) === providerFilter,
-                            )?.name || "Sélectionner"}
+                            (p) => String(p.id) === providerFilter,
+                          )?.name || "Sélectionner"}
                       </span>
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                     </Button>
@@ -772,10 +769,10 @@ function Page() {
                         .toLowerCase()
                         .includes(providerSearch.toLowerCase()),
                     ).length === 0 && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Aucun fournisseur trouvé
-                      </div>
-                    )}
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun fournisseur trouvé
+                        </div>
+                      )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -793,8 +790,8 @@ function Page() {
                         {methodFilter === "all"
                           ? "Toutes les méthodes"
                           : getPaymentType.data.data.find(
-                              (m) => String(m.id) === methodFilter,
-                            )?.label || `Méthode ${methodFilter}`}
+                            (m) => String(m.id) === methodFilter,
+                          )?.label || `Méthode ${methodFilter}`}
                       </span>
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                     </Button>
@@ -849,10 +846,10 @@ function Page() {
                         .toLowerCase()
                         .includes(methodSearch.toLowerCase()),
                     ).length === 0 && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Aucune méthode trouvée
-                      </div>
-                    )}
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucune méthode trouvée
+                        </div>
+                      )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -870,7 +867,7 @@ function Page() {
                         {statusFilter === "all"
                           ? "Tous les statuts"
                           : PAY_STATUS.find((s) => s.value === statusFilter)
-                              ?.name || "Sélectionner"}
+                            ?.name || "Sélectionner"}
                       </span>
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                     </Button>
@@ -931,10 +928,10 @@ function Page() {
                     ).filter((s) =>
                       s.name.toLowerCase().includes(statusSearch.toLowerCase()),
                     ).length === 0 && (
-                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                        Aucun statut trouvé
-                      </div>
-                    )}
+                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                          Aucun statut trouvé
+                        </div>
+                      )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -1039,9 +1036,9 @@ function Page() {
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy",
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                            customDateRange.from,
+                            "dd/MM/yyyy",
+                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -1121,9 +1118,8 @@ function Page() {
                 tooltipConfig={{
                   valueFormatter: (value, name, payload) => {
                     const item = payload?.payload as any;
-                    return `${XAF.format(Number(value))} (${
-                      item?.count || 0
-                    }) `;
+                    return `${XAF.format(Number(value))} (${item?.count || 0
+                      }) `;
                   },
                 }}
                 chartConfig={paymentTypeData.config}
@@ -1148,9 +1144,8 @@ function Page() {
                 tooltipConfig={{
                   valueFormatter: (value, name, payload) => {
                     const item = payload?.payload as any;
-                    return `${XAF.format(Number(value))} (${
-                      item?.count || 0
-                    }) `;
+                    return `${XAF.format(Number(value))} (${item?.count || 0
+                      }) `;
                   },
                 }}
                 chartConfig={paymentByProvider.config}
@@ -1175,9 +1170,8 @@ function Page() {
                 tooltipConfig={{
                   valueFormatter: (value, name, payload) => {
                     const item = payload?.payload as any;
-                    return `${XAF.format(Number(value))} (${
-                      item?.count || 0
-                    }) `;
+                    return `${XAF.format(Number(value))} (${item?.count || 0
+                      }) `;
                   },
                 }}
                 chartConfig={paymentMethodData.config}
