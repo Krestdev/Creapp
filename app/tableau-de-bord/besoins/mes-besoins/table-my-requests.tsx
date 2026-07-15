@@ -560,8 +560,6 @@ export function TableMyRequests({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Besoins (${data.length})`}</h3>
-
       {/* Table */}
       {table.getRowModel().rows?.length > 0 ? (
         <div className="rounded-md border">

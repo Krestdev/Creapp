@@ -983,7 +983,6 @@ export function DataVal({
           </DropdownMenu>
         </div>
       </div>
-      <h3>{`Besoins (${data.length})`}</h3>
       {isCheckable && selectedCount > 1 && (
         <div className="flex items-center gap-2 pb-4">
           <Button
