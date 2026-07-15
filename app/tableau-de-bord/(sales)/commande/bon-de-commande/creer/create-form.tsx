@@ -27,7 +27,12 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import { formatToShortName, isProviderValid, XAF } from "@/lib/utils";
+import {
+  formatToShortName,
+  getQuotationAmount,
+  isProviderValid,
+  XAF,
+} from "@/lib/utils";
 import { CommandConditionQ } from "@/queries/commandsConditions";
 import { payTypeQ } from "@/queries/payType";
 import { providerQ } from "@/queries/providers";
@@ -216,6 +221,8 @@ function CreateForm({
     const devi = quotations.find((q) => Number(q.id) === Number(deviId));
 
     const provider = providers.find((p) => p.id === devi?.providerId);
+    if (!devi || !provider) return 0;
+    return getQuotationAmount(devi, providers, precompte);
 
     const ACOMPTE_IS_REEL = 0.022;
     const IR_SIMPLIFIE = 0.055;

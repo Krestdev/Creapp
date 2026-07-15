@@ -278,7 +278,11 @@ export const getUserName = (
   return user.firstName.concat(" ", user.lastName);
 };
 
-export const getQuotationAmount = (devis: Quotation, providers: Provider[]) => {
+export const getQuotationAmount = (
+  devis: Quotation,
+  providers: Provider[],
+  precompte?: boolean,
+) => {
   const isValue = (providerId: number): number => {
     const provider = providers.find((p) => p.id === providerId);
     if (!provider) return 0;
@@ -290,8 +294,13 @@ export const getQuotationAmount = (devis: Quotation, providers: Provider[]) => {
     const isIr = !i.hasIs ? 0 : isValue(devis.providerId);
     const tva = i.tva / 100;
     const reduction = i.reduction / 100;
+    const precompteValue = precompte ? 0.02 : 0;
     return (
-      total + i.priceProposed * i.quantity * (1 - reduction) * (1 - isIr + tva)
+      total +
+      i.priceProposed *
+        i.quantity *
+        (1 - reduction) *
+        (1 - isIr + tva - precompteValue)
     );
   }, 0);
 };
