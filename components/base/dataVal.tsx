@@ -1009,7 +1009,7 @@ export function DataVal({
         </div>
       )}
       {data.length > 0 ? (
-        <div className="rounded-md border overflow-hidden">
+        <div className="rounded-md border overflow-auto">
           <Table>
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
