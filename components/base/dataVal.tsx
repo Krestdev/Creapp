@@ -53,6 +53,7 @@ import {
 } from "@/components/ui/table";
 import {
   cn,
+  getRequestStatusBadge,
   getRequestTypeBadge,
   getUserName,
   subText,
@@ -218,52 +219,16 @@ export function DataVal({
 
   const categoryIds = [...new Set(data.map((req) => req.categoryId))];
 
-  const getStatusConfig = (
-    status: string,
-  ): {
-    label: string;
-    icon?: LucideIcon;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-    rowClassName?: string;
-  } => {
-    switch (status) {
-      case "pending":
-        return {
-          label: "En attente",
-          icon: Hourglass,
-          variant: "amber",
-          rowClassName: "bg-amber-50/50 hover:bg-amber-50",
-        };
-      case "validated":
-        return {
-          label: "Approuvé",
-          icon: CheckCircle,
-          variant: "success",
-          rowClassName: "bg-green-50/50 hover:bg-green-50",
-        };
-      case "rejected":
-        return {
-          label: "Rejeté",
-          variant: "destructive",
-          rowClassName: "bg-red-50/50 hover:bg-red-50",
-        };
-      case "cancel":
-        return { label: "Annulé", variant: "default" };
-      default:
-        return { label: "Inconnu", variant: "default" };
-    }
-  };
-
   const uniqueStatus = React.useMemo(() => {
     if (!data.length) return [];
     return [...new Set(data.map((req) => req.state))].map((state) => {
-      const status = getStatusConfig(state);
+      const status = getRequestStatusBadge(state);
       return {
         id: state,
         name: status.label,
         icon: status.icon,
         variant: status.variant,
-        rowClassName: status.rowClassName,
+        rowClassName: status.className,
       };
     });
   }, [data]);
@@ -795,7 +760,7 @@ export function DataVal({
           );
         },
         cell: ({ row }) => {
-          const state = getStatusConfig(row.getValue("state"));
+          const state = getRequestStatusBadge(row.getValue("state"));
           const Icon = state.icon;
 
           return (
@@ -1067,7 +1032,7 @@ export function DataVal({
             <TableBody>
               {table.getRowModel().rows.map((row) => {
                 const validationInfo = getValidationInfo(row.original);
-                const statusConfig = getStatusConfig(row.original.state);
+                const statusConfig = getRequestStatusBadge(row.original.state);
                 const isSelected = row.getIsSelected();
 
                 return (
@@ -1076,7 +1041,7 @@ export function DataVal({
                     data-state={isSelected && "selected"}
                     className={cn(
                       "hover:bg-gray-50",
-                      statusConfig.rowClassName,
+                      statusConfig.className,
                       validationInfo.userPosition && "border-l-4",
                       validationInfo.userPosition === 1 && "border-l-blue-400",
                       validationInfo.userPosition === 2 && "border-l-green-400",

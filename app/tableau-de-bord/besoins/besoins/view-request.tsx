@@ -11,7 +11,12 @@ import {
   DialogHeader,
 } from "@/components/ui/dialog";
 import { queryKeys } from "@/lib/query-keys";
-import { cn, getRequestTypeBadge, XAF } from "@/lib/utils";
+import {
+  cn,
+  getRequestStatusBadge,
+  getRequestTypeBadge,
+  XAF,
+} from "@/lib/utils";
 import { categoryQ } from "@/queries/categoryModule";
 import { paymentQ } from "@/queries/payment";
 import { projectQ } from "@/queries/projectModule";
@@ -73,28 +78,6 @@ function ViewRequest({
     queryKey: queryKeys.purchaseOrders,
     queryFn: () => purchaseQ.getAll(),
   });
-
-  const getStatusBadge = (
-    status: RequestModelT["state"],
-  ): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-  } => {
-    switch (status) {
-      case "pending":
-        return { label: "En attente", variant: "amber" };
-      case "cancel":
-        return { label: "Annulé", variant: "dark" };
-      case "validated":
-        return { label: "Approuvé", variant: "success" };
-      case "rejected":
-        return { label: "Rejeté", variant: "destructive" };
-      case "store":
-        return { label: "Déstocké", variant: "blue" };
-      default:
-        return { label: status, variant: "default" };
-    }
-  };
 
   const getPriority = (
     priority: RequestModelT["priority"],
@@ -272,8 +255,12 @@ function ViewRequest({
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Statut"}</p>
-              <Badge variant={getStatusBadge(request.data?.data.state).variant}>
-                {getStatusBadge(request.data?.data.state).label}
+              <Badge
+                variant={
+                  getRequestStatusBadge(request.data?.data.state).variant
+                }
+              >
+                {getRequestStatusBadge(request.data?.data.state).label}
               </Badge>
             </div>
           </div>

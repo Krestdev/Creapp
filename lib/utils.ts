@@ -19,6 +19,13 @@ import {
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { clsx, type ClassValue } from "clsx";
+import {
+  CheckCircle,
+  Dot,
+  Hourglass,
+  LucideBan,
+  LucideIcon,
+} from "lucide-react";
 import { DateRange } from "react-day-picker";
 import { twMerge } from "tailwind-merge";
 
@@ -460,6 +467,55 @@ export function getPaymentPriorityBadge({
       };
   }
 }
+
+export const getRequestStatusBadge = (
+  status: RequestModelT["state"],
+): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+  icon: LucideIcon;
+  className?: string;
+} => {
+  switch (status) {
+    case "pending":
+      return {
+        label: "En attente",
+        variant: "amber",
+        icon: Hourglass,
+        className: "bg-amber-50/50 hover:bg-amber-50",
+      };
+    case "cancel":
+      return {
+        label: "Annulé",
+        variant: "dark",
+        icon: LucideBan,
+        className: "bg-gray-50/50 hover:bg-gray-50",
+      };
+    case "validated":
+      return {
+        label: "Approuvé",
+        variant: "success",
+        icon: CheckCircle,
+        className: "bg-green-50/50 hover:bg-green-50",
+      };
+    case "rejected":
+      return {
+        label: "Rejeté",
+        variant: "destructive",
+        icon: LucideBan,
+        className: "bg-red-50/50 hover:bg-red-50",
+      };
+    case "store":
+      return {
+        label: "Déstocké",
+        variant: "blue",
+        icon: LucideBan,
+        className: "bg-blue-50/50 hover:bg-blue-50",
+      };
+    default:
+      return { label: status, variant: "default", icon: Dot, className: "" };
+  }
+};
 
 export const getRoleBadge = (
   data: Role,
