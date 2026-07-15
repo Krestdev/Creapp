@@ -364,7 +364,8 @@ export function DetailBesoin({
           )}
 
           {/**Commentary */}
-          {["validated", "store"].includes(data.state) &&
+          {(data.state === "validated" || data.state === "store") &&
+            !!data.validators &&
             data.validators.some(
               (v) =>
                 v.decision &&
