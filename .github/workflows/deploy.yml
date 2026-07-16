@@ -6,15 +6,15 @@ on:
       - main
 
 jobs:
-  # lint:
-  #   name: Lint Code
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #     - name: Install deps
-  #       run: npm ci
-  #     - name: Run linter
-  #       run: npm run lint
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install deps
+        run: npm ci
+      - name: Run linter
+        run: npm run lint
 
   build:
     name: Build API
