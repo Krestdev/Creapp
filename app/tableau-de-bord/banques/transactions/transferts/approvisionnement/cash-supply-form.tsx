@@ -71,6 +71,7 @@ function CashSupplyForm({ banks }: Props) {
   });
 
   //Watch from Bank Id
+  // eslint-disable-next-line react-hooks/incompatible-library
   const fromValue = form.watch("fromBankId");
 
   const fromBank = React.useMemo(() => {

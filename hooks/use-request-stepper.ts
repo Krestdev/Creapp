@@ -41,23 +41,23 @@ const TICKET_TRESORERIE_STATUSES = new Set([
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 /** Ticket de paiement lié à ce besoin (le plus récent si plusieurs) */
-function findLinkedTicket(
-  requestId: number,
-  tickets: PaymentRequest[],
-): PaymentRequest | undefined {
-  const linked = tickets.filter((t) => t.requestId === requestId);
-  if (linked.length === 0) return undefined;
+// function findLinkedTicket(
+//   requestId: number,
+//   tickets: PaymentRequest[],
+// ): PaymentRequest | undefined {
+//   const linked = tickets.filter((t) => t.requestId === requestId);
+//   if (linked.length === 0) return undefined;
 
-  // Prioriser les tickets actifs (ni rejetés ni annulés)
-  const activeLinked = linked.filter(
-    (t) => t.status !== "rejected" && t.status !== "cancelled"
-  );
-  const pool = activeLinked.length > 0 ? activeLinked : linked;
+//   // Prioriser les tickets actifs (ni rejetés ni annulés)
+//   const activeLinked = linked.filter(
+//     (t) => t.status !== "rejected" && t.status !== "cancelled"
+//   );
+//   const pool = activeLinked.length > 0 ? activeLinked : linked;
 
-  return pool.sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
-  )[0];
-}
+//   return pool.sort(
+//     (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+//   )[0];
+// }
 
 /** Bon de commande lié à ce besoin via ses devis/éléments */
 function findLinkedBC(
@@ -98,8 +98,7 @@ function circuitFacilitationRH(
   request: RequestModelT,
   ticket: PaymentRequest | undefined,
 ): RequestStepperData {
-  const isTerminated =
-    request.state === "rejected" || request.state === "cancel";
+  // const isTerminated = request.state === "rejected" || request.state === "cancel";
 
   // ── Étape 1 : Validation ──────────────────────────────────────────────────
   const step1Done = request.state === "validated" || request.state === "store";
@@ -176,8 +175,7 @@ function circuitSimple(
   request: RequestModelT,
   ticket: PaymentRequest | undefined,
 ): RequestStepperData {
-  const isTerminated =
-    request.state === "rejected" || request.state === "cancel";
+  // const isTerminated = request.state === "rejected" || request.state === "cancel";
 
   const step1Done = request.state === "validated" || request.state === "store";
   const step1Error = request.state === "rejected";
@@ -239,8 +237,7 @@ function circuitAchat(
   bonCommande: BonsCommande | undefined,
   reception: Reception | undefined,
 ): RequestStepperData {
-  const isTerminated =
-    request.state === "rejected" || request.state === "cancel";
+  // const isTerminated = request.state === "rejected" || request.state === "cancel";
 
   const step1Done = request.state === "validated" || request.state === "store";
   const step1Error = request.state === "rejected";

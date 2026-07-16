@@ -1,8 +1,6 @@
 import DepartementPage from "@/components/organisation/departements";
 import PageTitle from "@/components/pageTitle";
-import { Button } from "@/components/ui/button";
 import { NavLink } from "@/types/types";
-import Link from "next/link";
 
 function Page() {
   const links: Array<NavLink> = [

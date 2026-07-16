@@ -191,7 +191,7 @@ export function InvoicesTable({
       let endDate = now;
 
       //Status Filter
-      let matchStatus =
+      const matchStatus =
         statusFilter === "all" ? true : invoice.status === statusFilter;
 
       // Filtre par date
@@ -379,7 +379,7 @@ export function InvoicesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const status = getInvoiceStatusBadge(value.status);
+        // const status = getInvoiceStatusBadge(value.status);
         const i = getProgress(value);
         return (
           <Progress value={i.progress} className={"w-full"}>
@@ -521,6 +521,7 @@ export function InvoicesTable({
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: data,
     columns,
@@ -709,7 +710,7 @@ export function InvoicesTable({
                         }}
                         className={dateFilter === "today" ? "bg-accent" : ""}
                       >
-                        <span>Aujourd'hui</span>
+                        <span>{"Aujourd'hui"}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {

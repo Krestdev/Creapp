@@ -77,16 +77,18 @@ export default function UpdateUser({
   useEffect(() => {
     if (userData && open) {
       const roles = userData.role || [];
-      setSelectedRole(roles.map((r) => ({ id: r.id!, label: r.label })));
-
-      form.reset({
-        email: userData.email || "",
-        firstName: userData.firstName || "",
-        lastName: userData.lastName || "",
-        phone: userData.phone || "",
-        role: roles.map((r) => r.id!),
-        post: userData.post || "",
-      });
+      const timer = setTimeout(() => {
+        setSelectedRole(roles.map((r) => ({ id: r.id!, label: r.label })));
+        form.reset({
+          email: userData.email || "",
+          firstName: userData.firstName || "",
+          lastName: userData.lastName || "",
+          phone: userData.phone || "",
+          role: roles.map((r) => r.id!),
+          post: userData.post || "",
+        });
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [userData, open, form]);
 

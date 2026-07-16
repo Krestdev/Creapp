@@ -372,7 +372,7 @@ export default function Filters({
               }}
               className={customFilters.date === "today" ? "bg-accent" : ""}
             >
-              <span>Aujourd'hui</span>
+              <span>{"Aujourd'hui"}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {

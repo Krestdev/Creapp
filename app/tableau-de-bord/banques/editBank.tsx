@@ -105,6 +105,24 @@ const formSchema = z
 type FormValues = z.infer<typeof formSchema>;
 
 function EditBank({ open, openChange, bank }: Props) {
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      label: bank.label,
+      type: bank.type,
+      Status: bank.Status,
+      balance: bank.balance,
+      justification:
+        !!bank.justification && bank.justification.length > 0
+          ? [bank.justification]
+          : [],
+      accountNumber: !!bank.accountNumber ? bank.accountNumber : undefined,
+      bankCode: !!bank.bankCode ? bank.bankCode : undefined,
+      key: !!bank.key ? bank.key : undefined,
+      atmCode: !!bank.atmCode ? bank.atmCode : undefined,
+    },
+  });
+
   useEffect(() => {
     if (open) {
       form.reset({
@@ -123,24 +141,6 @@ function EditBank({ open, openChange, bank }: Props) {
       });
     }
   }, [open]);
-
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      label: bank.label,
-      type: bank.type,
-      Status: bank.Status,
-      balance: bank.balance,
-      justification:
-        !!bank.justification && bank.justification.length > 0
-          ? [bank.justification]
-          : [],
-      accountNumber: !!bank.accountNumber ? bank.accountNumber : undefined,
-      bankCode: !!bank.bankCode ? bank.bankCode : undefined,
-      key: !!bank.key ? bank.key : undefined,
-      atmCode: !!bank.atmCode ? bank.atmCode : undefined,
-    },
-  });
 
   const type = form.watch("type");
 
@@ -168,14 +168,8 @@ function EditBank({ open, openChange, bank }: Props) {
   });
 
   const onSubmit = (values: FormValues) => {
-    const {
-      justification,
-      atmCode,
-      accountNumber,
-      bankCode,
-      key,
-      ...rest
-    } = values;
+    const { justification, atmCode, accountNumber, bankCode, key, ...rest } =
+      values;
 
     if (type === "BANK") {
       const payload: BankPayload = {
@@ -350,7 +344,9 @@ function EditBank({ open, openChange, bank }: Props) {
                   name="atmCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>{"Code / Localisation caisse (optionnel)"}</FormLabel>
+                      <FormLabel>
+                        {"Code / Localisation caisse (optionnel)"}
+                      </FormLabel>
                       <FormControl>
                         <Input
                           {...field}

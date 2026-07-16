@@ -12,13 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  CheckCheckIcon,
-  Ellipsis,
-  EyeIcon,
-  LucideEye,
-} from "lucide-react";
+import { ArrowUpDown, CheckCheckIcon, Ellipsis, EyeIcon } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -39,9 +33,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn } from "@/lib/utils";
 import { queryKeys } from "@/lib/query-keys";
-import { useStore } from "@/providers/datastore";
+import { cn } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
 import { projectQ } from "@/queries/projectModule";
 import { purchaseQ } from "@/queries/purchase-order";
@@ -82,7 +75,7 @@ export function BesoinsTraiter({
   categories,
   isHome,
 }: BesoinsTraiterTableProps) {
-  const { user } = useStore();
+  // const { user } = useStore();
 
   const projectsData = useQuery({
     queryKey: queryKeys.projects,
@@ -104,37 +97,37 @@ export function BesoinsTraiter({
     queryFn: purchaseQ.getAll,
   });
 
-  const isUserLastValidatorForRequest = (request: RequestModelT): boolean => {
-    const rank = request.validators.find((v) => v.userId === user?.id)?.rank;
-    return !!rank && !request.validators.some((x) => x.rank > rank);
-  };
+  // const isUserLastValidatorForRequest = (request: RequestModelT): boolean => {
+  //   const rank = request.validators.find((v) => v.userId === user?.id)?.rank;
+  //   return !!rank && !request.validators.some((x) => x.rank > rank);
+  // };
 
-  const getValidationInfo = (request: RequestModelT) => {
-    const userPosition = request.validators.find(
-      (v) => v.userId === user?.id,
-    )?.rank;
-    const isLastValidator = isUserLastValidatorForRequest(request);
-    const categoryName = getCategoryName(String(request.categoryId));
+  // const getValidationInfo = (request: RequestModelT) => {
+  //   const userPosition = request.validators.find(
+  //     (v) => v.userId === user?.id,
+  //   )?.rank;
+  //   const isLastValidator = isUserLastValidatorForRequest(request);
+  //   const categoryName = getCategoryName(String(request.categoryId));
 
-    const totalValidators = request.validators.length;
-    const validatedCount = request.validators.filter(
-      (v) => v.validated === true,
-    ).length;
+  //   const totalValidators = request.validators.length;
+  //   const validatedCount = request.validators.filter(
+  //     (v) => v.validated === true,
+  //   ).length;
 
-    return {
-      userPosition,
-      isLastValidator,
-      categoryName,
-      totalValidators,
-      validatedCount,
-      progress:
-        totalValidators > 0 ? (validatedCount / totalValidators) * 100 : 0,
-      canValidate:
-        request.state === "pending" &&
-        request.validators.find((v) => v.rank === userPosition)?.validated ===
-          false,
-    };
-  };
+  //   return {
+  //     userPosition,
+  //     isLastValidator,
+  //     categoryName,
+  //     totalValidators,
+  //     validatedCount,
+  //     progress:
+  //       totalValidators > 0 ? (validatedCount / totalValidators) * 100 : 0,
+  //     canValidate:
+  //       request.state === "pending" &&
+  //       request.validators.find((v) => v.rank === userPosition)?.validated ===
+  //         false,
+  //   };
+  // };
 
   const [isOpenModal, setIsModalOpen] = React.useState(false);
   const [isOpenModalView, setIsModalOpenView] = React.useState(false);
@@ -450,6 +443,7 @@ export function BesoinsTraiter({
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: data, // NE PAS utiliser reversedData ici
     columns,
@@ -601,7 +595,7 @@ export function BesoinsTraiter({
                               'button[role="checkbox"]',
                             ) ||
                             (e.target as HTMLElement).closest(
-                              '[data-radix-collection-item]',
+                              "[data-radix-collection-item]",
                             )
                           ) {
                             e.stopPropagation();

@@ -405,23 +405,51 @@ export function TableMyRequests({
                 <DropdownMenuItem
                   onClick={() => {
                     setSelectedItem(item);
-                    item.type === "facilitation"
-                      ? setIsUpdateFacModalOpen(true)
-                      : item.type === "ressource_humaine"
-                        ? setIsUpdateRHModalOpen(true)
-                        : item.type === "others"
-                          ? setIsUpdateOthersModalOpen(true)
-                          : item.type === "settle"
-                            ? setIsUpdateSettleModalOpen(true)
-                            : item.type === "appro"
-                              ? setIsUpdateApproModalOpen(true)
-                              : item.type === "gas"
-                                ? setIsUpdateGasModalOpen(true)
-                                : item.type === "transport"
-                                  ? setIsUpdateTransportModalOpen(true)
-                                  : item.type === "taxes"
-                                    ? setIsUpdateTaxesModalOpen(true)
-                                    : setIsUpdateModalOpen(true);
+                    switch (item.type) {
+                      case "facilitation":
+                        setIsUpdateFacModalOpen(true);
+                        break;
+                      case "ressource_humaine":
+                        setIsUpdateRHModalOpen(true);
+                        break;
+                      case "others":
+                        setIsUpdateOthersModalOpen(true);
+                        break;
+                      case "settle":
+                        setIsUpdateSettleModalOpen(true);
+                        break;
+                      case "appro":
+                        setIsUpdateApproModalOpen(true);
+                        break;
+                      case "gas":
+                        setIsUpdateGasModalOpen(true);
+                        break;
+                      case "transport":
+                        setIsUpdateTransportModalOpen(true);
+                        break;
+                      case "taxes":
+                        setIsUpdateTaxesModalOpen(true);
+                        break;
+                      default:
+                        break;
+                    }
+                    // item.type === "facilitation"
+                    //   ? setIsUpdateFacModalOpen(true)
+                    //   : item.type === "ressource_humaine"
+                    //     ? setIsUpdateRHModalOpen(true)
+                    //     : item.type === "others"
+                    //       ? setIsUpdateOthersModalOpen(true)
+                    //       : item.type === "settle"
+                    //         ? setIsUpdateSettleModalOpen(true)
+                    //         : item.type === "appro"
+                    //           ? setIsUpdateApproModalOpen(true)
+                    //           : item.type === "gas"
+                    //             ? setIsUpdateGasModalOpen(true)
+                    //             : item.type === "transport"
+                    //               ? setIsUpdateTransportModalOpen(true)
+                    //               : item.type === "taxes"
+                    //                 ? setIsUpdateTaxesModalOpen(true)
+                    //                 : setIsUpdateModalOpen(true);
                   }}
                   disabled={
                     item.state !== "pending" ||
@@ -452,6 +480,7 @@ export function TableMyRequests({
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable<RequestModelT>({
     data: data || [],
     columns,

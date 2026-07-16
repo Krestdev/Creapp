@@ -66,7 +66,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
 import {
   Bank,
   DateFilter,
@@ -80,10 +79,10 @@ import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ViewTransaction from "../view-transaction";
+import { CancelTransfert } from "./cancel-transfert";
 import CompleteTransfer from "./complete-transfer";
 import RequestSign from "./requestSign";
 import { EditTransferDialog } from "./updateDialog";
-import { CancelTransfert } from "./cancel-transfert";
 
 interface Props {
   data: Array<TransferTransaction>;
@@ -529,6 +528,7 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -592,181 +592,187 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
               <div className="px-5 grid gap-5">
                 <div className="grid gap-1.5">
                   <Label htmlFor="statusFilter">{"Statut"}</Label>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(v) =>
-                    setStatusFilter(v as "all" | Transaction["status"])
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un statut" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value={"all"}>{"Tous"}</SelectItem>
-                    {TRANSACTION_STATUS.map((t, id) => (
-                      <SelectItem key={id} value={t.value}>
-                        {t.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {/* Filter par Compte(Bank) */}
-              <div className="grid gap-1.5">
-                <Label>{"Compte"}</Label>
-                <Select value={bankFilter} onValueChange={setBankFilter}>
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner un Compte" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Tous"}</SelectItem>
-                    {banks
-                      .filter((b) => !!b.type)
-                      .map((bank) => (
-                        <SelectItem key={bank.id} value={String(bank.id)}>
-                          {bank.label}
+                  <Select
+                    value={statusFilter}
+                    onValueChange={(v) =>
+                      setStatusFilter(v as "all" | Transaction["status"])
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value={"all"}>{"Tous"}</SelectItem>
+                      {TRANSACTION_STATUS.map((t, id) => (
+                        <SelectItem key={id} value={t.value}>
+                          {t.name}
                         </SelectItem>
                       ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {/* Filter by amount */}
-              <div className="grid gap-1.5">
-                <Label>{"Montant"}</Label>
-              </div>
-              <div className="grid gap-1.5">
-                <Label>{"Montant"}</Label>
-                <span className="grid grid-cols-2 gap-1.5">
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Filter par Compte(Bank) */}
+                <div className="grid gap-1.5">
+                  <Label>{"Compte"}</Label>
+                  <Select value={bankFilter} onValueChange={setBankFilter}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un Compte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {banks
+                        .filter((b) => !!b.type)
+                        .map((bank) => (
+                          <SelectItem key={bank.id} value={String(bank.id)}>
+                            {bank.label}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Filter by amount */}
+                <div className="grid gap-1.5">
+                  <Label>{"Montant"}</Label>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>{"Montant"}</Label>
+                  <span className="grid grid-cols-2 gap-1.5">
+                    <Select
+                      value={amountTypeFilter}
+                      onValueChange={(v) =>
+                        setAmountTypeFilter(
+                          v as "greater" | "inferior" | "equal",
+                        )
+                      }
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner une période" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="greater">{"Supérieur"}</SelectItem>
+                        <SelectItem value="equal">{"Égal"}</SelectItem>
+                        <SelectItem value="inferior">{"Inférieur"}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <div className="relative">
+                      <Input
+                        type="number"
+                        placeholder="Ex. 250 000"
+                        value={amountFilter ?? 0}
+                        onChange={(e) =>
+                          setAmountFilter(Number(e.target.value))
+                        }
+                        className="w-full pr-12"
+                      />
+                      <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                        {"FCFA"}
+                      </span>
+                    </div>
+                  </span>
+                </div>
+
+                {/* Filter by Date */}
+                <div className="grid gap-1.5">
+                  <Label>{"Période"}</Label>
                   <Select
-                    value={amountTypeFilter}
-                    onValueChange={(v) =>
-                      setAmountTypeFilter(v as "greater" | "inferior" | "equal")
-                    }
+                    onValueChange={(v) => {
+                      if (v !== "custom") {
+                        setCustomDateRange(undefined);
+                        setCustomOpen(false);
+                      }
+                      if (v === "all") return setDateFilter(undefined);
+                      setDateFilter(v as Exclude<DateFilter, undefined>);
+                      setCustomOpen(v === "custom");
+                    }}
                   >
                     <SelectTrigger className="w-full">
                       <SelectValue placeholder="Sélectionner une période" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="greater">{"Supérieur"}</SelectItem>
-                      <SelectItem value="equal">{"Égal"}</SelectItem>
-                      <SelectItem value="inferior">{"Inférieur"}</SelectItem>
+                      <SelectItem value="all">
+                        {"Toutes les périodes"}
+                      </SelectItem>
+                      <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
+                      <SelectItem value="week">{"Cette semaine"}</SelectItem>
+                      <SelectItem value="month">{"Ce mois"}</SelectItem>
+                      <SelectItem value="year">{"Cette année"}</SelectItem>
+                      <SelectItem value="custom">{"Personnalisé"}</SelectItem>
                     </SelectContent>
                   </Select>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      placeholder="Ex. 250 000"
-                      value={amountFilter ?? 0}
-                      onChange={(e) => setAmountFilter(Number(e.target.value))}
-                      className="w-full pr-12"
-                    />
-                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                      {"FCFA"}
-                    </span>
-                  </div>
-                </span>
-              </div>
-
-              {/* Filter by Date */}
-              <div className="grid gap-1.5">
-                <Label>{"Période"}</Label>
-                <Select
-                  onValueChange={(v) => {
-                    if (v !== "custom") {
-                      setCustomDateRange(undefined);
-                      setCustomOpen(false);
-                    }
-                    if (v === "all") return setDateFilter(undefined);
-                    setDateFilter(v as Exclude<DateFilter, undefined>);
-                    setCustomOpen(v === "custom");
-                  }}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner une période" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Toutes les périodes"}</SelectItem>
-                    <SelectItem value="today">{"Aujourd'hui"}</SelectItem>
-                    <SelectItem value="week">{"Cette semaine"}</SelectItem>
-                    <SelectItem value="month">{"Ce mois"}</SelectItem>
-                    <SelectItem value="year">{"Cette année"}</SelectItem>
-                    <SelectItem value="custom">{"Personnalisé"}</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Collapsible
-                  open={customOpen}
-                  onOpenChange={setCustomOpen}
-                  disabled={dateFilter !== "custom"}
-                >
-                  <CollapsibleTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className="w-full justify-between"
-                    >
-                      {"Plage personnalisée"}
-                      <span className="text-muted-foreground text-xs">
-                        {customDateRange?.from && customDateRange.to
-                          ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy",
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
-                          : "Choisir"}
-                      </span>
-                    </Button>
-                  </CollapsibleTrigger>
-
-                  <CollapsibleContent className="space-y-4 pt-4">
-                    <Calendar
-                      mode="range"
-                      selected={customDateRange}
-                      onSelect={(range) => {
-                        if (!range?.from || !range?.to) return;
-                        const from = new Date(range.from);
-                        const to = new Date(range.to);
-                        to.setHours(23, 59, 59, 999);
-                        setCustomDateRange({ from, to });
-                      }}
-                      numberOfMonths={1}
-                      className="rounded-md border w-full"
-                    />
-                    <div className="space-y-1">
+                  <Collapsible
+                    open={customOpen}
+                    onOpenChange={setCustomOpen}
+                    disabled={dateFilter !== "custom"}
+                  >
+                    <CollapsibleTrigger asChild>
                       <Button
-                        className="w-full"
-                        onClick={() => {
-                          setCustomDateRange(undefined);
-                          setDateFilter(undefined);
-                          setCustomOpen(false);
-                        }}
+                        variant="outline"
+                        className="w-full justify-between"
                       >
-                        {"Annuler"}
+                        {"Plage personnalisée"}
+                        <span className="text-muted-foreground text-xs">
+                          {customDateRange?.from && customDateRange.to
+                            ? `${format(
+                                customDateRange.from,
+                                "dd/MM/yyyy",
+                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                            : "Choisir"}
+                        </span>
                       </Button>
-                      <Button
-                        className="w-full"
-                        variant={"outline"}
-                        onClick={() => {
-                          setCustomOpen(false);
-                        }}
-                      >
-                        {"Réduire"}
-                      </Button>
-                    </div>
-                  </CollapsibleContent>
-                </Collapsible>
-              </div>
+                    </CollapsibleTrigger>
 
-              {/* Bouton pour réinitialiser les filtres */}
-              <div className="flex items-end">
-                <Button
-                  variant="outline"
-                  onClick={resetAllFilters}
-                  className="w-full"
-                >
-                  {"Réinitialiser"}
-                </Button>
+                    <CollapsibleContent className="space-y-4 pt-4">
+                      <Calendar
+                        mode="range"
+                        selected={customDateRange}
+                        onSelect={(range) => {
+                          if (!range?.from || !range?.to) return;
+                          const from = new Date(range.from);
+                          const to = new Date(range.to);
+                          to.setHours(23, 59, 59, 999);
+                          setCustomDateRange({ from, to });
+                        }}
+                        numberOfMonths={1}
+                        className="rounded-md border w-full"
+                      />
+                      <div className="space-y-1">
+                        <Button
+                          className="w-full"
+                          onClick={() => {
+                            setCustomDateRange(undefined);
+                            setDateFilter(undefined);
+                            setCustomOpen(false);
+                          }}
+                        >
+                          {"Annuler"}
+                        </Button>
+                        <Button
+                          className="w-full"
+                          variant={"outline"}
+                          onClick={() => {
+                            setCustomOpen(false);
+                          }}
+                        >
+                          {"Réduire"}
+                        </Button>
+                      </div>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </div>
+
+                {/* Bouton pour réinitialiser les filtres */}
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={resetAllFilters}
+                    className="w-full"
+                  >
+                    {"Réinitialiser"}
+                  </Button>
+                </div>
               </div>
-            </div>
-          </SheetContent>
-        </Sheet>
+            </SheetContent>
+          </Sheet>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

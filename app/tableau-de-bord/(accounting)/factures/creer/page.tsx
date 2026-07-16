@@ -21,13 +21,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { totalAmountPurchase, XAF } from "@/lib/utils";
 import { commadQ } from "@/queries/command";
@@ -102,7 +95,9 @@ function Page() {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const commandId = form.watch("commandId");
+
   const isPartial = form.watch("isPartial");
 
   const purchase = React.useMemo(() => {

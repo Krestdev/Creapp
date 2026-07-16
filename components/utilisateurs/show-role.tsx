@@ -11,7 +11,15 @@ import {
 } from "@/components/ui/dialog";
 import { TranslateRole } from "@/lib/utils";
 import { Role } from "@/types/types";
-import { CheckCircle, Hash, HashIcon, InfoIcon, Key, Lock, LucideFlag, ScanEyeIcon, ShieldCheck, ShieldIcon, Users, UsersIcon } from "lucide-react";
+import {
+  CheckCircle,
+  HashIcon,
+  InfoIcon,
+  ScanEyeIcon,
+  ShieldCheck,
+  ShieldIcon,
+  UsersIcon,
+} from "lucide-react";
 
 interface ShowRoleProps {
   open: boolean;
@@ -108,16 +116,13 @@ export function ShowRole({
 
   const getPermissions = (roleLabel: string) => {
     const permissions: Record<string, string[]> = {
-      "SUPERADMIN": [
+      SUPERADMIN: [
         "Gestion complète du système",
         "Configuration des rôles et permissions",
         "Supervision de toutes les activités",
         "Accès à tous les rapports",
       ],
-      ADMIN: [
-        "Configuration des paramètres globaux",
-        "Gestion des projets"
-      ],
+      ADMIN: ["Configuration des paramètres globaux", "Gestion des projets"],
       SALES_MANAGER: [
         "Validation des devis",
         "Validation des bons de commandes",
@@ -141,9 +146,7 @@ export function ShowRole({
         "Gestion des comptes bancaires",
         "Gestion des factures",
       ],
-      RH: [
-        "Soumission des besoins RH",
-      ],
+      RH: ["Soumission des besoins RH"],
       USER: ["Soumission de besoins", "Suivi de ses demandes"],
     };
     return permissions[roleLabel] || ["Permissions personnalisées"];
@@ -151,7 +154,7 @@ export function ShowRole({
 
   const getAccesPages = (roleLabel: string) => {
     const pages: Record<string, string[]> = {
-      "SUPERADMIN": ["Toutes les pages"],
+      SUPERADMIN: ["Toutes les pages"],
       ADMIN: ["Paramètres", "Projets"],
       SALES_MANAGER: ["Besoins", "Commande"],
       SALES: ["Besoins", "Commande"],
@@ -182,9 +185,7 @@ export function ShowRole({
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">{"Identifiant"}</p>
-              <Badge
-                variant="blue"
-              >
+              <Badge variant="blue">
                 {`ROLE-${role.id.toString().padStart(3, "0")}`}
               </Badge>
             </div>
@@ -248,7 +249,6 @@ export function ShowRole({
                 ))}
               </div>
             </div>
-
           </div>
           {/* Permissions */}
           <div className="view-group">
@@ -267,13 +267,13 @@ export function ShowRole({
               </div>
             </div>
           </div>
-          <p className="text-sm text-gray-600 mt-2 flex gap-1 items-center"><InfoIcon className="text-sky-600" size={14} />{"Tout utilisateur a accès à l'émission des besoins."}</p>
+          <p className="text-sm text-gray-600 mt-2 flex gap-1 items-center">
+            <InfoIcon className="text-sky-600" size={14} />
+            {"Tout utilisateur a accès à l'émission des besoins."}
+          </p>
         </div>
         <DialogFooter>
-          <Button
-            variant="outline"
-            onClick={() => onOpenChange(false)}
-          >
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
             {"Fermer"}
           </Button>
         </DialogFooter>

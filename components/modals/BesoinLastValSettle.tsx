@@ -3,14 +3,6 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
-import {
   Dialog,
   DialogClose,
   DialogContent,
@@ -42,9 +34,11 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
-import { useStore } from "@/providers/datastore";
+import { queryKeys } from "@/lib/query-keys";
+import { categoryQ } from "@/queries/categoryModule";
+import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
-import { PRIORITIES, ProjectT, RequestModelT, User } from "@/types/types";
+import { PRIORITIES, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -56,9 +50,6 @@ import { toast } from "sonner";
 import z from "zod";
 import FilesUpload from "../comp-547";
 import { Label } from "../ui/label";
-import { queryKeys } from "@/lib/query-keys";
-import { categoryQ } from "@/queries/categoryModule";
-import { projectQ } from "@/queries/projectModule";
 
 interface Props {
   open: boolean;

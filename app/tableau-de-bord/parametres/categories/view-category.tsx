@@ -96,7 +96,7 @@ export function ViewCategory({
               <div className="mt-2">
                 {category.validators
                   .sort((a, b) => a.rank - b.rank)
-                  .map(({ rank, userId }, id) => {
+                  .map(({ userId }, id) => {
                     const user = users.find((u) => u.id === userId);
                     if (!!user)
                       return (

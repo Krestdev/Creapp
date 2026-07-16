@@ -31,7 +31,7 @@ import {
   Invoice,
   PAYMENT_METHOD,
   PaymentRequest,
-  PRIORITIES
+  PRIORITIES,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
@@ -43,10 +43,10 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 
-const METHOD = PAYMENT_METHOD.map((m) => m.value) as [
-  (typeof PAYMENT_METHOD)[number]["value"],
-  ...(typeof PAYMENT_METHOD)[number]["value"][],
-];
+// const METHOD = PAYMENT_METHOD.map((m) => m.value) as [
+//   (typeof PAYMENT_METHOD)[number]["value"],
+//   ...(typeof PAYMENT_METHOD)[number]["value"][],
+// ];
 const PAY_PRIORITY = PRIORITIES.map((m) => m.value) as [
   (typeof PRIORITIES)[number]["value"],
   ...(typeof PRIORITIES)[number]["value"][],
@@ -103,7 +103,7 @@ function EditPaymentForm({ payment, invoices, openChange }: Props) {
     },
   });
 
-  const isPartial = form.watch("isPartial");
+  // const isPartial = form.watch("isPartial");
 
   const updatePayment = useMutation({
     mutationFn: async (data: Partial<UpdatePayment>) =>

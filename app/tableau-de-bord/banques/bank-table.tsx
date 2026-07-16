@@ -287,6 +287,7 @@ function BankTable({ data, canEdit }: Props) {
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -337,10 +338,7 @@ function BankTable({ data, canEdit }: Props) {
             }}
             className="w-full sm:w-[250px] h-9"
           />
-          <Button
-            onClick={() => setSearchFilter(searchText)}
-            className="h-9"
-          >
+          <Button onClick={() => setSearchFilter(searchText)} className="h-9">
             {"Rechercher"}
           </Button>
           <Sheet>
@@ -350,66 +348,66 @@ function BankTable({ data, canEdit }: Props) {
                 {"Filtres"}
               </Button>
             </SheetTrigger>
-          <SheetContent>
-            <SheetHeader>
-              <SheetTitle>{"Filtres"}</SheetTitle>
-              <SheetDescription>
-                {"Configurer les fitres pour affiner les données"}
-              </SheetDescription>
-            </SheetHeader>
-            <div className="px-5 grid gap-5 mt-4">
-              <div className="grid gap-1.5">
-                <Label>{"Type de compte"}</Label>
-                <Select
-                  value={typeFilter}
-                  onValueChange={(value) =>
-                    setTypeFilter(value as "all" | Bank["type"])
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Filtrer par type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Tous"}</SelectItem>
-                    {BANK_TYPES.filter((b) => b.value !== "null").map((p) => (
-                      <SelectItem key={p.name} value={p.value}>
-                        {p.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <SheetContent>
+              <SheetHeader>
+                <SheetTitle>{"Filtres"}</SheetTitle>
+                <SheetDescription>
+                  {"Configurer les fitres pour affiner les données"}
+                </SheetDescription>
+              </SheetHeader>
+              <div className="px-5 grid gap-5 mt-4">
+                <div className="grid gap-1.5">
+                  <Label>{"Type de compte"}</Label>
+                  <Select
+                    value={typeFilter}
+                    onValueChange={(value) =>
+                      setTypeFilter(value as "all" | Bank["type"])
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Filtrer par type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {BANK_TYPES.filter((b) => b.value !== "null").map((p) => (
+                        <SelectItem key={p.name} value={p.value}>
+                          {p.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>{"Statut"}</Label>
+                  <Select
+                    value={statusFilter}
+                    onValueChange={(value) =>
+                      setStatusFilter(value as "all" | "true" | "false")
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Filtrer par statut" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Toutes"}</SelectItem>
+                      <SelectItem value={"true"}>{"Actif"}</SelectItem>
+                      <SelectItem value={"false"}>{"Désactivé"}</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                {/* Bouton pour réinitialiser les filtres */}
+                <div className="flex items-end">
+                  <Button
+                    variant="outline"
+                    onClick={resetAllFilters}
+                    className="w-full"
+                  >
+                    {"Réinitialiser"}
+                  </Button>
+                </div>
               </div>
-              <div className="grid gap-1.5">
-                <Label>{"Statut"}</Label>
-                <Select
-                  value={statusFilter}
-                  onValueChange={(value) =>
-                    setStatusFilter(value as "all" | "true" | "false")
-                  }
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Filtrer par statut" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">{"Toutes"}</SelectItem>
-                    <SelectItem value={"true"}>{"Actif"}</SelectItem>
-                    <SelectItem value={"false"}>{"Désactivé"}</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              {/* Bouton pour réinitialiser les filtres */}
-              <div className="flex items-end">
-                <Button
-                  variant="outline"
-                  onClick={resetAllFilters}
-                  className="w-full"
-                >
-                  {"Réinitialiser"}
-                </Button>
-              </div>
-            </div>
-          </SheetContent>
-        </Sheet>
+            </SheetContent>
+          </Sheet>
         </div>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

@@ -138,10 +138,10 @@ function TransferTable({ data, users }: Props) {
         search.trim() === ""
           ? true
           : transaction.id.toString().toLocaleLowerCase().includes(search) ||
-          transaction.label.toLocaleLowerCase().includes(search) ||
-          transaction.amount.toString().includes(search) ||
-          transaction.to.label.toLocaleLowerCase().includes(search) ||
-          transaction.from.label.toLocaleLowerCase().includes(search);
+            transaction.label.toLocaleLowerCase().includes(search) ||
+            transaction.amount.toString().includes(search) ||
+            transaction.to.label.toLocaleLowerCase().includes(search) ||
+            transaction.from.label.toLocaleLowerCase().includes(search);
       //Filter Tab
       const matchTab =
         selectedTab === 0
@@ -411,6 +411,7 @@ function TransferTable({ data, users }: Props) {
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -597,7 +598,7 @@ function TransferTable({ data, users }: Props) {
                         }}
                         className={dateFilter === "today" ? "bg-accent" : ""}
                       >
-                        <span>Aujourd'hui</span>
+                        <span>{"Aujourd'hui"}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {
@@ -652,9 +653,9 @@ function TransferTable({ data, users }: Props) {
                         <span className="text-muted-foreground text-xs">
                           {customDateRange?.from && customDateRange.to
                             ? `${format(
-                              customDateRange.from,
-                              "dd/MM/yyyy",
-                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                                customDateRange.from,
+                                "dd/MM/yyyy",
+                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
                       </Button>
@@ -759,9 +760,9 @@ function TransferTable({ data, users }: Props) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}

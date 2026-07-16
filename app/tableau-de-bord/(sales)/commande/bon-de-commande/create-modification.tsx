@@ -31,10 +31,10 @@ const PO_PRIORITIES = PRIORITIES.map((s) => s.value) as [
   (typeof PRIORITIES)[number]["value"],
   ...(typeof PRIORITIES)[number]["value"][],
 ];
-const PO_METHODS = PAYMENT_METHOD.map((s) => s.value) as [
-  (typeof PAYMENT_METHOD)[number]["value"],
-  ...(typeof PAYMENT_METHOD)[number]["value"][],
-];
+// const PO_METHODS = PAYMENT_METHOD.map((s) => s.value) as [
+//   (typeof PAYMENT_METHOD)[number]["value"],
+//   ...(typeof PAYMENT_METHOD)[number]["value"][],
+// ];
 
 const paymentSchema = z.object({
   percentage: z.coerce
@@ -47,7 +47,7 @@ const paymentSchema = z.object({
     .refine(
       (val) => {
         const d = new Date(val);
-        const now = new Date();
+        // const now = new Date();
         return !isNaN(d.getTime());
       },
       { message: "Date invalide" },
@@ -65,7 +65,7 @@ export const formSchema = z
     deliveryDelay: z.string({ message: "Veuillez définir une date" }).refine(
       (val) => {
         const d = new Date(val);
-        const now = new Date();
+        // const now = new Date();
         return !isNaN(d.getTime());
       },
       { message: "Date invalide" },
@@ -117,9 +117,9 @@ function CreateModification({
   open,
   openChange,
   purchaseOrder,
-  conditions,
-  quotations,
-  paytypes,
+  // conditions,
+  // quotations,
+  // paytypes,
 }: Props) {
   return (
     <Dialog open={open} onOpenChange={openChange}>

@@ -84,7 +84,7 @@ interface Props {
   users: Array<User>;
 }
 
-function SignTransfers({ data, banks, paymentMethods, users }: Props) {
+function SignTransfers({ data, banks, users }: Props) {
   const { user } = useStore();
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -153,7 +153,7 @@ function SignTransfers({ data, banks, paymentMethods, users }: Props) {
               !transaction.signers.find((s) => s.userId === user?.id)
             : !!transaction.signers.find((u) => u.userId === user?.id);
         // Bank Filter - selon le type de transaction
-        let matchBank =
+        const matchBank =
           bankFilter === "all"
             ? true
             : transaction.from.id.toString() === bankFilter ||
@@ -374,6 +374,7 @@ function SignTransfers({ data, banks, paymentMethods, users }: Props) {
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,

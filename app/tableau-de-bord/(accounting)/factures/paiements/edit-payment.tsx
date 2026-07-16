@@ -101,7 +101,7 @@ function EditPayment({ open, openChange, payment }: Props) {
     },
   });
 
-  const isPartial = form.watch("isPartial");
+  // const isPartial = form.watch("isPartial");
 
   const updatePayment = useMutation({
     mutationFn: async (data: Partial<UpdatePayment>) =>

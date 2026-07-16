@@ -13,16 +13,10 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import {
-  AlertCircle,
   ArrowRightToLine,
   ArrowUpDown,
-  AsteriskIcon,
-  Ban,
   BanIcon,
-  CheckCircle,
   ChevronDown,
-  Clock,
-  Coins,
   DollarSign,
   Download,
   Ellipsis,
@@ -30,11 +24,12 @@ import {
   FilePenLineIcon,
   Signature,
   SquarePenIcon,
-  XCircle,
 } from "lucide-react";
 import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
+import { TabBar, TabProps } from "@/components/base/TabBar";
+import { BoostedLegend } from "@/components/legends";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,6 +49,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, getRequestTypeBadge, isRole, subText, XAF } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
 import {
   PaymentRequest,
   PayType,
@@ -72,15 +68,11 @@ import CancelTicket from "./cancel-ticket";
 import CompleteGas from "./complete-gas";
 import CompleteSettle from "./complete-settle";
 import Decharge from "./decharge";
-import { DepenseFiltersProps } from "./depenseFilters";
+import EditPaymentMethodDepenses from "./edit-payment-method";
 import { NoticeFile } from "./notice";
 import PayExpense from "./pay-expense";
 import ShareExpense from "./share-expense";
 import ViewExpense from "./view-expense";
-import { TabBar, TabProps } from "@/components/base/TabBar";
-import { useStore } from "@/providers/datastore";
-import EditPaymentMethodDepenses from "./edit-payment-method";
-import { BoostedLegend } from "@/components/legends";
 
 // Configuration des couleurs pour les priorités
 const priorityConfig = {
@@ -103,38 +95,38 @@ const priorityConfig = {
 };
 
 // Configuration des statuts (gardé pour les badges si besoin)
-const statusConfig = {
-  pending: {
-    label: "Pending",
-    icon: Clock,
-    badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600",
-  },
-  validated: {
-    label: "Validated",
-    icon: CheckCircle,
-    badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
-  },
-  rejected: {
-    label: "Rejected",
-    icon: XCircle,
-    badgeClassName: "bg-red-200 text-red-500 outline outline-red-600",
-  },
-  paid: {
-    label: "paid",
-    icon: Coins,
-    badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
-  },
-  pending_depense: {
-    label: "en attente",
-    icon: AlertCircle,
-    badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600 ",
-  },
-  cancel: {
-    label: "ghost",
-    icon: Ban,
-    badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
-  },
-};
+// const statusConfig = {
+//   pending: {
+//     label: "Pending",
+//     icon: Clock,
+//     badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600",
+//   },
+//   validated: {
+//     label: "Validated",
+//     icon: CheckCircle,
+//     badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
+//   },
+//   rejected: {
+//     label: "Rejected",
+//     icon: XCircle,
+//     badgeClassName: "bg-red-200 text-red-500 outline outline-red-600",
+//   },
+//   paid: {
+//     label: "paid",
+//     icon: Coins,
+//     badgeClassName: "bg-green-200 text-green-500 outline outline-green-600",
+//   },
+//   pending_depense: {
+//     label: "en attente",
+//     icon: AlertCircle,
+//     badgeClassName: "bg-yellow-200 text-yellow-500 outline outline-yellow-600 ",
+//   },
+//   cancel: {
+//     label: "ghost",
+//     icon: Ban,
+//     badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
+//   },
+// };
 
 interface Props {
   payments: Array<PaymentRequest>;
@@ -603,9 +595,11 @@ function ExpensesTable({
                   disabled={isGasComplete(item) || isSettleComplete(item)}
                   onClick={() => {
                     setSelected(item);
-                    item.type === "gas"
-                      ? setShowGas(true)
-                      : setShowSettle(true);
+                    if (item.type === "gas") {
+                      setShowGas(true);
+                    } else {
+                      setShowSettle(true);
+                    }
                   }}
                 >
                   <ArrowRightToLine />
@@ -709,6 +703,7 @@ function ExpensesTable({
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: payments,
     columns,

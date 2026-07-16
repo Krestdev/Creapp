@@ -61,7 +61,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn, getTransactionTypeBadge, subText, XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
 import {
   Bank,
   DateFilter,
@@ -85,12 +84,12 @@ interface Props {
 
 function TransactionTable({
   data,
-  canEdit,
+  // canEdit,
   banks,
   filterByType = false,
   users,
 }: Props) {
-  const { user } = useStore();
+  // const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -594,6 +593,7 @@ function TransactionTable({
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -934,7 +934,7 @@ function TransactionTable({
                         }}
                         className={dateFilter === "today" ? "bg-accent" : ""}
                       >
-                        <span>Aujourd'hui</span>
+                        <span>{"Aujourd'hui"}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {

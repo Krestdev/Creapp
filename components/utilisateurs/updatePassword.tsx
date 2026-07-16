@@ -24,9 +24,7 @@ import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
 import { User as UserT } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
 
 /* =========================
    SCHEMA ZOD
@@ -66,7 +64,7 @@ export default function UpdatePassword({
   userData,
   onSuccess,
 }: UpdateRequestProps) {
-  const router = useRouter();
+  // const router = useRouter();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -78,7 +76,7 @@ export default function UpdatePassword({
   const update = useMutation({
     mutationFn: async (password: string) =>
       userQ.changePassword(userData?.id ?? 0, password),
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success(
         `Vous avez modifié le mot de passe de ${userData?.firstName} ${userData?.lastName} avec succès !`,
       );

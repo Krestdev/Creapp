@@ -119,6 +119,7 @@ function Page() {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const type = form.watch("type");
 
   const router = useRouter();
@@ -134,14 +135,8 @@ function Page() {
   });
 
   const onSubmit = (values: FormValues) => {
-    const {
-      justification,
-      atmCode,
-      accountNumber,
-      bankCode,
-      key,
-      ...rest
-    } = values;
+    const { justification, atmCode, accountNumber, bankCode, key, ...rest } =
+      values;
 
     // Vérification du nom de compte existant
     if (
@@ -225,11 +220,13 @@ function Page() {
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
                       <SelectContent>
-                        {banks.filter(b => !!b.value && b.value !== "null").map((t) => (
-                          <SelectItem key={t.value} value={t.value}>
-                            {t.name}
-                          </SelectItem>
-                        ))}
+                        {banks
+                          .filter((b) => !!b.value && b.value !== "null")
+                          .map((t) => (
+                            <SelectItem key={t.value} value={t.value}>
+                              {t.name}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                   </FormControl>

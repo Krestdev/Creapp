@@ -20,12 +20,11 @@ import { cn, subText, XAF } from "@/lib/utils";
 import {
   BonsCommande,
   Category,
-  DateFilter,
+  PaymentRequest,
   ProjectT,
   Reception,
   RequestModelT,
   RequestType,
-  PaymentRequest,
   User,
 } from "@/types/types";
 import {
@@ -46,8 +45,6 @@ import {
   ArrowUpDown,
   ChevronDownIcon,
   EyeIcon,
-  PencilIcon,
-  Trash2Icon,
   WorkflowIcon,
 } from "lucide-react";
 import React from "react";
@@ -70,10 +67,10 @@ function ServiceRequestsTable({
   users,
   categories,
   projects,
-  payments,
+  // payments,
   requestTypes,
-  receptions,
-  purchaseOrders,
+  // receptions,
+  // purchaseOrders,
 }: Props) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -91,13 +88,13 @@ function ServiceRequestsTable({
   const [view, setView] = React.useState<boolean>(false);
   const [decide, setDecide] = React.useState<boolean>(false);
 
-  const [userFilter, setUserFilter] = React.useState<"all" | string>("all");
-  const [searchFilter, setSearchFilter] = React.useState<string>("");
-  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
-  const [customDateRange, setCustomDateRange] = React.useState<
-    { from: Date; to: Date } | undefined
-  >();
-  const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
+  // const [userFilter, setUserFilter] = React.useState<"all" | string>("all");
+  // const [searchFilter, setSearchFilter] = React.useState<string>("");
+  // const [dateFilter, setDateFilter] = React.useState<DateFilter>();
+  // const [customDateRange, setCustomDateRange] = React.useState<
+  //   { from: Date; to: Date } | undefined
+  // >();
+  // const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
 
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
   const tabs = [
@@ -113,74 +110,74 @@ function ServiceRequestsTable({
   ];
 
   // Réinitialiser tous les filtres
-  const resetAllFilters = () => {
-    setGlobalFilter("");
-    setUserFilter("all");
-  };
+  // const resetAllFilters = () => {
+  //   setGlobalFilter("");
+  //   setUserFilter("all");
+  // };
 
-  const filteredRequests = React.useMemo(() => {
-    return requests.filter((req) => {
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
-      const search = searchFilter.toLowerCase().trim();
-      const matchTab =
-        selectedTab === 0
-          ? req.decision === "PENDING"
-          : req.decision !== "PENDING";
-      const matchUser =
-        userFilter === "all" ? true : req.userId === Number(userFilter);
-      const matchSearch =
-        search === ""
-          ? true
-          : req.id.toString().includes(search) ||
-            req.label.toLowerCase().includes(search) ||
-            req.description.toLocaleLowerCase().includes(search);
-      let matchDate = true;
-      if (dateFilter) {
-        switch (dateFilter) {
-          case "today":
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "week":
-            startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-            );
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "month":
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          case "year":
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
-          case "custom":
-            if (customDateRange?.from && customDateRange?.to) {
-              startDate = customDateRange.from;
-              endDate = customDateRange.to;
-            }
-            break;
-        }
+  // const filteredRequests = React.useMemo(() => {
+  //   return requests.filter((req) => {
+  //     const now = new Date();
+  //     let startDate = new Date();
+  //     let endDate = now;
+  //     const search = searchFilter.toLowerCase().trim();
+  //     const matchTab =
+  //       selectedTab === 0
+  //         ? req.decision === "PENDING"
+  //         : req.decision !== "PENDING";
+  //     const matchUser =
+  //       userFilter === "all" ? true : req.userId === Number(userFilter);
+  //     const matchSearch =
+  //       search === ""
+  //         ? true
+  //         : req.id.toString().includes(search) ||
+  //           req.label.toLowerCase().includes(search) ||
+  //           req.description.toLocaleLowerCase().includes(search);
+  //     let matchDate = true;
+  //     if (dateFilter) {
+  //       switch (dateFilter) {
+  //         case "today":
+  //           startDate.setHours(0, 0, 0, 0);
+  //           break;
+  //         case "week":
+  //           startDate.setDate(
+  //             now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
+  //           );
+  //           startDate.setHours(0, 0, 0, 0);
+  //           break;
+  //         case "month":
+  //           startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  //           break;
+  //         case "year":
+  //           startDate = new Date(now.getFullYear(), 0, 1);
+  //           break;
+  //         case "custom":
+  //           if (customDateRange?.from && customDateRange?.to) {
+  //             startDate = customDateRange.from;
+  //             endDate = customDateRange.to;
+  //           }
+  //           break;
+  //       }
 
-        if (
-          dateFilter !== "custom" ||
-          (customDateRange?.from && customDateRange?.to)
-        ) {
-          matchDate =
-            new Date(req.createdAt) >= startDate &&
-            new Date(req.createdAt) <= endDate;
-        }
-      }
-      return matchUser && matchSearch && matchDate && matchTab;
-    });
-  }, [
-    requests,
-    userFilter,
-    searchFilter,
-    dateFilter,
-    customDateRange,
-    selectedTab,
-  ]);
+  //       if (
+  //         dateFilter !== "custom" ||
+  //         (customDateRange?.from && customDateRange?.to)
+  //       ) {
+  //         matchDate =
+  //           new Date(req.createdAt) >= startDate &&
+  //           new Date(req.createdAt) <= endDate;
+  //       }
+  //     }
+  //     return matchUser && matchSearch && matchDate && matchTab;
+  //   });
+  // }, [
+  //   requests,
+  //   userFilter,
+  //   searchFilter,
+  //   dateFilter,
+  //   customDateRange,
+  //   selectedTab,
+  // ]);
 
   const columns: ColumnDef<RequestModelT>[] = [
     {
@@ -390,8 +387,9 @@ function ServiceRequestsTable({
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data: filteredRequests,
+    data: requests,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,

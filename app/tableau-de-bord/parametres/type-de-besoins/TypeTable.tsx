@@ -31,15 +31,15 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { RequestModelT, RequestType } from "@/types/types";
+import { RequestType } from "@/types/types";
 import { ShowRequestType } from "./ShowRequestType";
 import { UpdateRequestType } from "./UpdateRequestType";
 
-interface Request {
-  id: number;
-  name: string;
-  dueDate?: Date;
-}
+// interface Request {
+//   id: number;
+//   name: string;
+//   dueDate?: Date;
+// }
 
 interface BesoinsTraiterTableProps {
   data: RequestType[];
@@ -65,18 +65,18 @@ export function TypeTable({ data }: BesoinsTraiterTableProps) {
   const [globalFilter, setGlobalFilter] = React.useState("");
 
   // Convertir les données RequestModelT en format Request pour la sélection
-  const convertToRequest = React.useCallback(
-    (requestModel: RequestModelT): Request => ({
-      id: requestModel.id,
-      name: requestModel.label,
-      dueDate: requestModel.dueDate
-        ? new Date(requestModel.dueDate)
-        : undefined,
-    }),
-    [],
-  );
+  // const convertToRequest = React.useCallback(
+  //   (requestModel: RequestModelT): Request => ({
+  //     id: requestModel.id,
+  //     name: requestModel.label,
+  //     dueDate: requestModel.dueDate
+  //       ? new Date(requestModel.dueDate)
+  //       : undefined,
+  //   }),
+  //   [],
+  // );
 
-  const qteunt = (qte: number, unt: string) => `${qte} ${unt}`;
+  // const qteunt = (qte: number, unt: string) => `${qte} ${unt}`;
 
   const columns: ColumnDef<RequestType>[] = [
     {
@@ -156,6 +156,7 @@ export function TypeTable({ data }: BesoinsTraiterTableProps) {
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: data,
     columns,

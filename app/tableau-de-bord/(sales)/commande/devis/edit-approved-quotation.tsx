@@ -42,7 +42,6 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { queryKeys } from "@/lib/query-keys";
 import { XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
 import { modificationQ } from "@/queries/modification";
 import { providerQ } from "@/queries/providers";
 import { Provider, Quotation, RequestModelT } from "@/types/types";
@@ -100,14 +99,12 @@ type FormValues = z.infer<typeof formSchema>;
 
 function EditApprovedQuotation({ open, openChange, quotation }: Props) {
   const [openAddElement, setOpenAddElement] = React.useState(false);
-  const [selectedNeeds, setSelectedNeeds] = React.useState<
-    Array<RequestModelT>
-  >([]);
+  const [selectedNeeds] = React.useState<Array<RequestModelT>>([]);
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
   const [editingElement, setEditingElement] = React.useState<any>(null);
   const [dueDateOpen, setDueDateOpen] = React.useState(false);
 
-  const { user } = useStore();
+  // const { user } = useStore();
 
   const getProviders = useQuery({
     queryKey: queryKeys.providers,
@@ -287,245 +284,252 @@ function EditApprovedQuotation({ open, openChange, quotation }: Props) {
                 </FormItem>
               )}
             />
-            {form.watch("action") === "UPDATE" && (
-              <>
-                <FormField
-                  control={form.control}
-                  name="providerId"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>{"Fournisseur"}</FormLabel>
-                      <FormControl>
-                        <Combobox
-                          items={providers}
-                          value={
-                            providers.find(
-                              (provider) => provider.id === field.value,
-                            ) ?? null
-                          }
-                          onValueChange={(v) => {
-                            field.onChange(v?.id ?? "");
-                          }}
-                          itemToStringLabel={(v) => v.name}
-                        >
-                          <ComboboxInput placeholder="Sélectionner" />
-                          <ComboboxContent>
-                            <ComboboxEmpty>
-                              {"Aucun fournisseur enregistré"}
-                            </ComboboxEmpty>
-                            <ComboboxList>
-                              {(item: Provider) => (
-                                <ComboboxItem key={item.id} value={item}>
-                                  {item.name}
-                                </ComboboxItem>
-                              )}
-                            </ComboboxList>
-                          </ComboboxContent>
-                        </Combobox>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
 
-                {/* Date limite */}
-                <FormField
-                  control={form.control}
-                  name="dueDate"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel isRequired>
-                        {"Date limite de livraison"}
-                      </FormLabel>
-                      <FormControl>
-                        <div className="relative flex gap-2">
-                          <Input
-                            id={field.name}
-                            value={field.value}
-                            placeholder="Sélectionner une date"
-                            className="bg-background pr-10"
-                            onChange={(e) => field.onChange(e.target.value)}
-                            onKeyDown={(e) => {
-                              if (e.key === "ArrowDown") {
-                                e.preventDefault();
-                                setDueDateOpen(true);
-                              }
-                            }}
-                          />
-                          <Popover
-                            open={dueDateOpen}
-                            onOpenChange={setDueDateOpen}
-                          >
-                            <PopoverTrigger asChild>
-                              <Button
-                                id="date-picker"
-                                variant="ghost"
-                                className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
-                              >
-                                <CalendarIcon className="size-3.5" />
-                                <span className="sr-only">
-                                  Sélectionner une date
-                                </span>
-                              </Button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              className="w-auto overflow-hidden p-0"
-                              align="end"
-                              alignOffset={-8}
-                              sideOffset={10}
-                            >
-                              <Calendar
-                                mode="single"
-                                selected={
-                                  field.value
-                                    ? new Date(field.value)
-                                    : undefined
-                                }
-                                captionLayout="dropdown"
-                                onSelect={(date) => {
-                                  if (!date) return;
-                                  field.onChange(format(date, "yyyy-MM-dd"));
-                                  setDueDateOpen(false);
-                                }}
-                                disabled={(date) => date < new Date()}
-                              />
-                            </PopoverContent>
-                          </Popover>
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                {/* Éléments */}
-                <FormField
-                  control={form.control}
-                  name="elements"
-                  render={({ field }) => (
-                    <FormItem className="h-fit @min-[640px]:col-span-2">
-                      <FormLabel isRequired>Éléments</FormLabel>
-                      <FormControl>
-                        <div className="grid gap-1.5">
-                          {field.value.length === 0 ? (
-                            <div className="px-4 py-3 w-full text-center text-muted-foreground text-sm flex flex-col gap-2 justify-center items-center">
-                              <span className="inline-flex size-10 rounded-full bg-muted text-muted-foreground items-center justify-center">
-                                <FolderX className="size-5" />
-                              </span>
-                              Aucun élément renseigné.
-                            </div>
-                          ) : (
-                            (() => {
-                              const grouped = field.value.reduce(
-                                (acc, item, idx) => {
-                                  const key = item.needId;
-                                  if (!acc[key]) acc[key] = [];
-                                  acc[key].push({ ...item, globalIndex: idx });
-                                  return acc;
-                                },
-                                {} as Record<
-                                  number,
-                                  Array<any & { globalIndex: number }>
-                                >,
-                              );
-
-                              return Object.entries(grouped).map(
-                                ([need, items]) => (
-                                  <div
-                                    key={need}
-                                    className="border p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
-                                  >
-                                    <h3 className="font-semibold mb-2">
-                                      {
-                                        selectedNeeds.find(
-                                          (n) => n.id === Number(need),
-                                        )?.label
-                                      }
-                                    </h3>
-                                    <div className="flex flex-wrap gap-2">
-                                      {items.map((item) => (
-                                        <div
-                                          key={item.globalIndex}
-                                          className="w-full bg-gray-50 dark:bg-gray-800 rounded-sm border border-gray-200 dark:border-gray-700 px-2 h-9 inline-flex justify-between gap-2 items-center text-sm"
-                                        >
-                                          <button
-                                            type="button"
-                                            className="inline-flex items-center gap-1.5 w-full justify-between text-left truncate cursor-pointer hover:text-primary transition-colors"
-                                            onClick={() =>
-                                              handleEditElement(
-                                                item.globalIndex,
-                                              )
-                                            }
-                                          >
-                                            <span className="truncate">
-                                              {`${item.designation} - ${item.quantity} ${item.unit} - ${XAF.format(item.price)}`}
-                                            </span>
-                                            <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-primary text-primary-foreground">
-                                              Modifier
-                                            </span>
-                                          </button>
-                                          <X
-                                            size={20}
-                                            className="text-destructive cursor-pointer hover:text-destructive/80 transition-colors"
-                                            onClick={() =>
-                                              handleDeleteElement(
-                                                item.globalIndex,
-                                              )
-                                            }
-                                          />
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </div>
-                                ),
-                              );
-                            })()
-                          )}
-
-                          <Button
-                            type="button"
-                            variant="outline"
-                            className="add-button inline-flex items-center gap-2 text-sm"
-                            onClick={() => {
-                              setEditingElement(null);
-                              setEditingIndex(null);
-                              setOpenAddElement(true);
-                            }}
-                            disabled={
-                              !selectedNeeds || selectedNeeds.length === 0
+            {
+              // eslint-disable-next-line react-hooks/incompatible-library
+              form.watch("action") === "UPDATE" && (
+                <>
+                  <FormField
+                    control={form.control}
+                    name="providerId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel isRequired>{"Fournisseur"}</FormLabel>
+                        <FormControl>
+                          <Combobox
+                            items={providers}
+                            value={
+                              providers.find(
+                                (provider) => provider.id === field.value,
+                              ) ?? null
                             }
+                            onValueChange={(v) => {
+                              field.onChange(v?.id ?? "");
+                            }}
+                            itemToStringLabel={(v) => v.name}
                           >
-                            Ajouter un élément
-                            <Plus className="w-4 h-4" />
-                          </Button>
+                            <ComboboxInput placeholder="Sélectionner" />
+                            <ComboboxContent>
+                              <ComboboxEmpty>
+                                {"Aucun fournisseur enregistré"}
+                              </ComboboxEmpty>
+                              <ComboboxList>
+                                {(item: Provider) => (
+                                  <ComboboxItem key={item.id} value={item}>
+                                    {item.name}
+                                  </ComboboxItem>
+                                )}
+                              </ComboboxList>
+                            </ComboboxContent>
+                          </Combobox>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                          {selectedNeeds.length > 0 && (
-                            <AddElement
-                              open={openAddElement}
-                              openChange={(state) => {
-                                if (!state) {
-                                  setEditingIndex(null);
-                                  setEditingElement(null);
-                                }
-                                setOpenAddElement(state);
-                              }}
-                              needs={selectedNeeds.filter(
-                                (n) => n.isUsed !== true,
-                              )}
+                  {/* Date limite */}
+                  <FormField
+                    control={form.control}
+                    name="dueDate"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel isRequired>
+                          {"Date limite de livraison"}
+                        </FormLabel>
+                        <FormControl>
+                          <div className="relative flex gap-2">
+                            <Input
+                              id={field.name}
                               value={field.value}
-                              onChange={handleElementsChange}
-                              element={editingElement}
-                              index={editingIndex}
+                              placeholder="Sélectionner une date"
+                              className="bg-background pr-10"
+                              onChange={(e) => field.onChange(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === "ArrowDown") {
+                                  e.preventDefault();
+                                  setDueDateOpen(true);
+                                }
+                              }}
                             />
-                          )}
-                        </div>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </>
-            )}
+                            <Popover
+                              open={dueDateOpen}
+                              onOpenChange={setDueDateOpen}
+                            >
+                              <PopoverTrigger asChild>
+                                <Button
+                                  id="date-picker"
+                                  variant="ghost"
+                                  className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
+                                >
+                                  <CalendarIcon className="size-3.5" />
+                                  <span className="sr-only">
+                                    Sélectionner une date
+                                  </span>
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                className="w-auto overflow-hidden p-0"
+                                align="end"
+                                alignOffset={-8}
+                                sideOffset={10}
+                              >
+                                <Calendar
+                                  mode="single"
+                                  selected={
+                                    field.value
+                                      ? new Date(field.value)
+                                      : undefined
+                                  }
+                                  captionLayout="dropdown"
+                                  onSelect={(date) => {
+                                    if (!date) return;
+                                    field.onChange(format(date, "yyyy-MM-dd"));
+                                    setDueDateOpen(false);
+                                  }}
+                                  disabled={(date) => date < new Date()}
+                                />
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+
+                  {/* Éléments */}
+                  <FormField
+                    control={form.control}
+                    name="elements"
+                    render={({ field }) => (
+                      <FormItem className="h-fit @min-[640px]:col-span-2">
+                        <FormLabel isRequired>Éléments</FormLabel>
+                        <FormControl>
+                          <div className="grid gap-1.5">
+                            {field.value.length === 0 ? (
+                              <div className="px-4 py-3 w-full text-center text-muted-foreground text-sm flex flex-col gap-2 justify-center items-center">
+                                <span className="inline-flex size-10 rounded-full bg-muted text-muted-foreground items-center justify-center">
+                                  <FolderX className="size-5" />
+                                </span>
+                                Aucun élément renseigné.
+                              </div>
+                            ) : (
+                              (() => {
+                                const grouped = field.value.reduce(
+                                  (acc, item, idx) => {
+                                    const key = item.needId;
+                                    if (!acc[key]) acc[key] = [];
+                                    acc[key].push({
+                                      ...item,
+                                      globalIndex: idx,
+                                    });
+                                    return acc;
+                                  },
+                                  {} as Record<
+                                    number,
+                                    Array<any & { globalIndex: number }>
+                                  >,
+                                );
+
+                                return Object.entries(grouped).map(
+                                  ([need, items]) => (
+                                    <div
+                                      key={need}
+                                      className="border p-3 rounded-lg bg-gray-50 dark:bg-gray-800"
+                                    >
+                                      <h3 className="font-semibold mb-2">
+                                        {
+                                          selectedNeeds.find(
+                                            (n) => n.id === Number(need),
+                                          )?.label
+                                        }
+                                      </h3>
+                                      <div className="flex flex-wrap gap-2">
+                                        {items.map((item) => (
+                                          <div
+                                            key={item.globalIndex}
+                                            className="w-full bg-gray-50 dark:bg-gray-800 rounded-sm border border-gray-200 dark:border-gray-700 px-2 h-9 inline-flex justify-between gap-2 items-center text-sm"
+                                          >
+                                            <button
+                                              type="button"
+                                              className="inline-flex items-center gap-1.5 w-full justify-between text-left truncate cursor-pointer hover:text-primary transition-colors"
+                                              onClick={() =>
+                                                handleEditElement(
+                                                  item.globalIndex,
+                                                )
+                                              }
+                                            >
+                                              <span className="truncate">
+                                                {`${item.designation} - ${item.quantity} ${item.unit} - ${XAF.format(item.price)}`}
+                                              </span>
+                                              <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-primary text-primary-foreground">
+                                                Modifier
+                                              </span>
+                                            </button>
+                                            <X
+                                              size={20}
+                                              className="text-destructive cursor-pointer hover:text-destructive/80 transition-colors"
+                                              onClick={() =>
+                                                handleDeleteElement(
+                                                  item.globalIndex,
+                                                )
+                                              }
+                                            />
+                                          </div>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ),
+                                );
+                              })()
+                            )}
+
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="add-button inline-flex items-center gap-2 text-sm"
+                              onClick={() => {
+                                setEditingElement(null);
+                                setEditingIndex(null);
+                                setOpenAddElement(true);
+                              }}
+                              disabled={
+                                !selectedNeeds || selectedNeeds.length === 0
+                              }
+                            >
+                              Ajouter un élément
+                              <Plus className="w-4 h-4" />
+                            </Button>
+
+                            {selectedNeeds.length > 0 && (
+                              <AddElement
+                                open={openAddElement}
+                                openChange={(state) => {
+                                  if (!state) {
+                                    setEditingIndex(null);
+                                    setEditingElement(null);
+                                  }
+                                  setOpenAddElement(state);
+                                }}
+                                needs={selectedNeeds.filter(
+                                  (n) => n.isUsed !== true,
+                                )}
+                                value={field.value}
+                                onChange={handleElementsChange}
+                                element={editingElement}
+                                index={editingIndex}
+                              />
+                            )}
+                          </div>
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </>
+              )
+            }
             <DialogFooter className="col-span-full">
               <Button
                 type="submit"

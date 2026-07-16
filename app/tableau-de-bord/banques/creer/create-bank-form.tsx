@@ -102,6 +102,7 @@ function CreateBank() {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const type = form.watch("type");
 
   const router = useRouter();
@@ -117,14 +118,8 @@ function CreateBank() {
   });
 
   const onSubmit = (values: FormValues) => {
-    const {
-      justification,
-      atmCode,
-      accountNumber,
-      bankCode,
-      key,
-      ...rest
-    } = values;
+    const { justification, atmCode, accountNumber, bankCode, key, ...rest } =
+      values;
 
     if (type === "BANK") {
       const payload: BankPayload = {

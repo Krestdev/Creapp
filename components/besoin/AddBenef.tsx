@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Plus, X, Edit2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Edit2, Plus, Trash2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 type Beneficiaire = {
   id: number;
@@ -24,7 +24,7 @@ export default function BeneficiairesList({
   disabledName = false,
 }: BeneficiairesListProps) {
   const [beneficiaires, setBeneficiaires] = useState<Beneficiaire[]>(
-    initialBeneficiaires ?? []
+    initialBeneficiaires ?? [],
   );
   const [showForm, setShowForm] = useState(false);
   const [nom, setNom] = useState("");
@@ -68,7 +68,7 @@ export default function BeneficiairesList({
     if (editingId !== null) {
       // Mettre à jour un bénéficiaire existant
       const updatedBeneficiaires = beneficiaires.map((b) =>
-        b.id === editingId ? { ...b, nom, montant: montantValue } : b
+        b.id === editingId ? { ...b, nom, montant: montantValue } : b,
       );
       setBeneficiaires(updatedBeneficiaires);
       onBeneficiairesChange?.(updatedBeneficiaires);
@@ -237,8 +237,9 @@ export default function BeneficiairesList({
                       placeholder="0"
                       min="0"
                       step="1"
-                      className={`pr-10 ${errors.montant ? "border-red-500" : ""
-                        }`}
+                      className={`pr-10 ${
+                        errors.montant ? "border-red-500" : ""
+                      }`}
                     />
                     <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                       FCFA

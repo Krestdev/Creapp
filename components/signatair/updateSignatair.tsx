@@ -33,8 +33,8 @@ import MultiSelectUsers from "../base/multiSelectUsersComplete";
 /* =========================
    TYPES ET CONSTANTES
 ========================= */
-const modeValues = ["ONE", "BOTH"] as const;
-const frontendModes = ["unique", "any", "all"] as const;
+// const modeValues = ["ONE", "BOTH"] as const;
+// const frontendModes = ["unique", "any", "all"] as const;
 
 export const modes = [
   { label: "Signataire unique", value: "unique" },
@@ -45,39 +45,47 @@ export const modes = [
 /* =========================
    SCHEMA ZOD AVEC VALIDATIONS CROISÉES
 ========================= */
-const formSchema = z.object({
-  bank: z.string().min(1, "Veuillez sélectionner une banque"),
-  type: z.string().min(1, "Veuillez sélectionner un type de paiement"),
-  mode: z.enum(["unique", "any", "all"], {
-    message: "Veuillez sélectionner un mode de signature",
-  }),
-  signatair: z.array(z.number(), {
-    required_error: "Veuillez sélectionner au moins un signataire",
-  }),
-}).superRefine((data, ctx) => {
-  // Validation croisée selon le mode sélectionné
-  if (data.mode === "unique" && data.signatair.length !== 1) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: "Pour le mode unique, vous devez choisir exactement 1 signataire",
-      path: ["signatair"],
-    });
-  }
+const formSchema = z
+  .object({
+    bank: z.string().min(1, "Veuillez sélectionner une banque"),
+    type: z.string().min(1, "Veuillez sélectionner un type de paiement"),
+    mode: z.enum(["unique", "any", "all"], {
+      message: "Veuillez sélectionner un mode de signature",
+    }),
+    signatair: z.array(z.number(), {
+      required_error: "Veuillez sélectionner au moins un signataire",
+    }),
+  })
+  .superRefine((data, ctx) => {
+    // Validation croisée selon le mode sélectionné
+    if (data.mode === "unique" && data.signatair.length !== 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message:
+          "Pour le mode unique, vous devez choisir exactement 1 signataire",
+        path: ["signatair"],
+      });
+    }
 
-  if ((data.mode === "any" || data.mode === "all") && data.signatair.length < 2) {
-    ctx.addIssue({
-      code: z.ZodIssueCode.custom,
-      message: `Le mode "${data.mode === "any" ? "Un dans la liste" : "Toutes les signatures"}" nécessite au moins 2 signataires`,
-      path: ["signatair"],
-    });
-  }
-});
+    if (
+      (data.mode === "any" || data.mode === "all") &&
+      data.signatair.length < 2
+    ) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: `Le mode "${data.mode === "any" ? "Un dans la liste" : "Toutes les signatures"}" nécessite au moins 2 signataires`,
+        path: ["signatair"],
+      });
+    }
+  });
 
 /* =========================
    UTILITAIRES
 ========================= */
 // Convertir le mode backend vers frontend
-const backendToFrontendMode = (mode: "ONE" | "BOTH" | string): "unique" | "any" | "all" => {
+const backendToFrontendMode = (
+  mode: "ONE" | "BOTH" | string,
+): "unique" | "any" | "all" => {
   switch (mode) {
     case "ONE":
       return "unique";
@@ -89,7 +97,9 @@ const backendToFrontendMode = (mode: "ONE" | "BOTH" | string): "unique" | "any" 
 };
 
 // Convertir le mode frontend vers backend
-const frontendToBackendMode = (mode: "unique" | "any" | "all"): "ONE" | "BOTH" => {
+const frontendToBackendMode = (
+  mode: "unique" | "any" | "all",
+): "ONE" | "BOTH" => {
   if (mode === "unique" || mode === "any") {
     return "ONE";
   }
@@ -355,7 +365,9 @@ export default function EditSignatairForm({
                       <MultiSelectUsers
                         showMail
                         display="user"
-                        users={userData?.data?.data.filter((u) => u.verified) || []}
+                        users={
+                          userData?.data?.data.filter((u) => u.verified) || []
+                        }
                         selected={selectedUser}
                         placeholder="Sélectionner des signataires"
                         onChange={(selected) => {

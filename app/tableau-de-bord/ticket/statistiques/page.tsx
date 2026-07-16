@@ -24,14 +24,14 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
-import { Label } from "@/components/ui/label";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Label } from "@/components/ui/label";
 import {
   Sheet,
   SheetContent,
@@ -41,17 +41,17 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 
+import { Input } from "@/components/ui/input";
 import { getRandomColor, XAF } from "@/lib/utils";
 import { invoiceQ } from "@/queries/invoices";
 import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
 import { providerQ } from "@/queries/providers";
-import { DateFilter, PaymentRequest, PayType } from "@/types/types";
+import { DateFilter, PaymentRequest } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { ChevronDown, Settings2 } from "lucide-react";
 import React from "react";
-import { Input } from "@/components/ui/input";
 
 function Page() {
   const getProviders = useQuery({
@@ -113,7 +113,7 @@ function Page() {
           ? true
           : !!payment.invoiceId
             ? getInvoices.data?.data.find((p) => p.id === payment.invoiceId)
-              ?.command.providerId === Number(providerFilter)
+                ?.command.providerId === Number(providerFilter)
             : false;
       //Filter by type
       const matchType =
@@ -201,10 +201,10 @@ function Page() {
     const approvalRate =
       filteredData.length > 0
         ? (filteredData.filter(
-          (p) => p.status === "validated" || p.status === "paid",
-        ).length /
-          filteredData.length) *
-        100
+            (p) => p.status === "validated" || p.status === "paid",
+          ).length /
+            filteredData.length) *
+          100
         : 0;
 
     const pendingCount = filteredData.filter(
@@ -250,8 +250,9 @@ function Page() {
       variant: "secondary",
       more: {
         title: `${metrics.pendingCount} paiements`,
-        value: `${Math.round((metrics.pendingAmount / metrics.totalAmount) * 100) || 0
-          }% du total`,
+        value: `${
+          Math.round((metrics.pendingAmount / metrics.totalAmount) * 100) || 0
+        }% du total`,
       },
     },
     {
@@ -286,8 +287,8 @@ function Page() {
   // Données pour le graphique par type de paiement
   const paymentTypeData: { data: ChartDataItem[]; config: ChartConfig } =
     React.useMemo(() => {
-      let data;
-      let config;
+      // let data;
+      // let config;
       const typeStats: Record<string, { amount: number; count: number }> = {};
       const typeLabels = Object.fromEntries(
         PAYMENT_TYPES.map((t) => [t.value, t.name]),
@@ -309,7 +310,7 @@ function Page() {
         typeStats[type].count += 1;
       });
 
-      data = Object.entries(typeStats).map(([type, data], index) => ({
+      const data = Object.entries(typeStats).map(([type, data], index) => ({
         id: type,
         value: data.amount,
         label: typeLabels[type] || type,
@@ -317,7 +318,7 @@ function Page() {
         name: typeLabels[type] || type,
         count: data.count,
       }));
-      config = {
+      const config = {
         value: { label: "Montant" },
         ...Object.fromEntries(
           Object.entries(typeLabels).map(([key, label]) => [
@@ -403,7 +404,7 @@ function Page() {
       const config: ChartConfig = {
         value: { label: "Montant" },
         ...Object.fromEntries(
-          sortedData.map((item, index) => [
+          sortedData.map((item) => [
             `provider_${item.id}`,
             {
               label: item.fullName || item.label,
@@ -471,7 +472,7 @@ function Page() {
       const config: ChartConfig = {
         value: { label: "Montant" },
         ...Object.fromEntries(
-          sortedData.map((item, index) => [
+          sortedData.map((item) => [
             `method_${item.id}`,
             {
               label: item.fullName || item.label,
@@ -487,13 +488,13 @@ function Page() {
   // Séries temporelles quotidiennes par type de paiement
   const timeSeriesByType: AreaChartDataItem[] = React.useMemo(() => {
     const types = PAYMENT_TYPES.map((t) => t.value);
-    const typeColors: Record<string, string> = {
-      facilitation: "var(--chart-6)",
-      ressource_humaine: "var(--chart-1)",
-      speciaux: "var(--chart-4)",
-      achat: "var(--primary-600)",
-      CURRENT: "var(--secondary-400)",
-    };
+    // const typeColors: Record<string, string> = {
+    //   facilitation: "var(--chart-6)",
+    //   ressource_humaine: "var(--chart-1)",
+    //   speciaux: "var(--chart-4)",
+    //   achat: "var(--primary-600)",
+    //   CURRENT: "var(--secondary-400)",
+    // };
 
     const daily: Record<string, Record<string, number>> = {};
 
@@ -541,16 +542,16 @@ function Page() {
   // Séries temporelles quotidiennes par statut de paiement
   const timeSeriesByStatus: AreaChartDataItem[] = React.useMemo(() => {
     const statuses = PAY_STATUS.map((s) => s.value);
-    const statusColors: Record<string, string> = {
-      pending: "#f59e0b",
-      pending_depense: "#f59e0b",
-      accepted: "var(--chart-1)",
-      validated: "#10b981",
-      signed: "#84cc16",
-      paid: "#22c55e",
-      rejected: "#ef4444",
-      ghost: "#64748b",
-    };
+    // const statusColors: Record<string, string> = {
+    //   pending: "#f59e0b",
+    //   pending_depense: "#f59e0b",
+    //   accepted: "var(--chart-1)",
+    //   validated: "#10b981",
+    //   signed: "#84cc16",
+    //   paid: "#22c55e",
+    //   rejected: "#ef4444",
+    //   ghost: "#64748b",
+    // };
 
     const daily: Record<string, Record<string, number>> = {};
 
@@ -649,7 +650,7 @@ function Page() {
                         {typeFilter === "all"
                           ? "Tous les types"
                           : PAYMENT_TYPES.find((t) => t.value === typeFilter)
-                            ?.name || "Sélectionner"}
+                              ?.name || "Sélectionner"}
                       </span>
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                     </Button>
@@ -694,10 +695,10 @@ function Page() {
                     {PAYMENT_TYPES.filter((t) =>
                       t.name.toLowerCase().includes(typeSearch.toLowerCase()),
                     ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun type trouvé
-                        </div>
-                      )}
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun type trouvé
+                      </div>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -715,8 +716,8 @@ function Page() {
                         {providerFilter === "all"
                           ? "Tous les fournisseurs"
                           : getProviders.data.data.find(
-                            (p) => String(p.id) === providerFilter,
-                          )?.name || "Sélectionner"}
+                              (p) => String(p.id) === providerFilter,
+                            )?.name || "Sélectionner"}
                       </span>
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                     </Button>
@@ -769,10 +770,10 @@ function Page() {
                         .toLowerCase()
                         .includes(providerSearch.toLowerCase()),
                     ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun fournisseur trouvé
-                        </div>
-                      )}
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun fournisseur trouvé
+                      </div>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -790,8 +791,8 @@ function Page() {
                         {methodFilter === "all"
                           ? "Toutes les méthodes"
                           : getPaymentType.data.data.find(
-                            (m) => String(m.id) === methodFilter,
-                          )?.label || `Méthode ${methodFilter}`}
+                              (m) => String(m.id) === methodFilter,
+                            )?.label || `Méthode ${methodFilter}`}
                       </span>
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                     </Button>
@@ -846,10 +847,10 @@ function Page() {
                         .toLowerCase()
                         .includes(methodSearch.toLowerCase()),
                     ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucune méthode trouvée
-                        </div>
-                      )}
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucune méthode trouvée
+                      </div>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -867,7 +868,7 @@ function Page() {
                         {statusFilter === "all"
                           ? "Tous les statuts"
                           : PAY_STATUS.find((s) => s.value === statusFilter)
-                            ?.name || "Sélectionner"}
+                              ?.name || "Sélectionner"}
                       </span>
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                     </Button>
@@ -928,10 +929,10 @@ function Page() {
                     ).filter((s) =>
                       s.name.toLowerCase().includes(statusSearch.toLowerCase()),
                     ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun statut trouvé
-                        </div>
-                      )}
+                      <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                        Aucun statut trouvé
+                      </div>
+                    )}
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -981,7 +982,7 @@ function Page() {
                       }}
                       className={dateFilter === "today" ? "bg-accent" : ""}
                     >
-                      <span>Aujourd'hui</span>
+                      <span>{"Aujourd'hui"}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {
@@ -1036,9 +1037,9 @@ function Page() {
                       <span className="text-muted-foreground text-xs">
                         {customDateRange?.from && customDateRange.to
                           ? `${format(
-                            customDateRange.from,
-                            "dd/MM/yyyy",
-                          )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              customDateRange.from,
+                              "dd/MM/yyyy",
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
                           : "Choisir"}
                       </span>
                     </Button>
@@ -1118,8 +1119,9 @@ function Page() {
                 tooltipConfig={{
                   valueFormatter: (value, name, payload) => {
                     const item = payload?.payload as any;
-                    return `${XAF.format(Number(value))} (${item?.count || 0
-                      }) `;
+                    return `${XAF.format(Number(value))} (${
+                      item?.count || 0
+                    }) `;
                   },
                 }}
                 chartConfig={paymentTypeData.config}
@@ -1144,8 +1146,9 @@ function Page() {
                 tooltipConfig={{
                   valueFormatter: (value, name, payload) => {
                     const item = payload?.payload as any;
-                    return `${XAF.format(Number(value))} (${item?.count || 0
-                      }) `;
+                    return `${XAF.format(Number(value))} (${
+                      item?.count || 0
+                    }) `;
                   },
                 }}
                 chartConfig={paymentByProvider.config}
@@ -1170,8 +1173,9 @@ function Page() {
                 tooltipConfig={{
                   valueFormatter: (value, name, payload) => {
                     const item = payload?.payload as any;
-                    return `${XAF.format(Number(value))} (${item?.count || 0
-                      }) `;
+                    return `${XAF.format(Number(value))} (${
+                      item?.count || 0
+                    }) `;
                   },
                 }}
                 chartConfig={paymentMethodData.config}

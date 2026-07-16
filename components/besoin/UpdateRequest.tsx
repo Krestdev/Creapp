@@ -41,7 +41,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
-import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import { PRIORITIES, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -98,7 +97,7 @@ function EditTypeOthers({
   open,
   onOpenChange,
 }: Props) {
-  const { user } = useStore();
+  // const { user } = useStore();
   const [dueDate, setDueDate] = useState<boolean>(false);
 
   const form = useForm<FormValues>({

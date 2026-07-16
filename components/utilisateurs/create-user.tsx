@@ -10,10 +10,10 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
-import { ResponseT, Role, User } from "@/types/types";
+import { Role, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -55,11 +55,7 @@ export default function CreateUserForm() {
 
   const [selectedRole, setSelectedRole] = useState<
     { id: number; label: string }[]
-  >(
-    userRoleId 
-      ? [{ id: userRoleId, label: "USER" }] 
-      : []
-  );
+  >(userRoleId ? [{ id: userRoleId, label: "USER" }] : []);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -79,8 +75,11 @@ export default function CreateUserForm() {
   useEffect(() => {
     if (userRoleId && selectedRole.length === 0) {
       const defaultRole = { id: userRoleId, label: "USER" };
-      setSelectedRole([defaultRole]);
-      form.setValue("role", [userRoleId]);
+      const timer = setTimeout(() => {
+        setSelectedRole([defaultRole]);
+        form.setValue("role", [userRoleId]);
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [userRoleId, form, selectedRole.length]);
 
@@ -264,7 +263,10 @@ export default function CreateUserForm() {
           <MultiSelectRole
             display="Role"
             roles={ROLES.filter(
-              (r) => r.label !== "MANAGER" && r.label !== "USER" && r.label !== "SUPERADMIN",
+              (r) =>
+                r.label !== "MANAGER" &&
+                r.label !== "USER" &&
+                r.label !== "SUPERADMIN",
             )}
             selected={selectedRole}
             onChange={(selected) => {

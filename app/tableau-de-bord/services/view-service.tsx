@@ -27,7 +27,7 @@ interface Props {
   users: User[];
 }
 
-function ViewService({ open, openChange, service, users }: Props) {
+function ViewService({ open, openChange, service }: Props) {
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl w-full">

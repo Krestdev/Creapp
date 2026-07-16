@@ -1,6 +1,5 @@
 "use client";
 
-import Empty from "@/components/base/empty";
 import { TabBar } from "@/components/base/TabBar";
 import {
   StatisticCard,
@@ -11,7 +10,6 @@ import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { queryKeys } from "@/lib/query-keys";
 import { XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
@@ -25,8 +23,6 @@ import { TicketTable } from "./ticket-table";
 import { TicketFiltersProps } from "./ticketFilters";
 
 function Page() {
-  const { user } = useStore();
-
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
     React.useState(false);
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
@@ -43,7 +39,7 @@ function Page() {
     to: "",
   });
 
-  const { tab, search, ...otherFilters } = customFilters;
+  // const { ...otherFilters } = customFilters;
 
   const resetAllFilters = () => {
     setCustomFilters({
@@ -81,7 +77,7 @@ function Page() {
   });
 
   const getStats = useQuery({
-    queryKey: queryKeys.ticketsStats(otherFilters, dateFilter),
+    queryKey: queryKeys.ticketsStats(customFilters, dateFilter),
     queryFn: () =>
       paymentQ.getTicketsStats({
         priority:
@@ -97,8 +93,6 @@ function Page() {
     queryKey: queryKeys.requestTypes,
     queryFn: requestTypeQ.getAll,
   });
-
-
 
   const getUsers = useQuery({
     queryKey: ["users"],
@@ -246,7 +240,7 @@ function Page() {
             setDateFilter,
             resetAllFilters,
             isCustomDateModalOpen,
-            setIsCustomDateModalOpen
+            setIsCustomDateModalOpen,
           }}
         />
       </div>

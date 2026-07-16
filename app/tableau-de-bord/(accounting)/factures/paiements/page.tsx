@@ -44,7 +44,7 @@ function Page() {
     to: "",
   });
 
-  const { tab, search, ...otherFilters } = customFilters;
+  // const { tab, search, ...otherFilters } = customFilters;
 
   const resetAllFilters = () => {
     setCustomFilters({
@@ -85,7 +85,7 @@ function Page() {
   });
 
   const getStats = useQuery({
-    queryKey: queryKeys.paymentsStats(otherFilters, dateFilter),
+    queryKey: queryKeys.paymentsStats(customFilters, dateFilter),
     queryFn: () =>
       paymentQ.getAccountantPaymentsStats({
         provider:

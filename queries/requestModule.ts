@@ -425,12 +425,12 @@ class RequestQueries {
       userId: number;
       decision?: string;
       validator?:
-        | {
-            id?: number | undefined;
-            userId: number;
-            rank: number;
-          }
-        | undefined;
+      | {
+        id?: number | undefined;
+        userId: number;
+        rank: number;
+      }
+      | undefined;
     },
   ): Promise<{ data: RequestModelT }> => {
     return api
@@ -553,15 +553,18 @@ class RequestQueries {
     const formData = new FormData();
     formData.append("label", payload.label);
     formData.append("description", payload.description);
-    payload.amount && formData.append("amount", payload.amount.toString());
+    if (payload.amount) {
+      formData.append("amount", payload.amount.toString());
+    }
     formData.append("dueDate", payload.dueDate.toISOString());
     formData.append("unit", payload.unit);
     formData.append("priority", "medium");
     formData.append("type", "settle");
     formData.append("quantity", payload.quantity.toString());
     formData.append("userId", payload.userId.toString());
-    payload.benef &&
+    if (payload.benef) {
       formData.append("beneficiary", payload.benef[0].toString());
+    }
     formData.append("benef", JSON.stringify(payload.benef));
     if (payload.categoryId)
       formData.append("categoryId", payload.categoryId.toString());
@@ -587,15 +590,18 @@ class RequestQueries {
     const formData = new FormData();
     formData.append("label", payload.label);
     formData.append("description", payload.description);
-    payload.amount && formData.append("amount", payload.amount.toString());
+    if (payload.amount) {
+      formData.append("amount", payload.amount.toString());
+    }
     formData.append("dueDate", payload.dueDate.toISOString());
     formData.append("quantity", payload.quantity.toString());
     formData.append("unit", payload.unit);
     formData.append("priority", "medium");
     formData.append("type", "settle");
     formData.append("userId", payload.userId.toString());
-    payload.benef &&
+    if (payload.benef) {
       formData.append("beneficiary", payload.benef[0].toString());
+    }
     formData.append("benef", JSON.stringify(payload.benef));
     if (payload.categoryId)
       formData.append("categoryId", payload.categoryId.toString());

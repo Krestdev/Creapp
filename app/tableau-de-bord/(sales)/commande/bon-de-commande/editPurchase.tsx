@@ -39,7 +39,6 @@ import { purchaseQ, updatePoPayload } from "@/queries/purchase-order";
 import {
   BonsCommande,
   CommandCondition,
-  PAYMENT_METHOD,
   PayType,
   PRIORITIES,
   Quotation,
@@ -67,10 +66,10 @@ const PO_PRIORITIES = PRIORITIES.map((s) => s.value) as [
   (typeof PRIORITIES)[number]["value"],
   ...(typeof PRIORITIES)[number]["value"][],
 ];
-const PO_METHODS = PAYMENT_METHOD.map((s) => s.value) as [
-  (typeof PAYMENT_METHOD)[number]["value"],
-  ...(typeof PAYMENT_METHOD)[number]["value"][],
-];
+// const PO_METHODS = PAYMENT_METHOD.map((s) => s.value) as [
+//   (typeof PAYMENT_METHOD)[number]["value"],
+//   ...(typeof PAYMENT_METHOD)[number]["value"][],
+// ];
 
 const PAYMENT_CONDITION_MODES = RECEPTION_MODES.map((s) => s.value) as [
   (typeof RECEPTION_MODES)[number]["value"],
@@ -88,7 +87,7 @@ const paymentSchema = z.object({
     .refine(
       (val) => {
         const d = new Date(val);
-        const now = new Date();
+        // const now = new Date();
         return !isNaN(d.getTime());
       },
       { message: "Date invalide" },
@@ -106,7 +105,7 @@ export const formSchema = z
     deliveryDelay: z.string({ message: "Veuillez définir une date" }).refine(
       (val) => {
         const d = new Date(val);
-        const now = new Date();
+        // const now = new Date();
         return !isNaN(d.getTime());
       },
       { message: "Date invalide" },
@@ -230,6 +229,7 @@ function EditPurchase({
     },
   });
 
+   
   const hasDelay =
     form.watch("receptionMode") === "FULL" ||
     form.watch("receptionMode") === "PARTIAL";
@@ -341,7 +341,7 @@ function EditPurchase({
     mutate(payload);
   }
 
-  const penalty = form.watch("hasPenalties");
+  // const penalty = form.watch("hasPenalties");
   console.log(form.formState.errors);
 
   return (

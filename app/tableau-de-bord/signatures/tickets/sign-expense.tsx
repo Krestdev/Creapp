@@ -1,6 +1,5 @@
 "use client";
 import FilesUpload from "@/components/comp-547";
-import { queryKeys } from "@/lib/query-keys";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -17,12 +16,12 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { queryKeys } from "@/lib/query-keys";
 import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
-import { TransactionProps, transactionQ } from "@/queries/transaction";
 import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -59,9 +58,15 @@ function SignExpense({ ticket, open, onOpenChange }: Props) {
     }) => paymentQ.validate(payload),
     onSuccess: () => {
       toast.success("Votre signature a été enregistrée avec succès !");
-      queryClient.invalidateQueries({ queryKey: queryKeys.signatureRequests() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.signatureRequestsStats() });
-      queryClient.invalidateQueries({ queryKey: queryKeys.paymentsToSignCount });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.signatureRequests(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.signatureRequestsStats(),
+      });
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.paymentsToSignCount,
+      });
       onOpenChange(false);
     },
     onError: (error: Error) => {
@@ -70,7 +75,7 @@ function SignExpense({ ticket, open, onOpenChange }: Props) {
   });
 
   function onSubmit(values: FormValues) {
-    const { proof, ...rest } = values;
+    const { proof } = values;
     const payload: {
       paymentId: number;
       userId: number;

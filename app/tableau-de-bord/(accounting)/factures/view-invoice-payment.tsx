@@ -11,12 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn, XAF } from "@/lib/utils";
-import {
-  BonsCommande,
-  Invoice,
-  PAY_STATUS,
-  PaymentRequest,
-} from "@/types/types";
+import { Invoice, PAY_STATUS, PaymentRequest } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";

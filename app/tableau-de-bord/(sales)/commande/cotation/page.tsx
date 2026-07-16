@@ -50,10 +50,10 @@ const Page = () => {
     refetchOnWindowFocus: true,
   });
 
-  const commandRequests = useMemo(() => {
-    if (!getCommandRequests.data) return [];
-    return getCommandRequests.data.data;
-  }, [getCommandRequests.data]);
+  // const commandRequests = useMemo(() => {
+  //   if (!getCommandRequests.data) return [];
+  //   return getCommandRequests.data.data;
+  // }, [getCommandRequests.data]);
 
   // const isRequestUsed = (requestId: number): boolean =>
   //   commandRequests.some((c) => c.besoins.some((b) => b.id === requestId));

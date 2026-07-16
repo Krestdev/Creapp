@@ -64,12 +64,12 @@ import {
 } from "@/components/ui/table";
 
 import { TabBar } from "@/components/base/TabBar";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Progress,
   ProgressLabel,
   ProgressValue,
 } from "@/components/ui/progress";
+import { Textarea } from "@/components/ui/textarea";
 import {
   formatToShortName,
   subText,
@@ -147,7 +147,9 @@ export function PurchaseApprovalTable({ data, users, invoices }: Props) {
   const getProgress = (
     purchaseOrder: BonsCommande,
   ): { progress: number; value: number } => {
-    const invoiceData = invoices.filter((i) => i.commandId === purchaseOrder.id);
+    const invoiceData = invoices.filter(
+      (i) => i.commandId === purchaseOrder.id,
+    );
 
     const values = invoiceData.flatMap((i) =>
       i.payment.map((p) => {
@@ -179,9 +181,9 @@ export function PurchaseApprovalTable({ data, users, invoices }: Props) {
   const [priorityFilter, setPriorityFilter] = React.useState<"all" | Priority>(
     "all",
   );
-  const [penaltyFilter, setPenaltyFilter] = React.useState<
-    "all" | "true" | "false"
-  >("all");
+  // const [penaltyFilter, setPenaltyFilter] = React.useState<
+  //   "all" | "true" | "false"
+  // >("all");
   const [prioritySearch, setPrioritySearch] = React.useState("");
 
   // modals
@@ -214,18 +216,18 @@ export function PurchaseApprovalTable({ data, users, invoices }: Props) {
       const matchPriority =
         priorityFilter === "all" ? true : po.priority === priorityFilter;
       //Filter penalty
-      const matchPenalty =
-        penaltyFilter === "all"
-          ? true
-          : Boolean(penaltyFilter) === po.hasPenalties;
+      // const matchPenalty =
+      //   penaltyFilter === "all"
+      //     ? true
+      //     : Boolean(penaltyFilter) === po.hasPenalties;
       //Filter Tab
       const matchTab =
         selectedTab === 0
           ? po.status === "IN-REVIEW" || po.status === "PENDING"
           : po.status === "REJECTED" || po.status === "APPROVED";
-      return matchPenalty && matchPriority && matchTab;
+      return matchPriority && matchTab;
     });
-  }, [data, priorityFilter, penaltyFilter, selectedTab]);
+  }, [data, priorityFilter, selectedTab]);
 
   const approveMutation = useMutation({
     mutationFn: async (bon: BonsCommande) => {
@@ -489,6 +491,7 @@ export function PurchaseApprovalTable({ data, users, invoices }: Props) {
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -764,7 +767,8 @@ export function PurchaseApprovalTable({ data, users, invoices }: Props) {
                   else if (column.id === "amountHT") columnName = "Montant HT";
                   else if (column.id === "priority") columnName = "Priorité";
                   else if (column.id === "status") columnName = "Statut";
-                  else if (column.id === "payment") columnName = "État de paiement";
+                  else if (column.id === "payment")
+                    columnName = "État de paiement";
                   else if (column.id === "createdAt") columnName = "Créé le";
                   else if (column.id === "penalties") columnName = "Pénalités";
 
@@ -834,7 +838,7 @@ export function PurchaseApprovalTable({ data, users, invoices }: Props) {
                       {"Aucun résultat trouvé"}
                     </span>
                     {(priorityFilter !== "all" ||
-                      penaltyFilter !== "all" ||
+                      // penaltyFilter !== "all" ||
                       globalFilter) && (
                       <Button
                         variant="ghost"

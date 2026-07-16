@@ -316,8 +316,8 @@ export function PaiementTable({ data }: PaiementTableProps) {
       id: "actions",
       header: "Actions",
       enableHiding: false,
-      cell: ({ row }) => {
-        const item = row.original;
+      cell: () => {
+        // const item = row.original;
 
         return (
           <DropdownMenu>
@@ -349,6 +349,7 @@ export function PaiementTable({ data }: PaiementTableProps) {
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

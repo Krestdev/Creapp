@@ -1,7 +1,14 @@
 "use client";
-import { SearchableSelect } from "@/components/base/searchableSelect";
 import MultiSelectUsers from "@/components/base/multiSelectUsers";
 import { Button } from "@/components/ui/button";
+import {
+  Combobox,
+  ComboboxContent,
+  ComboboxEmpty,
+  ComboboxInput,
+  ComboboxItem,
+  ComboboxList,
+} from "@/components/ui/combobox";
 import {
   Form,
   FormControl,
@@ -12,23 +19,14 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { serviceQ, NewService } from "@/queries/services";
+import { NewService, serviceQ } from "@/queries/services";
 import { User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
 
 interface Props {
   users: User[];
@@ -80,10 +78,10 @@ function NewServiceForm({ users }: Props) {
     });
   }
 
-  const headOptions = users.map((u) => ({
-    value: String(u.id),
-    label: `${u.firstName} ${u.lastName}`,
-  }));
+  // const headOptions = users.map((u) => ({
+  //   value: String(u.id),
+  //   label: `${u.firstName} ${u.lastName}`,
+  // }));
 
   const allMembers = users.map((u) => ({
     id: u.id,

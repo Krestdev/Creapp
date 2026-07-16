@@ -1,5 +1,4 @@
 import { LucideIcon } from "lucide-react";
-import React from "react";
 import { DateRange } from "react-day-picker";
 
 export interface NavigationGroup {
@@ -221,8 +220,8 @@ export type RequestModelT = {
   period?: DateRange | undefined;
   paytype?: "cash" | "chq" | "ov";
   beficiaryList?:
-    | { id: number; firstName: string; lastName: string; email: string }[]
-    | null;
+  | { id: number; firstName: string; lastName: string; email: string }[]
+  | null;
   state: (typeof REQUEST_STATUS)[number]["value"];
   priority: Priority;
   projectId?: number;
@@ -624,7 +623,7 @@ export type Reception = {
   note: string;
 };
 
-type Item = {
+export type Item = {
   ref: string;
   designation: string;
   qty: number;

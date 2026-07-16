@@ -17,12 +17,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   DateFilter,
-  PAYMENT_METHOD,
   PAYMENT_TYPES,
   PaymentRequest,
   PRIORITIES,
-  Provider,
-  User,
 } from "@/types/types";
 import { format } from "date-fns";
 import { ChevronDown } from "lucide-react";
@@ -87,7 +84,7 @@ export default function TicketFilters({
                 {customFilters.priority === "all"
                   ? "Toutes les priorités"
                   : PRIORITIES.find((p) => p.value === customFilters.priority)
-                    ?.name}
+                      ?.name}
               </span>
               <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
             </Button>
@@ -137,7 +134,7 @@ export default function TicketFilters({
                 {customFilters.type === "all"
                   ? "Tous les types"
                   : PAYMENT_TYPES.find((t) => t.value === customFilters.type)
-                    ?.name}
+                      ?.name}
               </span>
               <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
             </Button>
@@ -221,7 +218,7 @@ export default function TicketFilters({
               }}
               className={customFilters.date === "today" ? "bg-accent" : ""}
             >
-              <span>Aujourd'hui</span>
+              <span>{"Aujourd'hui"}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
@@ -273,9 +270,9 @@ export default function TicketFilters({
               <span className="text-muted-foreground text-xs">
                 {customFilters.from && customFilters.to
                   ? `${format(customFilters.from, "dd/MM/yyyy")} → ${format(
-                    customFilters.to,
-                    "dd/MM/yyyy",
-                  )}`
+                      customFilters.to,
+                      "dd/MM/yyyy",
+                    )}`
                   : "Choisir"}
               </span>
             </Button>

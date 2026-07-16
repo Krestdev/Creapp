@@ -94,7 +94,7 @@ export default function DashboardFilters({
               }}
               className={customFilters.date === "today" ? "bg-accent" : ""}
             >
-              <span>Aujourd'hui</span>
+              <span>{"Aujourd'hui"}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {
@@ -150,9 +150,9 @@ export default function DashboardFilters({
               <span className="text-muted-foreground text-xs">
                 {customFilters.from && customFilters.to
                   ? `${format(customFilters.from, "dd/MM/yyyy")} → ${format(
-                    customFilters.to,
-                    "dd/MM/yyyy",
-                  )}`
+                      customFilters.to,
+                      "dd/MM/yyyy",
+                    )}`
                   : "Choisir"}
               </span>
             </Button>

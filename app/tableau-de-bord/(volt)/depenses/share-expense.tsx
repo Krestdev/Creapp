@@ -66,17 +66,17 @@ const requiresDocNumber = (paymentMethod: PayType | null): boolean => {
   return type === "chq" || type === "ov";
 };
 
-type FormValues = {
-  label: string;
-  fromBankId: number | undefined;
-  methodId?: number;
-  to: {
-    label: string;
-    accountNumber?: string;
-    phoneNum?: string;
-  };
-  docNumber?: string;
-};
+// type FormValues = {
+//   label: string;
+//   fromBankId: number | undefined;
+//   methodId?: number;
+//   to: {
+//     label: string;
+//     accountNumber?: string;
+//     phoneNum?: string;
+//   };
+//   docNumber?: string;
+// };
 
 function ShareExpense({
   ticket,
@@ -111,7 +111,7 @@ function ShareExpense({
 
   const transactions = getTransactions.data?.data;
 
-  const debitTransactions = transactions?.filter((t) => t.Type === "DEBIT");
+  // const debitTransactions = transactions?.filter((t) => t.Type === "DEBIT");
   const banks = getBanks.data?.data;
 
   const provider = useMemo(() => {
@@ -204,10 +204,10 @@ function ShareExpense({
   });
 
   //Let's observe the value of docNumber
-  const docNumberValue = useWatch({
-    control: form.control,
-    name: "docNumber",
-  });
+  // const docNumberValue = useWatch({
+  //   control: form.control,
+  //   name: "docNumber",
+  // });
 
   // Let's register the payment method
   const paymentMethod = useMemo(() => {
@@ -233,11 +233,11 @@ function ShareExpense({
   }, [paymentMethod]);
 
   // Effectuer la validation conditionnelle pour docNumber
-  const validateDocNumber = useMemo(() => {
-    if (!requiresDocNumberField) return true;
+  // const validateDocNumber = useMemo(() => {
+  //   if (!requiresDocNumberField) return true;
 
-    return docNumberValue && docNumberValue.trim().length > 0;
-  }, [requiresDocNumberField, docNumberValue]);
+  //   return docNumberValue && docNumberValue.trim().length > 0;
+  // }, [requiresDocNumberField, docNumberValue]);
 
   // Filtrer les comptes en fonction du type de paiement
   const filteredBanks = useMemo(() => {
@@ -322,7 +322,7 @@ function ShareExpense({
       onOpenChange(false);
       if (data.data.payement) {
         setPaiement(data.data.payement);
-        isCashPayment && setOpenDoc(true);
+        if (isCashPayment) setOpenDoc(true);
       }
     },
     onError: (error: Error) => {
@@ -348,7 +348,7 @@ function ShareExpense({
 
     const payload: TransactionProps = {
       ...rest,
-      Type: transaction?.Type!,
+      Type: transaction?.Type as "DEBIT",
       date: new Date(),
       amount: ticket.price,
       userId: user?.id ?? 0,

@@ -25,7 +25,6 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
-import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import { ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -96,8 +95,6 @@ export default function UpdateRHRequest({
   projects,
   users,
 }: UpdateRHRequestProps) {
-  const { user } = useStore();
-
   const [isFormInitialized, setIsFormInitialized] = useState(false);
 
   const USERS = users

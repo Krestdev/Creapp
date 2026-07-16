@@ -568,7 +568,7 @@ export default function DepenseFilters({
               }}
               className={customFilters.date === "today" ? "bg-accent" : ""}
             >
-              <span>Aujourd'hui</span>
+              <span>{"Aujourd'hui"}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {

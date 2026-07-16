@@ -376,10 +376,10 @@ function ViewRequest({
                 <p className="view-group-title">{"Période"}</p>
                 {request.data?.data.period ? (
                   <p className="font-semibold">{`Du ${format(
-                    request.data?.data.period.from!,
+                    request.data?.data.period.from ?? "",
                     "PPP",
                     { locale: fr },
-                  )} au ${format(request.data?.data.period.to!, "PPP", {
+                  )} au ${format(request.data?.data.period.to ?? "", "PPP", {
                     locale: fr,
                   })}`}</p>
                 ) : (
@@ -468,7 +468,9 @@ function ViewRequest({
                 <p className="view-group-title">{"Date limite"}</p>
               </div>
               <p className="font-semibold">
-                {format(request.data?.data.dueDate!, "PPP", { locale: fr })}
+                {format(request.data?.data.dueDate ?? "", "PPP", {
+                  locale: fr,
+                })}
               </p>
             </div>
           </div>

@@ -22,7 +22,6 @@ import {
 } from "lucide-react";
 import * as React from "react";
 
-import { badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -46,9 +45,8 @@ import {
 import { departmentQ } from "@/queries/departmentModule";
 import { DepartmentT, Member } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
-import { VariantProps } from "class-variance-authority";
-import { Pagination } from "../base/pagination";
 import { toast } from "sonner";
+import { Pagination } from "../base/pagination";
 import UpdateDepartment from "./UpdateDeprtment";
 import { ShowDepartment } from "./show-department";
 
@@ -87,22 +85,22 @@ export function DepartementTable({ data }: DepartementTableProps) {
     },
   });
 
-  const getBadge = (
-    status: string,
-  ): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-  } => {
-    const value = status.toLocaleLowerCase();
-    switch (value) {
-      case "actif":
-        return { label: "Actif", variant: "primary" };
-      case "inactive":
-        return { label: "Désactivé", variant: "destructive" };
-      default:
-        return { label: value, variant: "outline" };
-    }
-  };
+  // const getBadge = (
+  //   status: string,
+  // ): {
+  //   label: string;
+  //   variant: VariantProps<typeof badgeVariants>["variant"];
+  // } => {
+  //   const value = status.toLocaleLowerCase();
+  //   switch (value) {
+  //     case "actif":
+  //       return { label: "Actif", variant: "primary" };
+  //     case "inactive":
+  //       return { label: "Désactivé", variant: "destructive" };
+  //     default:
+  //       return { label: value, variant: "outline" };
+  //   }
+  // };
 
   const columns = React.useMemo<ColumnDef<DepartmentT>[]>(
     () => [
@@ -273,6 +271,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
     [],
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

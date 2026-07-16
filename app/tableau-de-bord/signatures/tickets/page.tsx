@@ -45,7 +45,7 @@ function Page() {
     tab: "pending",
   });
 
-  const { tab, search, ...otherFilters } = customFilters;
+  // const { tab, search, ...otherFilters } = customFilters;
 
   const resetAllFilters = () => {
     setCustomFilters({
@@ -80,7 +80,7 @@ function Page() {
   });
 
   const getStats = useQuery({
-    queryKey: queryKeys.signatureRequestsStats(otherFilters),
+    queryKey: queryKeys.signatureRequestsStats(customFilters),
     queryFn: () =>
       paymentQ.getSignatureRequestsStats({
         amount: customFilters.amount || 0,

@@ -2,20 +2,17 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { isRole } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
 import { bankQ } from "@/queries/bank";
+import { userQ } from "@/queries/baseModule";
 import { transactionQ } from "@/queries/transaction";
 import { NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import TransactionTable from "./transaction-table";
-import { StatisticCard } from "@/components/base/TitleValueCard";
-import { userQ } from "@/queries/baseModule";
 import React from "react";
+import TransactionTable from "./transaction-table";
 
 function Page() {
-  const { user } = useStore();
-  const auth = isRole({ roleList: user?.role ?? [], role: "trésorier" });
+  // const { user } = useStore();
+  // const auth = isRole({ roleList: user?.role ?? [], role: "trésorier" });
   const links: Array<NavLink> = [
     {
       title: "Créer un rapprochement",

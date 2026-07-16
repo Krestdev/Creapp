@@ -69,8 +69,7 @@ export function CancelTransfert({ open, onOpenChange, transfer }: CancelProps) {
         <DialogHeader variant={"error"}>
           <DialogTitle>Annuler le transfert</DialogTitle>
           <DialogDescription>
-            Vous êtes sur le point d'annuler le transfert {transfer.label}.
-            Voulez-vous continuer ?
+            {`Vous êtes sur le point d'annuler le transfert @{transfer.label}. Voulez-vous continuer ?`}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>

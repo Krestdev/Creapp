@@ -33,12 +33,12 @@ import { queryKeys } from "@/lib/query-keys";
 import { userQ } from "@/queries/baseModule";
 import { categoryQ } from "@/queries/categoryModule";
 import { requestTypeQ } from "@/queries/requestType";
-import { Category, RequestType, ResponseT, User } from "@/types/types";
+import { Category, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -146,7 +146,7 @@ export default function UpdateCategory({ id }: { id: number }) {
 
   const categoryApi = useMutation({
     mutationFn: async (data: Partial<Category>) => {
-      return await categoryQ.updateCategory(category?.id!, data);
+      return await categoryQ.updateCategory(Number(category?.id), data);
     },
     onSuccess: () => {
       toast.success("Catégorie mise à jour avec succès !");
@@ -230,11 +230,11 @@ export default function UpdateCategory({ id }: { id: number }) {
   };
 
   // Fonction pour obtenir le nom d'un utilisateur par son ID
-  const getUserName = (userId: number) => {
-    const users = usersList.filter((u) => u.verified) || [];
-    const user = users.find((u) => u.id === userId);
-    return user?.lastName + " " + user?.firstName || `Utilisateur #${userId}`;
-  };
+  // const getUserName = (userId: number) => {
+  //   const users = usersList.filter((u) => u.verified) || [];
+  //   const user = users.find((u) => u.id === userId);
+  //   return user?.lastName + " " + user?.firstName || `Utilisateur #${userId}`;
+  // };
 
   // Fonction pour obtenir les utilisateurs disponibles (non sélectionnés)
   const getAvailableUsers = (currentIndex?: number) => {

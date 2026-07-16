@@ -1,25 +1,23 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 import {
-  format,
-  subDays,
-  eachDayOfInterval,
-  startOfMonth,
-  endOfMonth,
   differenceInDays,
-  eachWeekOfInterval,
+  eachDayOfInterval,
   eachMonthOfInterval,
-  getWeek,
-  startOfWeek,
+  eachWeekOfInterval,
+  endOfMonth,
   endOfWeek,
-  isWithinInterval,
+  format,
+  getWeek,
   isSameDay,
-  isAfter,
-  isBefore,
-} from "date-fns"
-import { fr } from "date-fns/locale"
+  isWithinInterval,
+  startOfMonth,
+  startOfWeek,
+  subDays,
+} from "date-fns";
+import { fr } from "date-fns/locale";
+import * as React from "react";
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
 import {
   Card,
@@ -27,7 +25,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 
 import {
   ChartContainer,
@@ -36,8 +34,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
   type ChartConfig,
-} from "@/components/ui/chart"
-import { RequestModelT } from "@/types/types"
+} from "@/components/ui/chart";
+import { RequestModelT } from "@/types/types";
 
 interface ChartAreaInteractiveProps {
   filteredData?: RequestModelT[];
@@ -57,7 +55,7 @@ const chartConfig = {
     label: "Rejeté",
     color: "hsl(var(--chart-1))",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 export function ChartAreaInteractive({
   filteredData = [],
@@ -65,105 +63,127 @@ export function ChartAreaInteractive({
   customDateRange,
   title,
   description,
-  type
+  // type,
 }: ChartAreaInteractiveProps) {
-
-  const [activeChart, setActiveChart] = React.useState<"approuvé" | "rejetté">("approuvé");
+  const [activeChart, setActiveChart] = React.useState<"approuvé" | "rejetté">(
+    "approuvé",
+  );
 
   // 🔥 Fonction pour filtrer les données selon le filtre
-  const filterDataByDate = React.useCallback((data: RequestModelT[]) => {
-    if (!data || data.length === 0) return [];
+  const filterDataByDate = React.useCallback(
+    (data: RequestModelT[]) => {
+      if (!data || data.length === 0) return [];
 
-    const now = new Date();
-    let startDate: Date;
-    let endDate: Date = now;
+      const now = new Date();
+      let startDate: Date;
+      let endDate: Date = now;
 
-    // Si pas de filtre, retourner toutes les données
-    if (!dateFilter) {
-      return data;
-    }
-
-    // Filtre personnalisé
-    if (dateFilter === "custom" && customDateRange) {
-      startDate = new Date(customDateRange.from);
-      endDate = new Date(customDateRange.to);
-      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      // Si pas de filtre, retourner toutes les données
+      if (!dateFilter) {
         return data;
       }
-      return data.filter(item => {
-        try {
-          const itemDate = new Date(item.createdAt);
-          return isWithinInterval(itemDate, { start: startDate, end: endDate });
-        } catch {
-          return false;
+
+      // Filtre personnalisé
+      if (dateFilter === "custom" && customDateRange) {
+        startDate = new Date(customDateRange.from);
+        endDate = new Date(customDateRange.to);
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          return data;
         }
-      });
-    }
-
-    // Filtres prédéfinis
-    switch (dateFilter) {
-      case "today":
-        startDate = new Date(now);
-        startDate.setHours(0, 0, 0, 0);
-        return data.filter(item => {
-          try {
-            return isSameDay(new Date(item.createdAt), now);
-          } catch {
-            return false;
-          }
-        });
-
-      case "week": {
-        startDate = subDays(now, 6);
-        startDate.setHours(0, 0, 0, 0);
-        return data.filter(item => {
+        return data.filter((item) => {
           try {
             const itemDate = new Date(item.createdAt);
-            return itemDate >= startDate && itemDate <= now;
+            return isWithinInterval(itemDate, {
+              start: startDate,
+              end: endDate,
+            });
           } catch {
             return false;
           }
         });
       }
 
-      case "month": {
-        startDate = startOfMonth(now);
-        endDate = endOfMonth(now);
-        return data.filter(item => {
-          try {
-            const itemDate = new Date(item.createdAt);
-            return itemDate >= startDate && itemDate <= endDate;
-          } catch {
-            return false;
-          }
-        });
-      }
+      // Filtres prédéfinis
+      switch (dateFilter) {
+        case "today":
+          startDate = new Date(now);
+          startDate.setHours(0, 0, 0, 0);
+          return data.filter((item) => {
+            try {
+              return isSameDay(new Date(item.createdAt), now);
+            } catch {
+              return false;
+            }
+          });
 
-      case "year": {
-        startDate = new Date(now.getFullYear(), 0, 1);
-        endDate = new Date(now.getFullYear(), 11, 31);
-        return data.filter(item => {
-          try {
-            const itemDate = new Date(item.createdAt);
-            return itemDate >= startDate && itemDate <= endDate;
-          } catch {
-            return false;
-          }
-        });
-      }
+        case "week": {
+          startDate = subDays(now, 6);
+          startDate.setHours(0, 0, 0, 0);
+          return data.filter((item) => {
+            try {
+              const itemDate = new Date(item.createdAt);
+              return itemDate >= startDate && itemDate <= now;
+            } catch {
+              return false;
+            }
+          });
+        }
 
-      default:
-        return data;
-    }
-  }, [dateFilter, customDateRange]);
+        case "month": {
+          startDate = startOfMonth(now);
+          endDate = endOfMonth(now);
+          return data.filter((item) => {
+            try {
+              const itemDate = new Date(item.createdAt);
+              return itemDate >= startDate && itemDate <= endDate;
+            } catch {
+              return false;
+            }
+          });
+        }
 
-  const getStatusCount = (items: RequestModelT[], status: 'approuvé' | 'rejetté') => {
-    return items.filter(item => {
-      const s = (item.state || '').toLowerCase();
-      if (status === 'approuvé') {
-        return s.includes('approv') || s.includes('valid') || s === 'approved' || s === 'validé' || s === 'validée';
+        case "year": {
+          startDate = new Date(now.getFullYear(), 0, 1);
+          endDate = new Date(now.getFullYear(), 11, 31);
+          return data.filter((item) => {
+            try {
+              const itemDate = new Date(item.createdAt);
+              return itemDate >= startDate && itemDate <= endDate;
+            } catch {
+              return false;
+            }
+          });
+        }
+
+        default:
+          return data;
       }
-      return s.includes('reject') || s.includes('refus') || s === 'rejected' || s === 'rejeté' || s === 'rejetée';
+    },
+    [dateFilter, customDateRange],
+  );
+
+  const getStatusCount = (
+    items: RequestModelT[],
+    status: "approuvé" | "rejetté",
+  ) => {
+    return items.filter((item) => {
+      const s = (item.state || "").toLowerCase();
+      if (status === "approuvé") {
+        return (
+          s.includes("approv") ||
+          s.includes("valid") ||
+          s === "approved" ||
+          s === "validé" ||
+          s === "validée"
+        );
+      }
+      return (
+        s.includes("reject") ||
+        s.includes("refus") ||
+        s === "rejected" ||
+        s === "rejeté" ||
+        s === "rejetée"
+      );
     }).length;
   };
 
@@ -173,12 +193,15 @@ export function ChartAreaInteractive({
   }, [filteredData, filterDataByDate]);
 
   // Fonction pour déterminer le type d'intervalle
-  const getIntervalType = (start: Date, end: Date): 'day' | 'week' | 'month' => {
-    const diffDays = differenceInDays(end, start);
-    if (diffDays > 60) return 'month';
-    if (diffDays > 14) return 'week';
-    return 'day';
-  };
+  // const getIntervalType = (
+  //   start: Date,
+  //   end: Date,
+  // ): "day" | "week" | "month" => {
+  //   const diffDays = differenceInDays(end, start);
+  //   if (diffDays > 60) return "month";
+  //   if (diffDays > 14) return "week";
+  //   return "day";
+  // };
 
   // Fonction pour générer les données du graphique
   const chartData = React.useMemo(() => {
@@ -186,27 +209,27 @@ export function ChartAreaInteractive({
 
     // Extraire les dates des données filtrées
     const dates = filteredDataByDate
-      .map(item => new Date(item.createdAt))
-      .filter(date => !isNaN(date.getTime()));
+      .map((item) => new Date(item.createdAt))
+      .filter((date) => !isNaN(date.getTime()));
 
     if (dates.length === 0) return [];
 
-    const dataMinDate = new Date(Math.min(...dates.map(d => d.getTime())));
-    const dataMaxDate = new Date(Math.max(...dates.map(d => d.getTime())));
+    const dataMinDate = new Date(Math.min(...dates.map((d) => d.getTime())));
+    const dataMaxDate = new Date(Math.max(...dates.map((d) => d.getTime())));
 
     let startDate: Date;
     let endDate: Date;
-    let intervalType: 'day' | 'week' | 'month' = 'day';
+    let intervalType: "day" | "week" | "month" = "day";
 
     // Utiliser la date max des données comme référence
-    const now = dataMaxDate;
+    // const now = dataMaxDate;
 
     // Si c'est "year", on utilise une logique spéciale
     if (dateFilter === "year") {
       const year = dataMaxDate.getFullYear();
       startDate = new Date(year, 0, 1);
       endDate = new Date(year, 11, 31);
-      intervalType = 'month';
+      intervalType = "month";
     }
     // Si "month", on utilise le mois
     else if (dateFilter === "month") {
@@ -214,7 +237,7 @@ export function ChartAreaInteractive({
       const year = dataMaxDate.getFullYear();
       startDate = new Date(year, month, 1);
       endDate = new Date(year, month + 1, 0);
-      intervalType = 'week';
+      intervalType = "week";
     }
     // Si "custom" ou autre
     else {
@@ -225,9 +248,9 @@ export function ChartAreaInteractive({
       endDate.setHours(23, 59, 59, 999);
 
       const diffDays = differenceInDays(endDate, startDate);
-      if (diffDays > 60) intervalType = 'month';
-      else if (diffDays > 14) intervalType = 'week';
-      else intervalType = 'day';
+      if (diffDays > 60) intervalType = "month";
+      else if (diffDays > 14) intervalType = "week";
+      else intervalType = "day";
     }
 
     if (startDate > endDate) {
@@ -237,46 +260,46 @@ export function ChartAreaInteractive({
     let intervals: Date[] = [];
 
     switch (intervalType) {
-      case 'day':
+      case "day":
         intervals = eachDayOfInterval({ start: startDate, end: endDate });
         break;
-      case 'week':
+      case "week":
         intervals = eachWeekOfInterval(
           { start: startDate, end: endDate },
-          { weekStartsOn: 1 }
+          { weekStartsOn: 1 },
         );
         break;
-      case 'month':
+      case "month":
         intervals = eachMonthOfInterval({ start: startDate, end: endDate });
         break;
     }
 
-    return intervals.map(date => {
+    return intervals.map((date) => {
       let periodStart: Date;
       let periodEnd: Date;
       let label: string;
 
       switch (intervalType) {
-        case 'day':
+        case "day":
           periodStart = new Date(date);
           periodStart.setHours(0, 0, 0, 0);
           periodEnd = new Date(date);
           periodEnd.setHours(23, 59, 59, 999);
-          label = format(date, 'dd/MM', { locale: fr });
+          label = format(date, "dd/MM", { locale: fr });
           break;
-        case 'week':
+        case "week":
           periodStart = startOfWeek(date, { weekStartsOn: 1 });
           periodEnd = endOfWeek(date, { weekStartsOn: 1 });
           label = `S${getWeek(date, { weekStartsOn: 1 })}`;
           break;
-        case 'month':
+        case "month":
           periodStart = new Date(date.getFullYear(), date.getMonth(), 1);
           periodEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-          label = format(date, 'MMM', { locale: fr });
+          label = format(date, "MMM", { locale: fr });
           break;
       }
 
-      const dayData = filteredDataByDate.filter(item => {
+      const dayData = filteredDataByDate.filter((item) => {
         try {
           const itemDate = new Date(item.createdAt);
           return itemDate >= periodStart && itemDate <= periodEnd;
@@ -286,11 +309,11 @@ export function ChartAreaInteractive({
       });
 
       return {
-        date: format(date, 'yyyy-MM-dd'),
+        date: format(date, "yyyy-MM-dd"),
         label,
-        approuvé: getStatusCount(dayData, 'approuvé'),
-        rejetté: getStatusCount(dayData, 'rejetté'),
-        total: dayData.length
+        approuvé: getStatusCount(dayData, "approuvé"),
+        rejetté: getStatusCount(dayData, "rejetté"),
+        total: dayData.length,
       };
     });
   }, [filteredDataByDate, dateFilter]);
@@ -302,11 +325,11 @@ export function ChartAreaInteractive({
       if (isNaN(date.getTime())) return value;
 
       if (dateFilter === "year") {
-        return format(date, 'MMM', { locale: fr });
+        return format(date, "MMM", { locale: fr });
       } else if (dateFilter === "month") {
         return `S${getWeek(date, { weekStartsOn: 1 })}`;
       } else {
-        return format(date, 'dd/MM', { locale: fr });
+        return format(date, "dd/MM", { locale: fr });
       }
     } catch {
       return value;
@@ -320,24 +343,27 @@ export function ChartAreaInteractive({
       if (isNaN(date.getTime())) return value;
 
       if (dateFilter === "year") {
-        return format(date, 'MMMM yyyy', { locale: fr });
+        return format(date, "MMMM yyyy", { locale: fr });
       } else if (dateFilter === "month") {
         const weekStart = startOfWeek(date, { weekStartsOn: 1 });
         const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
-        return `Semaine ${getWeek(date, { weekStartsOn: 1 })} (${format(weekStart, 'dd/MM', { locale: fr })} - ${format(weekEnd, 'dd/MM', { locale: fr })})`;
+        return `Semaine ${getWeek(date, { weekStartsOn: 1 })} (${format(weekStart, "dd/MM", { locale: fr })} - ${format(weekEnd, "dd/MM", { locale: fr })})`;
       } else {
-        return format(date, 'EEEE dd MMMM yyyy', { locale: fr });
+        return format(date, "EEEE dd MMMM yyyy", { locale: fr });
       }
     } catch {
       return value;
     }
   };
 
-  const total = chartData.reduce((acc, item) => {
-    acc.approuvé += item.approuvé;
-    acc.rejetté += item.rejetté;
-    return acc;
-  }, { approuvé: 0, rejetté: 0 });
+  const total = chartData.reduce(
+    (acc, item) => {
+      acc.approuvé += item.approuvé;
+      acc.rejetté += item.rejetté;
+      return acc;
+    },
+    { approuvé: 0, rejetté: 0 },
+  );
 
   if (filteredData.length === 0) {
     return (
@@ -394,12 +420,28 @@ export function ChartAreaInteractive({
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="fillApprouve" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--chart-2)" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="var(--chart-2)" stopOpacity={0.1} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--chart-2)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--chart-2)"
+                    stopOpacity={0.1}
+                  />
                 </linearGradient>
                 <linearGradient id="fillRejete" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.1} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--chart-1)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--chart-1)"
+                    stopOpacity={0.1}
+                  />
                 </linearGradient>
               </defs>
 

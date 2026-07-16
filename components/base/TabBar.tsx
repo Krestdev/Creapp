@@ -1,7 +1,5 @@
 import { cn } from "@/lib/utils";
-import { cva, VariantProps } from "class-variance-authority";
 import React from "react";
-import { Button } from "../ui/button";
 
 export interface TabProps {
   tabs: { id: any; title: string; badge?: number }[];

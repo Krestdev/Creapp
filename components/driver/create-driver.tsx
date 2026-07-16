@@ -9,14 +9,14 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Driver, ResponseT } from "@/types/types";
+import { driverQ } from "@/queries/driver";
+import { Driver } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import FilesUpload from "../comp-547";
-import { driverQ } from "@/queries/driver";
 
 type FileValue = File | string;
 
@@ -47,21 +47,17 @@ export default function CreateDriverForm() {
         "status" | "lastConnection" | "role" | "members" | "id" | "createdAt"
       >,
     ) => driverQ.create(data),
-    onSuccess: (data: ResponseT<Driver>) => {
+    onSuccess: () => {
       toast.success("Chauffeur créé avec succès.");
-      form.reset(
-        {
-          firstName: "",
-          lastName: "",
-          idCard: "",
-          licence: "",
-        }
-      );
+      form.reset({
+        firstName: "",
+        lastName: "",
+        idCard: "",
+        licence: "",
+      });
     },
     onError: (error: any) => {
-      toast.error(
-        "Une erreur est survenue lors de la creation du chauffeur.",
-      );
+      toast.error("Une erreur est survenue lors de la creation du chauffeur.");
       console.error("Register error:", error);
     },
   });

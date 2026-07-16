@@ -1,5 +1,8 @@
 "use client";
 
+import { SuccessModal } from "@/components/modals/success-modal";
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
   DialogContent,
@@ -7,38 +10,32 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import React, { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
-  FormDescription,
   FormField,
   FormItem,
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { format } from "date-fns";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-import { Calendar as CalendarIcon } from "lucide-react";
-import { requestQ } from "@/queries/requestModule";
-import { useMutation, useQuery } from "@tanstack/react-query";
-import { Category, CommandRequestT, RequestModelT } from "@/types/types";
-import { useStore } from "@/providers/datastore";
-import { toast } from "sonner";
-import { SuccessModal } from "@/components/modals/success-modal";
-import Besoins from "./besoins";
+import { cn } from "@/lib/utils";
 import { commandRqstQ } from "@/queries/commandRqstModule";
+import { Category, CommandRequestT, RequestModelT } from "@/types/types";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation } from "@tanstack/react-query";
+import { format } from "date-fns";
+import { Calendar as CalendarIcon } from "lucide-react";
+import React, { useState } from "react";
+import { useForm } from "react-hook-form";
+import { toast } from "sonner";
+import { z } from "zod";
+import Besoins from "./besoins";
 
 const formSchema = z.object({
   name: z.string().min(1, "Le nom est obligatoire"),
@@ -76,14 +73,14 @@ export function UpdateCotationModal({
   onOpenChange,
   onSuccess,
   quotationRequest,
-  quotationRequests,
+  // quotationRequests,
   requests,
   categories,
 }: UpdateCotationModalProps) {
   const [selected, setSelected] = useState<Request[]>([]);
-  const [dataSup, setDataSup] = useState<RequestModelT[] | undefined>();
+  // const [dataSup, setDataSup] = useState<RequestModelT[] | undefined>();
   const [successOpen, setSuccessOpen] = useState(false);
-  const { user } = useStore();
+  // const { user } = useStore();
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -127,7 +124,7 @@ export function UpdateCotationModal({
 
     // Mettre à jour les états
     setSelected(selectedRequests);
-    setDataSup(quotationRequest.besoins);
+    // setDataSup(quotationRequest.besoins);
 
     // Reset du formulaire
     form.reset({
@@ -140,18 +137,18 @@ export function UpdateCotationModal({
   }, [open, quotationRequest, form]);
 
   // Fonction pour gérer la sélection des besoins
-  const handleRequestsChange = (list: Request[]) => {
-    setSelected(list);
-    form.setValue(
-      "requests",
-      list.map((u) => u.id),
-      {
-        shouldValidate: true,
-        shouldDirty: true,
-        shouldTouch: true,
-      },
-    );
-  };
+  // const handleRequestsChange = (list: Request[]) => {
+  //   setSelected(list);
+  //   form.setValue(
+  //     "requests",
+  //     list.map((u) => u.id),
+  //     {
+  //       shouldValidate: true,
+  //       shouldDirty: true,
+  //       shouldTouch: true,
+  //     },
+  //   );
+  // };
 
   const handleSubmit = (values: z.infer<typeof formSchema>) => {
     try {

@@ -12,7 +12,13 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, ChevronDown, EyeIcon, Pencil, Trash2 } from "lucide-react";
+import {
+  ArrowUpDown,
+  ChevronDown,
+  EyeIcon,
+  Pencil,
+  Trash2,
+} from "lucide-react";
 import * as React from "react";
 
 import { ModalWarning } from "@/components/modals/modal-warning";
@@ -179,6 +185,7 @@ export function ConditionsTable({ data }: ConditionsTableProps) {
     [],
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

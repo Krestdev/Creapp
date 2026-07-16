@@ -3,19 +3,17 @@ import {
   Bank,
   BANK_TYPES,
   BonsCommande,
+  PaymentRequest,
+  PRIORITIES,
   Provider,
-  QuotationElement,
+  Quotation,
+  Reception,
   RequestModelT,
   RequestType,
   Role,
   Transaction,
   TRANSACTION_TYPES,
-  User,
-  PaymentRequest,
-  PayType,
-  Quotation,
-  PRIORITIES,
-  Reception,
+  User
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { clsx, type ClassValue } from "clsx";
@@ -170,16 +168,16 @@ export function paymentPercentage(payload: BonsCommande): number {
 interface RoleCheck {
   roleList: Role[];
   role:
-    | "SUPERADMIN"
-    | "admin"
-    | "achat"
-    | "Donner d'ordre achat"
-    | "trésorier"
-    | "Donneur d'ordre décaissement"
-    | "rh"
-    | "comptable"
-    | "manager"
-    | "conducteur";
+  | "SUPERADMIN"
+  | "admin"
+  | "achat"
+  | "Donner d'ordre achat"
+  | "trésorier"
+  | "Donneur d'ordre décaissement"
+  | "rh"
+  | "comptable"
+  | "manager"
+  | "conducteur";
 }
 export function isRole({ roleList, role }: RoleCheck): boolean {
   if (roleList.some((r) => r.label === "SUPERADMIN")) {
@@ -298,9 +296,9 @@ export const getQuotationAmount = (
     return (
       total +
       i.priceProposed *
-        i.quantity *
-        (1 - reduction) *
-        (1 - isIr + tva - precompteValue)
+      i.quantity *
+      (1 - reduction) *
+      (1 - isIr + tva - precompteValue)
     );
   }, 0);
 };

@@ -52,7 +52,9 @@ const PageTitle = ({ title, subtitle, color, links = [] }: PageTitleProps) => {
                 key={id}
                 href={link.href}
                 onClick={(e) => {
-                  link.disabled && e.preventDefault();
+                  if (link.disabled) {
+                    e.preventDefault();
+                  }
                 }}
                 className={cn(link.disabled && "cursor-not-allowed")}
               >

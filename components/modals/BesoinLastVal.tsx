@@ -28,24 +28,24 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
+import { queryKeys } from "@/lib/query-keys";
+import { userQ } from "@/queries/baseModule";
+import { categoryQ } from "@/queries/categoryModule";
+import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { ChevronDownIcon, CalendarIcon } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import { Calendar } from "../ui/calendar";
-import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 import { Label } from "../ui/label";
-import { userQ } from "@/queries/baseModule";
-import { queryKeys } from "@/lib/query-keys";
-import { categoryQ } from "@/queries/categoryModule";
-import { projectQ } from "@/queries/projectModule";
+import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 // Validation Zod - Editable fields only
 const formSchema = z.object({

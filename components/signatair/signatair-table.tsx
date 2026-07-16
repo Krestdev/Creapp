@@ -72,8 +72,8 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
     null,
   );
   const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
-  const [isUpdatePasswordModalOpen, setIsUpdatePasswordModalOpen] =
-    React.useState(false);
+  // const [isUpdatePasswordModalOpen, setIsUpdatePasswordModalOpen] =
+  React.useState(false);
   // const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = React.useState(false);
 
@@ -252,6 +252,7 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
     [user?.id, signatairMutation],
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

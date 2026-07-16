@@ -19,9 +19,7 @@ import {
   ChevronDown,
   Ellipsis,
   Eye,
-  LucidePen,
   Pencil,
-  Search,
   Settings2,
   Trash2,
 } from "lucide-react";
@@ -60,8 +58,7 @@ import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import { ModalWarning } from "../modals/modal-warning";
 import { Badge } from "../ui/badge";
-import { ShowDriver } from "./show-driver";
-import UpdateDriver from "./updateDriver";
+import { Label } from "../ui/label";
 import {
   Sheet,
   SheetContent,
@@ -70,7 +67,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
-import { Label } from "../ui/label";
+import { ShowDriver } from "./show-driver";
+import UpdateDriver from "./updateDriver";
 
 interface DriversTableProps {
   data: Driver[];
@@ -94,7 +92,7 @@ export function DriverTable({ data }: DriversTableProps) {
   const [openWarning, SetOpenWarning] = React.useState(false);
 
   // États pour les filtres
-  const [regimeFilter, setRegimeFilter] = React.useState<string>("all");
+  // const [regimeFilter, setRegimeFilter] = React.useState<string>("all");
   const [statusFilter, setStatusFilter] = React.useState<
     "all" | "complet" | "incomplet"
   >("all");
@@ -265,6 +263,7 @@ export function DriverTable({ data }: DriversTableProps) {
     [],
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -299,7 +298,7 @@ export function DriverTable({ data }: DriversTableProps) {
 
   // Fonction pour réinitialiser tous les filtres
   const resetAllFilters = () => {
-    setRegimeFilter("all");
+    // setRegimeFilter("all");
     setStatusFilter("all");
     setGlobalFilter("");
   };
@@ -471,7 +470,7 @@ export function DriverTable({ data }: DriversTableProps) {
         description="êtes-vous sur de vouloir supprimer ce chauffeur ?"
         open={openWarning}
         onOpenChange={SetOpenWarning}
-        onAction={() => driverMutation.mutate(selectedItem?.id!)}
+        onAction={() => driverMutation.mutate(Number(selectedItem?.id))}
         actionText="Supprimer"
       />
     </div>

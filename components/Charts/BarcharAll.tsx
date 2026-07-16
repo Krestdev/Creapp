@@ -67,7 +67,7 @@ export function ChartAreaInteractiveAll({
   customDateRange,
   title,
   description,
-  type,
+  // type,
 }: ChartAreaInteractiveAllProps) {
   const [activeChart, setActiveChart] =
     React.useState<keyof typeof chartConfig>("approuvé");
@@ -76,141 +76,151 @@ export function ChartAreaInteractiveAll({
     return {
       approuvé: items.filter((item) => {
         const s = (item.state || "").toLowerCase();
-        return ["approved", "store", "approv", "valid"].some(key => s.includes(key));
+        return ["approved", "store", "approv", "valid"].some((key) =>
+          s.includes(key),
+        );
       }).length,
       rejeté: items.filter((item) => {
         const s = (item.state || "").toLowerCase();
-        return ["rejected", "rejet", "refus"].some(key => s.includes(key));
+        return ["rejected", "rejet", "refus"].some((key) => s.includes(key));
       }).length,
       enAttente: items.filter((item) => {
         const s = (item.state || "").toLowerCase();
-        return ["pending", "reviews", "wait", "attente"].some(key => s.includes(key));
+        return ["pending", "reviews", "wait", "attente"].some((key) =>
+          s.includes(key),
+        );
       }).length,
     };
   };
 
   // 🔥 Fonction pour filtrer les données selon le filtre
-  const filterDataByDate = React.useCallback((data: RequestModelT[]) => {
-    if (!data || data.length === 0) return [];
+  const filterDataByDate = React.useCallback(
+    (data: RequestModelT[]) => {
+      if (!data || data.length === 0) return [];
 
-    const now = new Date();
-    let startDate: Date;
-    let endDate: Date = now;
+      const now = new Date();
+      let startDate: Date;
+      let endDate: Date = now;
 
-    // Si pas de filtre, retourner toutes les données
-    if (!dateFilter) {
-      return data;
-    }
-
-    // Filtre personnalisé
-    if (dateFilter === "custom" && customDateRange) {
-      startDate = new Date(customDateRange.from);
-      endDate = new Date(customDateRange.to);
-      if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      // Si pas de filtre, retourner toutes les données
+      if (!dateFilter) {
         return data;
       }
-      return data.filter(item => {
-        try {
-          const itemDate = new Date(item.createdAt);
-          return isWithinInterval(itemDate, { start: startDate, end: endDate });
-        } catch {
-          return false;
+
+      // Filtre personnalisé
+      if (dateFilter === "custom" && customDateRange) {
+        startDate = new Date(customDateRange.from);
+        endDate = new Date(customDateRange.to);
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+          return data;
         }
-      });
-    }
-
-    // Filtres prédéfinis
-    switch (dateFilter) {
-      case "today":
-        startDate = new Date(now);
-        startDate.setHours(0, 0, 0, 0);
-        return data.filter(item => {
-          try {
-            return isSameDay(new Date(item.createdAt), now);
-          } catch {
-            return false;
-          }
-        });
-
-      case "week": {
-        startDate = subDays(now, 6);
-        startDate.setHours(0, 0, 0, 0);
-        return data.filter(item => {
+        return data.filter((item) => {
           try {
             const itemDate = new Date(item.createdAt);
-            return itemDate >= startDate && itemDate <= now;
+            return isWithinInterval(itemDate, {
+              start: startDate,
+              end: endDate,
+            });
           } catch {
             return false;
           }
         });
       }
 
-      case "month": {
-        startDate = startOfMonth(now);
-        endDate = endOfMonth(now);
-        return data.filter(item => {
-          try {
-            const itemDate = new Date(item.createdAt);
-            return itemDate >= startDate && itemDate <= endDate;
-          } catch {
-            return false;
-          }
-        });
-      }
+      // Filtres prédéfinis
+      switch (dateFilter) {
+        case "today":
+          startDate = new Date(now);
+          startDate.setHours(0, 0, 0, 0);
+          return data.filter((item) => {
+            try {
+              return isSameDay(new Date(item.createdAt), now);
+            } catch {
+              return false;
+            }
+          });
 
-      case "year": {
-        startDate = new Date(now.getFullYear(), 0, 1);
-        endDate = new Date(now.getFullYear(), 11, 31);
-        return data.filter(item => {
-          try {
-            const itemDate = new Date(item.createdAt);
-            return itemDate >= startDate && itemDate <= endDate;
-          } catch {
-            return false;
-          }
-        });
-      }
+        case "week": {
+          startDate = subDays(now, 6);
+          startDate.setHours(0, 0, 0, 0);
+          return data.filter((item) => {
+            try {
+              const itemDate = new Date(item.createdAt);
+              return itemDate >= startDate && itemDate <= now;
+            } catch {
+              return false;
+            }
+          });
+        }
 
-      default:
-        return data;
-    }
-  }, [dateFilter, customDateRange]);
+        case "month": {
+          startDate = startOfMonth(now);
+          endDate = endOfMonth(now);
+          return data.filter((item) => {
+            try {
+              const itemDate = new Date(item.createdAt);
+              return itemDate >= startDate && itemDate <= endDate;
+            } catch {
+              return false;
+            }
+          });
+        }
+
+        case "year": {
+          startDate = new Date(now.getFullYear(), 0, 1);
+          endDate = new Date(now.getFullYear(), 11, 31);
+          return data.filter((item) => {
+            try {
+              const itemDate = new Date(item.createdAt);
+              return itemDate >= startDate && itemDate <= endDate;
+            } catch {
+              return false;
+            }
+          });
+        }
+
+        default:
+          return data;
+      }
+    },
+    [dateFilter, customDateRange],
+  );
 
   // 🔥 Données filtrées
   const filteredDataByDate = React.useMemo(() => {
     return filterDataByDate(filteredData);
   }, [filteredData, filterDataByDate]);
 
-  const getIntervalType = (start: Date, end: Date): 'day' | 'week' | 'month' => {
-    const diffDays = differenceInDays(end, start);
-    if (diffDays > 60) return 'month';
-    if (diffDays > 14) return 'week';
-    return 'day';
-  };
+  // const getIntervalType = (start: Date, end: Date): 'day' | 'week' | 'month' => {
+  //   const diffDays = differenceInDays(end, start);
+  //   if (diffDays > 60) return 'month';
+  //   if (diffDays > 14) return 'week';
+  //   return 'day';
+  // };
 
   const chartData = React.useMemo(() => {
     if (filteredDataByDate.length === 0) return [];
 
     // Extraire les dates des données filtrées
     const dates = filteredDataByDate
-      .map(item => new Date(item.createdAt))
-      .filter(date => !isNaN(date.getTime()));
+      .map((item) => new Date(item.createdAt))
+      .filter((date) => !isNaN(date.getTime()));
 
     if (dates.length === 0) return [];
 
-    const dataMinDate = new Date(Math.min(...dates.map(d => d.getTime())));
-    const dataMaxDate = new Date(Math.max(...dates.map(d => d.getTime())));
+    const dataMinDate = new Date(Math.min(...dates.map((d) => d.getTime())));
+    const dataMaxDate = new Date(Math.max(...dates.map((d) => d.getTime())));
 
     let startDate: Date;
     let endDate: Date;
-    let intervalType: 'day' | 'week' | 'month' = 'day';
+    let intervalType: "day" | "week" | "month" = "day";
 
     // Si c'est "year", on utilise une logique spéciale
     if (dateFilter === "year") {
       const year = dataMaxDate.getFullYear();
       startDate = new Date(year, 0, 1);
       endDate = new Date(year, 11, 31);
-      intervalType = 'month';
+      intervalType = "month";
     }
     // Si "month", on utilise le mois
     else if (dateFilter === "month") {
@@ -218,7 +228,7 @@ export function ChartAreaInteractiveAll({
       const year = dataMaxDate.getFullYear();
       startDate = new Date(year, month, 1);
       endDate = new Date(year, month + 1, 0);
-      intervalType = 'week';
+      intervalType = "week";
     }
     // Si "custom" ou autre
     else {
@@ -229,9 +239,9 @@ export function ChartAreaInteractiveAll({
       endDate.setHours(23, 59, 59, 999);
 
       const diffDays = differenceInDays(endDate, startDate);
-      if (diffDays > 60) intervalType = 'month';
-      else if (diffDays > 14) intervalType = 'week';
-      else intervalType = 'day';
+      if (diffDays > 60) intervalType = "month";
+      else if (diffDays > 14) intervalType = "week";
+      else intervalType = "day";
     }
 
     if (startDate > endDate) {
@@ -241,16 +251,16 @@ export function ChartAreaInteractiveAll({
     let intervals: Date[] = [];
 
     switch (intervalType) {
-      case 'day':
+      case "day":
         intervals = eachDayOfInterval({ start: startDate, end: endDate });
         break;
-      case 'week':
+      case "week":
         intervals = eachWeekOfInterval(
           { start: startDate, end: endDate },
-          { weekStartsOn: 1 }
+          { weekStartsOn: 1 },
         );
         break;
-      case 'month':
+      case "month":
         intervals = eachMonthOfInterval({ start: startDate, end: endDate });
         break;
     }
@@ -261,22 +271,22 @@ export function ChartAreaInteractiveAll({
       let label: string;
 
       switch (intervalType) {
-        case 'day':
+        case "day":
           periodStart = new Date(date);
           periodStart.setHours(0, 0, 0, 0);
           periodEnd = new Date(date);
           periodEnd.setHours(23, 59, 59, 999);
-          label = format(date, 'dd/MM', { locale: fr });
+          label = format(date, "dd/MM", { locale: fr });
           break;
-        case 'week':
+        case "week":
           periodStart = startOfWeek(date, { weekStartsOn: 1 });
           periodEnd = endOfWeek(date, { weekStartsOn: 1 });
           label = `S${getWeek(date, { weekStartsOn: 1 })}`;
           break;
-        case 'month':
+        case "month":
           periodStart = new Date(date.getFullYear(), date.getMonth(), 1);
           periodEnd = new Date(date.getFullYear(), date.getMonth() + 1, 0);
-          label = format(date, 'MMM', { locale: fr });
+          label = format(date, "MMM", { locale: fr });
           break;
       }
 
@@ -290,7 +300,7 @@ export function ChartAreaInteractiveAll({
       });
 
       return {
-        date: format(date, 'yyyy-MM-dd'),
+        date: format(date, "yyyy-MM-dd"),
         label,
         ...getStatusCounts(dayData),
       };
@@ -303,11 +313,11 @@ export function ChartAreaInteractiveAll({
       if (isNaN(date.getTime())) return value;
 
       if (dateFilter === "year") {
-        return format(date, 'MMM', { locale: fr });
+        return format(date, "MMM", { locale: fr });
       } else if (dateFilter === "month") {
         return `S${getWeek(date, { weekStartsOn: 1 })}`;
       } else {
-        return format(date, 'dd/MM', { locale: fr });
+        return format(date, "dd/MM", { locale: fr });
       }
     } catch {
       return value;
@@ -320,13 +330,13 @@ export function ChartAreaInteractiveAll({
       if (isNaN(date.getTime())) return value;
 
       if (dateFilter === "year") {
-        return format(date, 'MMMM yyyy', { locale: fr });
+        return format(date, "MMMM yyyy", { locale: fr });
       } else if (dateFilter === "month") {
         const weekStart = startOfWeek(date, { weekStartsOn: 1 });
         const weekEnd = endOfWeek(date, { weekStartsOn: 1 });
-        return `Semaine ${getWeek(date, { weekStartsOn: 1 })} (${format(weekStart, 'dd/MM', { locale: fr })} - ${format(weekEnd, 'dd/MM', { locale: fr })})`;
+        return `Semaine ${getWeek(date, { weekStartsOn: 1 })} (${format(weekStart, "dd/MM", { locale: fr })} - ${format(weekEnd, "dd/MM", { locale: fr })})`;
       } else {
-        return format(date, 'EEEE dd MMMM yyyy', { locale: fr });
+        return format(date, "EEEE dd MMMM yyyy", { locale: fr });
       }
     } catch {
       return value;
@@ -371,17 +381,23 @@ export function ChartAreaInteractiveAll({
           <CardDescription>{description}</CardDescription>
         </div>
         <div className="flex flex-wrap border-t sm:border-t-0">
-          {(Object.keys(chartConfig) as Array<keyof typeof chartConfig>).map((key) => (
-            <button
-              key={key}
-              data-active={activeChart === key}
-              className="flex flex-1 min-w-[100px] flex-col justify-center gap-1 border-l px-4 py-2 text-left data-[active=true]:bg-muted/50 sm:px-6 sm:py-4"
-              onClick={() => setActiveChart(key)}
-            >
-              <span className="text-muted-foreground text-xs">{chartConfig[key].label}</span>
-              <span className="text-lg font-bold leading-none sm:text-2xl">{total[key]}</span>
-            </button>
-          ))}
+          {(Object.keys(chartConfig) as Array<keyof typeof chartConfig>).map(
+            (key) => (
+              <button
+                key={key}
+                data-active={activeChart === key}
+                className="flex flex-1 min-w-[100px] flex-col justify-center gap-1 border-l px-4 py-2 text-left data-[active=true]:bg-muted/50 sm:px-6 sm:py-4"
+                onClick={() => setActiveChart(key)}
+              >
+                <span className="text-muted-foreground text-xs">
+                  {chartConfig[key].label}
+                </span>
+                <span className="text-lg font-bold leading-none sm:text-2xl">
+                  {total[key]}
+                </span>
+              </button>
+            ),
+          )}
         </div>
       </CardHeader>
 
@@ -395,16 +411,40 @@ export function ChartAreaInteractiveAll({
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="fillApprouve" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--chart-2)" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="var(--chart-2)" stopOpacity={0.1} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--chart-2)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--chart-2)"
+                    stopOpacity={0.1}
+                  />
                 </linearGradient>
                 <linearGradient id="fillRejete" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--chart-1)" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="var(--chart-1)" stopOpacity={0.1} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--chart-1)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--chart-1)"
+                    stopOpacity={0.1}
+                  />
                 </linearGradient>
                 <linearGradient id="fillAttente" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="var(--chart-3)" stopOpacity={0.8} />
-                  <stop offset="95%" stopColor="var(--chart-3)" stopOpacity={0.1} />
+                  <stop
+                    offset="5%"
+                    stopColor="var(--chart-3)"
+                    stopOpacity={0.8}
+                  />
+                  <stop
+                    offset="95%"
+                    stopColor="var(--chart-3)"
+                    stopOpacity={0.1}
+                  />
                 </linearGradient>
               </defs>
               <CartesianGrid vertical={false} />

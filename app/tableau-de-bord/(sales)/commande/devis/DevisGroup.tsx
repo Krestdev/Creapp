@@ -1,7 +1,6 @@
 "use client";
 
 import { DownloadFile } from "@/components/base/downLoadFile";
-import ShowFile from "@/components/base/show-file";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,12 +13,12 @@ import {
 } from "@/components/ui/dialog";
 import { QuotationGroup } from "@/types/types";
 import {
+  LucideChevronRight,
   LucideClipboardList,
   LucideFile,
+  LucideFileText,
   LucideHash,
   LucideUserRound,
-  LucideChevronRight,
-  LucideFileText,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -72,14 +71,14 @@ export function DevisGroup({ open, onOpenChange, devis }: DetailModalProps) {
     );
   };
 
-  const handleViewQuotation = (
-    proof: string | File | undefined,
-    providerName: string,
-  ) => {
-    setFile(proof);
-    setSelectedProvider(providerName);
-    setPage(2);
-  };
+  // const handleViewQuotation = (
+  //   proof: string | File | undefined,
+  //   providerName: string,
+  // ) => {
+  //   setFile(proof);
+  //   setSelectedProvider(providerName);
+  //   setPage(2);
+  // };
 
   return (
     <Dialog

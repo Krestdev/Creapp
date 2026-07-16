@@ -1,19 +1,18 @@
 "use client";
 
-import ErrorPage from "@/components/error-page";
-import LoadingPage from "@/components/loading-page";
-import PageTitle from "@/components/pageTitle";
-import { receptionQ } from "@/queries/reception";
-import type { Reception } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
-import { ReceptionTable } from "./reception-table";
-import { quotationQ } from "@/queries/quotation";
-import { commandRqstQ } from "@/queries/commandRqstModule";
-import { purchaseQ } from "@/queries/purchase-order";
 import {
   StatisticCard,
   StatisticProps,
 } from "@/components/base/TitleValueCard";
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
+import PageTitle from "@/components/pageTitle";
+import { commandRqstQ } from "@/queries/commandRqstModule";
+import { purchaseQ } from "@/queries/purchase-order";
+import { quotationQ } from "@/queries/quotation";
+import { receptionQ } from "@/queries/reception";
+import { useQuery } from "@tanstack/react-query";
+import { ReceptionTable } from "./reception-table";
 
 const ReceptionsPage = () => {
   const getReceptions = useQuery({
@@ -51,8 +50,10 @@ const ReceptionsPage = () => {
     {
       title: "Receptions en attente",
       value:
-        (getReceptions.data?.data.filter((x) => x.Status === "PENDING").length ?? 0) +
-        (getReceptions.data?.data.filter((c) => c.Status === "PARTIAL").length ?? 0),
+        (getReceptions.data?.data.filter((x) => x.Status === "PENDING")
+          .length ?? 0) +
+        (getReceptions.data?.data.filter((c) => c.Status === "PARTIAL")
+          .length ?? 0),
       variant: "secondary",
       more: {
         title: "Receptions partielles",

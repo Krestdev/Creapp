@@ -83,10 +83,10 @@ function Page() {
 
   const {
     data: stats,
-    isLoading: isLoadingStats,
-    isError: isErrorStats,
-    error: errorStats,
-    isSuccess: isSuccessStats,
+    // isLoading: isLoadingStats,
+    // isError: isErrorStats,
+    // error: errorStats,
+    // isSuccess: isSuccessStats,
   } = useQuery({
     queryKey: queryKeys.allRequestsStats(filters, customFilters, dateFilter),
     queryFn: async () =>
@@ -150,28 +150,28 @@ function Page() {
     });
   };
 
-  const uniqueCategories = React.useMemo(() => {
-    if (!requests?.data.data || !categoryData.data?.data) return [];
-    return [
-      ...new Set(
-        categoryData.data.data.map((req) => {
-          return { id: req.id, label: req.label };
-        }),
-      ),
-    ];
-  }, [requests, categoryData.data]);
+  // const uniqueCategories = React.useMemo(() => {
+  //   if (!requests?.data.data || !categoryData.data?.data) return [];
+  //   return [
+  //     ...new Set(
+  //       categoryData.data.data.map((req) => {
+  //         return { id: req.id, label: req.label };
+  //       }),
+  //     ),
+  //   ];
+  // }, [requests, categoryData.data]);
 
-  const uniqueProjects = React.useMemo(() => {
-    if (!requests?.data.data || !projectsData.data?.data) return [];
+  // const uniqueProjects = React.useMemo(() => {
+  //   if (!requests?.data.data || !projectsData.data?.data) return [];
 
-    return [
-      ...new Set(
-        projectsData.data.data.map((req) => {
-          return { id: req.id, label: `Projet ${req.label}` };
-        }),
-      ),
-    ];
-  }, [requests, projectsData.data]);
+  //   return [
+  //     ...new Set(
+  //       projectsData.data.data.map((req) => {
+  //         return { id: req.id, label: `Projet ${req.label}` };
+  //       }),
+  //     ),
+  //   ];
+  // }, [requests, projectsData.data]);
 
   // Client-side filtering is replaced by server-side filtering via API.
 
@@ -262,12 +262,13 @@ function Page() {
           paginationOptions={{
             onPaginationChange: (updater) => {
               setFilters((prev) => {
-                const nextPagination = typeof updater === "function"
-                  ? updater({
-                    pageIndex: prev.pageIndex,
-                    pageSize: prev.pageSize,
-                  })
-                  : updater;
+                const nextPagination =
+                  typeof updater === "function"
+                    ? updater({
+                        pageIndex: prev.pageIndex,
+                        pageSize: prev.pageSize,
+                      })
+                    : updater;
                 return { ...prev, ...nextPagination };
               });
             },
@@ -275,7 +276,7 @@ function Page() {
           }}
           pagination={paginationState}
           filters={{
-            users: {data :usersData.data.data},
+            users: { data: usersData.data.data },
             requestTypes: requestTypes.data.data,
             uniqueCategories: categoryData.data.data,
             uniqueProjects: projectsData.data.data,

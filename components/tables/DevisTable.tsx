@@ -517,6 +517,7 @@ export function DevisTable({
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -886,7 +887,7 @@ export function DevisTable({
                         }}
                         className={dateFilter === "today" ? "bg-accent" : ""}
                       >
-                        <span>Aujourd'hui</span>
+                        <span>{"Aujourd'hui"}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {

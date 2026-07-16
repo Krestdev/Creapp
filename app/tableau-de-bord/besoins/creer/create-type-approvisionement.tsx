@@ -66,7 +66,7 @@ const formSchema = z.object({
   priority: z.enum(REQUEST_PRIORITIES),
 });
 
-function CreateTypeApprovisionement({ users, categories, projects }: Props) {
+function CreateTypeApprovisionement({ categories, projects }: Props) {
   const router = useRouter();
 
   const [dueDate, setDueDate] = React.useState<boolean>(false);

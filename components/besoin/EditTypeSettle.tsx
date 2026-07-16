@@ -55,7 +55,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -116,7 +116,7 @@ type FormValues = z.infer<typeof formSchema>;
 function EditTypeSettle({
   request,
   users,
-  categories,
+  // categories,
   projects,
   open,
   onOpenChange,
@@ -127,9 +127,9 @@ function EditTypeSettle({
   const [dueDate, setDueDate] = useState<boolean>(false);
 
   // Filtrer les catégories de type "settle" une seule fois
-  const filteredCategories = useMemo(() => {
-    return categories.filter((c) => c.type?.type === "settle");
-  }, [categories]);
+  // const filteredCategories = useMemo(() => {
+  //   return categories.filter((c) => c.type?.type === "settle");
+  // }, [categories]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -205,7 +205,7 @@ function EditTypeSettle({
         priority: values.priority,
         projectId: values.projectId,
         proof: values.proof,
-        userId: user?.id!,
+        userId: Number(user?.id),
       };
 
       mutate(payload);

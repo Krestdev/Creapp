@@ -74,7 +74,7 @@ export function DetailBesoin({
   purchaseOrders,
 }: DetailModalProps) {
   const { user } = useStore();
-  const userId = user?.id;
+  // const userId = user?.id;
 
   //Get old values
   const initialValues = data.requestOlds?.find((r) => r.userId !== user?.id);
@@ -119,34 +119,34 @@ export function DetailBesoin({
     }
   };
 
-  const statusConfig = {
-    pending: {
-      label: "En attente",
-      color:
-        "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-    },
-    validated: {
-      label: "Approuvé",
-      color:
-        "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-    },
-    rejected: {
-      label: "Rejeté",
-      color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-    },
-    cancel: {
-      label: "Annulé",
-      color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
-    },
-    store: {
-      label: "Déstocké",
-      color: "bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-    },
-  };
+  // const statusConfig = {
+  //   pending: {
+  //     label: "En attente",
+  //     color:
+  //       "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+  //   },
+  //   validated: {
+  //     label: "Approuvé",
+  //     color:
+  //       "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+  //   },
+  //   rejected: {
+  //     label: "Rejeté",
+  //     color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
+  //   },
+  //   cancel: {
+  //     label: "Annulé",
+  //     color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
+  //   },
+  //   store: {
+  //     label: "Déstocké",
+  //     color: "bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+  //   },
+  // };
 
-  type StatusKey = keyof typeof statusConfig;
-  const currentStatus =
-    statusConfig[data.state as StatusKey] ?? statusConfig.pending;
+  // type StatusKey = keyof typeof statusConfig;
+  // const currentStatus =
+  //   statusConfig[data.state as StatusKey] ?? statusConfig.pending;
   const curentPriority =
     data.priority === "urgent"
       ? "Urgent"

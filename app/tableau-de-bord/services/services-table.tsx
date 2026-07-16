@@ -65,35 +65,35 @@ function ServicesTable({ services, users }: Props) {
   const [deleteDialog, setDeleteDialog] = React.useState<boolean>(false);
   const [editDialog, setEditDialog] = React.useState(false);
 
-  const [userFilter, setUserFilter] = React.useState<"all" | string>("all");
-  const [searchFilter, setSearchFilter] = React.useState<string>("");
+  // const [userFilter, setUserFilter] = React.useState<"all" | string>("all");
+  // const [searchFilter, setSearchFilter] = React.useState<string>("");
 
   // Réinitialiser tous les filtres
-  const resetAllFilters = () => {
-    setGlobalFilter("");
-    setUserFilter("all");
-  };
+  // const resetAllFilters = () => {
+  //   setGlobalFilter("");
+  //   setUserFilter("all");
+  // };
 
-  const filteredServices = React.useMemo(() => {
-    return services.filter((service) => {
-      const search = searchFilter.toLowerCase().trim();
-      const matchUser =
-        userFilter === "all" ? true : service.headId === Number(userFilter);
-      const matchSearch =
-        search === ""
-          ? true
-          : service.id.toString().includes(search) ||
-            service.label.toLowerCase().includes(search) ||
-            service.headId?.toString().includes(search) ||
-            service.users.some((u) =>
-              u.firstName.toLowerCase().includes(search),
-            ) ||
-            service.users.some((u) =>
-              u.lastName.toLowerCase().includes(search),
-            );
-      return matchUser && matchSearch;
-    });
-  }, [services, userFilter, searchFilter]);
+  // const filteredServices = React.useMemo(() => {
+  //   return services.filter((service) => {
+  //     const search = searchFilter.toLowerCase().trim();
+  //     const matchUser =
+  //       userFilter === "all" ? true : service.headId === Number(userFilter);
+  //     const matchSearch =
+  //       search === ""
+  //         ? true
+  //         : service.id.toString().includes(search) ||
+  //           service.label.toLowerCase().includes(search) ||
+  //           service.headId?.toString().includes(search) ||
+  //           service.users.some((u) =>
+  //             u.firstName.toLowerCase().includes(search),
+  //           ) ||
+  //           service.users.some((u) =>
+  //             u.lastName.toLowerCase().includes(search),
+  //           );
+  //     return matchUser && matchSearch;
+  //   });
+  // }, [services, userFilter, searchFilter]);
 
   const columns: ColumnDef<Service>[] = [
     {
@@ -227,8 +227,10 @@ function ServicesTable({ services, users }: Props) {
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data: filteredServices,
+    // data: filteredServices,
+    data: services,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -239,7 +241,7 @@ function ServicesTable({ services, users }: Props) {
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
     onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, columnId, filterValue) => {
+    globalFilterFn: (row, filterValue) => {
       const searchableColumns = ["id", "label", "headId"];
       const searchValue = filterValue.toLowerCase();
 

@@ -97,13 +97,13 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
     },
   });
 
-  const capitalizeFirstName = (value: string) =>
-    value
-      .toLocaleLowerCase("fr-FR")
-      .replace(/^\p{L}/u, (letter) => letter.toLocaleUpperCase("fr-FR"));
+  // const capitalizeFirstName = (value: string) =>
+  //   value
+  //     .toLocaleLowerCase("fr-FR")
+  //     .replace(/^\p{L}/u, (letter) => letter.toLocaleUpperCase("fr-FR"));
 
-  const formatFullName = (lastName: string, firstName: string) =>
-    `${lastName.toLocaleUpperCase("fr-FR")} ${capitalizeFirstName(firstName)}`;
+  // const formatFullName = (lastName: string, firstName: string) =>
+  //   `${lastName.toLocaleUpperCase("fr-FR")} ${capitalizeFirstName(firstName)}`;
 
   const columns = React.useMemo<ColumnDef<Vehicle>[]>(
     () => [
@@ -265,6 +265,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
     [user?.id, vehicleMutation],
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

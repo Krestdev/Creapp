@@ -59,7 +59,7 @@ import {
   WalletCardsIcon,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo } from "react";
+import React from "react";
 
 interface Props {
   open: boolean;
@@ -126,8 +126,8 @@ function ViewExpense({
   const request = getRequest.data?.data;
 
   const getVehicle = useQuery({
-    queryKey: queryKeys.vehicle(request?.vehiclesId!),
-    queryFn: () => vehicleQ.getOne(request!.vehiclesId!),
+    queryKey: queryKeys.vehicle(Number(request?.vehiclesId)),
+    queryFn: () => vehicleQ.getOne(Number(request?.vehiclesId)),
     enabled: !!request?.vehiclesId, // 🔥 clé ici
   });
 
@@ -146,7 +146,7 @@ function ViewExpense({
     queryFn: signatairQ.getAll,
   });
 
-  const signataires = useMemo(() => {
+  const signataires = (() => {
     if (!getSignataire.data?.data || !payment?.bankId || !payment?.methodId) {
       return undefined;
     }
@@ -154,7 +154,7 @@ function ViewExpense({
     return getSignataire.data.data.find(
       (x) => x.bankId === payment.bankId && x.payTypeId === payment.methodId,
     );
-  }, [getSignataire.data?.data, payment?.bankId, payment?.methodId]);
+  })();
 
   const methodName =
     payTypes.find((p) => p.id === payment.methodId)?.label || "Non défini";

@@ -389,6 +389,7 @@ export function PaiementsTable({
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: payments,
     columns: columns as any,

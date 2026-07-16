@@ -1,5 +1,4 @@
 "use client";
-import { SearchableSelect } from "@/components/base/searchableSelect";
 import LoadingPage from "@/components/loading-page";
 import { ProviderDialog } from "@/components/modals/ProviderDialog";
 import { Button } from "@/components/ui/button";
@@ -25,6 +24,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
+import { queryKeys } from "@/lib/query-keys";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { commandRqstQ } from "@/queries/commandRqstModule";
@@ -42,7 +42,6 @@ import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
 import AddElement from "./creer/addElement";
-import { queryKeys } from "@/lib/query-keys";
 
 // ─── Schema (no proof) ───────────────────────────────────────────────────────
 

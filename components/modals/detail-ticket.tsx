@@ -11,15 +11,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { queryKeys } from "@/lib/query-keys";
 import { XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
-import {
-  Invoice,
-  PaymentRequest,
-  PayType,
-  RequestModelT,
-  User,
-} from "@/types/types";
+import { userQ } from "@/queries/baseModule";
+import { paymentQ } from "@/queries/payment";
+import { requestQ } from "@/queries/requestModule";
+import { Invoice, PayType } from "@/types/types";
+import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
@@ -33,22 +31,16 @@ import {
   FileText,
   FolderOpen,
   Hash,
-  LucideFile,
   Receipt,
   ScrollIcon,
   UserRoundIcon,
   Users,
 } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { DownloadFile } from "../base/downLoadFile";
 import ShowFile from "../base/show-file";
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
-import { queryKeys } from "@/lib/query-keys";
-import { paymentQ } from "@/queries/payment";
 import { Skeleton } from "../ui/skeleton";
-import { requestQ } from "@/queries/requestModule";
-import { userQ } from "@/queries/baseModule";
 
 interface DetailTicketProps {
   id: number;
@@ -75,16 +67,16 @@ export function DetailTicket({
 
   //Get Request
   const getRequest = useQuery({
-    queryKey: queryKeys.request(data?.requestId!),
-    queryFn: () => requestQ.getOne(data?.requestId!),
+    queryKey: queryKeys.request(Number(data?.requestId)),
+    queryFn: () => requestQ.getOne(Number(data?.requestId)),
     enabled: !!data?.requestId,
   });
   const request = getRequest.data?.data;
 
   //Get emitter
   const getEmitter = useQuery({
-    queryKey: queryKeys.user(request?.userId!),
-    queryFn: () => userQ.getOne(request?.userId!),
+    queryKey: queryKeys.user(Number(request?.userId)),
+    queryFn: () => userQ.getOne(Number(request?.userId)),
     enabled: !!request?.userId,
   });
 
@@ -92,8 +84,8 @@ export function DetailTicket({
 
   //Get Beneficiary
   const getBeneficiary = useQuery({
-    queryKey: queryKeys.user(Number(request?.beneficiary)!),
-    queryFn: () => userQ.getOne(Number(request?.beneficiary!)),
+    queryKey: queryKeys.user(Number(request?.beneficiary)),
+    queryFn: () => userQ.getOne(Number(request?.beneficiary)),
     enabled: !!request?.beneficiary,
   });
 
@@ -104,10 +96,9 @@ export function DetailTicket({
     if (!montant) return "0 FCFA";
     return `${montant.toLocaleString("fr-FR")} FCFA`;
   };
-  const { user } = useStore();
 
   const [page, setPage] = useState(1);
-  const [file, setFile] = useState<string | File | undefined>(undefined);
+  const [file] = useState<string | File | undefined>(undefined);
 
   // Fonction pour obtenir la couleur du badge selon la priorité
   const getPrioriteColor = (priorite: string | undefined) => {
@@ -188,20 +179,20 @@ export function DetailTicket({
   };
 
   // Fonction pour traduire les moyens de paiement
-  const typePaiment = (type: string | undefined) => {
-    switch (type) {
-      case "FAC":
-        return "Facilitation";
-      case "RH":
-        return "Resource Humain";
-      case "SPECIAL":
-        return "Special";
-      case "PURCHASE":
-        return "Normal";
-      default:
-        return "Diver";
-    }
-  };
+  // const typePaiment = (type: string | undefined) => {
+  //   switch (type) {
+  //     case "FAC":
+  //       return "Facilitation";
+  //     case "RH":
+  //       return "Resource Humain";
+  //     case "SPECIAL":
+  //       return "Special";
+  //     case "PURCHASE":
+  //       return "Normal";
+  //     default:
+  //       return "Diver";
+  //   }
+  // };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -272,10 +263,10 @@ export function DetailTicket({
                           <p className="font-semibold">
                             {request?.period ? (
                               <p className="font-semibold">{`Du ${format(
-                                request?.period.from!,
+                                request?.period.from ?? "",
                                 "PPP",
                                 { locale: fr },
-                              )} au ${format(request?.period.to!, "PPP", {
+                              )} au ${format(request?.period.to ?? "", "PPP", {
                                 locale: fr,
                               })}`}</p>
                             ) : (

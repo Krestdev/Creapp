@@ -486,6 +486,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     [user?.id, userMutation, userMutationData],
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,

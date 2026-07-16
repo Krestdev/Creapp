@@ -24,7 +24,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -60,9 +59,8 @@ export default function UpdatePaymentMethod({
   setOpen,
   requestData,
   onSuccess,
-  categories,
+  // categories,
 }: UpdatePaymentMethodProps) {
-  const { user } = useStore();
   const [isFormInitialized, setIsFormInitialized] = useState(false);
 
   // ----------------------------------------------------------------------
@@ -107,7 +105,9 @@ export default function UpdatePaymentMethod({
       request: Partial<RequestModelT>;
     }) => requestQ.validate({ id, request }),
     onSuccess: () => {
-      toast.success("Moyen de paiement mis à jour et besoin approuvé avec succès !");
+      toast.success(
+        "Moyen de paiement mis à jour et besoin approuvé avec succès !",
+      );
       setOpen(false);
       onSuccess?.();
     },

@@ -63,7 +63,7 @@ type FormValues = z.infer<typeof formSchema>;
 function EditPaymentMethod({ open, openChange, payment }: Props) {
   const { user } = useStore();
 
-  const [dueDate, setDueDate] = React.useState<boolean>(false);
+  // const [dueDate, setDueDate] = React.useState<boolean>(false);
   const today = new Date(); //On part sur 3 jours de delai de base :)
   today.setDate(today.getDate() + 3);
 
@@ -77,7 +77,7 @@ function EditPaymentMethod({ open, openChange, payment }: Props) {
     },
   });
 
-  const isPartial = form.watch("isPartial");
+  // const isPartial = form.watch("isPartial");
 
   const updatePayment = useMutation({
     mutationFn: async (data: Partial<UpdatePayment>) =>
@@ -97,7 +97,7 @@ function EditPaymentMethod({ open, openChange, payment }: Props) {
   });
 
   function onSubmit(values: FormValues) {
-    const invoice = payment.facture;
+    // const invoice = payment.facture;
 
     const payload: Partial<UpdatePayment> = {
       methodId: Number(values.methodId),
@@ -121,9 +121,9 @@ function EditPaymentMethod({ open, openChange, payment }: Props) {
               name="deadline"
               render={({ field }) => {
                 // Convertir la valeur string en Date pour le calendrier
-                const selectedDate = field.value
-                  ? new Date(field.value)
-                  : undefined;
+                // const selectedDate = field.value
+                //   ? new Date(field.value)
+                //   : undefined;
 
                 return (
                   <FormItem>
@@ -140,7 +140,7 @@ function EditPaymentMethod({ open, openChange, payment }: Props) {
                         onKeyDown={(e) => {
                           if (e.key === "ArrowDown") {
                             e.preventDefault();
-                            setDueDate(true);
+                            // setDueDate(true);
                           }
                         }}
                         disabled

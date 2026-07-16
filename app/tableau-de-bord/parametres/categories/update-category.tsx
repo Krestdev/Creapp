@@ -215,11 +215,11 @@ export function UpdateCategory({
   };
 
   // Fonction pour obtenir le nom d'un utilisateur par son ID
-  const getUserName = (userId: number) => {
-    const users = usersList.filter((u) => u.verified) || [];
-    const user = users.find((u) => u.id === userId);
-    return user?.lastName + " " + user?.firstName || `Utilisateur #${userId}`;
-  };
+  // const getUserName = (userId: number) => {
+  //   const users = usersList.filter((u) => u.verified) || [];
+  //   const user = users.find((u) => u.id === userId);
+  //   return user?.lastName + " " + user?.firstName || `Utilisateur #${userId}`;
+  // };
 
   // Fonction pour obtenir les utilisateurs disponibles (non sélectionnés)
   const getAvailableUsers = (currentIndex?: number) => {

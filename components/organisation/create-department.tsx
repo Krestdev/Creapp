@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { departmentQ } from "@/queries/departmentModule";
-import { DepartmentT, ResponseT } from "@/types/types";
+import { DepartmentT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
@@ -59,7 +59,7 @@ export function DepartmentCreateForm() {
         | "members"
       > & { chiefId: number },
     ) => departmentQ.create(data),
-    onSuccess: (data: ResponseT<DepartmentT>) => {
+    onSuccess: () => {
       toast.success("Département créé avec succès !");
       form.reset();
     },
@@ -156,12 +156,12 @@ export function DepartmentCreateForm() {
             name="chiefid"
             control={form.control}
             render={({ field, fieldState }) => {
-              const options = userApi.data
-                ? userApi.data.data.filter((u) => u.verified).map((user) => ({
-                  value: user.id,
-                  label: user.lastName + " " + user.firstName,
-                }))
-                : [];
+              // const options = userApi.data
+              //   ? userApi.data.data.filter((u) => u.verified).map((user) => ({
+              //     value: user.id,
+              //     label: user.lastName + " " + user.firstName,
+              //   }))
+              //   : [];
               return (
                 <Field data-invalid={fieldState.invalid} className="gap-1">
                   <FieldLabel htmlFor="chiefid">

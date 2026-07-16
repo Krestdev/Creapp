@@ -32,14 +32,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { newRequestGas, requestQ } from "@/queries/requestModule";
 import { Category, PRIORITIES, User, Vehicle } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React from "react";
@@ -87,7 +85,7 @@ const formSchema = z.object({
   priority: z.enum(REQUEST_PRIORITIES),
 });
 
-function CreateTypeGas({ users, categories, vehicles }: Props) {
+function CreateTypeGas({ categories, vehicles }: Props) {
   const { user } = useStore();
   const router = useRouter();
 
@@ -236,24 +234,29 @@ function CreateTypeGas({ users, categories, vehicles }: Props) {
             </FormItem>
           )}
         />
-        {form.watch("description") === "Mission" && (
-          <FormField
-            control={form.control}
-            name="more"
-            render={({ field }) => (
-              <FormItem className="@min-[640px]:col-span-full">
-                <FormLabel isRequired>{"Description de la mission"}</FormLabel>
-                <FormControl>
-                  <Textarea
-                    {...field}
-                    placeholder="Renseigner une description"
-                  />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        )}
+        {
+          // eslint-disable-next-line react-hooks/incompatible-library
+          form.watch("description") === "Mission" && (
+            <FormField
+              control={form.control}
+              name="more"
+              render={({ field }) => (
+                <FormItem className="@min-[640px]:col-span-full">
+                  <FormLabel isRequired>
+                    {"Description de la mission"}
+                  </FormLabel>
+                  <FormControl>
+                    <Textarea
+                      {...field}
+                      placeholder="Renseigner une description"
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          )
+        }
         {/* DATE LIMITE */}
         <FormField
           control={form.control}

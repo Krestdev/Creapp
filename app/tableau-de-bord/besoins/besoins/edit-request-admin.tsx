@@ -1,13 +1,10 @@
 "use client";
 import ErrorDialog from "@/components/error-dialog";
 import LoadingDialog from "@/components/loading-dialog";
-import { Button } from "@/components/ui/button";
 import {
   Dialog,
-  DialogClose,
   DialogContent,
   DialogDescription,
-  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
@@ -30,8 +27,8 @@ function EditRequestAdmin({
   open,
   openChange,
   reqId,
-  users,
-  requestTypes,
+  // users,
+  // requestTypes,
 }: EditProps) {
   const request = useQuery({
     queryKey: queryKeys.request(reqId),

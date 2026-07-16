@@ -75,3 +75,5 @@ class NotificationQueries {
       });
   };
 }
+
+export const notificationQueries = new NotificationQueries();

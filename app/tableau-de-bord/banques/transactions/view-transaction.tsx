@@ -45,27 +45,27 @@ interface Props {
 }
 
 function ViewTransaction({ open, openChange, transaction, users }: Props) {
-  const getSourceDetails = (source: Transaction["from"]) => {
-    const details = [];
-    // if ("accountNumber" in source && source.accountNumber) {
-    //   details.push(`Numéro de compte: ${source.accountNumber}`);
-    // }
-    if ("phoneNumber" in source && source.phoneNumber) {
-      details.push(`Numéro de téléphone: ${source.phoneNumber}`);
-    }
-    return details;
-  };
+  // const getSourceDetails = (source: Transaction["from"]) => {
+  //   const details = [];
+  //   // if ("accountNumber" in source && source.accountNumber) {
+  //   //   details.push(`Numéro de compte: ${source.accountNumber}`);
+  //   // }
+  //   if ("phoneNumber" in source && source.phoneNumber) {
+  //     details.push(`Numéro de téléphone: ${source.phoneNumber}`);
+  //   }
+  //   return details;
+  // };
 
-  const getTargetDetails = (target: Transaction["to"]) => {
-    const details = [];
-    // if ("accountNumber" in target && target.accountNumber) {
-    //   details.push(`Numéro de compte: ${target.accountNumber}`);
-    // }
-    if ("phoneNumber" in target && target.phoneNumber) {
-      details.push(`Numéro de téléphone: ${target.phoneNumber}`);
-    }
-    return details;
-  };
+  // const getTargetDetails = (target: Transaction["to"]) => {
+  //   const details = [];
+  //   // if ("accountNumber" in target && target.accountNumber) {
+  //   //   details.push(`Numéro de compte: ${target.accountNumber}`);
+  //   // }
+  //   if ("phoneNumber" in target && target.phoneNumber) {
+  //     details.push(`Numéro de téléphone: ${target.phoneNumber}`);
+  //   }
+  //   return details;
+  // };
 
   const createdBy = users.find((u) => u.id === transaction.userId);
 
@@ -213,9 +213,7 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Document à signer"}</p>
                   <p className="font-semibold">
-                    {transaction.method?.label! +
-                      " N°" +
-                      transaction?.docNumber}
+                    {transaction.method?.label + " N°" + transaction?.docNumber}
                   </p>
                 </div>
               </div>
@@ -227,7 +225,7 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
                   <p className="view-group-title">{"Signé par"}</p>
                   <div className="w-full grid gap-2">
                     {transaction.signers?.length === 0 ||
-                      !transaction.signers ? (
+                    !transaction.signers ? (
                       <p className="text-sm">
                         {"Aucune signature enregistrée"}
                       </p>

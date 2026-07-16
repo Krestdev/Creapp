@@ -36,7 +36,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
 import { useStore } from "@/providers/datastore";
 import { newRequestSettle, requestQ } from "@/queries/requestModule";
-import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
+import { Category, ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -53,10 +53,10 @@ interface Props {
   projects: Array<ProjectT>;
 }
 
-const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
-  (typeof PRIORITIES)[number]["value"],
-  ...(typeof PRIORITIES)[number]["value"][],
-];
+// const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
+//   (typeof PRIORITIES)[number]["value"],
+//   ...(typeof PRIORITIES)[number]["value"][],
+// ];
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);

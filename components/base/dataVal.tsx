@@ -17,20 +17,17 @@ import {
 import {
   ArrowUpDown,
   CheckCheck,
-  CheckCircle,
-  ChevronDown,
   Circle,
   Ellipsis,
   Eye,
-  Hourglass,
   LoaderIcon,
   LucideBan,
   LucideCreditCard,
-  LucideIcon,
   Settings2,
 } from "lucide-react";
 import * as React from "react";
 
+import TransportApprobation from "@/app/tableau-de-bord/besoins/transport-approbation";
 import ApprovalFilters, {
   ApprovalFiltersProps,
 } from "@/app/tableau-de-bord/besoins/validation/filters";
@@ -71,7 +68,6 @@ import {
   User,
 } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
-import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -84,7 +80,7 @@ import BesoinLastValSettle from "../modals/BesoinLastValSettle";
 import BesoinRHLastVal from "../modals/BesoinRHLastVal";
 import UpdatePaymentMethod from "../modals/UpdatePaymentMethod";
 import { ValidationModal } from "../modals/ValidationModal";
-import { Badge, badgeVariants } from "../ui/badge";
+import { Badge } from "../ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -94,9 +90,6 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Label } from "../ui/label";
-import { Textarea } from "../ui/textarea";
-import Empty from "./empty";
-import { Pagination } from "./pagination";
 import {
   Sheet,
   SheetContent,
@@ -105,8 +98,10 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "../ui/sheet";
+import { Textarea } from "../ui/textarea";
+import Empty from "./empty";
+import { Pagination } from "./pagination";
 import { TabBar, TabProps } from "./TabBar";
-import TransportApprobation from "@/app/tableau-de-bord/besoins/transport-approbation";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -158,7 +153,7 @@ export function DataVal({
   const [rowSelection, setRowSelection] = React.useState({});
 
   // États pour les filtres
-  const [globalFilter, setGlobalFilter] = React.useState("");
+  // const [globalFilter, setGlobalFilter] = React.useState("");
 
   // Modal states
   const [selectedItem, setSelectedItem] = React.useState<RequestModelT | null>(
@@ -217,21 +212,21 @@ export function DataVal({
     return category?.label || categoryId;
   };
 
-  const categoryIds = [...new Set(data.map((req) => req.categoryId))];
+  // const categoryIds = [...new Set(data.map((req) => req.categoryId))];
 
-  const uniqueStatus = React.useMemo(() => {
-    if (!data.length) return [];
-    return [...new Set(data.map((req) => req.state))].map((state) => {
-      const status = getRequestStatusBadge(state);
-      return {
-        id: state,
-        name: status.label,
-        icon: status.icon,
-        variant: status.variant,
-        rowClassName: status.className,
-      };
-    });
-  }, [data]);
+  // const uniqueStatus = React.useMemo(() => {
+  //   if (!data.length) return [];
+  //   return [...new Set(data.map((req) => req.state))].map((state) => {
+  //     const status = getRequestStatusBadge(state);
+  //     return {
+  //       id: state,
+  //       name: status.label,
+  //       icon: status.icon,
+  //       variant: status.variant,
+  //       rowClassName: status.className,
+  //     };
+  //   });
+  // }, [data]);
 
   const reviewRequest = useMutation({
     mutationFn: async ({
@@ -462,27 +457,27 @@ export function DataVal({
     };
   };
 
-  const deselectAll = () => {
-    table.toggleAllPageRowsSelected(false);
-  };
+  // const deselectAll = () => {
+  //   table.toggleAllPageRowsSelected(false);
+  // };
 
-  const selectOnlyValidatable = () => {
-    const validatableRows = table.getRowModel().rows.filter((row) => {
-      const item = row.original;
-      const validationInfo = getValidationInfo(item);
-      const userHasValidated = hasUserAlreadyValidated(item);
+  // const selectOnlyValidatable = () => {
+  //   const validatableRows = table.getRowModel().rows.filter((row) => {
+  //     const item = row.original;
+  //     const validationInfo = getValidationInfo(item);
+  //     const userHasValidated = hasUserAlreadyValidated(item);
 
-      return (
-        validationInfo.canValidate &&
-        item.state === "pending" &&
-        !userHasValidated
-      );
-    });
+  //     return (
+  //       validationInfo.canValidate &&
+  //       item.state === "pending" &&
+  //       !userHasValidated
+  //     );
+  //   });
 
-    deselectAll();
+  //   deselectAll();
 
-    validatableRows.forEach((row) => row.toggleSelected(true));
-  };
+  //   validatableRows.forEach((row) => row.toggleSelected(true));
+  // };
 
   // Define columns
   const columns: ColumnDef<RequestModelT>[] = React.useMemo(() => {
@@ -623,7 +618,7 @@ export function DataVal({
         },
         cell: ({ row }) => {
           const categoryName = getCategoryName(row.getValue("categoryId"));
-          const validationInfo = getValidationInfo(row.original);
+          // const validationInfo = getValidationInfo(row.original);
 
           return categoryName;
         },
@@ -873,6 +868,7 @@ export function DataVal({
     return baseColumns;
   }, [tab, user?.id, categoriesData, isCheckable]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: data,
     columns,
@@ -889,7 +885,7 @@ export function DataVal({
       sorting,
       columnVisibility,
       rowSelection,
-      globalFilter,
+      // globalFilter,
       pagination,
     },
   });

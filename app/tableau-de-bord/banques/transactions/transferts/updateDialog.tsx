@@ -1,4 +1,6 @@
 "use client";
+import ErrorPage from "@/components/error-page";
+import LoadingPage from "@/components/loading-page";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,18 +28,15 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
 import { bankQ } from "@/queries/bank";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
 import { Transaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
-import LoadingPage from "@/components/loading-page";
-import ErrorPage from "@/components/error-page";
 
 const formSchema = z
   .object({
@@ -71,18 +70,18 @@ export function EditTransferDialog({
   onOpenChange,
   transfer,
 }: EditTransferDialogProps) {
-  const { user } = useStore();
+  // const { user } = useStore();
 
   // Charger la liste des banques
   const {
     data: banks,
     isLoading: banksLoading,
     isError: banksError,
-    isSuccess: banksSuccess,
+    // isSuccess: banksSuccess,
   } = useQuery({
     queryKey: ["banks"],
     queryFn: bankQ.getAll,
-    enabled: open
+    enabled: open,
   });
 
   const form = useForm<FormValues>({
@@ -95,7 +94,9 @@ export function EditTransferDialog({
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const fromValue = form.watch("fromBankId");
+   
   const amountValue = form.watch("amount");
 
   const filteredBanks = useMemo(() => {
@@ -116,7 +117,9 @@ export function EditTransferDialog({
 
   // Mutation pour mettre à jour le transfert
   const updateMutation = useMutation({
-    mutationFn: async (data: Omit<TransactionProps, "userId" | "updatedAt">) => {
+    mutationFn: async (
+      data: Omit<TransactionProps, "userId" | "updatedAt">,
+    ) => {
       return transactionQ.update(transfer.id, data);
     },
     onSuccess: () => {
@@ -172,10 +175,7 @@ export function EditTransferDialog({
       });
       return false;
     }
-    if (
-      fromType === "CASH_REGISTER" &&
-      toType !== "CASH"
-    ) {
+    if (fromType === "CASH_REGISTER" && toType !== "CASH") {
       form.setError("toBankId", {
         message:
           "Vous ne pouvez transférer de la Caisse que vers une sous-caisse !",
@@ -221,8 +221,8 @@ export function EditTransferDialog({
     }
   }, [open, transfer, banks?.data, form]);
 
-  if (banksLoading) return <LoadingPage />
-  if (banksError || !banks?.data) return <ErrorPage />
+  if (banksLoading) return <LoadingPage />;
+  if (banksError || !banks?.data) return <ErrorPage />;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -328,7 +328,7 @@ export function EditTransferDialog({
                         </SelectTrigger>
                         <SelectContent>
                           {filteredBanks
-                            .filter(bank => bank.id !== fromValue)
+                            .filter((bank) => bank.id !== fromValue)
                             .map((bank) => (
                               <SelectItem key={bank.id} value={String(bank.id)}>
                                 {bank.label}
@@ -384,7 +384,9 @@ export function EditTransferDialog({
                 disabled={updateMutation.isPending || !isBalanceSufficient}
                 isLoading={updateMutation.isPending}
               >
-                {updateMutation.isPending ? "Modification..." : "Enregistrer les modifications"}
+                {updateMutation.isPending
+                  ? "Modification..."
+                  : "Enregistrer les modifications"}
               </Button>
             </DialogFooter>
           </form>

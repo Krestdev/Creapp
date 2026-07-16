@@ -68,7 +68,7 @@ const Page = () => {
   // Récupérer les besoins de l'utilisateur
   const { data, isSuccess, isLoading, isError, error } = useQuery({
     queryKey: queryKeys.requestsUser(user?.id),
-    queryFn: () => requestQ.getMine(user?.id!),
+    queryFn: () => requestQ.getMine(Number(user?.id)),
     enabled: !!user?.id,
   });
 
@@ -657,7 +657,7 @@ const Page = () => {
                               dateFilter === "today" ? "bg-accent" : ""
                             }
                           >
-                            <span>Aujourd'hui</span>
+                            <span>{"Aujourd'hui"}</span>
                           </DropdownMenuItem>
                           <DropdownMenuItem
                             onClick={() => {

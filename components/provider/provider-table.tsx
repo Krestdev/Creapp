@@ -375,6 +375,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
     [],
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -590,7 +591,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
         description="êtes-vous sur de vouloir supprimer ce fournisseur ?"
         open={openWarning}
         onOpenChange={SetOpenWarning}
-        onAction={() => providerMutation.mutate(selectedItem?.id!)}
+        onAction={() => providerMutation.mutate(Number(selectedItem?.id))}
         actionText="Supprimer"
       />
     </div>

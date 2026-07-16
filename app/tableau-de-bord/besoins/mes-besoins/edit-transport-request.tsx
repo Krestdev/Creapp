@@ -41,9 +41,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import { units } from "@/data/unit";
 import { XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
 import { newRequestTransport, requestQ } from "@/queries/requestModule";
 import {
   Category,
@@ -53,11 +51,10 @@ import {
   User,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2 } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -116,7 +113,7 @@ function EditTransportRequest({
   open,
   onOpenChange,
 }: Props) {
-  const { user } = useStore();
+  // const { user } = useStore();
   const [dueDate, setDueDate] = useState<boolean>(false);
 
   const form = useForm<FormValues>({
@@ -155,6 +152,7 @@ function EditTransportRequest({
     name: "list",
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const list = form.watch("list");
   const amount = list.reduce((a, b) => a + b.amount, 0);
   const listError = form.getFieldState("list").error?.message;

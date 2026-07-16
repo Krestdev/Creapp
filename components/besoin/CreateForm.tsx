@@ -29,14 +29,11 @@ import { units } from "@/data/unit";
 import { cn } from "@/lib/utils";
 
 import { useStore } from "@/providers/datastore";
-import { userQ } from "@/queries/baseModule";
-import { categoryQ } from "@/queries/categoryModule";
-import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 
 import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -97,6 +94,7 @@ export default function MyForm({ categories, users, projects }: Props) {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const beneficiaire = form.watch("beneficiaire");
 
   // Si on change le bénéficiaire, on réinitialise le champ bénéficiaireId
@@ -292,7 +290,7 @@ export default function MyForm({ categories, users, projects }: Props) {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {units.map((unit, id) => (
+                    {units.map((unit) => (
                       <SelectItem key={unit.value} value={unit.value}>
                         {unit.name}
                       </SelectItem>

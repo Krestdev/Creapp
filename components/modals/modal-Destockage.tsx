@@ -44,11 +44,11 @@ export function ModalDestockage({
       await requestQ.update(Number(id), { state: "store" });
       return { id: Number(id) };
     },
-    onSuccess: (res) => {
+    onSuccess: () => {
       toast.success("Le besoin a été déstocké.");
       onOpenChange(false);
     },
-    onError: (error) => {
+    onError: () => {
       toast.error("Une erreur est survenue.");
     },
   });

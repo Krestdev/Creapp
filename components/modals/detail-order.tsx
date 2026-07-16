@@ -1,4 +1,5 @@
 "use client";
+import { CrossPlatformPDFViewer } from "@/components/cross-view-pdf";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -10,10 +11,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CommandRequestT } from "@/types/types";
-import { DownloadButton } from "../bdcommande/TéléchargeButton";
-import { CrossPlatformPDFViewer } from "@/components/cross-view-pdf";
 import CotationPDF from "../bdcommande/DétailCotation";
-import { Description } from "@radix-ui/react-dialog";
+import { DownloadButton } from "../bdcommande/TéléchargeButton";
 
 interface DetailOrderProps {
   open: boolean;

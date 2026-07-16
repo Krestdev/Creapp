@@ -1,9 +1,8 @@
+import { formatFCFA } from "@/lib/utils";
+import logo from "@/public/logo-icon.png";
 import {
-  DebitTransaction,
-  PAY_STATUS,
   PaymentRequest,
   PayType,
-  RequestModelT,
   RequestType,
   Transaction,
   User,
@@ -17,8 +16,6 @@ import {
   View,
 } from "@react-pdf/renderer";
 import React from "react";
-import { formatFCFA } from "@/lib/utils";
-import logo from "@/public/logo-icon.png";
 
 const styles = StyleSheet.create({
   page: {
@@ -308,7 +305,9 @@ const DepenseDocument: React.FC<ReceiptPDFProps> = ({
   const paymentEmitter = users.find((u) => u.id === paymentRequest.userId);
 
   const receiver = !!transaction
-    ?  !!transaction.toBankName ? transaction.toBankName : "--" 
+    ? !!transaction.toBankName
+      ? transaction.toBankName
+      : "--"
     : paymentRequest.type === "achat" && paymentEmitter
       ? paymentEmitter.firstName.concat(" ", paymentEmitter.lastName)
       : (beneficiaryName ?? emitter);

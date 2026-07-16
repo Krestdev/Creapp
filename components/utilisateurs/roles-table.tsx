@@ -45,7 +45,7 @@ export function RoleTable({ data }: RolesTableProps) {
     { id: "createdAt", desc: true },
   ]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    []
+    [],
   );
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
@@ -96,7 +96,9 @@ export function RoleTable({ data }: RolesTableProps) {
             <div className="flex gap-1.5 w-fit">
               {(row.getValue("users") as User[]).map((user, index) => (
                 <div key={index}>
-                  <Badge variant="sky">{user.lastName + " " + user.firstName}</Badge>
+                  <Badge variant="sky">
+                    {user.lastName + " " + user.firstName}
+                  </Badge>
                 </div>
               ))}
             </div>
@@ -139,9 +141,10 @@ export function RoleTable({ data }: RolesTableProps) {
         },
       },
     ],
-    []
+    [],
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
@@ -211,11 +214,11 @@ export function RoleTable({ data }: RolesTableProps) {
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id === "label" ?
-                      "Nom" :
-                      column.id === "users" ?
-                        "Membres" :
-                        column.id}
+                    {column.id === "label"
+                      ? "Nom"
+                      : column.id === "users"
+                        ? "Membres"
+                        : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -238,9 +241,9 @@ export function RoleTable({ data }: RolesTableProps) {
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -266,7 +269,7 @@ export function RoleTable({ data }: RolesTableProps) {
                     >
                       {flexRender(
                         cell.column.columnDef.cell,
-                        cell.getContext()
+                        cell.getContext(),
                       )}
                     </TableCell>
                   ))}

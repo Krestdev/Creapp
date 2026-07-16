@@ -18,7 +18,7 @@ import {
   CarFrontIcon,
   CarIcon,
   FileImage,
-  ScanBarcodeIcon
+  ScanBarcodeIcon,
 } from "lucide-react";
 import { Button } from "../ui/button";
 
@@ -34,22 +34,22 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
   /* =========================
        FORMAT DATE
     ========================= */
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "Non disponible";
+  // const formatDate = (dateString?: string) => {
+  //   if (!dateString) return "Non disponible";
 
-    try {
-      const date = new Date(dateString);
-      return new Intl.DateTimeFormat("fr-FR", {
-        day: "2-digit",
-        month: "2-digit",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      }).format(date);
-    } catch {
-      return "Date invalide";
-    }
-  };
+  //   try {
+  //     const date = new Date(dateString);
+  //     return new Intl.DateTimeFormat("fr-FR", {
+  //       day: "2-digit",
+  //       month: "2-digit",
+  //       year: "numeric",
+  //       hour: "2-digit",
+  //       minute: "2-digit",
+  //     }).format(date);
+  //   } catch {
+  //     return "Date invalide";
+  //   }
+  // };
 
   const url = `${process.env.NEXT_PUBLIC_API}/${vehicleData.picture}`;
   /* =========================
@@ -139,7 +139,13 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
               <div className="flex flex-col">
                 <p className="view-group-title">{"Date d'acquisition"}</p>
                 <p className="font-semibold">
-                  {vehicleData.purchaseDate ? format(new Date(vehicleData.purchaseDate), "dd MMMM yyyy", {locale: fr}) : "Non renseigné"}
+                  {vehicleData.purchaseDate
+                    ? format(
+                        new Date(vehicleData.purchaseDate),
+                        "dd MMMM yyyy",
+                        { locale: fr },
+                      )
+                    : "Non renseigné"}
                 </p>
               </div>
             </div>
@@ -153,7 +159,11 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Date d'ajout"}</p>
                   <p className="font-semibold">
-                    {format(new Date(vehicleData.createdAt), "dd MMMM yyyy, p", {locale: fr})}
+                    {format(
+                      new Date(vehicleData.createdAt),
+                      "dd MMMM yyyy, p",
+                      { locale: fr },
+                    )}
                   </p>
                 </div>
               </div>
@@ -168,7 +178,11 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Date de mise à jour"}</p>
                   <p className="font-semibold">
-                    {format(new Date(vehicleData.updatedAt), "dd MMMM yyyy, p", {locale: fr})}
+                    {format(
+                      new Date(vehicleData.updatedAt),
+                      "dd MMMM yyyy, p",
+                      { locale: fr },
+                    )}
                   </p>
                 </div>
               </div>
@@ -178,10 +192,7 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
           {/* CLOSE BUTTON */}
           <DialogFooter>
             <DialogClose asChild>
-              <Button
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
+              <Button variant="outline" onClick={() => setOpen(false)}>
                 {"Fermer"}
               </Button>
             </DialogClose>

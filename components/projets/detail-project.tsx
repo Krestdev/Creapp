@@ -14,7 +14,7 @@ import { ProjectT } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
-import { da, fr } from "date-fns/locale";
+import { fr } from "date-fns/locale";
 import {
   CheckCircle,
   Clipboard,
@@ -43,6 +43,12 @@ export function DetailProject({
   onOpenChange,
   data,
 }: DetailProjectProps) {
+  const usersData = useQuery({
+    queryKey: ["users"],
+    queryFn: () => userQ.getAll(),
+    enabled: !!data,
+  });
+
   if (!data) return null;
 
   // Fonction pour obtenir les informations du badge selon le statut
@@ -70,11 +76,6 @@ export function DetailProject({
         return { label: status, variant: "outline" };
     }
   };
-
-  const usersData = useQuery({
-    queryKey: ["users"],
-    queryFn: () => userQ.getAll(),
-  });
 
   const getUserName = (id: number) => {
     const user = usersData.data?.data.find((user) => user.id === id);
@@ -141,7 +142,9 @@ export function DetailProject({
                     {"Chef de projet"}
                   </p>
                   <p className="font-semibold">
-                    {data.chief ? data.chief.firstName.concat(" ", data.chief.lastName) : "Non assigné"}
+                    {data.chief
+                      ? data.chief.firstName.concat(" ", data.chief.lastName)
+                      : "Non assigné"}
                   </p>
                 </div>
               </div>

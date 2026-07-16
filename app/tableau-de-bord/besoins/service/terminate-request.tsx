@@ -40,8 +40,10 @@ function TerminateRequest({ open, onOpenChange, data }: Props) {
           <DialogDescription>{data.label}</DialogDescription>
         </DialogHeader>
         <p className="py-2 text-sm">
-          Cette action est irréversible. Veuillez vous assurer d'avoir pris la
-          décision correcte et que les informations à traiter sont exactes.
+          {
+            "Cette action est irréversible. Veuillez vous assurer d'avoir pris la"
+          }
+          {"décision correcte et que les informations à traiter sont exactes."}
         </p>
         <DialogFooter>
           <Button

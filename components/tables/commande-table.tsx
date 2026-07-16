@@ -237,28 +237,28 @@ export function CommandeTable({
   }, [data, dateFilter, customDateRange]);
 
   // Fonction pour obtenir le texte d'affichage du filtre de date
-  const getDateFilterText = () => {
-    switch (dateFilter) {
-      case "today":
-        return "Aujourd'hui";
-      case "week":
-        return "Cette semaine";
-      case "month":
-        return "Ce mois";
-      case "year":
-        return "Cette année";
-      case "custom":
-        if (customDateRange?.from && customDateRange?.to) {
-          return `${format(customDateRange.from, "dd/MM/yyyy")} - ${format(
-            customDateRange.to,
-            "dd/MM/yyyy",
-          )}`;
-        }
-        return "Personnaliser";
-      default:
-        return "Toutes les périodes";
-    }
-  };
+  // const getDateFilterText = () => {
+  //   switch (dateFilter) {
+  //     case "today":
+  //       return "Aujourd'hui";
+  //     case "week":
+  //       return "Cette semaine";
+  //     case "month":
+  //       return "Ce mois";
+  //     case "year":
+  //       return "Cette année";
+  //     case "custom":
+  //       if (customDateRange?.from && customDateRange?.to) {
+  //         return `${format(customDateRange.from, "dd/MM/yyyy")} - ${format(
+  //           customDateRange.to,
+  //           "dd/MM/yyyy",
+  //         )}`;
+  //       }
+  //       return "Personnaliser";
+  //     default:
+  //       return "Toutes les périodes";
+  //   }
+  // };
 
   const columns: ColumnDef<CommandRequestT>[] = [
     {
@@ -391,13 +391,17 @@ export function CommandeTable({
                   setSelectedCommand(item);
                   setIsUpdateModalOpen(true);
                 }}
-                disabled={devisAssocies?.length! > 0}
+                disabled={
+                  devisAssocies?.length ? devisAssocies?.length > 0 : false
+                }
               >
                 <LucidePen className="mr-2 h-4 w-4" />
                 {"Modifier"}
               </DropdownMenuItem>
               <DropdownMenuItem
-                disabled={devisAssocies?.length! > 0}
+                disabled={
+                  devisAssocies?.length ? devisAssocies?.length > 0 : false
+                }
                 onClick={() => {
                   setSelectedCommand(item);
                   setIsDevisModalCancelOpen(true);
@@ -413,6 +417,7 @@ export function CommandeTable({
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData?.reverse() || [],
     columns,
@@ -521,7 +526,7 @@ export function CommandeTable({
                       }}
                       className={dateFilter === "today" ? "bg-accent" : ""}
                     >
-                      <span>Aujourd'hui</span>
+                      <span>{"Aujourd'hui"}</span>
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {

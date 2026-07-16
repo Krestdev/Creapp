@@ -13,6 +13,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 import {
   Table,
   TableBody,
@@ -23,10 +32,9 @@ import {
 } from "@/components/ui/table";
 import { XAF, cn, getRequestTypeBadge, subText } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { } from "@/queries/commandRqstModule";
+import {} from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
 import {
-  DateFilter,
   PRIORITIES,
   PayType,
   PaymentRequest,
@@ -60,14 +68,12 @@ import {
   LucideCheck,
   Settings2,
 } from "lucide-react";
-import { SetStateAction, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 import ViewExpense from "../(volt)/depenses/view-expense";
 import CardTicket from "./card-ticket";
 import RejectTicket from "./reject-ticket";
 import TicketFilters, { TicketFiltersProps } from "./ticketFilters";
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { Input } from "@/components/ui/input";
 
 interface TicketsTableProps {
   data: PaymentRequest[];
@@ -174,11 +180,10 @@ export function TicketTable({
   const [globalFilter, setGlobalFilter] = useState("");
   const [openDetailModal, setOpenDetailModal] = useState(false);
   const [openValidationModal, setOpenValidationModal] = useState(false);
-  const [openPaiementModal, setOpenPaiementModal] = useState(false);
+  const [, setOpenPaiementModal] = useState(false);
   const [openRejectModal, setOpenRejectModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState<PaymentRequest>();
   const [search, setSearch] = useState(filters.customFilters.search);
-
 
   const [message, setMessage] = useState<string>("");
 
@@ -190,9 +195,11 @@ export function TicketTable({
     },
     onSuccess: () => {
       toast.success(message);
-      message.includes("payé")
-        ? setOpenPaiementModal(false)
-        : setOpenValidationModal(false);
+      if (message.includes("payé")) {
+        setOpenPaiementModal(false);
+      } else {
+        setOpenValidationModal(false);
+      }
     },
     onError: (error) => {
       toast.error(error.message);
@@ -205,9 +212,11 @@ export function TicketTable({
     },
     onSuccess: () => {
       toast.success(message);
-      message.includes("payé")
-        ? setOpenPaiementModal(false)
-        : setOpenValidationModal(false);
+      if (message.includes("payé")) {
+        setOpenPaiementModal(false);
+      } else {
+        setOpenValidationModal(false);
+      }
     },
     onError: (error) => {
       toast.error(error.message);
@@ -407,7 +416,7 @@ export function TicketTable({
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
-        const invoice = item.facture;
+        // const invoice = item.facture;
         return (
           <DropdownMenu>
             <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
@@ -468,6 +477,7 @@ export function TicketTable({
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
@@ -622,9 +632,9 @@ export function TicketTable({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
                       </TableHead>
                     );
                   })}
@@ -701,7 +711,7 @@ export function TicketTable({
         description={"Voulez-vous valider ce ticket ?"}
         onAction={() =>
           validateMutation.mutate({
-            id: selectedTicket?.id!,
+            id: Number(selectedTicket?.id),
             data: {
               invoiceId: selectedTicket?.invoiceId,
               price: selectedTicket?.price,

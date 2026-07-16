@@ -48,8 +48,9 @@ export default function MultiSelectRole({
   return (
     <div className={`${className} w-full flex flex-col gap-2`}>
       <div
-        className={`relative ${display === "Role" && "p-3 border"
-          } rounded-lg flex flex-wrap gap-2 items-center`}
+        className={`relative ${
+          display === "Role" && "p-3 border"
+        } rounded-lg flex flex-wrap gap-2 items-center`}
       >
         {/* Tags */}
         {display === "Role" &&
@@ -90,8 +91,9 @@ export default function MultiSelectRole({
             <Button
               variant={"ghost"}
               type="button"
-              className={`${display === "Role" ? "ml-auto" : "mx-auto w-full border"
-                }`}
+              className={`${
+                display === "Role" ? "ml-auto" : "mx-auto w-full border"
+              }`}
             >
               {display === "Role" ? "Ajouter un Rôle" : ""}
               <LucidePlus
@@ -105,7 +107,7 @@ export default function MultiSelectRole({
             side="bottom"
             sideOffset={5}
             // Empêche la fermeture automatique au clic à l'intérieur
-            onInteractOutside={(e) => {
+            onInteractOutside={() => {
               // Permet de fermer seulement quand on clique en dehors
               // Pas de logique spéciale ici, le comportement par défaut est bon
             }}

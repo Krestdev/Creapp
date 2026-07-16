@@ -27,7 +27,6 @@ import { UpdatePayment, paymentQ } from "@/queries/payment";
 import {
   Invoice,
   PRIORITIES,
-  PayType,
   PaymentRequest,
   RequestModelT,
   RequestType,
@@ -138,8 +137,8 @@ export function TicketsTable({
   isAdmin,
   isManaged,
   requestTypeData,
-  users,
-  requests,
+  // users,
+  // requests,
 }: TicketsTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
@@ -165,10 +164,10 @@ export function TicketsTable({
 
   const {
     data: invoices,
-    isSuccess,
-    isLoading,
-    isError,
-    error,
+    // isSuccess,
+    // isLoading,
+    // isError,
+    // error,
   } = useQuery({
     queryKey: ["invoices"],
     queryFn: invoiceQ.getAll,
@@ -180,9 +179,12 @@ export function TicketsTable({
     },
     onSuccess: () => {
       toast.success(message);
-      message.includes("payé")
-        ? setOpenPaiementModal(false)
-        : setOpenValidationModal(false);
+      if (message.includes("payé")) {
+        setOpenPaiementModal(false);
+      } else {
+        setOpenValidationModal(false);
+      }
+      console.info(openPaiementModal);
     },
     onError: (error) => {
       toast.error(error.message);
@@ -195,9 +197,11 @@ export function TicketsTable({
     },
     onSuccess: () => {
       toast.success(message);
-      message.includes("payé")
-        ? setOpenPaiementModal(false)
-        : setOpenValidationModal(false);
+      if (message.includes("payé")) {
+        setOpenPaiementModal(false);
+      } else {
+        setOpenValidationModal(false);
+      }
     },
     onError: (error) => {
       toast.error(error.message);
@@ -462,6 +466,7 @@ export function TicketsTable({
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: data.sort((a, b) => a.reference.localeCompare(b.reference)),
     columns,
@@ -623,7 +628,7 @@ export function TicketsTable({
         description={"Voulez-vous valider ce ticket ?"}
         action={() =>
           validateMutation.mutate({
-            id: selectedTicket?.id!,
+            id: Number(selectedTicket?.id),
             data: {
               invoiceId: selectedTicket?.invoiceId,
               price: selectedTicket?.price,

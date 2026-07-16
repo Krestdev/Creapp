@@ -62,8 +62,15 @@ export function UpdateRequestType({
 
   // Mutation pour la mise à jour
   const updateMutation = useMutation({
-    mutationFn: (values: { id: number; label: string, description: string }) => {
-      return requestTypeQ.update(data?.id!, { label: values.label, description: values.description });
+    mutationFn: (values: {
+      id: number;
+      label: string;
+      description: string;
+    }) => {
+      return requestTypeQ.update(Number(data?.id), {
+        label: values.label,
+        description: values.description,
+      });
     },
     onSuccess: () => {
       toast.success("Type de besoin modifié avec succès");
@@ -161,7 +168,7 @@ export function UpdateRequestType({
                       className="resize-none"
                       rows={4}
                       {...field}
-                      disabled 
+                      disabled
                     />
                   </FormControl>
                   <FormMessage />

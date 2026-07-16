@@ -186,9 +186,9 @@ export function PurchaseTable({
   );
   const [statusSearch, setStatusSearch] = React.useState("");
   const [prioritySearch, setPrioritySearch] = React.useState("");
-  const [penaltyFilter, setPenaltyFilter] = React.useState<
-    "all" | "yes" | "no"
-  >("all");
+  // const [penaltyFilter, setPenaltyFilter] = React.useState<
+  //   "all" | "yes" | "no"
+  // >("all");
 
   // Nouveaux filtres pour fournisseur et cotation
   const [providerFilter, setProviderFilter] = React.useState<string>("all");
@@ -295,12 +295,12 @@ export function PurchaseTable({
       filtered = filtered.filter((po) => po.priority === priorityFilter);
     }
 
-    if (penaltyFilter !== "all") {
-      filtered = filtered.filter((po) => {
-        const has = !!po.hasPenalties;
-        return penaltyFilter === "yes" ? has : !has;
-      });
-    }
+    // if (penaltyFilter !== "all") {
+    //   filtered = filtered.filter((po) => {
+    //     const has = !!po.hasPenalties;
+    //     return penaltyFilter === "yes" ? has : !has;
+    //   });
+    // }
 
     // Filtre par fournisseur
     if (providerFilter !== "all") {
@@ -330,7 +330,7 @@ export function PurchaseTable({
     customDateRange,
     statusFilter,
     priorityFilter,
-    penaltyFilter,
+    // penaltyFilter,
     providerFilter,
     cotationFilter,
     paymentFilter,
@@ -559,6 +559,7 @@ export function PurchaseTable({
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,
@@ -1050,7 +1051,7 @@ export function PurchaseTable({
                         }}
                         className={dateFilter === "today" ? "bg-accent" : ""}
                       >
-                        <span>Aujourd'hui</span>
+                        <span>{"Aujourd'hui"}</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => {
@@ -1178,7 +1179,7 @@ export function PurchaseTable({
           {/* Filtres actifs */}
           {(statusFilter !== "all" ||
             priorityFilter !== "all" ||
-            penaltyFilter !== "all" ||
+            // penaltyFilter !== "all" ||
             providerFilter !== "all" ||
             cotationFilter !== "all" ||
             dateFilter !== undefined ||
@@ -1210,11 +1211,11 @@ export function PurchaseTable({
                 </Badge>
               )}
 
-              {penaltyFilter !== "all" && (
+              {/* {penaltyFilter !== "all" && (
                 <Badge variant="outline" className="font-normal">
                   {`Pénalités: ${penaltyFilter === "yes" ? "Oui" : "Non"}`}
                 </Badge>
-              )}
+              )} */}
 
               {dateFilter !== undefined && (
                 <Badge variant="outline" className="font-normal">
@@ -1334,7 +1335,7 @@ export function PurchaseTable({
                     </span>
                     {(statusFilter !== "all" ||
                       priorityFilter !== "all" ||
-                      penaltyFilter !== "all" ||
+                      // penaltyFilter !== "all" ||
                       providerFilter !== "all" ||
                       cotationFilter !== "all" ||
                       globalFilter) && (

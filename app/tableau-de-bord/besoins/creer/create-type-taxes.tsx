@@ -64,7 +64,7 @@ const methods = [
   { value: "ov", label: "Virement" },
 ] as const;
 
-const PAY_METHODS = methods.map((m) => m.value);
+// const PAY_METHODS = methods.map((m) => m.value);s
 
 const today = new Date();
 today.setHours(0, 0, 0, 0);

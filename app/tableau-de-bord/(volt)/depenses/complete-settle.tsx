@@ -25,28 +25,11 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { queryKeys } from "@/lib/query-keys";
 import { getRequestTypeBadge } from "@/lib/utils";
-import {
-  PayloadGasCompletion,
-  PayloadSettleCompletion,
-  paymentQ,
-} from "@/queries/payment";
+import { PayloadSettleCompletion, paymentQ } from "@/queries/payment";
 import { vehicleQ } from "@/queries/vehicule";
-import {
-  PaymentRequest,
-  RequestModelT,
-  RequestType,
-  User,
-  Vehicle,
-} from "@/types/types";
+import { PaymentRequest, RequestType, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -119,8 +102,8 @@ function CompleteSettle({
   );
 
   const getVehicle = useQuery({
-    queryKey: queryKeys.vehicle(request?.vehiclesId!),
-    queryFn: () => vehicleQ.getOne(request?.vehiclesId!),
+    queryKey: queryKeys.vehicle(Number(request?.vehiclesId)),
+    queryFn: () => vehicleQ.getOne(Number(request?.vehiclesId)),
     enabled: !!request?.vehiclesId,
   });
   const vehicle = getVehicle.data?.data;

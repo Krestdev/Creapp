@@ -17,18 +17,10 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { XAF } from "@/lib/utils";
 import { transactionQ } from "@/queries/transaction";
-import {
-  Bank,
-  PaymentRequest,
-  RequestModelT,
-  Transaction,
-  Vehicle,
-} from "@/types/types";
+import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
-import { CarIcon, DollarSignIcon, LandmarkIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -70,7 +62,7 @@ function AddProove({ ticket, open, onOpenChange }: Props) {
     },
   });
 
-  function onSubmit(values: FormValues) {
+  function onSubmit() {
     // if (transaction && transaction.from.balance >= ticket.price) {
     //   const payload: { id: number; proof: File; paymentId: number } = {
     //     proof: values.proof[0],

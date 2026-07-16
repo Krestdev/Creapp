@@ -20,7 +20,7 @@ import { useStore } from "@/providers/datastore";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { Category, CommandRequestT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -28,10 +28,9 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
+import { SearchableSelect } from "../base/searchableSelect";
 import Besoins from "../bdcommande/besoins";
 import { DetailOrder } from "../modals/detail-order";
-import { userQ } from "@/queries/baseModule";
-import { SearchableSelect } from "../base/searchableSelect";
 
 const formSchema = z.object({
   name: z.string().min(1, "Le nom est obligatoire"),

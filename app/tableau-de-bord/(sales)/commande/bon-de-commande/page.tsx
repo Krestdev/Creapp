@@ -1,15 +1,9 @@
 "use client";
 
-import {
-  StatisticCard,
-  StatisticProps,
-} from "@/components/base/TitleValueCard";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { queryKeys } from "@/lib/query-keys";
-import { isRole, XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { CommandConditionQ } from "@/queries/commandsConditions";
 import { invoiceQ } from "@/queries/invoices";
@@ -17,7 +11,7 @@ import { payTypeQ } from "@/queries/payType";
 import { purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
 import { receptionQ } from "@/queries/reception";
-import { BonsCommande, NavLink } from "@/types/types";
+import { NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import { PurchaseTable } from "./PurchaseTable";
@@ -58,11 +52,11 @@ const Page = () => {
     queryFn: payTypeQ.getAll,
   });
 
-  const { user } = useStore();
-  const auth = isRole({
-    roleList: user?.role || [],
-    role: "Donner d'ordre achat",
-  });
+  // const { user } = useStore();
+  // const auth = isRole({
+  //   roleList: user?.role || [],
+  //   role: "Donner d'ordre achat",
+  // });
 
   const receptions = useMemo(() => {
     if (!getReceptions.data) return [];

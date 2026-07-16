@@ -2,14 +2,38 @@
 
 import * as React from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Bar, BarChart, CartesianGrid, XAxis, YAxis, ResponsiveContainer } from "recharts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart";
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+} from "recharts";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
 import { paymentQ } from "@/queries/payment";
 import { purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
 import { commandRqstQ } from "@/queries/commandRqstModule";
-import { getGlobalStatus, GLOBAL_STATUS_ORDER, findLinkedTicket, findLinkedBC, findLinkedQuotation, findLinkedCommandRequest } from "@/lib/status-calculator";
+import {
+  getGlobalStatus,
+  GLOBAL_STATUS_ORDER,
+  findLinkedTicket,
+  findLinkedBC,
+  findLinkedQuotation,
+  findLinkedCommandRequest,
+} from "@/lib/status-calculator";
 import { RequestModelT } from "@/types/types";
 
 interface ChartGlobalStateProps {
@@ -45,43 +69,62 @@ export function ChartGlobalState({ filteredData = [] }: ChartGlobalStateProps) {
   const chartData = React.useMemo(() => {
     if (!filteredData.length) return [];
 
-    const ticketsArray = Array.isArray(ticketsData) ? ticketsData : (ticketsData as any)?.data || [];
-    const bcsArray = Array.isArray(bcsData) ? bcsData : (bcsData as any)?.data || [];
-    const quotationsArray = Array.isArray(quotationsData) ? quotationsData : (quotationsData as any)?.data || [];
-    const commandRqstsArray = Array.isArray(commandRqstsData) ? commandRqstsData : (commandRqstsData as any)?.data || [];
+    const ticketsArray = Array.isArray(ticketsData)
+      ? ticketsData
+      : (ticketsData as any)?.data || [];
+    const bcsArray = Array.isArray(bcsData)
+      ? bcsData
+      : (bcsData as any)?.data || [];
+    const quotationsArray = Array.isArray(quotationsData)
+      ? quotationsData
+      : (quotationsData as any)?.data || [];
+    const commandRqstsArray = Array.isArray(commandRqstsData)
+      ? commandRqstsData
+      : (commandRqstsData as any)?.data || [];
 
     const counts = new Map<string, number>();
-    GLOBAL_STATUS_ORDER.forEach(status => counts.set(status, 0));
+    GLOBAL_STATUS_ORDER.forEach((status) => counts.set(status, 0));
 
-    filteredData.forEach(request => {
+    filteredData.forEach((request) => {
       const ticket = findLinkedTicket(request.id, ticketsArray);
       const bc = findLinkedBC(request.id, bcsArray);
       const quotation = findLinkedQuotation(request.id, quotationsArray);
-      const commandRequest = findLinkedCommandRequest(request.id, commandRqstsArray);
-      const status = getGlobalStatus(request, ticket, bc, quotation, commandRequest);
+      const commandRequest = findLinkedCommandRequest(
+        request.id,
+        commandRqstsArray,
+      );
+      const status = getGlobalStatus(
+        request,
+        ticket,
+        bc,
+        quotation,
+        commandRequest,
+      );
       counts.set(status!, (counts.get(status!) || 0) + 1);
     });
 
-    return GLOBAL_STATUS_ORDER.map(status => ({
+    return GLOBAL_STATUS_ORDER.map((status) => ({
       status,
       count: counts.get(status) || 0,
     }));
   }, [filteredData, ticketsData, bcsData, quotationsData, commandRqstsData]);
 
-  const isLoading = loadingTickets || loadingBCs || loadingQuotations || loadingCommandRqsts;
+  const isLoading =
+    loadingTickets || loadingBCs || loadingQuotations || loadingCommandRqsts;
 
   return (
     <Card className="mt-6">
       <CardHeader>
         <CardTitle>Suivi global des besoins</CardTitle>
         <CardDescription>
-          Répartition des besoins selon leur état exact dans le circuit de validation et de paiement
+          Répartition des besoins selon leur état exact dans le circuit de
+          validation et de paiement
         </CardDescription>
       </CardHeader>
       <CardContent className="pt-4">
         {isLoading ? (
           <div className="flex items-center justify-center h-[350px] text-muted-foreground">
-            Calcul de l'état détaillé en cours...
+            {`Calcul de l'état détaillé en cours...`}
           </div>
         ) : chartData.length > 0 ? (
           <ChartContainer
@@ -98,14 +141,24 @@ export function ChartGlobalState({ filteredData = [] }: ChartGlobalStateProps) {
                 data={chartData}
                 margin={{ top: 20, right: 10, left: 0, bottom: 10 }}
               >
-                <CartesianGrid vertical={false} strokeDasharray="4 4" opacity={0.5} />
+                <CartesianGrid
+                  vertical={false}
+                  strokeDasharray="4 4"
+                  opacity={0.5}
+                />
                 <XAxis
                   type="category"
                   dataKey="status"
                   tickLine={false}
                   axisLine={false}
-                  tick={{ fontSize: 10, fill: "var(--foreground)", fontWeight: 500 }}
-                  tickFormatter={(val) => val.length > 15 ? val.substring(0, 15) + '...' : val}
+                  tick={{
+                    fontSize: 10,
+                    fill: "var(--foreground)",
+                    fontWeight: 500,
+                  }}
+                  tickFormatter={(val) =>
+                    val.length > 15 ? val.substring(0, 15) + "..." : val
+                  }
                 />
                 <YAxis type="number" tickLine={false} axisLine={false} />
                 <ChartTooltip
@@ -116,8 +169,12 @@ export function ChartGlobalState({ filteredData = [] }: ChartGlobalStateProps) {
                       formatter={(value) => (
                         <div className="flex items-center gap-2">
                           <div className="h-2.5 w-2.5 shrink-0 rounded-[2px] bg-primary" />
-                          <span className="text-muted-foreground">Nombre :</span>
-                          <span className="font-medium text-foreground">{value}</span>
+                          <span className="text-muted-foreground">
+                            Nombre :
+                          </span>
+                          <span className="font-medium text-foreground">
+                            {value}
+                          </span>
                         </div>
                       )}
                     />

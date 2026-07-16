@@ -1,9 +1,14 @@
 "use client";
 
-import StatsCard from "@/components/base/StatsCard";
+import {
+  StatisticCard,
+  StatisticProps,
+} from "@/components/base/TitleValueCard";
 import { ChartAreaInteractiveAll } from "@/components/Charts/BarcharAll";
 import { ChartAreaInteractive } from "@/components/Charts/BarChart";
-import { ChartBar } from "@/components/Charts/bar-chart";
+import BarChartType from "@/components/Charts/BarChartType";
+import { ChartExpenseEvolution } from "@/components/Charts/ChartExpenseEvolution";
+import { ChartGlobalState } from "@/components/Charts/ChartGlobalState";
 import { ChartPieLabelList } from "@/components/Charts/ChartPieLabelList";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
@@ -26,23 +31,23 @@ import {
 import { queryKeys } from "@/lib/query-keys";
 import { isRole, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
+import { paymentQ } from "@/queries/payment";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { DateFilter } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import { format, isSameDay, subDays, startOfMonth, endOfMonth, isWithinInterval } from "date-fns";
+import {
+  endOfMonth,
+  format,
+  isSameDay,
+  isWithinInterval,
+  startOfMonth,
+  subDays,
+} from "date-fns";
 import { fr } from "date-fns/locale";
 import { Settings2 } from "lucide-react";
 import React from "react";
 import DashboardFilters, { DashboardFiltersProps } from "./dashboardFilters";
-import {
-  StatisticCard,
-  StatisticProps,
-} from "@/components/base/TitleValueCard";
-import { paymentQ } from "@/queries/payment";
-import BarChartType from "@/components/Charts/BarChartType";
-import { ChartExpenseEvolution } from "@/components/Charts/ChartExpenseEvolution";
-import { ChartGlobalState } from "@/components/Charts/ChartGlobalState";
 
 const DashboardPage = () => {
   const [isCustomDateModalOpen, setIsCustomDateModalOpen] =
@@ -67,12 +72,12 @@ const DashboardPage = () => {
   };
 
   const { user } = useStore();
-  const volt = isRole({ roleList: user?.role ?? [], role: "trésorier" });
-  const accountant = isRole({ roleList: user?.role ?? [], role: "comptable" });
-  const volt_manager = isRole({
-    roleList: user?.role ?? [],
-    role: "Donneur d'ordre décaissement",
-  });
+  // const volt = isRole({ roleList: user?.role ?? [], role: "trésorier" });
+  // const accountant = isRole({ roleList: user?.role ?? [], role: "comptable" });
+  // const volt_manager = isRole({
+  //   roleList: user?.role ?? [],
+  //   role: "Donneur d'ordre décaissement",
+  // });
   const manager = isRole({ roleList: user?.role ?? [], role: "manager" });
   const super_admin = isRole({
     roleList: user?.role ?? [],
@@ -149,83 +154,89 @@ const DashboardPage = () => {
     queryFn: requestTypeQ.getAll,
   });
 
-  const filterByDate = React.useCallback((data: any[] = []) => {
-    if (!data || data.length === 0) return [];
-    if (!dateFilter) return data;
+  const filterByDate = React.useCallback(
+    (data: any[] = []) => {
+      if (!data || data.length === 0) return [];
+      if (!dateFilter) return data;
 
-    const now = new Date();
+      const now = new Date();
 
-    switch (dateFilter) {
-      case "today": {
-        return data.filter((item) => {
-          try {
-            return isSameDay(new Date(item.createdAt), now);
-          } catch {
-            return false;
-          }
-        });
-      }
-
-      case "week": {
-        const startDate = subDays(now, 6);
-        startDate.setHours(0, 0, 0, 0);
-        return data.filter((item) => {
-          try {
-            const itemDate = new Date(item.createdAt);
-            return itemDate >= startDate && itemDate <= now;
-          } catch {
-            return false;
-          }
-        });
-      }
-
-      case "month": {
-        const startDate = startOfMonth(now);
-        const endDate = endOfMonth(now);
-        return data.filter((item) => {
-          try {
-            const itemDate = new Date(item.createdAt);
-            return itemDate >= startDate && itemDate <= endDate;
-          } catch {
-            return false;
-          }
-        });
-      }
-
-      case "year": {
-        const startDate = new Date(now.getFullYear(), 0, 1);
-        const endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
-        return data.filter((item) => {
-          try {
-            const itemDate = new Date(item.createdAt);
-            return itemDate >= startDate && itemDate <= endDate;
-          } catch {
-            return false;
-          }
-        });
-      }
-
-      case "custom": {
-        if (!customFilters.from || !customFilters.to) return data;
-        const startDate = new Date(customFilters.from);
-        const endDate = new Date(customFilters.to);
-        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
-          return data;
+      switch (dateFilter) {
+        case "today": {
+          return data.filter((item) => {
+            try {
+              return isSameDay(new Date(item.createdAt), now);
+            } catch {
+              return false;
+            }
+          });
         }
-        return data.filter((item) => {
-          try {
-            const itemDate = new Date(item.createdAt);
-            return isWithinInterval(itemDate, { start: startDate, end: endDate });
-          } catch {
-            return false;
-          }
-        });
-      }
 
-      default:
-        return data;
-    }
-  }, [dateFilter, customFilters.from, customFilters.to]);
+        case "week": {
+          const startDate = subDays(now, 6);
+          startDate.setHours(0, 0, 0, 0);
+          return data.filter((item) => {
+            try {
+              const itemDate = new Date(item.createdAt);
+              return itemDate >= startDate && itemDate <= now;
+            } catch {
+              return false;
+            }
+          });
+        }
+
+        case "month": {
+          const startDate = startOfMonth(now);
+          const endDate = endOfMonth(now);
+          return data.filter((item) => {
+            try {
+              const itemDate = new Date(item.createdAt);
+              return itemDate >= startDate && itemDate <= endDate;
+            } catch {
+              return false;
+            }
+          });
+        }
+
+        case "year": {
+          const startDate = new Date(now.getFullYear(), 0, 1);
+          const endDate = new Date(now.getFullYear(), 11, 31, 23, 59, 59, 999);
+          return data.filter((item) => {
+            try {
+              const itemDate = new Date(item.createdAt);
+              return itemDate >= startDate && itemDate <= endDate;
+            } catch {
+              return false;
+            }
+          });
+        }
+
+        case "custom": {
+          if (!customFilters.from || !customFilters.to) return data;
+          const startDate = new Date(customFilters.from);
+          const endDate = new Date(customFilters.to);
+          if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            return data;
+          }
+          return data.filter((item) => {
+            try {
+              const itemDate = new Date(item.createdAt);
+              return isWithinInterval(itemDate, {
+                start: startDate,
+                end: endDate,
+              });
+            } catch {
+              return false;
+            }
+          });
+        }
+
+        default:
+          return data;
+      }
+    },
+    [dateFilter, customFilters.from, customFilters.to],
+  );
 
   const filteredSubmited = React.useMemo(() => {
     return filterByDate(getRequestsGraph.data?.data?.submited || []);
@@ -257,7 +268,7 @@ const DashboardPage = () => {
 
     dataSource.forEach((req: any) => {
       const typeObj = types.find((t: any) => t.type === req.type);
-      const label = typeObj ? typeObj.label : (req.type || "Inconnu");
+      const label = typeObj ? typeObj.label : req.type || "Inconnu";
       groups[label] = (groups[label] || 0) + 1;
     });
 
@@ -269,18 +280,25 @@ const DashboardPage = () => {
       .sort((a, b) => b.value - a.value);
   }, [filteredAll, filteredSubmited, requestType.data?.data]);
 
-  const getStatusCount = React.useCallback((items: any[], status: 'approuvé' | 'rejetté' | 'enAttente') => {
-    return items.filter(item => {
-      const s = (item.state || '').toLowerCase();
-      if (status === 'approuvé') {
-        return ["approved", "store", "approv", "valid"].some(key => s.includes(key));
-      }
-      if (status === 'rejetté') {
-        return ["rejected", "rejet", "refus"].some(key => s.includes(key));
-      }
-      return ["pending", "reviews", "wait", "attente"].some(key => s.includes(key));
-    }).length;
-  }, []);
+  const getStatusCount = React.useCallback(
+    (items: any[], status: "approuvé" | "rejetté" | "enAttente") => {
+      return items.filter((item) => {
+        const s = (item.state || "").toLowerCase();
+        if (status === "approuvé") {
+          return ["approved", "store", "approv", "valid"].some((key) =>
+            s.includes(key),
+          );
+        }
+        if (status === "rejetté") {
+          return ["rejected", "rejet", "refus"].some((key) => s.includes(key));
+        }
+        return ["pending", "reviews", "wait", "attente"].some((key) =>
+          s.includes(key),
+        );
+      }).length;
+    },
+    [],
+  );
 
   const getSubtitle = () => {
     if (dateFilter === "custom" && customFilters.from && customFilters.to) {
@@ -399,16 +417,16 @@ const DashboardPage = () => {
         variant: "default",
         more: {
           title: "Total besoins approuvés",
-          value: String(getStatusCount(filteredAll, 'approuvé')),
+          value: String(getStatusCount(filteredAll, "approuvé")),
         },
       },
       {
         title: "En attente de validation",
-        value: String(getStatusCount(filteredValidator, 'enAttente')),
+        value: String(getStatusCount(filteredValidator, "enAttente")),
         variant: "primary",
         more: {
           title: "Besoins rejetés",
-          value: String(getStatusCount(filteredSubmited, 'rejetté')),
+          value: String(getStatusCount(filteredSubmited, "rejetté")),
         },
       },
       {
@@ -417,7 +435,7 @@ const DashboardPage = () => {
         variant: "secondary",
         more: {
           title: "Mes besoins approuvés",
-          value: String(getStatusCount(filteredSubmited, 'approuvé')),
+          value: String(getStatusCount(filteredSubmited, "approuvé")),
         },
       },
       {
@@ -429,11 +447,9 @@ const DashboardPage = () => {
           value: String(cancelledExpenses.data?.count || 0),
         },
       },
-
     ];
 
     console.log("distribution data", requestTypeDistributionData);
-
 
     return (
       <div className="content">
@@ -503,7 +519,9 @@ const DashboardPage = () => {
 
         {(manager || super_admin) && (
           <ChartGlobalState
-            filteredData={filteredAll.length > 0 ? filteredAll : filteredSubmited}
+            filteredData={
+              filteredAll.length > 0 ? filteredAll : filteredSubmited
+            }
           />
         )}
 
@@ -514,9 +532,9 @@ const DashboardPage = () => {
           customDateRange={
             customFilters.from && customFilters.to
               ? {
-                from: new Date(customFilters.from),
-                to: new Date(customFilters.to),
-              }
+                  from: new Date(customFilters.from),
+                  to: new Date(customFilters.to),
+                }
               : undefined
           }
           title="Mes besoins"
@@ -532,9 +550,9 @@ const DashboardPage = () => {
             customDateRange={
               customFilters.from && customFilters.to
                 ? {
-                  from: new Date(customFilters.from),
-                  to: new Date(customFilters.to),
-                }
+                    from: new Date(customFilters.from),
+                    to: new Date(customFilters.to),
+                  }
                 : undefined
             }
             title="Besoins reçus"
@@ -550,9 +568,9 @@ const DashboardPage = () => {
             customDateRange={
               customFilters.from && customFilters.to
                 ? {
-                  from: new Date(customFilters.from),
-                  to: new Date(customFilters.to),
-                }
+                    from: new Date(customFilters.from),
+                    to: new Date(customFilters.to),
+                  }
                 : undefined
             }
             title="Tous les besoins"
@@ -568,9 +586,9 @@ const DashboardPage = () => {
             customDateRange={
               customFilters.from && customFilters.to
                 ? {
-                  from: new Date(customFilters.from),
-                  to: new Date(customFilters.to),
-                }
+                    from: new Date(customFilters.from),
+                    to: new Date(customFilters.to),
+                  }
                 : undefined
             }
           />

@@ -164,6 +164,7 @@ function TransactionForm({ banks, userId }: Props) {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const type = form.watch("Type");
 
   // Fonction pour normaliser le texte (recherche)
@@ -205,12 +206,14 @@ function TransactionForm({ banks, userId }: Props) {
   }, [type, form]);
 
   function onSubmit(values: FormValues) {
-    const { Type, from, to, fromBankId, toBankId, date, ...rest } = values;
-    if (Type === "CREDIT") {
+    // const { Type, from, to, fromBankId, toBankId, date, ...rest } = values;
+    if (values.Type === "CREDIT") {
       const payload: TransactionProps = {
         Type: values.Type,
-        ...rest,
-        date: new Date(date),
+        label: values.label,
+        amount: values.amount,
+        proof: values.proof,
+        date: new Date(values.date),
         from: {
           label: values.from?.label ?? "",
           accountNumber: values.from?.accountNumber,
@@ -221,16 +224,18 @@ function TransactionForm({ banks, userId }: Props) {
       };
       return create.mutate(payload);
     } else {
-      const balance = banks.find((b) => b.id === fromBankId)?.balance;
-      const val = !balance ? false : balance - rest.amount > 0;
+      const balance = banks.find((b) => b.id === values.fromBankId)?.balance;
+      const val = !balance ? false : balance - values.amount > 0;
       if (!val)
         return form.setError("amount", {
           message: `Le solde disponible est insuffisant. Solde : ${XAF.format(balance ?? 0)}`,
         });
       const payload: TransactionProps = {
         Type: values.Type,
-        ...rest,
-        date: new Date(date),
+        label: values.label,
+        amount: values.amount,
+        proof: values.proof,
+        date: new Date(values.date),
         fromBankId: values.fromBankId,
         to: {
           label: values.to?.label ?? "",

@@ -6,7 +6,6 @@ import {
   ChartTooltipContent,
   type ChartConfig,
 } from "@/components/ui/chart";
-import { Minus, TrendingDown, TrendingUp } from "lucide-react";
 import { Pie, PieChart } from "recharts";
 
 export interface ChartDataItem {
@@ -49,7 +48,7 @@ export function ChartPieDonut({
   maxHeight = 300,
   showLegend = false,
   tooltipConfig = {},
-  className = "",
+  // className = "",
   total: propTotal,
   valueLabel = "Value",
 }: DonutChartProps) {
@@ -78,17 +77,17 @@ export function ChartPieDonut({
     ),
   };
 
-  const getTrendIcon = (value: number) => {
-    if (value > 0) return <TrendingUp className="h-4 w-4 text-green-500" />;
-    if (value < 0) return <TrendingDown className="h-4 w-4 text-red-500" />;
-    return <Minus className="h-4 w-4 text-gray-500" />;
-  };
+  // const getTrendIcon = (value: number) => {
+  //   if (value > 0) return <TrendingUp className="h-4 w-4 text-green-500" />;
+  //   if (value < 0) return <TrendingDown className="h-4 w-4 text-red-500" />;
+  //   return <Minus className="h-4 w-4 text-gray-500" />;
+  // };
 
   // Formatter par défaut pour le tooltip
   const defaultValueFormatter = (
     value: number,
-    name: string,
-    payload?: any,
+    // name: string,
+    // payload?: any,
   ) => {
     const percentage = total > 0 ? ((value / total) * 100).toFixed(1) : "0";
     return `${value.toLocaleString("fr-FR")} (${percentage}%)`;
@@ -116,8 +115,8 @@ export function ChartPieDonut({
                     ) ||
                     defaultValueFormatter(
                       Number(value),
-                      name as string,
-                      props?.payload,
+                      // name as string,
+                      // props?.payload,
                     );
 
                   const label = finalChartConfig[name]?.label || name;

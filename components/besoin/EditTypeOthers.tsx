@@ -41,7 +41,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
-import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import {
   Category,
@@ -55,7 +54,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -103,20 +102,20 @@ type FormValues = z.infer<typeof formSchema>;
 function EditTypeOthers({
   request,
   users,
-  categories,
+  // categories,
   projects,
   open,
   onOpenChange,
 }: Props) {
-  const { user } = useStore();
+  // const { user } = useStore();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [dueDate, setDueDate] = useState<boolean>(false);
 
   // Filtrer les catégories de type "others" une seule fois
-  const filteredCategories = useMemo(() => {
-    return categories.filter((c) => c.type?.type === request.type);
-  }, [categories]);
+  // const filteredCategories = useMemo(() => {
+  //   return categories.filter((c) => c.type?.type === request.type);
+  // }, [categories]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),

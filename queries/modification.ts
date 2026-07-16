@@ -1,10 +1,10 @@
 import api from "@/providers/axios";
 import { modification } from "@/types/types";
 
-export interface modificationPayload extends Omit<
+export type modificationPayload = Omit<
   modification,
   "id" | "createdAt" | "updatedAt" | "status"
-> {}
+>
 
 class modificationQuery {
   route = "/base/modification";

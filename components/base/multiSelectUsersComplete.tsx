@@ -66,7 +66,8 @@ export default function MultiSelectUsers({
         `${u.firstName} ${u.lastName}`
           .toLowerCase()
           .includes(searchTerm.toLowerCase()) ||
-        (showMail && u.email?.toLowerCase().includes(searchTerm.toLowerCase())))
+        (showMail &&
+          u.email?.toLowerCase().includes(searchTerm.toLowerCase()))),
   );
 
   const addUser = (user: User) => {
@@ -75,9 +76,7 @@ export default function MultiSelectUsers({
   };
 
   const addUserAll = () => {
-    const newUsers = users.filter(
-      (u) => !selected.some((s) => s.id === u.id)
-    );
+    const newUsers = users.filter((u) => !selected.some((s) => s.id === u.id));
     onChange([...selected, ...newUsers]);
     setSearchTerm("");
   };
@@ -102,7 +101,7 @@ export default function MultiSelectUsers({
         </span>
       ) : (
         <span key={i}>{part}</span>
-      )
+      ),
     );
   };
 
@@ -163,7 +162,7 @@ export default function MultiSelectUsers({
                   <p className="text-[12px] text-[#B0B0B0]">{`avant le ${format(
                     item.lastConnection!,
                     "PPP",
-                    { locale: fr }
+                    { locale: fr },
                   )}`}</p>
                 </div>
                 <Button
@@ -210,7 +209,7 @@ export default function MultiSelectUsers({
                 <div className="p-4">
                   {searchTerm ? (
                     <p className="text-sm text-gray-500 text-center">
-                      Aucun résultat pour "{searchTerm}"
+                      {`Aucun résultat pour "${searchTerm}"`}
                     </p>
                   ) : (
                     <>
@@ -245,7 +244,10 @@ export default function MultiSelectUsers({
                       onClick={() => addUser(user)}
                       className="p-2 cursor-pointer hover:bg-gray-100 transition-colors border-b last:border-b-0"
                     >
-                      {highlightText(`${user.firstName} ${user.lastName}`, searchTerm)}
+                      {highlightText(
+                        `${user.firstName} ${user.lastName}`,
+                        searchTerm,
+                      )}
                       {showMail && (
                         <span className="text-[14px] text-[#B0B0B0] ml-2">
                           {highlightText(user.email || "", searchTerm)}

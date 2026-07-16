@@ -114,7 +114,9 @@ function CashRequestForm({
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const fromValue = form.watch("fromBankId");
+   
   const paymentValue = form.watch("payments");
 
   const onSelectedChange = (id: number) => {
@@ -230,6 +232,7 @@ function CashRequestForm({
     [paymentValue],
   );
 
+   
   const table = useReactTable({
     data: payments,
     columns,

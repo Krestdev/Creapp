@@ -128,15 +128,15 @@ export function ReceptionTable({ data, devis, cmdReqst, purchases }: Props) {
   const [selectedValue, setSelectedValue] = React.useState<Reception>();
 
   // Filtrer les données selon le statut
-  const filteredData = React.useMemo(() => {
-    let filtered = [...(data ?? [])];
+  // const filteredData = React.useMemo(() => {
+  //   let filtered = [...(data ?? [])];
 
-    if (statusFilter !== "all") {
-      filtered = filtered.filter((po) => po.Status === statusFilter);
-    }
+  //   if (statusFilter !== "all") {
+  //     filtered = filtered.filter((po) => po.Status === statusFilter);
+  //   }
 
-    return filtered;
-  }, [data, statusFilter]);
+  //   return filtered;
+  // }, [data, statusFilter]);
 
   const columns: ColumnDef<Reception>[] = [
     {
@@ -334,6 +334,7 @@ export function ReceptionTable({ data, devis, cmdReqst, purchases }: Props) {
     return result;
   }, [data, statusFilter]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: tableData, // Ici, on utilise les données déjà filtrées par statut
     columns,

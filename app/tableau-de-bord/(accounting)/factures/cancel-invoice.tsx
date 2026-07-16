@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { invoiceQ } from "@/queries/invoices";
-import { BonsCommande, Invoice } from "@/types/types";
+import { Invoice } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";

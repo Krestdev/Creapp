@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
-import { ResponseT, Role } from "@/types/types";
+import { Role } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
@@ -40,7 +40,7 @@ export function RoleCreateForm() {
 
   const roleApi = useMutation({
     mutationFn: (data: Omit<Role, "id">) => userQ.createRole(data),
-    onSuccess: (data: ResponseT<Role>) => {
+    onSuccess: () => {
       toast.success("Role créé avec succès.");
       form.reset();
     },

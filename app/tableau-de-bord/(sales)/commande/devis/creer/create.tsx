@@ -250,6 +250,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
   }, [quotation, defaultValues, cmdRqstData.data, form]);
 
   /** Mettre à jour les besoins sélectionnés quand la demande change */
+  // eslint-disable-next-line react-hooks/incompatible-library
   const watchedCommandId = form.watch("commandRequestId");
 
   useEffect(() => {

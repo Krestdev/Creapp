@@ -9,9 +9,9 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { cn, getQuotationAmount, XAF } from "@/lib/utils";
-import { Provider, Quotation, RequestModelT, User } from "@/types/types";
+import { Provider, Quotation, User } from "@/types/types";
 import { format } from "date-fns";
-import { el, fr } from "date-fns/locale";
+import { fr } from "date-fns/locale";
 import {
   CheckCircle,
   DollarSign,
@@ -32,8 +32,6 @@ import {
   TableHeader,
   TableRow,
 } from "../ui/table";
-import { useQuery } from "@tanstack/react-query";
-import { requestQ } from "@/queries/requestModule";
 
 interface DetailModalProps {
   open: boolean;

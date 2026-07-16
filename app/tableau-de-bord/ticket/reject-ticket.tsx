@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
 import { paymentQ } from "@/queries/payment";
-import { Invoice, PaymentRequest } from "@/types/types";
+import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import React from "react";
@@ -62,7 +62,7 @@ function RejectTicket({ open, openChange, payment }: Props) {
   const onSubmit = (value: FormValue): void => {
     toReject.mutate(value.reason);
   };
-  const invoice = payment.facture;
+  // const invoice = payment.facture;
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent>

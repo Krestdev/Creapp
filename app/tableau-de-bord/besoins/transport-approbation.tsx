@@ -154,11 +154,12 @@ export default function TransportApprobation({
     });
   };
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields } = useFieldArray({
     control: form.control,
     name: "list",
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const list = form.watch("list");
   const amount = list.reduce((a, b) => a + b.amount, 0);
   const listError = form.getFieldState("list").error?.message;

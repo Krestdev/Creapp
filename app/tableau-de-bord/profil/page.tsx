@@ -34,14 +34,14 @@ function Page() {
   });
 
   const getUser = useQuery({
-    queryKey: queryKeys.user(user?.id!),
-    queryFn: () => userQ.getOne(user!.id),
+    queryKey: queryKeys.user(Number(user?.id)),
+    queryFn: () => userQ.getOne(Number(user!.id)),
     enabled: !!user,
   });
 
   const signature = useQuery({
-    queryKey: queryKeys.signature(user?.id!),
-    queryFn: () => userQ.getSignature(user!.id),
+    queryKey: queryKeys.signature(Number(user?.id)),
+    queryFn: () => userQ.getSignature(Number(user!.id)),
     enabled: !!user && !!user.signatureId,
   });
 

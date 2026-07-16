@@ -46,7 +46,7 @@ interface Props {
   users: Array<User>;
 }
 
-function ViewPurchase({ open, openChange, purchaseOrder, users }: Props) {
+function ViewPurchase({ open, openChange, purchaseOrder }: Props) {
   const getPaymentMethods = useQuery({
     queryKey: queryKeys.paymentTypes,
     queryFn: payTypeQ.getAll,

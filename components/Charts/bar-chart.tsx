@@ -1,6 +1,5 @@
 "use client";
 
-import * as React from "react";
 import {
   ChartContainer,
   ChartTooltip,
@@ -8,15 +7,15 @@ import {
   type ChartConfig,
 } from "@/components/ui/chart";
 import { Minus, TrendingDown, TrendingUp } from "lucide-react";
+import * as React from "react";
 import {
   Bar,
   BarChart,
   CartesianGrid,
+  Legend,
   ResponsiveContainer,
   XAxis,
   YAxis,
-  Rectangle,
-  Legend,
 } from "recharts";
 
 export interface BarChartDataItem {
@@ -116,7 +115,7 @@ export function ChartBar({
   barSize = 40,
   showLegend = false,
 
-  barRadius = [10, 10, 2, 2],
+  // barRadius = [10, 10, 2, 2],
   animationDuration = 700,
 
   barGap = 8,
@@ -132,7 +131,7 @@ export function ChartBar({
           label: s.label,
           color: s.color,
         },
-      ])
+      ]),
     ) as ChartConfig);
 
   const getTrendIcon = (value: number) => {
@@ -166,7 +165,7 @@ export function ChartBar({
   const defaultValueFormatter = (value: number) =>
     value.toLocaleString("fr-FR");
 
-  type RectProps = React.ComponentProps<typeof Rectangle>;
+  // type RectProps = React.ComponentProps<typeof Rectangle>;
 
   return (
     <div className={className}>
@@ -222,12 +221,16 @@ export function ChartBar({
                         tooltipConfig.valueFormatter?.(
                           Number(value),
                           name as string,
-                          props?.payload
+                          props?.payload,
                         ) ?? defaultValueFormatter(Number(value));
 
-                      let label = finalChartConfig[name]?.label || (name as string);
+                      let label =
+                        finalChartConfig[name]?.label || (name as string);
                       if (tooltipConfig.nameFormatter) {
-                        label = tooltipConfig.nameFormatter(name as string, props?.payload);
+                        label = tooltipConfig.nameFormatter(
+                          name as string,
+                          props?.payload,
+                        );
                       }
                       return [formatted, label];
                     }}
@@ -242,7 +245,10 @@ export function ChartBar({
                 <Legend
                   verticalAlign="top"
                   align="right"
-                  wrapperStyle={{ fontSize: 12, color: "var(--muted-foreground)" }}
+                  wrapperStyle={{
+                    fontSize: 12,
+                    color: "var(--muted-foreground)",
+                  }}
                 />
               )}
 
@@ -308,10 +314,11 @@ export function ChartBar({
                         tooltipConfig.valueFormatter?.(
                           Number(value),
                           name as string,
-                          props?.payload
+                          props?.payload,
                         ) ?? defaultValueFormatter(Number(value));
 
-                      const label = finalChartConfig[name]?.label || (name as string);
+                      const label =
+                        finalChartConfig[name]?.label || (name as string);
                       return [formatted, label];
                     }}
                     labelFormatter={
@@ -325,7 +332,10 @@ export function ChartBar({
                 <Legend
                   verticalAlign="top"
                   align="right"
-                  wrapperStyle={{ fontSize: 12, color: "var(--muted-foreground)" }}
+                  wrapperStyle={{
+                    fontSize: 12,
+                    color: "var(--muted-foreground)",
+                  }}
                 />
               )}
 

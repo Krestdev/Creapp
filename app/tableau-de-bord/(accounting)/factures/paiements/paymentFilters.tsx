@@ -20,7 +20,6 @@ import {
   PaymentRequest,
   PRIORITIES,
   Provider,
-  User,
 } from "@/types/types";
 import { format } from "date-fns";
 import { ChevronDown } from "lucide-react";
@@ -316,7 +315,7 @@ export default function PaymentFilters({
               }}
               className={customFilters.date === "today" ? "bg-accent" : ""}
             >
-              <span>Aujourd'hui</span>
+              <span>{"Aujourd'hui"}</span>
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() => {

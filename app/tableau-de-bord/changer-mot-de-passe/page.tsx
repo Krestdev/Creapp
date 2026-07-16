@@ -47,9 +47,9 @@ function Page() {
   const update = useMutation({
     mutationFn: async (password: string) =>
       userQ.changePassword(user?.id ?? 0, password),
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success(
-        `${user?.firstName} votre mot de passe a été mis à jour avec succès !`
+        `${user?.firstName} votre mot de passe a été mis à jour avec succès !`,
       );
       router.push("./");
     },

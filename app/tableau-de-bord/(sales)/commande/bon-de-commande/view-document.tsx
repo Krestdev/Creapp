@@ -10,10 +10,8 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { BonsCommande, User } from "@/types/types";
-import { PDFDownloadLink } from "@react-pdf/renderer";
 import React from "react";
 import { BonDeCommandePDF } from "./BonDeCommandePDF";
-import { BonDocument } from "./BonDoc";
 
 interface Props {
   open: boolean;
@@ -22,9 +20,9 @@ interface Props {
   users: Array<User>;
 }
 
-function ViewDocument({ open, openChange, purchaseOrder, users }: Props) {
+function ViewDocument({ open, openChange, purchaseOrder }: Props) {
   // Vérifier si le bon de commande est rejeté
-  const isRejected = purchaseOrder.status === "REJECTED";
+  // const isRejected = purchaseOrder.status === "REJECTED";
 
   return (
     <Dialog open={open} onOpenChange={openChange}>

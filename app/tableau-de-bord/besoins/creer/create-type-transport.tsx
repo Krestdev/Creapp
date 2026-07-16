@@ -33,7 +33,6 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { XAF } from "@/lib/utils";
-import { useStore } from "@/providers/datastore";
 import { newRequestTransport, requestQ } from "@/queries/requestModule";
 import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -88,7 +87,7 @@ const formSchema = z.object({
 });
 
 function CreateTypeTransport({ users, categories, projects }: Props) {
-  const { user } = useStore();
+  // const { user } = useStore();
   const router = useRouter();
 
   const [dueDate, setDueDate] = React.useState<boolean>(false);
@@ -110,6 +109,7 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
     name: "list",
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const list = form.watch("list");
   const amount = list.reduce((a, b) => a + b.amount, 0);
   const listError = form.getFieldState("list").error?.message;

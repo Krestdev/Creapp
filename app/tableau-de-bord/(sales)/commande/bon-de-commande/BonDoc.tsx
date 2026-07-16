@@ -17,10 +17,10 @@ const PRECOMPTE = 0.02;
 
 const roundFCFA = (n: number) => Math.round(n);
 
-const normalizeRate = (v?: number): number => {
-  if (typeof v === "number") return v;
-  return 0;
-};
+// const normalizeRate = (v?: number): number => {
+//   if (typeof v === "number") return v;
+//   return 0;
+// };
 
 const isRealRegime = (regem?: string) => {
   const v = (regem ?? "").toLowerCase().trim();

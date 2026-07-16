@@ -17,7 +17,7 @@ import {
   XAF,
 } from "@/lib/utils";
 import { paymentQ, UpdatePayment } from "@/queries/payment";
-import { PaymentRequest, RequestType, User } from "@/types/types";
+import { PaymentRequest, RequestType } from "@/types/types";
 import { useMutation } from "@tanstack/react-query";
 import { BanIcon, ChevronDown, Eye, LucideCheck } from "lucide-react";
 import React from "react";
@@ -42,7 +42,9 @@ function CardTicket({ data, requestTypeData }: Props) {
     },
     onSuccess: () => {
       toast.success(message);
-      !message.includes("payé") && setOpenValidationModal(false);
+      if (message.includes("payé")) {
+        setOpenValidationModal(false);
+      }
     },
     onError: (error) => {
       toast.error(error.message);
@@ -223,7 +225,7 @@ function CardTicket({ data, requestTypeData }: Props) {
         description={"Voulez-vous valider ce ticket ?"}
         onAction={() =>
           validateMutation.mutate({
-            id: selectedTicket?.id!,
+            id: Number(selectedTicket?.id),
             data: {
               invoiceId: selectedTicket?.invoiceId,
               price: selectedTicket?.price,

@@ -69,14 +69,14 @@ function BesoinLastApproVall({ open, setOpen, requestData }: Props) {
   defaultDate.setDate(today.getDate() + 7);
 
   const getCategory = useQuery({
-    queryKey: queryKeys.category(requestData?.categoryId!),
-    queryFn: () => categoryQ.getCategory(requestData?.categoryId!),
+    queryKey: queryKeys.category(Number(requestData?.categoryId)),
+    queryFn: () => categoryQ.getCategory(Number(requestData?.categoryId)),
     enabled: !!requestData?.categoryId,
   });
 
   const getProject = useQuery({
-    queryKey: queryKeys.project(requestData?.projectId!),
-    queryFn: () => projectQ.getOne(requestData?.projectId!),
+    queryKey: queryKeys.project(Number(requestData?.projectId)),
+    queryFn: () => projectQ.getOne(Number(requestData?.projectId)),
     enabled: !!requestData?.projectId,
   });
 

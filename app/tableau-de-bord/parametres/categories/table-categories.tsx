@@ -16,7 +16,6 @@ import {
   ArrowUpDown,
   ChevronDown,
   Ellipsis,
-  Filter,
   LucideEye,
   LucidePen,
   LucideTrash2,
@@ -38,14 +37,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Label } from "@/components/ui/label";
 import {
   Sheet,
   SheetContent,
@@ -54,22 +46,26 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { cn, getRequestTypeBadge, subText } from "@/lib/utils";
-import { categoryQ } from "@/queries/categoryModule";
 import { Category, RequestType, User } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
 import {
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
   ChevronsRight,
 } from "lucide-react";
-import { toast } from "sonner";
+import { useRouter } from "next/navigation";
 import { DeleteCategory } from "./delete-category";
 import { UpdateCategory } from "./update-category";
 import { ViewCategory } from "./view-category";
-import { useRouter } from "next/navigation";
 
 interface CategoriesTableProps {
   data: Category[];
@@ -158,15 +154,15 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
   const activeFiltersCount =
     (typeFilter !== "all" ? 1 : 0) + (searchFilter ? 1 : 0);
 
-  const categoryData = useMutation({
-    mutationFn: (id: number) => categoryQ.deleteCategory(id),
-    onError: (error) => {
-      toast.error(
-        "Une erreur est survenue lors de la suppression de la categorie.",
-      );
-      console.error(error);
-    },
-  });
+  // const categoryData = useMutation({
+  //   mutationFn: (id: number) => categoryQ.deleteCategory(id),
+  //   onError: (error) => {
+  //     toast.error(
+  //       "Une erreur est survenue lors de la suppression de la categorie.",
+  //     );
+  //     console.error(error);
+  //   },
+  // });
 
   const columns = React.useMemo<ColumnDef<Category>[]>(
     () => [
@@ -295,6 +291,7 @@ export function TableCategories({ data, users, types }: CategoriesTableProps) {
     [router, types],
   );
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,

@@ -1,13 +1,7 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import {
-  Field,
-  FieldError,
-  FieldLabel,
-  FieldSeparator,
-} from "@/components/ui/field";
+import { Field, FieldError, FieldLabel } from "@/components/ui/field";
 import { Form, FormLabel } from "@/components/ui/form";
-import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
@@ -19,7 +13,7 @@ import { bankQ } from "@/queries/bank";
 import { userQ } from "@/queries/baseModule";
 import { payTypeQ } from "@/queries/payType";
 import { signatairQ } from "@/queries/signatair";
-import { ResponseT, Signatair, User } from "@/types/types";
+import { Signatair, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
@@ -27,7 +21,6 @@ import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
 import MultiSelectUser from "../base/multiSelectUsersComplete";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 const formSchema = z.object({
   bank: z.string().min(1, "Please select an item"),
@@ -96,7 +89,7 @@ export default function CreateSignatairForm() {
         userIds: values.signatair ?? [],
       };
       signatairMutation.mutate(data);
-    } catch (error) {
+    } catch {
       toast.error("Une erreur est survenue lors de la creation du Signataire.");
     }
   }

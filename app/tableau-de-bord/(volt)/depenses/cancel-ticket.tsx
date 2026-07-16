@@ -91,7 +91,7 @@ function CancelTicket({ open, openChange, data }: Props) {
               )}
             />
             <DialogFooter>
-              <Button variant="destructive">Confirmer l'annulation</Button>
+              <Button variant="destructive">{"Confirmer l'annulation"}</Button>
               <DialogClose asChild>
                 <Button variant="outline">Annuler</Button>
               </DialogClose>

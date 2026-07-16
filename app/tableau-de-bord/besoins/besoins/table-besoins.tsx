@@ -411,6 +411,7 @@ export function RequestsTable({
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable<RequestModelT>({
     data: data || [],
     columns,

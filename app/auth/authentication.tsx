@@ -42,7 +42,7 @@ export default function VerifyEmailClient() {
   const otpFromUrl = searchParams.get("otp") ?? "";
 
   const [otp, setOtp] = React.useState(
-    otpFromUrl.replace(/\D/g, "").slice(0, 6)
+    otpFromUrl.replace(/\D/g, "").slice(0, 6),
   );
 
   const canSubmit = emailFromUrl.includes("@") && otp.length === 6;
@@ -50,14 +50,14 @@ export default function VerifyEmailClient() {
   const verifyMutation = useMutation({
     mutationFn: async ({ otp, email }: { otp: string; email: string }) =>
       userQuery.getVerificationOtp(otp, email),
-    onSuccess: (data) => {
+    onSuccess: () => {
       toast.success(`Votre adresse email a été vérifiée ✅`);
       router.push("/connexion");
       router.refresh();
     },
     onError: (error: Error) => {
       toast.error(
-        `Échec de la vérification : ${error?.message ?? "Erreur inconnue"}`
+        `Échec de la vérification : ${error?.message ?? "Erreur inconnue"}`,
       );
       console.error(error);
     },

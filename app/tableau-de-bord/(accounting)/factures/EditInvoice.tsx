@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { invoiceQ } from "@/queries/invoices";
-import { BonsCommande, Invoice } from "@/types/types";
+import { Invoice } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import React from "react";
@@ -127,7 +127,7 @@ function EditInvoice({ open, openChange, invoice }: Props) {
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-500">Date d'échéance :</span>
+                  <span className="text-gray-500">{"Date d'échéance :"}</span>
                   <span className="font-medium">
                     {new Date(invoice.deadline).toLocaleDateString("fr-FR")}
                   </span>

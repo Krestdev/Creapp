@@ -75,7 +75,10 @@ function TransferHistory({ data }: Props) {
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
   const [globalFilter, setGlobalFilter] = React.useState("");
-  const [selected, setSelected] = React.useState<Transaction>();
+  const [
+    selected,
+    // setSelected
+  ] = React.useState<Transaction>();
   const [reject, setReject] = React.useState<boolean>(false);
 
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
@@ -238,7 +241,7 @@ function TransferHistory({ data }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.amount;
-        const type = row.original.Type;
+        // const type = row.original.Type;
         return <span className={"font-bold"}>{XAF.format(value)}</span>;
       },
     },
@@ -312,6 +315,7 @@ function TransferHistory({ data }: Props) {
     },
   ];
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredData,
     columns,

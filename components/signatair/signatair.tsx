@@ -1,22 +1,15 @@
 "use client";
 import { useStore } from "@/providers/datastore";
 import { signatairQ } from "@/queries/signatair";
+import { Signatair } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "../ui/card";
-import { Button } from "../ui/button";
-import { LucidePen, Receipt, FileCheck } from "lucide-react";
+import { FileCheck, LucidePen, Receipt } from "lucide-react";
 import { useState } from "react";
-import { PayType, Signatair } from "@/types/types";
-import EditSignatairForm from "./updateSignatair";
-import { Badge } from "../ui/badge";
-import LoadingPage from "../loading-page";
 import ErrorPage from "../error-page";
+import LoadingPage from "../loading-page";
+import { Button } from "../ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import EditSignatairForm from "./updateSignatair";
 
 const SignatairPage = () => {
   const { isHydrated } = useStore();

@@ -1,9 +1,18 @@
 "use client";
 
-import React, { useMemo } from "react";
-import { Bank, CreditTransaction, DebitTransaction, Transaction, TRANSACTION_TYPES } from "@/types/types";
-import { ChartBar, type BarChartDataItem, type BarChartSeries } from "@/components/Charts/bar-chart"; // <-- adapte le chemin
+import {
+  ChartBar,
+  type BarChartDataItem,
+  type BarChartSeries,
+} from "@/components/Charts/bar-chart"; // <-- adapte le chemin
 import { XAF } from "@/lib/utils"; // si tu as déjà un formateur, sinon on fait fallback
+import {
+  Bank,
+  CreditTransaction,
+  DebitTransaction,
+  TRANSACTION_TYPES,
+} from "@/types/types";
+import { useMemo } from "react";
 
 interface Props {
   transactions: Array<DebitTransaction | CreditTransaction>;
@@ -13,7 +22,7 @@ interface Props {
 const formatCurrency = (value: number) => {
   // Si tu as déjà XAF(value) ou formatXAF(value), garde-le.
   try {
-    // @ts-ignore
+    // @ts-expect-error unknown reason
     if (typeof XAF === "function") return XAF(value);
   } catch {}
   return value.toLocaleString("fr-FR") + " FCFA";
@@ -28,10 +37,17 @@ function TransactionChart({ transactions, banks }: Props) {
       count: 0,
     }));
 
-    const filteredTypes = TRANSACTION_TYPES.filter(t=> t.value !== "TRANSFER");
+    const filteredTypes = TRANSACTION_TYPES.filter(
+      (t) => t.value !== "TRANSFER",
+    );
 
-    const byType = new Map<(typeof filteredTypes)[number]["value"], { totalAmount: number; count: number }>();
-    filteredTypes.forEach((t) => byType.set(t.value, { totalAmount: 0, count: 0 }));
+    const byType = new Map<
+      (typeof filteredTypes)[number]["value"],
+      { totalAmount: number; count: number }
+    >();
+    filteredTypes.forEach((t) =>
+      byType.set(t.value, { totalAmount: 0, count: 0 }),
+    );
 
     for (const tx of transactions) {
       const agg = byType.get(tx.Type);
@@ -66,7 +82,7 @@ function TransactionChart({ transactions, banks }: Props) {
       //   color: "hsl(var(--muted-foreground))",
       // },
     ],
-    []
+    [],
   );
 
   return (

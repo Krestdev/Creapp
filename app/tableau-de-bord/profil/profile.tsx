@@ -67,31 +67,31 @@ function getStateConfig(state: string) {
   );
 }
 
-function StatTile({
-  label,
-  value,
-  icon: Icon,
-  colorClass,
-  bgClass,
-}: {
-  label: string;
-  value: number;
-  icon: React.ElementType;
-  colorClass: string;
-  bgClass: string;
-}) {
-  return (
-    <div className="flex flex-col gap-2 p-5 rounded-xl border border-input bg-card shadow-sm">
-      <div
-        className={`w-10 h-10 rounded-lg flex items-center justify-center ${bgClass}`}
-      >
-        <Icon size={18} className={colorClass} />
-      </div>
-      <p className="text-2xl font-bold tracking-tight">{value}</p>
-      <p className="text-sm text-muted-foreground">{label}</p>
-    </div>
-  );
-}
+// function StatTile({
+//   label,
+//   value,
+//   icon: Icon,
+//   colorClass,
+//   bgClass,
+// }: {
+//   label: string;
+//   value: number;
+//   icon: React.ElementType;
+//   colorClass: string;
+//   bgClass: string;
+// }) {
+//   return (
+//     <div className="flex flex-col gap-2 p-5 rounded-xl border border-input bg-card shadow-sm">
+//       <div
+//         className={`w-10 h-10 rounded-lg flex items-center justify-center ${bgClass}`}
+//       >
+//         <Icon size={18} className={colorClass} />
+//       </div>
+//       <p className="text-2xl font-bold tracking-tight">{value}</p>
+//       <p className="text-sm text-muted-foreground">{label}</p>
+//     </div>
+//   );
+// }
 
 function ProfilePage({ user, requests, signature }: Props) {
   const fullName = `${user.firstName} ${user.lastName}`;
@@ -236,6 +236,7 @@ function ProfilePage({ user, requests, signature }: Props) {
                   <img
                     src={`${process.env.NEXT_PUBLIC_API}/${signature.path}`}
                     className="h-12 w-auto"
+                    alt={signature.filename}
                   />
                 )
               )}
@@ -311,7 +312,7 @@ function ProfilePage({ user, requests, signature }: Props) {
                               : req.state === "rejected" ||
                                   req.state === "cancel"
                                 ? "text-red-500"
-                                  : "text-yellow-500"
+                                : "text-yellow-500"
                           }
                         />
                       </div>

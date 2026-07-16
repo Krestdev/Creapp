@@ -1,15 +1,7 @@
-import React from "react";
-import {
-  Document,
-  Page,
-  Text,
-  View,
-  Image,
-  StyleSheet,
-} from "@react-pdf/renderer";
+import { PaymentRequest } from "@/types/types";
+import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import { PaymentRequest } from "@/types/types";
 
 // Tu peux remplacer par tes helpers existants
 const A4_WIDTH = 595;
@@ -119,7 +111,7 @@ const styles = StyleSheet.create({
 });
 
 export const NoticeFile = ({ payment }: Props) => {
-  const today = new Date(payment.createdAt || Date.now());
+  const today = payment.createdAt ? new Date(payment.createdAt) : Date.now();
   const beneficiaryLabel = "Monsieur/Madame";
 
   const dateLabel = `Douala, ${format(today, "dd MMMM yyyy", { locale: fr })}`;

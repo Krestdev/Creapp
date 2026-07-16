@@ -210,6 +210,7 @@ function CreateForm({
     }
   }, [paymentType, form]);
 
+   
   const hasDelay =
     form.watch("receptionMode") === "FULL" ||
     form.watch("receptionMode") === "PARTIAL";
@@ -224,47 +225,47 @@ function CreateForm({
     if (!devi || !provider) return 0;
     return getQuotationAmount(devi, providers, precompte);
 
-    const ACOMPTE_IS_REEL = 0.022;
-    const IR_SIMPLIFIE = 0.055;
-    const PRECOMPTE = 0.02;
+    // const ACOMPTE_IS_REEL = 0.022;
+    // const IR_SIMPLIFIE = 0.055;
+    // const PRECOMPTE = 0.02;
 
-    const isRealRegime = (regem?: string) => {
-      const v = (regem ?? "").toLowerCase().trim();
-      return v === "reel" || v === "réel";
-    };
+    // const isRealRegime = (regem?: string) => {
+    //   const v = (regem ?? "").toLowerCase().trim();
+    //   return v === "reel" || v === "réel";
+    // };
 
-    const real = isRealRegime(provider?.regem);
-    const applyPrecompte = precompte === true;
+    // const real = isRealRegime(provider?.regem);
+    // const applyPrecompte = precompte === true;
 
-    const lines = (devi?.element ?? []).map((el) => {
-      const lineHTBrut = (el.quantity ?? 0) * (el.priceProposed ?? 0);
-      const lineRRR = lineHTBrut * (el.reduction / 100);
-      const lineBase = Math.max(0, lineHTBrut - lineRRR);
+    // const lines = (devi?.element ?? []).map((el) => {
+    //   const lineHTBrut = (el.quantity ?? 0) * (el.priceProposed ?? 0);
+    //   const lineRRR = lineHTBrut * (el.reduction / 100);
+    //   const lineBase = Math.max(0, lineHTBrut - lineRRR);
 
-      const lineTVA = real ? lineBase * (el.tva / 100) : 0;
+    //   const lineTVA = real ? lineBase * (el.tva / 100) : 0;
 
-      // ✅ Simplified: rate is 0 if hasIs is falsy
-      const isIrRate = el.hasIs ? (real ? ACOMPTE_IS_REEL : IR_SIMPLIFIE) : 0;
-      const lineIsIr = lineBase * isIrRate;
+    //   // ✅ Simplified: rate is 0 if hasIs is falsy
+    //   const isIrRate = el.hasIs ? (real ? ACOMPTE_IS_REEL : IR_SIMPLIFIE) : 0;
+    //   const lineIsIr = lineBase * isIrRate;
 
-      // ✅ Precompte is a withholding — subtract, don't add
-      const linePrecompte = applyPrecompte ? lineBase * PRECOMPTE : 0;
-      const lineNetToPay = lineBase + lineTVA - lineIsIr - linePrecompte;
+    //   // ✅ Precompte is a withholding — subtract, don't add
+    //   const linePrecompte = applyPrecompte ? lineBase * PRECOMPTE : 0;
+    //   const lineNetToPay = lineBase + lineTVA - lineIsIr - linePrecompte;
 
-      return {
-        ...el,
-        lineHTBrut,
-        lineRRR,
-        lineBase,
-        lineTVA,
-        lineIsIr,
-        linePrecompte,
-        lineNetToPay,
-      };
-    });
+    //   return {
+    //     ...el,
+    //     lineHTBrut,
+    //     lineRRR,
+    //     lineBase,
+    //     lineTVA,
+    //     lineIsIr,
+    //     linePrecompte,
+    //     lineNetToPay,
+    //   };
+    // });
 
-    // ✅ Defaults to 0 if lines is empty or devi not found
-    return lines.reduce((sum, l) => sum + l.lineNetToPay, 0);
+    // // ✅ Defaults to 0 if lines is empty or devi not found
+    // return lines.reduce((sum, l) => sum + l.lineNetToPay, 0);
   }, [deviId, precompte, quotations, providers]);
 
   //const methodValue = form.watch("paymentMethod");

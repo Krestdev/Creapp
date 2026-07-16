@@ -1,17 +1,16 @@
 "use client";
 
-import { Notification, notificationRoutes } from "@/types/types";
-import { useRouter } from "next/navigation";
-import { NotificationItem } from "@/components/NotificationItem";
-import PageTitle from "@/components/pageTitle";
 import Empty from "@/components/base/empty";
 import { Pagination } from "@/components/base/pagination";
+import { NotificationItem } from "@/components/NotificationItem";
+import PageTitle from "@/components/pageTitle";
+import { Notification } from "@/types/types";
 import {
-  useReactTable,
   getCoreRowModel,
   getPaginationRowModel,
+  useReactTable,
 } from "@tanstack/react-table";
-import { useState, useMemo } from "react";
+import { useMemo, useState } from "react";
 
 // ShadCN Select
 import {
@@ -23,7 +22,7 @@ import {
 } from "@/components/ui/select";
 
 export default function Page() {
-  const router = useRouter();
+  // const router = useRouter();
 
   // --- Notifications ---
   const [notifications, setNotifications] = useState<Notification[]>([
@@ -124,10 +123,11 @@ export default function Page() {
   // --- Colonnes minimales pour react-table ---
   const columns = useMemo(
     () => [{ accessorKey: "title", header: "Title" }],
-    []
+    [],
   );
 
   // --- Table pour pagination ---
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data: filteredNotifications,
     columns,
@@ -138,16 +138,16 @@ export default function Page() {
   // --- Marquer notification comme lue ---
   const handleRead = (id: number) => {
     setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: true } : n))
+      prev.map((n) => (n.id === id ? { ...n, read: true } : n)),
     );
   };
 
   // --- Click sur notification ---
-  const handleClick = (notification: Notification) => {
-    if (!notification.read) handleRead(notification.id);
-    const route = notificationRoutes[notification.type];
-    if (route) router.push(route);
-  };
+  // const handleClick = (notification: Notification) => {
+  //   if (!notification.read) handleRead(notification.id);
+  //   const route = notificationRoutes[notification.type];
+  //   if (route) router.push(route);
+  // };
 
   return (
     <div className="content">

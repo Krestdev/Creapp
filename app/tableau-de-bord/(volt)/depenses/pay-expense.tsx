@@ -47,14 +47,14 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
   const request = ticket.request;
 
   const getVehicle = useQuery({
-    queryKey: queryKeys.vehicle(request?.vehiclesId!),
-    queryFn: () => vehicleQ.getOne(request?.vehiclesId!),
+    queryKey: queryKeys.vehicle(Number(request?.vehiclesId)),
+    queryFn: () => vehicleQ.getOne(Number(request?.vehiclesId)),
     enabled: !!request?.vehiclesId,
   });
 
   const getTransaction = useQuery({
-    queryKey: queryKeys.transaction(ticket?.transactionId!),
-    queryFn: () => transactionQ.getOne(ticket?.transactionId!),
+    queryKey: queryKeys.transaction(Number(ticket?.transactionId)),
+    queryFn: () => transactionQ.getOne(Number(ticket?.transactionId)),
     enabled: !!ticket?.transactionId,
   });
 

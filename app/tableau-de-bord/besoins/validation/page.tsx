@@ -41,7 +41,7 @@ const Page = () => {
     React.useState(false);
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
 
-  const { tab, search, ...otherFilters } = customFilters;
+  // const { tab, search, ...otherFilters } = customFilters;
 
   const { filters, setFilters } = useFilters();
 
@@ -116,7 +116,7 @@ const Page = () => {
   const requestStatsData = useQuery({
     queryKey: queryKeys.requestsForApprovalStats(
       filters,
-      otherFilters,
+      customFilters,
       dateFilter,
     ),
     queryFn: () =>

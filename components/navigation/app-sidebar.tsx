@@ -1,16 +1,12 @@
 import useAuthGuard from "@/hooks/useAuthGuard";
+import { queryKeys } from "@/lib/query-keys";
 import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { bankQ } from "@/queries/bank";
-import { categoryQ } from "@/queries/categoryModule";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { paymentQ } from "@/queries/payment";
-import { payTypeQ } from "@/queries/payType";
-import { providerQ } from "@/queries/providers";
 import { purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
 import { requestQ } from "@/queries/requestModule";
-import { signatairQ } from "@/queries/signatair";
 import { transactionQ } from "@/queries/transaction";
 import { NavigationGroup } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
@@ -22,7 +18,6 @@ import {
   Building2Icon,
   CircleDollarSignIcon,
   CircleUserRoundIcon,
-  DatabaseIcon,
   EllipsisVertical,
   LandmarkIcon,
   LayoutDashboardIcon,
@@ -59,10 +54,9 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 import { Skeleton } from "../ui/skeleton";
-import { queryKeys } from "@/lib/query-keys";
 
 function AppSidebar() {
-  const { user, logout, isHydrated, isSignataire } = useStore();
+  const { user, logout, isSignataire } = useStore();
   const router = useRouter();
   const pathname = usePathname();
 

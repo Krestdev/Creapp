@@ -10,18 +10,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Driver } from "@/types/types";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
-import {
-  CircleDollarSign,
-  LucideCalendar,
-  LucideWallet,
-  LucideFile,
-  UserIcon,
-} from "lucide-react";
+import { LucideFile, UserIcon } from "lucide-react";
 import { useState } from "react";
-import ShowFile from "../base/show-file";
 import { DownloadFile } from "../base/downLoadFile";
+import ShowFile from "../base/show-file";
 
 interface DetailBCProps {
   open: boolean;
@@ -58,16 +50,16 @@ export function ShowDriver({ open, onOpenChange, data }: DetailBCProps) {
         {page === 1 ? (
           <div className="grid gap-3">
             <div className="view-group">
-            <span className="view-icon">
-              <UserIcon />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Noms et prénoms"}</p>
-              <p className="font-semibold">
-                {data?.firstName.concat(" ", data.lastName)}
-              </p>
+              <span className="view-icon">
+                <UserIcon />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Noms et prénoms"}</p>
+                <p className="font-semibold">
+                  {data?.firstName.concat(" ", data.lastName)}
+                </p>
+              </div>
             </div>
-          </div>
             <Button
               disabled={!data.licence}
               variant={"ghost"}

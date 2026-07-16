@@ -37,9 +37,8 @@ import { isPayDateValid, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { NewPayment, paymentQ } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
-import { purchaseQ } from "@/queries/purchase-order";
 import { receptionQ } from "@/queries/reception";
-import { BonsCommande, Invoice, PRIORITIES, ProjectT } from "@/types/types";
+import { Invoice, PRIORITIES, ProjectT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQuery } from "@tanstack/react-query";
@@ -157,9 +156,13 @@ function CreatePaiement({ invoices, projects }: Props) {
     },
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const invoiceId = form.watch("invoiceId");
+
   const isPartial = form.watch("isPartial");
+
   const methodValue = form.watch("method");
+
   const project = form.watch("project");
 
   const createPayment = useMutation({
@@ -215,8 +218,8 @@ function CreatePaiement({ invoices, projects }: Props) {
   }, [invoiceId]);
 
   const getReception = useQuery({
-    queryKey: queryKeys.receptionByPurchase(Number(purchase?.id!)),
-    queryFn: async () => receptionQ.getByPurchase(purchase?.id!),
+    queryKey: queryKeys.receptionByPurchase(Number(purchase?.id)),
+    queryFn: async () => receptionQ.getByPurchase(Number(purchase?.id)),
     enabled: !!purchase,
   });
 
@@ -360,7 +363,7 @@ function CreatePaiement({ invoices, projects }: Props) {
           name="project"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Mode d'attribution</FormLabel>
+              <FormLabel>{"Mode d'attribution"}</FormLabel>
               <FormControl>
                 <Select
                   defaultValue={field.value ? String(field.value) : undefined}
