@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 interface ValidationModalProps {
   open: boolean;
@@ -76,15 +76,17 @@ export function ValidationModal({
 
   const isApprove = type === "approve";
 
-  // Réinitialisation à chaque ouverture
-  useEffect(() => {
+  const [prevOpen, setPrevOpen] = useState(false);
+
+  if (open !== prevOpen) {
+    setPrevOpen(open);
     if (open) {
       setMotif("");
       setError("");
       setIsPending(false);
       setResult(null);
     }
-  }, [open]);
+  }
 
   const handleSubmit = async () => {
     if (isMotifRequired && !isApprove && !motif.trim()) {

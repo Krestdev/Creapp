@@ -88,7 +88,7 @@ const Page = () => {
     getCategories.isSuccess &&
     getVehicles.isSuccess
   ) {
-    const RenderForm = () => {
+    const renderForm = () => {
       switch (requestType) {
         case "achat":
           return (
@@ -328,7 +328,7 @@ const Page = () => {
           </div>
         )}
 
-        <RenderForm />
+        {renderForm()}
       </div>
     );
   }

@@ -66,10 +66,12 @@ export function SearchableSelect({
     return () => observer.disconnect();
   }, []);
 
-  // Reset search quand on ferme
-  React.useEffect(() => {
-    if (!open) setSearch("");
-  }, [open]);
+  const handleOpenChange = (nextOpen: boolean) => {
+    setOpen(nextOpen);
+    if (!nextOpen) {
+      setSearch("");
+    }
+  };
 
   // Scroll automatique vers le haut quand on ouvre
   React.useEffect(() => {
@@ -103,7 +105,7 @@ export function SearchableSelect({
   }, [options, search]);
 
   return (
-    <Popover open={open} onOpenChange={setOpen}>
+    <Popover open={open} onOpenChange={handleOpenChange}>
       <PopoverTrigger asChild>
         <Button
           ref={triggerRef}
@@ -155,7 +157,7 @@ export function SearchableSelect({
                     value="all"
                     onSelect={() => {
                       onChange("all");
-                      setOpen(false);
+                      handleOpenChange(false);
                     }}
                   >
                     <Check
@@ -175,7 +177,7 @@ export function SearchableSelect({
                     value={option.label}
                     onSelect={() => {
                       onChange(option.value);
-                      setOpen(false);
+                      handleOpenChange(false);
                     }}
                   >
                     <Check

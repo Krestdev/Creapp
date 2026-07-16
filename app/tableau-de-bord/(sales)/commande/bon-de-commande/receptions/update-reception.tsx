@@ -53,9 +53,16 @@ export default function UpdateReception({
 
   const [proof, setProof] = React.useState<Array<File | string> | null>(defaultFiles);
 
-  React.useEffect(() => {
-    if (open) setDeliverables(reception?.Deliverables ?? []);
-  }, [open, reception]);
+  const [prevOpen, setPrevOpen] = React.useState(false);
+  const [prevReceptionId, setPrevReceptionId] = React.useState<number | null>(null);
+
+  if (open !== prevOpen || reception?.id !== prevReceptionId) {
+    setPrevOpen(open);
+    setPrevReceptionId(reception?.id ?? null);
+    if (open) {
+      setDeliverables(reception?.Deliverables ?? []);
+    }
+  }
 
   const markReception = useMutation({
     mutationFn: ({ id, Deliverables, proof, note }: ReceptionCompletion) =>

@@ -1,6 +1,5 @@
 "use client";
 import MultiSelectConditions from "@/components/base/multiSelectConditions";
-import MultiSelectRole from "@/components/base/multiSelectRole";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -27,29 +26,19 @@ import {
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  formatToShortName,
-  getQuotationAmount,
-  isProviderValid,
-  XAF,
-} from "@/lib/utils";
-import { CommandConditionQ } from "@/queries/commandsConditions";
-import { payTypeQ } from "@/queries/payType";
-import { providerQ } from "@/queries/providers";
+import { formatToShortName, getQuotationAmount, XAF } from "@/lib/utils";
 import { CreatePurchasePayload, purchaseQ } from "@/queries/purchase-order";
-import { quotationQ } from "@/queries/quotation";
 import {
   BonsCommande,
   CommandCondition,
   PayType,
-  PENALITY_MODE,
   PRIORITIES,
   Provider,
   Quotation,
   RECEPTION_MODES,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import React from "react";
@@ -210,8 +199,8 @@ function CreateForm({
     }
   }, [paymentType, form]);
 
-   
   const hasDelay =
+    // eslint-disable-next-line react-hooks/incompatible-library
     form.watch("receptionMode") === "FULL" ||
     form.watch("receptionMode") === "PARTIAL";
 

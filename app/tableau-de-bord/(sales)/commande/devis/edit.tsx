@@ -30,7 +30,7 @@ import { useStore } from "@/providers/datastore";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { providerQ } from "@/queries/providers";
 import { quotationQ } from "@/queries/quotation";
-import { Quotation, RequestModelT } from "@/types/types";
+import { Quotation } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import { SelectValue } from "@radix-ui/react-select";
@@ -90,9 +90,7 @@ function EditQuotation({ open, openChange, quotation }: Props) {
   const [openAddElement, setOpenAddElement] = React.useState(false);
   const [openProviderDialog, setOpenProviderDialog] = React.useState(false);
   const [openProviderSelect, setOpenProviderSelect] = React.useState(false);
-  const [selectedNeeds, setSelectedNeeds] = React.useState<
-    Array<RequestModelT>
-  >([]);
+
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
   const [editingElement, setEditingElement] = React.useState<any>(null);
   const [search, setSearch] = React.useState("");
@@ -106,6 +104,10 @@ function EditQuotation({ open, openChange, quotation }: Props) {
     queryKey: queryKeys.quotationRequest(quotation.commandRequestId),
     queryFn: async () => commandRqstQ.getOne(quotation.commandRequestId),
   });
+
+  const selectedNeeds = React.useMemo(() => {
+    return commandRequestData.data?.data.besoins ?? [];
+  }, [commandRequestData.data]);
 
   const quotationsData = useQuery({
     queryKey: queryKeys.quotations,
@@ -151,12 +153,8 @@ function EditQuotation({ open, openChange, quotation }: Props) {
   useEffect(() => {
     if (open) {
       form.reset(defaultValues);
-      const commandId = quotation.commandRequestId;
-      if (commandId && commandRequestData.data) {
-        setSelectedNeeds(commandRequestData.data.data.besoins ?? []);
-      }
     }
-  }, [open, quotation, defaultValues, commandRequestData.data, form]);
+  }, [open, defaultValues, form]);
 
   // ── Mutation ────────────────────────────────────────────────────────────────
 

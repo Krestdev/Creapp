@@ -37,6 +37,7 @@ export const CrossPlatformPDFViewer = ({
   const [android, setAndroid] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setAndroid(isAndroidBrowser());
     // Mesure la largeur réelle du conteneur pour adapter les pages
     const width = window.innerWidth;

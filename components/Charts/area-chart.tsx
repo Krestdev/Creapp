@@ -68,7 +68,7 @@ export function ChartArea({
   tooltipIndicator = "dot",
   tooltipConfig = {},
   // footerContent,
-  trend,
+  // trend,
   height = 300,
   margin = { top: 20, right: 30, left: 20, bottom: 10 },
   // className = "",

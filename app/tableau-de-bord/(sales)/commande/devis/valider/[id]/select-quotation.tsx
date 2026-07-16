@@ -109,11 +109,12 @@ function SelectQuotation({ id }: { id: string }) {
     return new Map<number, Provider>(list.map((p) => [p.id, p]));
   }, [providers.data]);
 
-  // Sync de la sélection initiale
-  React.useEffect(() => {
-    if (!quotationGroup) return;
+  const [prevQuotationGroupId, setPrevQuotationGroupId] = React.useState<number | null>(null);
+
+  if (quotationGroup && quotationGroup.commandRequest.id !== prevQuotationGroupId) {
+    setPrevQuotationGroupId(quotationGroup.commandRequest.id);
     setSelected(computePreselected(quotationGroup));
-  }, [quotationGroup?.commandRequest?.id]);
+  }
 
   // --- ACTIONS ---
   const { mutate, isPending } = useMutation({

@@ -142,6 +142,7 @@ function EditBank({ open, openChange, bank }: Props) {
     }
   }, [open]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
   const type = form.watch("type");
 
   const update = useMutation({

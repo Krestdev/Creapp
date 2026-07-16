@@ -91,7 +91,7 @@ export default function UpdateRequestFac({
   const [beneficiairesList, setBeneficiairesList] = useState<
     { id: number; nom: string; montant: number }[]
   >([]);
-  const [isFormInitialized, setIsFormInitialized] = useState(false);
+
 
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
@@ -112,46 +112,52 @@ export default function UpdateRequestFac({
   // INITIALISATION DES DONNÉES
   // ----------------------------------------------------------------------
 
+  const [prevOpen, setPrevOpen] = useState(false);
+  const [prevRequestDataId, setPrevRequestDataId] = useState<number | null>(null);
+
+  if (open !== prevOpen || requestData?.id !== prevRequestDataId) {
+    setPrevOpen(open);
+    setPrevRequestDataId(requestData?.id ?? null);
+    if (open && requestData) {
+      if (requestData.benFac?.list) {
+        setBeneficiairesList(
+          requestData.benFac.list.map((item: any) => ({
+            id: item.id,
+            nom: item.name,
+            montant: item.amount,
+          })),
+        );
+      } else {
+        setBeneficiairesList([]);
+      }
+    }
+  }
+
+  // ----------------------------------------------------------------------
+  // INITIALISATION DES DONNÉES
+  // ----------------------------------------------------------------------
+
   useEffect(() => {
     if (open && users.length > 0) {
-      const initializeForm = async () => {
-        try {
-          // Récupérer la liste des bénéficiaires depuis benFac
-          if (requestData.benFac?.list) {
-            setBeneficiairesList(
-              requestData.benFac.list.map((item: any) => ({
-                id: item.id,
-                nom: item.name,
-                montant: item.amount,
-              })),
-            );
-          }
-
-          // Réinitialiser le formulaire avec les valeurs
-          form.reset({
-            beneficiaire: requestData.beneficiary?.toString() || "",
-            projet: requestData.projectId?.toString() || "",
-            delai: requestData.dueDate
-              ? new Date(requestData.dueDate)
-              : new Date(),
-            title: requestData.label || "",
-            description: requestData.description || "",
-            justificatif: requestData.proof,
-          });
-
-          setIsFormInitialized(true);
-        } catch (error) {
-          console.error(
-            "Erreur lors de l'initialisation du formulaire:",
-            error,
-          );
-          toast.error("Erreur lors du chargement des données");
-        }
-      };
-
-      initializeForm();
-    } else {
-      setIsFormInitialized(false);
+      try {
+        // Réinitialiser le formulaire avec les valeurs
+        form.reset({
+          beneficiaire: requestData.beneficiary?.toString() || "",
+          projet: requestData.projectId?.toString() || "",
+          delai: requestData.dueDate
+            ? new Date(requestData.dueDate)
+            : new Date(),
+          title: requestData.label || "",
+          description: requestData.description || "",
+          justificatif: requestData.proof,
+        });
+      } catch (error) {
+        console.error(
+          "Erreur lors de l'initialisation du formulaire:",
+          error,
+        );
+        toast.error("Erreur lors du chargement des données");
+      }
     }
   }, [requestData, open, users, form]);
 
@@ -400,7 +406,7 @@ export default function UpdateRequestFac({
             <Button
               type="submit"
               variant={"secondary"}
-              disabled={updateMutation.isPending || !isFormInitialized}
+              disabled={updateMutation.isPending || !requestData}
               isLoading={updateMutation.isPending}
               onClick={form.handleSubmit(onSubmit)}
             >

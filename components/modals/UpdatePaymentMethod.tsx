@@ -29,7 +29,7 @@ import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation } from "@tanstack/react-query";
 import { LoaderIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -61,7 +61,7 @@ export default function UpdatePaymentMethod({
   onSuccess,
   // categories,
 }: UpdatePaymentMethodProps) {
-  const [isFormInitialized, setIsFormInitialized] = useState(false);
+
 
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
@@ -83,13 +83,10 @@ export default function UpdatePaymentMethod({
         form.reset({
           paytype: requestData.paytype as "cash" | "chq" | "ov" | undefined,
         });
-        setIsFormInitialized(true);
       } catch (error) {
         console.error("Erreur lors de l'initialisation du formulaire:", error);
         toast.error("Erreur lors du chargement des données");
       }
-    } else {
-      setIsFormInitialized(false);
     }
   }, [requestData, open, form]);
 
@@ -213,7 +210,7 @@ export default function UpdatePaymentMethod({
             </Button>
             <Button
               type="submit"
-              disabled={validateRequest.isPending || !isFormInitialized}
+              disabled={validateRequest.isPending || !requestData}
               className="bg-green-500 hover:bg-green-600"
               onClick={form.handleSubmit(onSubmit)}
             >

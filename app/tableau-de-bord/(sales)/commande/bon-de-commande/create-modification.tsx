@@ -9,7 +9,6 @@ import {
 import {
   BonsCommande,
   CommandCondition,
-  PAYMENT_METHOD,
   PayType,
   PRIORITIES,
   Quotation,

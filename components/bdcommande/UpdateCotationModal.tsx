@@ -113,27 +113,34 @@ export function UpdateCotationModal({
     },
   });
 
+  const [prevOpen, setPrevOpen] = useState(false);
+  const [prevQuotationRequestId, setPrevQuotationRequestId] = useState<number | null>(null);
+
+  if (open !== prevOpen || quotationRequest?.id !== prevQuotationRequestId) {
+    setPrevOpen(open);
+    setPrevQuotationRequestId(quotationRequest?.id ?? null);
+    if (open && quotationRequest) {
+      const selectedRequests = quotationRequest.besoins.map((b) => ({
+        id: b.id,
+        name: b.label,
+        dueDate: b.dueDate,
+      }));
+      setSelected(selectedRequests);
+    }
+  }
+
   // Effet pour initialiser les données quand la modal s'ouvre
   React.useEffect(() => {
-    // Calculer les données initiales
-    const selectedRequests = quotationRequest.besoins.map((b) => ({
-      id: b.id,
-      name: b.label,
-      dueDate: b.dueDate,
-    }));
-
-    // Mettre à jour les états
-    setSelected(selectedRequests);
-    // setDataSup(quotationRequest.besoins);
-
-    // Reset du formulaire
-    form.reset({
-      name: quotationRequest.name,
-      telephone: quotationRequest.phone,
-      titre: quotationRequest.title,
-      requests: quotationRequest.besoins.map((b) => b.id),
-      date_limite: new Date(quotationRequest.dueDate),
-    });
+    if (open && quotationRequest) {
+      // Reset du formulaire
+      form.reset({
+        name: quotationRequest.name,
+        telephone: quotationRequest.phone,
+        titre: quotationRequest.title,
+        requests: quotationRequest.besoins.map((b) => b.id),
+        date_limite: new Date(quotationRequest.dueDate),
+      });
+    }
   }, [open, quotationRequest, form]);
 
   // Fonction pour gérer la sélection des besoins

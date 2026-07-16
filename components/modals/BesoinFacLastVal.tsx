@@ -128,11 +128,13 @@ export default function BesoinFacLastVal({
     },
   });
 
-  // ----------------------------------------------------------------------
-  // INITIALISATION DES DONNÉES
-  // ----------------------------------------------------------------------
-  useEffect(() => {
-    if (requestData && open) {
+  const [prevOpen, setPrevOpen] = useState(false);
+  const [prevRequestDataId, setPrevRequestDataId] = useState<number | null>(null);
+
+  if (open !== prevOpen || requestData?.id !== prevRequestDataId) {
+    setPrevOpen(open);
+    setPrevRequestDataId(requestData?.id ?? null);
+    if (open && requestData) {
       if (requestData.benFac?.list) {
         setBeneficiairesList(
           requestData.benFac.list.map((item: any) => ({
@@ -141,7 +143,17 @@ export default function BesoinFacLastVal({
             montant: item.amount,
           })),
         );
+      } else {
+        setBeneficiairesList([]);
       }
+    }
+  }
+
+  // ----------------------------------------------------------------------
+  // INITIALISATION DES DONNÉES
+  // ----------------------------------------------------------------------
+  useEffect(() => {
+    if (requestData && open) {
       form.reset({
         decision: "",
         paytype: undefined,

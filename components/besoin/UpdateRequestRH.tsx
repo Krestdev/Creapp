@@ -32,7 +32,7 @@ import { useMutation } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -95,7 +95,7 @@ export default function UpdateRHRequest({
   projects,
   users,
 }: UpdateRHRequestProps) {
-  const [isFormInitialized, setIsFormInitialized] = useState(false);
+
 
   const USERS = users
     .filter((u) => u.verified)
@@ -130,62 +130,54 @@ export default function UpdateRHRequest({
 
   useEffect(() => {
     if (open && USERS.length > 0) {
-      const initializeForm = async () => {
-        try {
-          // Formater la période si elle existe
-          let periodValue: {
-            from?: Date;
-            to?: Date;
-          } = {};
+      try {
+        // Formater la période si elle existe
+        let periodValue: {
+          from?: Date;
+          to?: Date;
+        } = {};
 
-          if (requestData.period) {
-            periodValue = {
-              from: requestData.period.from
-                ? new Date(requestData.period.from)
-                : undefined,
-              to: requestData.period.to
-                ? new Date(requestData.period.to)
-                : undefined,
-            };
-          }
-
-          // Récupérer les bénéficiaires
-          const beneficiaireIds =
-            requestData.beficiaryList?.flatMap((x) => x.id) || [];
-          if (typeof requestData.beneficiary === "string") {
-            const benefId = parseInt(requestData.beneficiary);
-            if (!isNaN(benefId) && !beneficiaireIds.includes(benefId)) {
-              beneficiaireIds.push(benefId);
-            }
-          }
-
-          // Réinitialiser le formulaire avec les valeurs
-          form.reset({
-            projet: requestData.projectId?.toString() || "",
-            titre: requestData.label || "",
-            description: requestData.description || "",
-            montant: requestData.amount?.toString() || "",
-            periode: periodValue,
-            date_limite: requestData.dueDate
-              ? new Date(requestData.dueDate)
-              : new Date(),
-            beneficiaire: beneficiaireIds,
-            justificatif: requestData.proof,
-          });
-
-          setIsFormInitialized(true);
-        } catch (error) {
-          console.error(
-            "Erreur lors de l'initialisation du formulaire:",
-            error,
-          );
-          toast.error("Erreur lors du chargement des données");
+        if (requestData.period) {
+          periodValue = {
+            from: requestData.period.from
+              ? new Date(requestData.period.from)
+              : undefined,
+            to: requestData.period.to
+              ? new Date(requestData.period.to)
+              : undefined,
+          };
         }
-      };
 
-      initializeForm();
-    } else {
-      setIsFormInitialized(false);
+        // Récupérer les bénéficiaires
+        const beneficiaireIds =
+          requestData.beficiaryList?.flatMap((x) => x.id) || [];
+        if (typeof requestData.beneficiary === "string") {
+          const benefId = parseInt(requestData.beneficiary);
+          if (!isNaN(benefId) && !beneficiaireIds.includes(benefId)) {
+            beneficiaireIds.push(benefId);
+          }
+        }
+
+        // Réinitialiser le formulaire avec les valeurs
+        form.reset({
+          projet: requestData.projectId?.toString() || "",
+          titre: requestData.label || "",
+          description: requestData.description || "",
+          montant: requestData.amount?.toString() || "",
+          periode: periodValue,
+          date_limite: requestData.dueDate
+            ? new Date(requestData.dueDate)
+            : new Date(),
+          beneficiaire: beneficiaireIds,
+          justificatif: requestData.proof,
+        });
+      } catch (error) {
+        console.error(
+          "Erreur lors de l'initialisation du formulaire:",
+          error,
+        );
+        toast.error("Erreur lors du chargement des données");
+      }
     }
   }, [requestData, open, USERS.length, form]);
 
@@ -499,7 +491,7 @@ export default function UpdateRHRequest({
             </DialogClose>
             <Button
               type="submit"
-              disabled={updateMutation.isPending || !isFormInitialized}
+              disabled={updateMutation.isPending || !requestData}
               isLoading={updateMutation.isPending}
               variant={"secondary"}
               onClick={form.handleSubmit(onSubmit)}

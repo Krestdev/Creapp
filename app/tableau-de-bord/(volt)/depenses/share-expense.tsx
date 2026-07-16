@@ -114,9 +114,7 @@ function ShareExpense({
   // const debitTransactions = transactions?.filter((t) => t.Type === "DEBIT");
   const banks = getBanks.data?.data;
 
-  const provider = useMemo(() => {
-    return providers.find((x) => x.id === ticket.facture?.command.providerId);
-  }, [providers, ticket.facture?.command.providerId]);
+  const provider = providers.find((x) => x.id === ticket.facture?.command.providerId);
 
   // Schéma — simple et direct
   const formSchema = z.object({
@@ -270,7 +268,7 @@ function ShareExpense({
   }, [banks, paymentMethod?.type, ticket.type]);
 
   // Récupérer la configuration de signature correspondante
-  const relevantSignataireConfig = useMemo(() => {
+  const relevantSignataireConfig = (() => {
     if (!signataires || !selectedBankId || !paymentMethod?.id) {
       return null;
     }
@@ -283,7 +281,7 @@ function ShareExpense({
     );
 
     return config || null;
-  }, [signataires, selectedBankId, paymentMethod?.id]);
+  })();
 
   // Formater la liste des signataires pour l'affichage
   const signatairesList = useMemo(() => {

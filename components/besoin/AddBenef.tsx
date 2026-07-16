@@ -33,6 +33,7 @@ export default function BeneficiairesList({
   const [errors, setErrors] = useState<{ nom?: string; montant?: string }>({});
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setBeneficiaires(initialBeneficiaires);
   }, [initialBeneficiaires]);
 

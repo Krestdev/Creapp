@@ -7,13 +7,11 @@ import PageTitle from "@/components/pageTitle";
 import { XAF } from "@/lib/utils";
 import {
   Category,
-  DateFilter,
   PaymentRequest,
   ProjectT,
   RequestModelT,
   User,
 } from "@/types/types";
-import React from "react";
 
 interface Props {
   requests: Array<RequestModelT>;

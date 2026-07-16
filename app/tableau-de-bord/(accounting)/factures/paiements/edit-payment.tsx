@@ -36,7 +36,7 @@ import { Switch } from "@/components/ui/switch";
 import { useStore } from "@/providers/datastore";
 import { paymentQ, UpdatePayment } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
-import { Invoice, PaymentRequest, PRIORITIES } from "@/types/types";
+import { PaymentRequest, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";

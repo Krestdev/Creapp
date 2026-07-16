@@ -1,4 +1,5 @@
 import { PaymentRequest } from "@/types/types";
+import { useState } from "react";
 import { Document, Page, StyleSheet, Text, View } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
 });
 
 export const NoticeFile = ({ payment }: Props) => {
-  const today = payment.createdAt ? new Date(payment.createdAt) : Date.now();
+  const [today] = useState(() => payment.createdAt ? new Date(payment.createdAt) : new Date());
   const beneficiaryLabel = "Monsieur/Madame";
 
   const dateLabel = `Douala, ${format(today, "dd MMMM yyyy", { locale: fr })}`;

@@ -15,7 +15,7 @@ import {
 import { userQ } from "@/queries/baseModule";
 import { Signatair, User } from "@/types/types";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { signatairQ } from "@/queries/signatair";
 import { Field, FieldError, FieldLabel } from "../ui/field";
@@ -119,8 +119,6 @@ export default function EditSignatairForm({
   signatair,
   onSuccess,
 }: UpdateSignatairProps) {
-  const [selectedUser, setSelectedUser] = useState<User[]>([]);
-
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -149,14 +147,25 @@ export default function EditSignatairForm({
     queryFn: () => userQ.getAll(),
   });
 
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const selectedUserIds = form.watch("signatair") || [];
+  const selectedUser = useMemo(() => {
+    const allUsers = userData.data?.data || [];
+    const initialUsers = signatair?.user || [];
+    return selectedUserIds
+      .map((id) => {
+        const foundInAll = allUsers.find((u) => u.id === id);
+        if (foundInAll) return foundInAll;
+        return initialUsers.find((u) => u.id === id);
+      })
+      .filter((u): u is User => !!u);
+  }, [selectedUserIds, signatair, userData.data?.data]);
+
   /* =========================
      INIT FORM
   ========================= */
   useEffect(() => {
     if (signatair && open && userData.data) {
-      const users = signatair.user || [];
-      setSelectedUser(users);
-
       // Convertir le mode backend en mode frontend
       const frontendMode = backendToFrontendMode(signatair.mode);
 
@@ -371,7 +380,6 @@ export default function EditSignatairForm({
                         selected={selectedUser}
                         placeholder="Sélectionner des signataires"
                         onChange={(selected) => {
-                          setSelectedUser(selected);
                           field.onChange(selected.map((r) => r.id));
                         }}
                       />

@@ -27,12 +27,7 @@ import { Switch } from "@/components/ui/switch";
 import { useStore } from "@/providers/datastore";
 import { paymentQ, UpdatePayment } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
-import {
-  Invoice,
-  PAYMENT_METHOD,
-  PaymentRequest,
-  PRIORITIES,
-} from "@/types/types";
+import { Invoice, PaymentRequest, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQuery } from "@tanstack/react-query";

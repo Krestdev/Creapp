@@ -271,13 +271,11 @@ function Page() {
                       options={purchases
                         .filter((p) => p.status === "APPROVED")
                         .map((request) => {
-                          const pay = React.useMemo(() => {
-                            return invoices
-                              ?.filter(
-                                (invoice) => invoice.commandId === request.id,
-                              )
-                              .filter((c) => c.status !== "CANCELLED");
-                          }, [invoices, request]);
+                          const pay = invoices
+                            ?.filter(
+                              (invoice) => invoice.commandId === request.id,
+                            )
+                            .filter((c) => c.status !== "CANCELLED");
                           const paid =
                             pay
                               ?.flatMap((x) => x.amount)

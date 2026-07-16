@@ -231,6 +231,7 @@ function EditPurchase({
 
    
   const hasDelay =
+    // eslint-disable-next-line react-hooks/incompatible-library
     form.watch("receptionMode") === "FULL" ||
     form.watch("receptionMode") === "PARTIAL";
 

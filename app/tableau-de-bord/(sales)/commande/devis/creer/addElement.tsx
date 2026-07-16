@@ -94,23 +94,32 @@ function AddElement({
     },
   });
 
-  // Réinitialiser les états quand le dialog s'ouvre
-  useEffect(() => {
-    if (open) {
-      // Toujours réinitialiser avec les valeurs actuelles
-      setTempElements(value);
+  const [prevOpen, setPrevOpen] = useState(false);
 
+  if (open !== prevOpen) {
+    setPrevOpen(open);
+    if (open) {
+      setTempElements(value);
       if (element && index !== undefined && index !== null) {
-        // Mode édition d'un élément existant
-        form.reset(element);
         setEditingIndex(index);
       } else {
-        // Mode ajout ou réinitialisation
-        form.reset();
         setEditingIndex(null);
       }
     }
-  }, [open, value, element, index, form]);
+  }
+
+  // Réinitialiser les états quand le dialog s'ouvre
+  useEffect(() => {
+    if (open) {
+      if (element && index !== undefined && index !== null) {
+        // Mode édition d'un élément existant
+        form.reset(element);
+      } else {
+        // Mode ajout ou réinitialisation
+        form.reset();
+      }
+    }
+  }, [open, element, index, form]);
 
   // Fonction pour ajouter ou modifier un élément
   const handleAddOrUpdateElement = (values: ElementT) => {
