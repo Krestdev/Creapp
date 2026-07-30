@@ -534,7 +534,7 @@ export function PurchaseTable({
                   setSelectedValue(item);
                   setComplete(true);
                 }}
-                disabled={false} //change with these rules item.status !== "APPROVED" || !!item.commandFile
+                disabled={item.status !== "APPROVED" || !!item.commandFile} //change with these rules item.status !== "APPROVED" || !!item.commandFile
               >
                 <FileTextIcon />
                 {"Générer le bon signé"}{" "}
