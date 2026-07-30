@@ -388,7 +388,7 @@ const styles = StyleSheet.create({
   },
 
   signatureLine: {
-    marginTop: 22,
+    marginTop: 4,
     borderTopWidth: 1,
     borderTopColor: "#9CA3AF",
   },
