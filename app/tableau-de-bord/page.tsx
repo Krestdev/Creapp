@@ -532,9 +532,9 @@ const DashboardPage = () => {
           customDateRange={
             customFilters.from && customFilters.to
               ? {
-                  from: new Date(customFilters.from),
-                  to: new Date(customFilters.to),
-                }
+                from: new Date(customFilters.from),
+                to: new Date(customFilters.to),
+              }
               : undefined
           }
           title="Mes besoins"
@@ -550,9 +550,9 @@ const DashboardPage = () => {
             customDateRange={
               customFilters.from && customFilters.to
                 ? {
-                    from: new Date(customFilters.from),
-                    to: new Date(customFilters.to),
-                  }
+                  from: new Date(customFilters.from),
+                  to: new Date(customFilters.to),
+                }
                 : undefined
             }
             title="Besoins reçus"
@@ -568,9 +568,9 @@ const DashboardPage = () => {
             customDateRange={
               customFilters.from && customFilters.to
                 ? {
-                    from: new Date(customFilters.from),
-                    to: new Date(customFilters.to),
-                  }
+                  from: new Date(customFilters.from),
+                  to: new Date(customFilters.to),
+                }
                 : undefined
             }
             title="Tous les besoins"
@@ -579,22 +579,22 @@ const DashboardPage = () => {
           />
         )}
 
-        {dashboardPaidData.data && (
+        {dashboardPaidData.data && (super_admin || manager) && (
           <ChartExpenseEvolution
             filteredData={filteredPayments}
             dateFilter={dateFilter}
             customDateRange={
               customFilters.from && customFilters.to
                 ? {
-                    from: new Date(customFilters.from),
-                    to: new Date(customFilters.to),
-                  }
+                  from: new Date(customFilters.from),
+                  to: new Date(customFilters.to),
+                }
                 : undefined
             }
           />
         )}
 
-        {dashboardPaidData.data && (
+        {dashboardPaidData.data && (super_admin || manager) && (
           <Card className="py-4 mt-6">
             <CardHeader className="flex flex-col items-stretch border-b sm:flex-row">
               <div className="flex flex-1 flex-col justify-center gap-1 px-6 pb-3 sm:pb-0">

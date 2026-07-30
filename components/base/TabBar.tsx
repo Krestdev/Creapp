@@ -25,18 +25,21 @@ export const TabBar = ({
         return (
           <div
             onClick={() => setSelectedTab(x.id)}
-            className={`py-1 px-4 h-9 w-full @min-[760px]:w-fit flex items-center cursor-pointer gap-2 text-sm hover:bg-gray-100 transition-all duration-300 ease-out ${x.id === selectedTab && "bg-accent text-default hover:bg-accent/80! font-semibold"}`}
+            className={`py-1 px-4 h-9 w-full @min-[760px]:w-fit 
+              flex items-center cursor-pointer gap-2 text-sm hover:bg-gray-100 
+              transition-all duration-300 ease-out ${x.id === selectedTab &&
+              "bg-accent text-default hover:bg-accent/80! font-semibold"}`}
             key={x.id}
           >
             <p>{x.title}</p>
             {x.badge
               ? x.badge > 0 && (
-                  <div
-                    className={`px-2 rounded ${x.id === selectedTab ? "bg-white text-black" : "bg-primary text-white"}`}
-                  >
-                    <p>{x.badge}</p>
-                  </div>
-                )
+                <div
+                  className={`px-2 rounded ${x.id === selectedTab ? "bg-white text-black" : "bg-primary text-white"}`}
+                >
+                  <p>{x.badge}</p>
+                </div>
+              )
               : null}
           </div>
         );
