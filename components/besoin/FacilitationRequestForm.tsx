@@ -262,36 +262,16 @@ export default function FacilitationRequestForm({
             )}
           />
 
-          {/* BENEFICIAIRE */}
+
+
+          {/* Description/Détail */}
           <FormField
             control={form.control}
-            name="beneficiaire"
+            name="description"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel isRequired>{"Recepteur pour compte"}</FormLabel>
-                <Combobox
-                  items={users.filter((u) => u.verified)}
-                  value={
-                    users.find((user) => user.id.toString() === field.value) ??
-                    null
-                  }
-                  onValueChange={(v) => field.onChange(v?.id.toString() ?? "")}
-                  itemToStringLabel={(v) => v.firstName.concat(" ", v.lastName)}
-                >
-                  <ComboboxInput placeholder="Sélectionner" />
-                  <ComboboxContent>
-                    <ComboboxEmpty>
-                      {"Aucun utilisateur enregistré"}
-                    </ComboboxEmpty>
-                    <ComboboxList>
-                      {(item: User) => (
-                        <ComboboxItem key={item.id} value={item}>
-                          {item.firstName.concat(" ", item.lastName)}
-                        </ComboboxItem>
-                      )}
-                    </ComboboxList>
-                  </ComboboxContent>
-                </Combobox>
+              <FormItem className="@min-[640px]:col-span-2">
+                <FormLabel isRequired>{"Description/Détail"}</FormLabel>
+                <Textarea {...field} placeholder="Décrivez le besoin" />
                 <FormMessage />
               </FormItem>
             )}
@@ -337,22 +317,44 @@ export default function FacilitationRequestForm({
             )}
           />
 
-          {/* Description/Détail */}
-          <FormField
-            control={form.control}
-            name="description"
-            render={({ field }) => (
-              <FormItem className="@min-[640px]:col-span-2">
-                <FormLabel isRequired>{"Description/Détail"}</FormLabel>
-                <Textarea {...field} placeholder="Décrivez le besoin" />
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-
           <BeneficiairesList
             initialBeneficiaires={beneficiairesList}
             onBeneficiairesChange={setBeneficiairesList}
+          />
+
+          {/* BENEFICIAIRE */}
+          <FormField
+            control={form.control}
+            name="beneficiaire"
+            render={({ field }) => (
+              <FormItem className="md:col-span-2">
+                <FormLabel isRequired>{"Recepteur pour compte"}</FormLabel>
+                <Combobox
+                  items={users.filter((u) => u.verified)}
+                  value={
+                    users.find((user) => user.id.toString() === field.value) ??
+                    null
+                  }
+                  onValueChange={(v) => field.onChange(v?.id.toString() ?? "")}
+                  itemToStringLabel={(v) => v.firstName.concat(" ", v.lastName)}
+                >
+                  <ComboboxInput placeholder="Sélectionner" />
+                  <ComboboxContent>
+                    <ComboboxEmpty>
+                      {"Aucun utilisateur enregistré"}
+                    </ComboboxEmpty>
+                    <ComboboxList>
+                      {(item: User) => (
+                        <ComboboxItem key={item.id} value={item}>
+                          {item.firstName.concat(" ", item.lastName)}
+                        </ComboboxItem>
+                      )}
+                    </ComboboxList>
+                  </ComboboxContent>
+                </Combobox>
+                <FormMessage />
+              </FormItem>
+            )}
           />
 
           {/* JUSTIFICATIF */}
