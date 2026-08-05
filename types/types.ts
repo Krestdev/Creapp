@@ -884,3 +884,16 @@ export type modification = {
   createdAt: Date;
   updatedAt: Date;
 };
+
+export type StatsPerVehicle = {
+  vehicle: number;
+  liters: number;
+  total: number;
+}
+export type VehicleStats = {
+  statsPerVehicle: StatsPerVehicle[];
+  globalVehicleStats: {
+    liters: number;
+    total: number;
+  };
+};

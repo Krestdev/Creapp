@@ -111,6 +111,9 @@ export const queryKeys = {
   vehicles: ["vehicles"] as const,
   vehicle: (id: number) => ["vehicle", id] as const,
 
+  // ─── Vehicles stats ────────────────────────────────────────────────────────
+  vehicleStats: (...args: any[]) => ["vehicleStats", ...args] as const,
+
   // ─── Drivers ───────────────────────────────────────────────────────────────
   drivers: ["drivers"] as const,
 
