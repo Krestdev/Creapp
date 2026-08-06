@@ -200,7 +200,7 @@ function AppSidebar() {
           pageId: "PG-00-02",
           icon: ChartAreaIcon,
           href: "/tableau-de-bord/statistiques-vehicules",
-          authorized: ["USER"],
+          authorized: ["SUPERADMIN", "ADMIN"],
           title: "Statistiques véhicules",
         },
         /* {
