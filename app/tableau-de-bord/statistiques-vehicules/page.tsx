@@ -180,7 +180,7 @@ const Page = () => {
 
     const statistics: Array<StatisticProps> = [
         {
-            title: "Total littre carburé",
+            title: "Nombre de litres consommés",
             value: data.data?.globalVehicleStats.liters.toString() ?? "0",
             variant: "default",
             more: {
