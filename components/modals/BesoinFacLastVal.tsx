@@ -193,6 +193,17 @@ export default function BesoinFacLastVal({
       return;
     }
 
+    const creationDate = new Date(requestData.createdAt);
+    creationDate.setHours(0, 0, 0, 0);
+    const selectedDueDate = new Date(values.delai);
+    selectedDueDate.setHours(0, 0, 0, 0);
+    if (selectedDueDate < creationDate) {
+      toast.error(
+        "La date limite ne peut pas être antérieure à la date de création du besoin",
+      );
+      return;
+    }
+
     validateRequest.mutate({
       id: requestData.id,
       decision: values.decision,
@@ -319,6 +330,18 @@ export default function BesoinFacLastVal({
                           onSelect={(d) => {
                             field.onChange(d);
                             setOpenCalendar(false);
+                          }}
+                          disabled={(date) => {
+                            const today = new Date(
+                              new Date().setHours(0, 0, 0, 0),
+                            );
+                            const creationDate = new Date(
+                              requestData.createdAt,
+                            );
+                            creationDate.setHours(0, 0, 0, 0);
+                            const minDate =
+                              creationDate > today ? creationDate : today;
+                            return date < minDate;
                           }}
                         />
                       </PopoverContent>

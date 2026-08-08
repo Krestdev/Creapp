@@ -192,6 +192,18 @@ export default function BesoinRHLastVal({
       toast.error("ID de la demande manquant");
       return;
     }
+
+    const creationDate = new Date(requestData.createdAt);
+    creationDate.setHours(0, 0, 0, 0);
+    const selectedDueDate = new Date(values.date_limite);
+    selectedDueDate.setHours(0, 0, 0, 0);
+    if (selectedDueDate < creationDate) {
+      toast.error(
+        "La date limite ne peut pas être antérieure à la date de création du besoin",
+      );
+      return;
+    }
+
     validateRequest.mutate({
       id: requestData.id,
       request: {
@@ -304,7 +316,13 @@ export default function BesoinRHLastVal({
                         mode="single"
                         selected={field.value}
                         onSelect={field.onChange}
-                        disabled={(date) => date <= new Date()}
+                        disabled={(date) => {
+                          const creationDate = new Date(
+                            requestData.createdAt,
+                          );
+                          creationDate.setHours(0, 0, 0, 0);
+                          return date <= new Date() || date < creationDate;
+                        }}
                         locale={fr}
                       />
                     </PopoverContent>

@@ -146,6 +146,18 @@ export function BesoinLastVal({
   }, [open, data, form]);
 
   const submitForm = async (values: FormValues) => {
+    const creationDate = new Date(data.createdAt);
+    creationDate.setHours(0, 0, 0, 0);
+    const dueDate = new Date(values.dueDate);
+    dueDate.setHours(0, 0, 0, 0);
+
+    if (dueDate < creationDate) {
+      toast.error(
+        "La date limite ne peut pas être antérieure à la date de création du besoin"
+      );
+      return;
+    }
+
     const payload: Partial<RequestModelT> = {
       dueDate: values.dueDate,
       priority: values.priority,
@@ -331,9 +343,16 @@ export function BesoinLastVal({
                           setOpenD(false);
                         }}
                         locale={fr}
-                        disabled={(date) =>
-                          date < new Date(new Date().setHours(0, 0, 0, 0))
-                        }
+                        disabled={(date) => {
+                          const today = new Date(
+                            new Date().setHours(0, 0, 0, 0)
+                          );
+                          const creationDate = new Date(data.createdAt);
+                          creationDate.setHours(0, 0, 0, 0);
+                          const minDate =
+                            creationDate > today ? creationDate : today;
+                          return date < minDate;
+                        }}
                       />
                     </PopoverContent>
                   </Popover>

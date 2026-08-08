@@ -114,6 +114,18 @@ function BesoinLastApproVall({ open, setOpen, requestData }: Props) {
       toast.error("ID de la demande manquant");
       return;
     }
+
+    const creationDate = new Date(requestData.createdAt);
+    creationDate.setHours(0, 0, 0, 0);
+    const selectedDueDate = new Date(values.dueDate);
+    selectedDueDate.setHours(0, 0, 0, 0);
+    if (selectedDueDate < creationDate) {
+      toast.error(
+        "La date limite ne peut pas être antérieure à la date de création du besoin",
+      );
+      return;
+    }
+
     validateRequest.mutate({
       id: requestData.id,
       request: {
@@ -245,7 +257,18 @@ function BesoinLastApproVall({ open, setOpen, requestData }: Props) {
                                 field.onChange(value);
                                 setDueDate(false);
                               }}
-                              disabled={(date) => date < new Date()}
+                              disabled={(date) => {
+                                const today = new Date(
+                                  new Date().setHours(0, 0, 0, 0),
+                                );
+                                const creationDate = requestData?.createdAt
+                                  ? new Date(requestData.createdAt)
+                                  : today;
+                                creationDate.setHours(0, 0, 0, 0);
+                                const minDate =
+                                  creationDate > today ? creationDate : today;
+                                return date < minDate;
+                              }}
                             />
                           </PopoverContent>
                         </Popover>
