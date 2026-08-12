@@ -152,6 +152,17 @@ export default function BesoinLastValSettle({
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    const creationDate = new Date(request.createdAt);
+    creationDate.setHours(0, 0, 0, 0);
+    const selectedDueDate = new Date(values.dueDate);
+    selectedDueDate.setHours(0, 0, 0, 0);
+    if (selectedDueDate < creationDate) {
+      toast.error(
+        "La date limite ne peut pas être antérieure à la date de création du besoin",
+      );
+      return;
+    }
+
     validateRequest.mutate({
       id: request.id,
       decision: values.decision,
@@ -331,9 +342,16 @@ export default function BesoinLastValSettle({
                           field.onChange(date);
                           setOpenDate(false);
                         }}
-                        disabled={(date) =>
-                          date < new Date(new Date().setHours(0, 0, 0, 0))
-                        }
+                        disabled={(date) => {
+                          const today = new Date(
+                            new Date().setHours(0, 0, 0, 0),
+                          );
+                          const creationDate = new Date(request.createdAt);
+                          creationDate.setHours(0, 0, 0, 0);
+                          const minDate =
+                            creationDate > today ? creationDate : today;
+                          return date < minDate;
+                        }}
                       />
                     </PopoverContent>
                   </Popover>

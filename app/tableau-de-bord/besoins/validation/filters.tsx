@@ -1,3 +1,4 @@
+import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -12,13 +13,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { getUserName } from "@/lib/utils";
 import {
   DateFilter,
@@ -85,247 +79,86 @@ export default function ApprovalFilters({
       {/* Category filter */}
       <div className="grid gap-1.5">
         <Label htmlFor="category">{"Catégorie"}</Label>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              <span className="truncate">
-                {customFilters.category === "all"
-                  ? "Toutes les catégories"
-                  : uniqueCategories.find(
-                      (c) => String(c.id) === customFilters.category,
-                    )?.label || "Sélectionner une catégorie"}
-              </span>
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="max-h-[300px] overflow-y-auto">
-            <DropdownMenuItem
-              onClick={() => {
-                setCustomFilters({ ...customFilters, category: "all" });
-              }}
-              className={customFilters.category === "all" ? "bg-accent" : ""}
-            >
-              <div className="flex items-center gap-2">
-                <span>Toutes les catégories</span>
-              </div>
-            </DropdownMenuItem>
-            {uniqueCategories.map((category) => (
-              <DropdownMenuItem
-                key={category.id}
-                onClick={() => {
-                  setCustomFilters({
-                    ...customFilters,
-                    category: String(category.id),
-                  });
-                }}
-                className={
-                  customFilters.category === String(category.id)
-                    ? "bg-accent"
-                    : ""
-                }
-              >
-                <div className="flex items-center gap-2">
-                  <span className="truncate">{category.label}</span>
-                </div>
-              </DropdownMenuItem>
-            ))}
-            {uniqueCategories.length === 0 && (
-              <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                Aucune catégorie trouvée
-              </div>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <SearchableSelect
+          value={customFilters.category}
+          onChange={(v) => setCustomFilters({ ...customFilters, category: v })}
+          options={uniqueCategories.map((category) => ({
+            value: String(category.id),
+            label: category.label,
+          }))}
+          placeholder="Sélectionner une catégorie"
+          allLabel="Toutes les catégories"
+          emptyLabel="Aucune catégorie trouvée"
+        />
       </div>
 
       {/* User filter */}
       <div className="grid gap-1.5">
         <Label htmlFor="initiator">{"Utilisateur"}</Label>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              <span className="truncate">
-                {customFilters.user === "all"
-                  ? "Tous les utilisateurs"
-                  : getUserName(users, Number(customFilters.user)) ||
-                    "Sélectionner un utilisateur"}
-              </span>
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="max-h-[300px] overflow-y-auto">
-            <DropdownMenuItem
-              onClick={() => {
-                setCustomFilters({ ...customFilters, user: "all" });
-              }}
-              className={customFilters.user === "all" ? "bg-accent" : ""}
-            >
-              <div className="flex items-center gap-2">
-                <span>Tous les utilisateurs</span>
-              </div>
-            </DropdownMenuItem>
-            {users.map((user) => (
-              <DropdownMenuItem
-                key={user.id}
-                onClick={() => {
-                  setCustomFilters({
-                    ...customFilters,
-                    user: String(user.id),
-                  });
-                }}
-                className={
-                  customFilters.user === String(user.id) ? "bg-accent" : ""
-                }
-              >
-                <div className="flex items-center gap-2">
-                  <span className="truncate">
-                    {getUserName(users, user.id)}
-                  </span>
-                </div>
-              </DropdownMenuItem>
-            ))}
-            {users.length === 0 && (
-              <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                Aucun utilisateur trouvé
-              </div>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <SearchableSelect
+          value={customFilters.user}
+          onChange={(v) => setCustomFilters({ ...customFilters, user: v })}
+          options={users.map((user) => ({
+            value: String(user.id),
+            label: getUserName(users, user.id) ?? "",
+          }))}
+          placeholder="Sélectionner un utilisateur"
+          allLabel="Tous les utilisateurs"
+          emptyLabel="Aucun utilisateur trouvé"
+        />
       </div>
 
       {/**Type Filter */}
       <div className="grid gap-1.5">
         <Label htmlFor="type">{"Type de besoin"}</Label>
-        <Select
+        <SearchableSelect
           value={customFilters.type}
-          onValueChange={(v) =>
+          onChange={(v) =>
             setCustomFilters({
               ...customFilters,
               type: v as RequestModelT["type"] | "all",
             })
           }
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Type de besoin" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous</SelectItem>
-            {requestTypes.map((type) => (
-              <SelectItem key={type.id} value={String(type.type)}>
-                {type.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+          options={requestTypes.map((type) => ({
+            value: String(type.type),
+            label: type.label,
+          }))}
+          placeholder="Type de besoin"
+          allLabel="Tous"
+          emptyLabel="Aucun type trouvé"
+        />
       </div>
 
       {/* Project filter */}
       <div className="grid gap-1.5">
         <Label htmlFor="project">{"Projet"}</Label>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              <span className="truncate">
-                {customFilters.project === "all"
-                  ? "Tous les projets"
-                  : uniqueProjects.find(
-                      (p) => String(p.id) === customFilters.project,
-                    )?.label || "Sélectionner un projet"}
-              </span>
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="max-h-[300px] overflow-y-auto max-w-sm">
-            <DropdownMenuItem
-              onClick={() => {
-                setCustomFilters({ ...customFilters, project: "all" });
-              }}
-              className={customFilters.project === "all" ? "bg-accent" : ""}
-            >
-              <div className="flex items-center gap-2">
-                <span>Tous les projets</span>
-              </div>
-            </DropdownMenuItem>
-            {uniqueProjects.map((project) => (
-              <DropdownMenuItem
-                key={project.id}
-                onClick={() => {
-                  setCustomFilters({
-                    ...customFilters,
-                    project: String(project.id),
-                  });
-                }}
-                className={
-                  customFilters.project === String(project.id)
-                    ? "bg-accent"
-                    : ""
-                }
-              >
-                <div className="flex items-center gap-2">
-                  <span className="truncate">{project.label}</span>
-                </div>
-              </DropdownMenuItem>
-            ))}
-            {uniqueProjects.length === 0 && (
-              <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                Aucun projet trouvé
-              </div>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <SearchableSelect
+          value={customFilters.project}
+          onChange={(v) => setCustomFilters({ ...customFilters, project: v })}
+          options={uniqueProjects.map((project) => ({
+            value: String(project.id),
+            label: project.label,
+          }))}
+          placeholder="Sélectionner un projet"
+          allLabel="Tous les projets"
+          emptyLabel="Aucun projet trouvé"
+        />
       </div>
 
       {/* Status filter */}
       <div className="grid gap-1.5">
         <Label htmlFor="status">{"Statut"}</Label>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              <span className="truncate">
-                {customFilters.status === "all"
-                  ? "Tous les statuts"
-                  : REQUEST_STATUS.find((s) => s.value === customFilters.status)
-                      ?.name || "Sélectionner"}
-              </span>
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="max-h-[300px] overflow-y-auto">
-            <DropdownMenuItem
-              onClick={() => {
-                setCustomFilters({ ...customFilters, status: "all" });
-              }}
-              className={customFilters.status === "all" ? "bg-accent" : ""}
-            >
-              <div className="flex items-center gap-2">
-                <span>Tous les statuts</span>
-              </div>
-            </DropdownMenuItem>
-            {REQUEST_STATUS.map((status) => (
-              <DropdownMenuItem
-                key={status.value}
-                onClick={() => {
-                  setCustomFilters({
-                    ...customFilters,
-                    status: status.value,
-                  });
-                }}
-                className={
-                  customFilters.status === status.value ? "bg-accent" : ""
-                }
-              >
-                <div className="flex items-center gap-2">
-                  <span>{status.name}</span>
-                </div>
-              </DropdownMenuItem>
-            ))}
-            {REQUEST_STATUS.length < 1 && (
-              <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                Aucun statut trouvé
-              </div>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <SearchableSelect
+          value={customFilters.status}
+          onChange={(v) => setCustomFilters({ ...customFilters, status: v })}
+          options={REQUEST_STATUS.map((status) => ({
+            value: status.value,
+            label: status.name,
+          }))}
+          placeholder="Sélectionner un statut"
+          allLabel="Tous les statuts"
+          emptyLabel="Aucun statut trouvé"
+        />
       </div>
 
       {/* Filtre par période */}
