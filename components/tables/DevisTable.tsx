@@ -87,6 +87,7 @@ import { Pagination } from "../base/pagination";
 import { DevisModal } from "../modals/DevisModal";
 import { Badge, badgeVariants } from "../ui/badge";
 import EditApprovedQuotation from "@/app/tableau-de-bord/(sales)/commande/devis/edit-approved-quotation";
+import { TabBar, TabProps } from "../base/TabBar";
 
 interface DevisTableProps {
   data: Quotation[];
@@ -103,6 +104,11 @@ export function DevisTable({
 }: DevisTableProps) {
   // ─── Search ───────────────────────────────────────────────────────────────
   const [globalFilter, setGlobalFilter] = React.useState<string>("");
+
+  // ─── Tab (drives the status filter) ──────────────────────────────────────
+  const [selectedTab, setSelectedTab] = React.useState<"attente" | "traité">(
+    "attente",
+  );
 
   // ─── Filters ──────────────────────────────────────────────────────────────
   const [providerFilter, setProviderFilter] = React.useState<string>("all");
@@ -224,13 +230,13 @@ export function DevisTable({
         search === ""
           ? true
           : item.ref.toLowerCase().includes(search) ||
-            getProviderName(item.providerId).toLowerCase().includes(search) ||
-            getQuotationTitle(item.commandRequestId)
-              .toLowerCase()
-              .includes(search) ||
-            getQuotationRef(item.commandRequestId)
-              .toLowerCase()
-              .includes(search);
+          getProviderName(item.providerId).toLowerCase().includes(search) ||
+          getQuotationTitle(item.commandRequestId)
+            .toLowerCase()
+            .includes(search) ||
+          getQuotationRef(item.commandRequestId)
+            .toLowerCase()
+            .includes(search);
 
       // Provider
       const matchProvider =
@@ -305,6 +311,7 @@ export function DevisTable({
         matchDate
       );
     });
+
   }, [
     data,
     globalFilter,
@@ -320,6 +327,17 @@ export function DevisTable({
     customDateRange,
     providers,
   ]);
+
+  // ─── Tab-filtered data (table only — statistics ignore the tab) ───────────
+  const tabFilteredData = React.useMemo(() => {
+    return filteredData.filter((item) =>
+      selectedTab === "attente"
+        ? item.status === "PENDING" || item.status === "SUBMITTED"
+        : item.status === "APPROVED" ||
+        item.status === "REJECTED" ||
+        item.status === "CANCELLED",
+    );
+  }, [filteredData, selectedTab]);
 
   // ─── Statistics ───────────────────────────────────────────────────────────
   const validated = filteredData.filter((d) => d.status === "APPROVED").length;
@@ -519,7 +537,7 @@ export function DevisTable({
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data: filteredData,
+    data: tabFilteredData,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -537,6 +555,20 @@ export function DevisTable({
     },
   });
 
+  const tabs = [
+    {
+      id: "attente",
+      title: "Devis en attente",
+      badge: data.filter(
+        (d) => d.status === "PENDING" || d.status === "SUBMITTED",
+      ).length,
+    },
+    {
+      id: "traité",
+      title: "Devis traités",
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-5">
       {/* Statistics */}
@@ -547,6 +579,11 @@ export function DevisTable({
       </div>
 
       {/* Toolbar */}
+      <TabBar
+        tabs={tabs}
+        setSelectedTab={setSelectedTab}
+        selectedTab={selectedTab}
+      />
       <div className="flex flex-wrap justify-between items-center gap-3">
         {/* Search + Filters */}
         <div className="flex flex-wrap items-center gap-2">
@@ -586,8 +623,8 @@ export function DevisTable({
                           {providerFilter === "all"
                             ? "Tous les fournisseurs"
                             : providers.find(
-                                (p) => p.id.toString() === providerFilter,
-                              )?.name || "Sélectionner"}
+                              (p) => p.id.toString() === providerFilter,
+                            )?.name || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -642,10 +679,10 @@ export function DevisTable({
                           .toLowerCase()
                           .includes(providerSearch.toLowerCase()),
                       ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun fournisseur trouvé
-                        </div>
-                      )}
+                          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                            Aucun fournisseur trouvé
+                          </div>
+                        )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -663,8 +700,8 @@ export function DevisTable({
                           {statusFilter === "all"
                             ? "Tous les statuts"
                             : QUOTATION_STATUS.find(
-                                (s) => s.value === statusFilter,
-                              )?.name || "Sélectionner"}
+                              (s) => s.value === statusFilter,
+                            )?.name || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -721,10 +758,10 @@ export function DevisTable({
                           .toLowerCase()
                           .includes(statusSearch.toLowerCase()),
                       ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucun statut trouvé
-                        </div>
-                      )}
+                          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                            Aucun statut trouvé
+                          </div>
+                        )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -742,8 +779,8 @@ export function DevisTable({
                           {quotationFilter === "all"
                             ? "Toutes les demandes"
                             : commands.find(
-                                (c) => c.id.toString() === quotationFilter,
-                              )?.title || "Sélectionner"}
+                              (c) => c.id.toString() === quotationFilter,
+                            )?.title || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -798,10 +835,10 @@ export function DevisTable({
                           .toLowerCase()
                           .includes(quotationSearch.toLowerCase()),
                       ).length === 0 && (
-                        <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucune demande trouvée
-                        </div>
-                      )}
+                          <div className="px-2 py-4 text-sm text-muted-foreground text-center">
+                            Aucune demande trouvée
+                          </div>
+                        )}
                     </DropdownMenuContent>
                   </DropdownMenu>
                 </div>
@@ -1049,9 +1086,9 @@ export function DevisTable({
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                        header.column.columnDef.header,
+                        header.getContext(),
+                      )}
                   </TableHead>
                 ))}
               </TableRow>

@@ -477,11 +477,11 @@ function ExpensesTable({
         };
         const priorityA =
           priorityOrder[
-            rowA.getValue(columnId) as keyof typeof priorityOrder
+          rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-            rowB.getValue(columnId) as keyof typeof priorityOrder
+          rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         return priorityA - priorityB;
       },
@@ -805,9 +805,9 @@ function ExpensesTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}

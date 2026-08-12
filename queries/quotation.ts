@@ -118,6 +118,12 @@ class QuotationQueries {
       .put(`${this.route}/validerDevis`, payload)
       .then((response) => response.data);
   };
+
+  rejectAll = async (payload: Array<SubmissionElement>) => {
+    return api
+      .put(`${this.route}/rejectAllDevis`, payload)
+      .then((response) => response.data);
+  }
 }
 
 export const quotationQ = new QuotationQueries();

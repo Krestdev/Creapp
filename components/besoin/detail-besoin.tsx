@@ -404,9 +404,8 @@ export function DetailBesoin({
                 <div className="space-y-1">
                   {paiements.isSuccess && !!paiements.data.data?.proof ? (
                     <Link
-                      href={`${
-                        process.env.NEXT_PUBLIC_API
-                      }/${paiements.data.data?.proof as string}`}
+                      href={`${process.env.NEXT_PUBLIC_API
+                        }/${paiements.data.data?.proof as string}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -619,7 +618,7 @@ export function DetailBesoin({
                   {data.beneficiary.length > 0 ? (
                     data.beneficiary === "me" ? (
                       <p className="font-semibold capitalize">
-                        {data.user?.firstName + " " + data.user?.lastName}
+                        {users.find((x) => x.id === data.userId)?.lastName + " " + users.find((x) => x.id === data.userId)?.firstName}
                       </p>
                     ) : (
                       <p className="font-semibold capitalize">
@@ -637,11 +636,10 @@ export function DetailBesoin({
                         <p
                           key={ben.id}
                           className="font-semibold capitalize"
-                        >{`${
-                          beneficiary?.firstName +
-                            " " +
-                            beneficiary?.lastName || ben.id
-                        }`}</p>
+                        >{`${beneficiary?.firstName +
+                          " " +
+                          beneficiary?.lastName || ben.id
+                          }`}</p>
                       );
                     })
                   ) : data.benFac ? (
@@ -663,73 +661,73 @@ export function DetailBesoin({
           {data.type === "speciaux"
             ? null
             : data.validators && (
-                <div className="view-group">
-                  <span className="view-icon">
-                    <SquareStackIcon />
-                  </span>
-                  <div className="w-full flex flex-col">
-                    <p className="view-group-title">
-                      {"Historique de validation"}
-                    </p>
-                    <div className="grid gap-2">
-                      {data.validators
-                        .sort((a, b) => a.rank - b.rank)
-                        .map((v) => {
-                          return (
-                            <div
-                              key={v.id}
+              <div className="view-group">
+                <span className="view-icon">
+                  <SquareStackIcon />
+                </span>
+                <div className="w-full flex flex-col">
+                  <p className="view-group-title">
+                    {"Historique de validation"}
+                  </p>
+                  <div className="grid gap-2">
+                    {data.validators
+                      .sort((a, b) => a.rank - b.rank)
+                      .map((v) => {
+                        return (
+                          <div
+                            key={v.id}
+                            className={cn(
+                              "px-3 py-2 flex flex-col gap-1 border",
+                              !v.decision
+                                ? "bg-gray-50 border-gray-200"
+                                : v.decision.includes("reject")
+                                  ? "bg-red-50 border-red-200"
+                                  : "bg-green-50 border-green-200",
+                            )}
+                          >
+                            <p
                               className={cn(
-                                "px-3 py-2 flex flex-col gap-1 border",
+                                "text-sm font-medium",
                                 !v.decision
-                                  ? "bg-gray-50 border-gray-200"
+                                  ? "text-gray-600"
                                   : v.decision.includes("reject")
-                                    ? "bg-red-50 border-red-200"
-                                    : "bg-green-50 border-green-200",
+                                    ? "text-red-600"
+                                    : "text-green-600",
                               )}
                             >
-                              <p
-                                className={cn(
-                                  "text-sm font-medium",
-                                  !v.decision
-                                    ? "text-gray-600"
-                                    : v.decision.includes("reject")
-                                      ? "text-red-600"
-                                      : "text-green-600",
-                                )}
-                              >
-                                {!v.decision
-                                  ? "En attente"
-                                  : v.decision.includes("reject")
-                                    ? "Rejeté"
-                                    : "Approuvé"}
-                              </p>
-                              <div className="flex flex-col">
-                                <span>
-                                  {users.find((u) => u.id === v.userId)
-                                    ?.firstName +
-                                    " " +
-                                    users.find((u) => u.id === v.userId)
-                                      ?.lastName}
+                              {!v.decision
+                                ? "En attente"
+                                : v.decision.includes("reject")
+                                  ? "Rejeté"
+                                  : "Approuvé"}
+                            </p>
+                            <div className="flex flex-col">
+                              <span>
+                                {users.find((u) => u.id === v.userId)
+                                  ?.firstName +
+                                  " " +
+                                  users.find((u) => u.id === v.userId)
+                                    ?.lastName}
+                              </span>
+                              {v.decision && (
+                                <span className="font-medium tracking-tighter">
+                                  {format(
+                                    new Date(v.updatedAt),
+                                    "dd MMMM yyyy à kk:mm",
+                                    {
+                                      locale: fr,
+                                    },
+                                  )}
                                 </span>
-                                {v.decision && (
-                                  <span className="font-medium tracking-tighter">
-                                    {format(
-                                      new Date(v.updatedAt),
-                                      "dd MMMM yyyy à kk:mm",
-                                      {
-                                        locale: fr,
-                                      },
-                                    )}
-                                  </span>
-                                )}
-                              </div>
+                              )}
                             </div>
-                          );
-                        })}
-                    </div>
+                          </div>
+                        );
+                      })}
                   </div>
                 </div>
-              )}
+              </div>
+            )}
         </div>
         {/* Request parours */}
         <div className="col-span-full w-full mt-4">

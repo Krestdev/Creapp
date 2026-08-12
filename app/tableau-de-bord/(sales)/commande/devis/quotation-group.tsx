@@ -54,6 +54,7 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { TabBar } from "@/components/base/TabBar";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { subText } from "@/lib/utils";
 import {
@@ -113,6 +114,11 @@ export function QuotationGroupTable({
   const [globalFilter, setGlobalFilter] = React.useState("");
   const router = useRouter();
 
+  // ─── Tab (drives the status filter) ──────────────────────────────────────
+  const [selectedTab, setSelectedTab] = React.useState<
+    "non_traite" | "en_cours" | "traite"
+  >("non_traite");
+
   // Filtres spécifiques
   const [providerFilter, setProviderFilter] = React.useState<string>("all");
   const [statusFilter, setStatusFilter] = React.useState<
@@ -157,6 +163,20 @@ export function QuotationGroupTable({
       return matchProvider && matchStatus && matchCommandRequest;
     });
   }, [data, providerFilter, statusFilter, commandRequestFilter]);
+
+  // ─── Tab-filtered data (table only — statistics ignore the tab) ───────────
+  const tabFilteredData = React.useMemo(() => {
+    return filteredData.filter((item) => {
+      switch (selectedTab) {
+        case "non_traite":
+          return item.status === "NOT_PROCESSED";
+        case "en_cours":
+          return item.status === "IN_PROGRESS";
+        case "traite":
+          return item.status === "PROCESSED";
+      }
+    });
+  }, [filteredData, selectedTab]);
 
   const columns: ColumnDef<QuotationGroupT>[] = [
     {
@@ -271,7 +291,7 @@ export function QuotationGroupTable({
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data: filteredData || [],
+    data: tabFilteredData || [],
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -318,8 +338,30 @@ export function QuotationGroupTable({
     setCommandRequestSearch("");
   };
 
+  const tabs = [
+    {
+      id: "non_traite",
+      title: "Non traité",
+      badge: data.filter((d) => d.status === "NOT_PROCESSED").length,
+    },
+    {
+      id: "en_cours",
+      title: "En cours",
+      badge: data.filter((d) => d.status === "IN_PROGRESS").length,
+    },
+    {
+      id: "traite",
+      title: "Traité",
+    },
+  ];
+
   return (
     <div className="w-full space-y-4">
+      <TabBar
+        tabs={tabs}
+        setSelectedTab={setSelectedTab}
+        selectedTab={selectedTab}
+      />
       {/* BARRE DE FILTRES */}
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
