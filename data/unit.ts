@@ -23,4 +23,11 @@ export const units: Array<{ name: string; value: string }> = [
   { name: "Millimètre (mm)", value: "mm" },
   { name: "Kilomètre (km)", value: "km" },
   { name: "Forfait", value: "Forfait" },
+  //--- Surface ---
+  { name: "Mètre carré (m²)", value: "m2" },
+  { name: "Centimètre carré (cm²)", value: "cm2" },
+  { name: "Millimètre carré (mm²)", value: "mm2" },
+  { name: "Kilomètre carré (km²)", value: "km2" },
+  { name: "Hectare", value: "hectare" },
+  { name: "Are", value: "are" },
 ];
