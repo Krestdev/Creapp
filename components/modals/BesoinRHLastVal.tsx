@@ -293,7 +293,7 @@ export default function BesoinRHLastVal({
               name="date_limite"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel isRequired>{"Date limite"}</FormLabel>
+                  <FormLabel isRequired>{"Date limite d'exécution"}</FormLabel>
                   <Popover>
                     <PopoverTrigger asChild className="h-10 w-full">
                       <FormControl>

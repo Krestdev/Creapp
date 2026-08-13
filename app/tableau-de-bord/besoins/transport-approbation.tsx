@@ -362,7 +362,7 @@ export default function TransportApprobation({
               render={({ field }) => (
                 <FormItem className="flex flex-col">
                   <FormLabel isRequired className="mb-1">
-                    {"Date limite"}
+                    {"Date limite d'exécution"}
                   </FormLabel>
                   <Popover open={openDate} onOpenChange={setOpenDate}>
                     <PopoverTrigger asChild>
