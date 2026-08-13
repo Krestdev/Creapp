@@ -326,6 +326,7 @@ export function BesoinLastVal({
                         <Button
                           variant="outline"
                           className="w-full h-10 justify-between font-normal"
+                          disabled
                         >
                           {field.value
                             ? format(field.value, "dd/MM/yyyy", { locale: fr })

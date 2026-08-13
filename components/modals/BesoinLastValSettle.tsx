@@ -324,6 +324,7 @@ export default function BesoinLastValSettle({
                         <Button
                           variant="outline"
                           className="w-full pl-3 text-left font-normal"
+                          disabled
                         >
                           {field.value
                             ? format(field.value, "dd/MM/yyyy", {

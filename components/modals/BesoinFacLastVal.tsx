@@ -313,6 +313,7 @@ export default function BesoinFacLastVal({
                             type="button"
                             variant={"outline"}
                             className="w-full pl-3 text-left font-normal"
+                            disabled
                           >
                             {field.value ? (
                               format(field.value, "PPP", { locale: fr })
