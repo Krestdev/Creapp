@@ -86,8 +86,9 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
   function onSubmit(values: FormValues) {
     if (
       transaction &&
-      transaction.Type === "DEBIT" &&
-      transaction.from.balance >= ticket.price
+      transaction.Type === "DEBIT"
+      // &&
+      // transaction.from.balance >= ticket.price
     ) {
       const payload: { id: number; proof: File; paymentId: number } = {
         proof: values.proof[0],
