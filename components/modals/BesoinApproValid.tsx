@@ -55,7 +55,7 @@ const formSchema = z.object({
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
       const d = new Date(val);
-      return !isNaN(d.getTime()) && d >= today;
+      return !isNaN(d.getTime());
     },
     { message: "Date invalide" },
   ),

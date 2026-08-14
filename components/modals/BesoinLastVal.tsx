@@ -49,7 +49,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "../ui/popover";
 
 // Validation Zod - Editable fields only
 const formSchema = z.object({
-  dueDate: z.date({ required_error: "La date limite est obligatoire" }),
+  dueDate: z.date(),
   priority: z.enum(["medium", "high", "low", "urgent"], {
     required_error: "La priorité est obligatoire",
   }),

@@ -69,7 +69,7 @@ const formSchema = z.object({
     .number()
     .refine((val) => val > 0, "La quantité doit être supérieure à 0"),
   benef: z.coerce.number().min(1, "Bénéficiaire requis"),
-  dueDate: z.date({ required_error: "Date requise" }),
+  dueDate: z.date(),
   unit: z.string().min(1, "Unité requise"),
   priority: z.enum(REQUEST_PRIORITIES),
   paytype: z.enum(["cash", "chq", "ov"], {
@@ -328,8 +328,8 @@ export default function BesoinLastValSettle({
                         >
                           {field.value
                             ? format(field.value, "dd/MM/yyyy", {
-                                locale: fr,
-                              })
+                              locale: fr,
+                            })
                             : "Sélectionner"}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
@@ -396,7 +396,7 @@ export default function BesoinLastValSettle({
               <FilesUpload
                 disabled
                 value={request.proof}
-                onChange={() => {}}
+                onChange={() => { }}
                 name={"proof"}
                 acceptTypes="all"
                 multiple={false}

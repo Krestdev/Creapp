@@ -72,7 +72,7 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
 ];
 
 const formSchema = z.object({
-  dueDate: z.date({ required_error: "Date requise" }),
+  dueDate: z.date(),
   priority: z.enum(REQUEST_PRIORITIES),
   list: z.array(beneficiaryArray).min(1, "Veuillez ajouter un bénéficiaire"),
   decision: z.string().max(255, { message: "Trop long" }).optional(),
@@ -374,8 +374,8 @@ export default function TransportApprobation({
                         >
                           {field.value
                             ? format(field.value, "dd/MM/yyyy", {
-                                locale: fr,
-                              })
+                              locale: fr,
+                            })
                             : "Sélectionner"}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>

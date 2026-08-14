@@ -68,7 +68,7 @@ const formSchema = z.object({
   quantity: z.coerce
     .number()
     .refine((val) => val > 0, "La quantité doit être supérieure à 0"),
-  dueDate: z.date({ required_error: "Date requise" }),
+  dueDate: z.date(),
   unit: z.string().min(1, "Unité requise"),
   priority: z.enum(REQUEST_PRIORITIES),
   paytype: z.enum(["cash", "chq", "ov"], {
@@ -339,8 +339,8 @@ export default function BesoinLastValOther({
                         >
                           {field.value
                             ? format(field.value, "dd/MM/yyyy", {
-                                locale: fr,
-                              })
+                              locale: fr,
+                            })
                             : "Sélectionner"}
                           <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                         </Button>
