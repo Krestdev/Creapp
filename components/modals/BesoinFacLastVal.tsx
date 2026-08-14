@@ -68,7 +68,7 @@ const SingleFileSchema = z
   .max(1, "Pas plus d'un document");
 
 const formSchema = z.object({
-  delai: z.date().min(today, "Le delai d'exécution doit être dans le futur"),
+  delai: z.date(),
   priority: z.enum(["low", "medium", "high", "urgent"]),
   justificatif: SingleFileSchema,
   paytype: z.enum(["cash", "chq", "ov"], {

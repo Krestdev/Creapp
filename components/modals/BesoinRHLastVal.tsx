@@ -71,7 +71,7 @@ const formSchema = z.object({
     })
     .optional(), // @jason You have to look at this
   montant: z.coerce.number({ message: "Veuillez renseigner un montant" }),
-  date_limite: z.date().min(today, "La date limite doit être dans le futur"),
+  date_limite: z.date(),
   priority: z.enum(["low", "medium", "high", "urgent"]),
   decision: z.string().max(255, { message: "Trop long" }).optional(),
 });
@@ -102,13 +102,13 @@ export default function BesoinRHLastVal({
   const periodValue =
     requestData.period && requestData.period?.from && requestData.period?.to
       ? {
-          from: requestData.period.from
-            ? new Date(requestData.period.from)
-            : new Date(),
-          to: requestData.period.to
-            ? new Date(requestData.period.to)
-            : new Date(),
-        }
+        from: requestData.period.from
+          ? new Date(requestData.period.from)
+          : new Date(),
+        to: requestData.period.to
+          ? new Date(requestData.period.to)
+          : new Date(),
+      }
       : { from: new Date(), to: new Date() };
 
   const getCategory = useQuery({
@@ -387,7 +387,7 @@ export default function BesoinRHLastVal({
                 selected={USERS.filter((u) =>
                   requestData.benef?.includes(u.id),
                 )}
-                onChange={() => {}}
+                onChange={() => { }}
                 display={"user"}
               />
             </div>
@@ -398,7 +398,7 @@ export default function BesoinRHLastVal({
               <FilesUpload
                 disabled
                 value={requestData.proof}
-                onChange={() => {}}
+                onChange={() => { }}
                 name={"proof"}
                 acceptTypes="all"
                 multiple={false}
