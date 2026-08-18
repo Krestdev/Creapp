@@ -8,7 +8,13 @@ import {
 
 export const computeQuotationGroupStatus = (
   quotations: Quotation[],
+  besoins: CommandRequestT["besoins"] = [],
 ): QuotationGroupStatus => {
+  // Si tous les besoins de la demande ont été annulés, le groupe est annulé.
+  if (besoins.length > 0 && besoins.every((b) => b.state === "DISCARDED")) {
+    return "CANCELLED";
+  }
+
   // Si aucun devis => pas traité (logique “liste”)
   if (!quotations.length) return "NOT_PROCESSED";
 
@@ -61,7 +67,7 @@ export const groupQuotationsByCommandRequest = (
         commandRequest: cr,
         quotations: requestQuotations,
         providers: groupProviders,
-        status: computeQuotationGroupStatus(requestQuotations),
+        status: computeQuotationGroupStatus(requestQuotations, cr.besoins),
         createdAt: maxDate,
       };
     })

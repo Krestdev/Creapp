@@ -1,7 +1,9 @@
 "use client";
 
+import { DetailBesoin } from "@/components/besoin/detail-besoin";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
+import { ModalWarning } from "@/components/modals/modal-warning";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -9,12 +11,16 @@ import { queryKeys } from "@/lib/query-keys";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
+import { userQ } from "@/queries/baseModule";
 import { commandRqstQ } from "@/queries/commandRqstModule";
+import { projectQ } from "@/queries/projectModule";
 import { providerQ } from "@/queries/providers";
 import { purchaseQ } from "@/queries/purchase-order";
 import { quotationQ } from "@/queries/quotation";
-import type { Provider, QuotationGroup } from "@/types/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { receptionQ } from "@/queries/reception";
+import type { Provider, QuotationGroup, RequestModelT } from "@/types/types";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Eye, LucideX, Trash } from "lucide-react";
 import { notFound, useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
@@ -47,6 +53,7 @@ const computePreselected = (quotationGroup: QuotationGroup) => {
 function SelectQuotation({ id }: { id: string }) {
   const router = useRouter();
   const { user } = useStore();
+  const queryClient = useQueryClient();
 
   // --- QUERIES ---
   const quotations = useQuery({
@@ -65,8 +72,26 @@ function SelectQuotation({ id }: { id: string }) {
     queryKey: queryKeys.purchaseOrders,
     queryFn: purchaseQ.getAll,
   });
+  const users = useQuery({
+    queryKey: queryKeys.users,
+    queryFn: userQ.getAll,
+  });
+  const projects = useQuery({
+    queryKey: queryKeys.projects,
+    queryFn: projectQ.getAll,
+  });
+  const receptions = useQuery({
+    queryKey: queryKeys.receptions,
+    queryFn: receptionQ.getAll,
+  });
 
   const [selected, setSelected] = React.useState<Record<number, number>>({});
+  const [isDetailModalOpen, setIsDetailModalOpen] = React.useState(false);
+  const [selectedBesoin, setSelectedBesoin] =
+    React.useState<RequestModelT | null>(null);
+  const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
+  const [besoinToCancel, setBesoinToCancel] =
+    React.useState<RequestModelT | null>(null);
 
   // --- LOGIQUE DE VERROUILLAGE ---
 
@@ -122,6 +147,20 @@ function SelectQuotation({ id }: { id: string }) {
     onSuccess: () => {
       toast.success("Décisions enregistrées avec succès !");
       router.push("/tableau-de-bord/commande/devis/approbation");
+    },
+    onError: (error: any) => {
+      toast.error(error.message ?? "Une erreur est survenue");
+    },
+  });
+
+  const { mutate: rejectBesoin, isPending: isRejectingBesoin } = useMutation({
+    mutationFn: async (besoin: RequestModelT) => {
+      await quotationQ.RejectRequestFromQuotation(besoin.id);
+    },
+    onSuccess: () => {
+      toast.success("Le besoin a été annulé avec succès !");
+      queryClient.invalidateQueries({ queryKey: queryKeys.quotations });
+      setBesoinToCancel(null);
     },
     onError: (error: any) => {
       toast.error(error.message ?? "Une erreur est survenue");
@@ -196,7 +235,10 @@ function SelectQuotation({ id }: { id: string }) {
     quotations.isLoading ||
     providers.isLoading ||
     commands.isLoading ||
-    purchaseOrders.isLoading
+    purchaseOrders.isLoading ||
+    users.isLoading ||
+    projects.isLoading ||
+    receptions.isLoading
   )
     return <LoadingPage />;
 
@@ -204,7 +246,10 @@ function SelectQuotation({ id }: { id: string }) {
     quotations.isError ||
     providers.isError ||
     commands.isError ||
-    purchaseOrders.isError
+    purchaseOrders.isError ||
+    users.isError ||
+    projects.isError ||
+    receptions.isError
   )
     return <ErrorPage />;
 
@@ -221,42 +266,91 @@ function SelectQuotation({ id }: { id: string }) {
 
       {quotationGroup.commandRequest.besoins.map((besoin, index) => {
         const isBesoinLocked = lockedBesoinIds.has(besoin.id);
+        const isBesoinDiscarded = besoin.state === "DISCARDED";
 
         return (
           <div
             key={besoin.id}
             className={cn(
               "flex flex-col gap-4",
-              isBesoinLocked && "bg-slate-50/50",
+              (isBesoinLocked || isBesoinDiscarded) && "bg-slate-50/50",
+              isBesoinDiscarded && "opacity-60",
             )}
           >
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-lg">
-                <u>{`Besoin ${index + 1}:`}</u>
-                {` ${besoin.label}`}
-              </h3>
-              {isBesoinLocked && (
-                <Badge
-                  variant="secondary"
-                  className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200"
-                >
-                  {"Verrouillé"}
-                </Badge>
-              )}
+              <div className="flex items-center gap-2">
+                <h3 className="font-semibold text-lg">
+                  <u>{`Besoin ${index + 1}:`}</u>
+                  {` ${besoin.label}`}
+                </h3>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={"outline"}
+                    onClick={() => {
+                      setSelectedBesoin(besoin);
+                      setIsDetailModalOpen(true);
+                    }}
+                  >
+                    {"Voir le besoin"}
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={"destructive"}
+                    disabled={
+                      isBesoinDiscarded ||
+                      (isRejectingBesoin && besoinToCancel?.id === besoin.id)
+                    }
+                    onClick={() => {
+                      setBesoinToCancel(besoin);
+                      setIsCancelModalOpen(true);
+                    }}
+                  >
+                    {"Annuler le besoin"}
+                  </Button>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                {isBesoinDiscarded && (
+                  <Badge variant="outline">{"Annulé"}</Badge>
+                )}
+                {isBesoinLocked && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200"
+                  >
+                    {"Verrouillé"}
+                  </Badge>
+                )}
+              </div>
             </div>
 
-            {!quotationGroup.quotations.some((q) =>
-              q.element?.some((el) => el.requestModelId === besoin.id),
-            ) && (
+            {isBesoinDiscarded ? (
               <p className="text-gray-600 italic">
-                {"Aucun devis ne remplis ce besoin."}
+                {
+                  "Ce besoin a été annulé. Les offres restent visibles mais ne peuvent plus être sélectionnées."
+                }
               </p>
+            ) : (
+              !quotationGroup.quotations.some((q) =>
+                q.element?.some(
+                  (el) =>
+                    el.requestModelId === besoin.id &&
+                    el.status !== "DISCARDED",
+                ),
+              ) && (
+                <p className="text-gray-600 italic">
+                  {"Aucun devis ne remplis ce besoin."}
+                </p>
+              )
             )}
 
             <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {quotationGroup.quotations.map((quote) => {
                 const elements = (quote.element || []).filter(
-                  (el) => el.requestModelId === besoin.id,
+                  (el) =>
+                    el.requestModelId === besoin.id &&
+                    el.status !== "DISCARDED",
                 );
                 if (elements.length === 0) return null;
 
@@ -266,8 +360,10 @@ function SelectQuotation({ id }: { id: string }) {
                 // On bloque la carte si :
                 // 1. Le devis (quote) est déjà dans un BC.
                 // 2. OU si le besoin est déjà satisfait par une autre ligne dans un BC.
+                // 3. OU si le besoin a été annulé.
                 const isUsedInPO = usedQuotationIds.has(quote.id);
-                const isCardDisabled = isUsedInPO || isBesoinLocked;
+                const isCardDisabled =
+                  isUsedInPO || isBesoinLocked || isBesoinDiscarded;
 
                 return (
                   <div
@@ -355,6 +451,33 @@ function SelectQuotation({ id }: { id: string }) {
           </Button>
         </div>
       </div>
+
+      {selectedBesoin && (
+        <DetailBesoin
+          open={isDetailModalOpen}
+          onOpenChange={setIsDetailModalOpen}
+          data={selectedBesoin}
+          users={users.data?.data ?? []}
+          projects={projects.data?.data ?? []}
+          receptions={receptions.data?.data ?? []}
+          purchaseOrders={purchaseOrders.data?.data ?? []}
+        />
+      )}
+
+      <ModalWarning
+        open={isCancelModalOpen}
+        onOpenChange={setIsCancelModalOpen}
+        title="Annuler le besoin"
+        name={besoinToCancel?.label}
+        description="Cette action est irréversible."
+        message="Le besoin sera retiré de tous les devis associés à cette demande et ne pourra plus être restauré."
+        warning="Cette action est irréversible !"
+        actionText="Confirmer l'annulation"
+        variant="error"
+        onAction={() => {
+          if (besoinToCancel) rejectBesoin(besoinToCancel);
+        }}
+      />
     </div>
   );
 }

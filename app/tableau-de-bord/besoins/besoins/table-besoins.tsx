@@ -120,9 +120,12 @@ export function RequestsTable({
     className?: HTMLButtonElement["className"];
   } => {
     const label =
-      REQUEST_STATUS.find((s) => s.value === status)?.name ?? status;
+      status === "DISCARDED"
+        ? "Annulé"
+        : REQUEST_STATUS.find((s) => s.value === status)?.name ?? status;
     switch (status) {
       case "cancel":
+      case "DISCARDED":
         return { label, variant: "outline" };
       case "pending":
         return {

@@ -274,12 +274,9 @@ function ViewRequest({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Motif du rejet"}</p>
                 <p className="text-destructive">
-                  {request.data?.data.validators
-                    ?.filter((r) => r.decision?.startsWith("rejected"))
-                    .map((r) =>
-                      r.decision?.replace(/^rejected - \s*/i, "").trim(),
-                    )
-                    .join(", ") || "Aucun motif fourni"}
+                  {request.data?.data.validators.find(
+                    x => x.decision === "rejected"
+                  )?.comment || "Aucun motif fourni"}
                 </p>
               </div>
             </div>
@@ -328,9 +325,8 @@ function ViewRequest({
                   <div className="space-y-1">
                     {request.data?.data.proof ? (
                       <Link
-                        href={`${
-                          process.env.NEXT_PUBLIC_API
-                        }/${request.data?.data.proof[0] as string}`}
+                        href={`${process.env.NEXT_PUBLIC_API
+                          }/${request.data?.data.proof[0] as string}`}
                         target="_blank"
                         className="flex gap-0.5 items-center"
                       >
@@ -351,20 +347,20 @@ function ViewRequest({
           {/* Quantité pour achat */}
           {(request.data?.data.type === "achat" ||
             request.data?.data.type === "settle") && (
-            <div className="view-group">
-              <span className="view-icon">
-                <LucidePieChart />
-              </span>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <p className="view-group-title">{"Quantité"}</p>
+              <div className="view-group">
+                <span className="view-icon">
+                  <LucidePieChart />
+                </span>
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2">
+                    <p className="view-group-title">{"Quantité"}</p>
+                  </div>
+                  <p className="font-semibold">
+                    {request.data?.data.quantity + " " + request.data?.data.unit}
+                  </p>
                 </div>
-                <p className="font-semibold">
-                  {request.data?.data.quantity + " " + request.data?.data.unit}
-                </p>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Période pour ressources humaines */}
           {request.data?.data.type === "ressource_humaine" && (
@@ -515,11 +511,10 @@ function ViewRequest({
                         <p
                           key={ben.id}
                           className="font-semibold capitalize"
-                        >{`${
-                          beneficiary?.firstName +
-                            " " +
-                            beneficiary?.lastName || ben.id
-                        }`}</p>
+                        >{`${beneficiary?.firstName +
+                          " " +
+                          beneficiary?.lastName || ben.id
+                          }`}</p>
                       );
                     })
                   ) : request.data.data.benFac ? (

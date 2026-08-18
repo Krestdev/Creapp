@@ -90,6 +90,8 @@ const getGroupStatusLabel = (
       return { label: "En cours", variant: "amber" };
     case "PROCESSED":
       return { label: "Traité", variant: "success" };
+    case "CANCELLED":
+      return { label: "Annulé", variant: "outline" };
     default:
       return { label: "Inconnu", variant: "outline" };
   }
@@ -116,7 +118,7 @@ export function QuotationGroupTable({
 
   // ─── Tab (drives the status filter) ──────────────────────────────────────
   const [selectedTab, setSelectedTab] = React.useState<
-    "non_traite" | "en_cours" | "traite"
+    "non_traite" | "en_cours" | "traite" | "annule"
   >("non_traite");
 
   // Filtres spécifiques
@@ -174,6 +176,8 @@ export function QuotationGroupTable({
           return item.status === "IN_PROGRESS";
         case "traite":
           return item.status === "PROCESSED";
+        case "annule":
+          return item.status === "CANCELLED";
       }
     });
   }, [filteredData, selectedTab]);
@@ -273,7 +277,9 @@ export function QuotationGroupTable({
                 {"Voir"}
               </DropdownMenuItem>
               <DropdownMenuItem
-                disabled={group.status === "PROCESSED"}
+                disabled={
+                  group.status === "PROCESSED" || group.status === "CANCELLED"
+                }
                 onClick={() =>
                   router.push(`./valider/${group.commandRequest.id}`)
                 }
@@ -352,6 +358,11 @@ export function QuotationGroupTable({
     {
       id: "traite",
       title: "Traité",
+    },
+    {
+      id: "annule",
+      title: "Annulé",
+      badge: data.filter((d) => d.status === "CANCELLED").length,
     },
   ];
 
@@ -570,7 +581,9 @@ export function QuotationGroupTable({
                               ? "En cours"
                               : statusFilter === "PROCESSED"
                                 ? "Traité"
-                                : "Sélectionner"}
+                                : statusFilter === "CANCELLED"
+                                  ? "Annulé"
+                                  : "Sélectionner"}
                       </span>
                       <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                     </Button>
@@ -607,6 +620,14 @@ export function QuotationGroupTable({
                       }
                     >
                       <span>Traité</span>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => setStatusFilter("CANCELLED")}
+                      className={
+                        statusFilter === "CANCELLED" ? "bg-accent" : ""
+                      }
+                    >
+                      <span>Annulé</span>
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>

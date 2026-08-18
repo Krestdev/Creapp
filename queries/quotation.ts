@@ -119,6 +119,15 @@ class QuotationQueries {
       .then((response) => response.data);
   };
 
+  // Rejeter un besoin dans un devis
+  RejectRequestFromQuotation = async (
+    id: number
+  ): Promise<{ data: Array<Quotation> }> => {
+    return api
+      .put(`${this.route}/discard/${id}`)
+      .then((response) => response.data);
+  };
+
   rejectAll = async (payload: Array<SubmissionElement>) => {
     return api
       .put(`${this.route}/rejectAllDevis`, payload)

@@ -344,12 +344,9 @@ export function DetailBesoin({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Motif du rejet"}</p>
                 <p className="text-destructive">
-                  {data.validators
-                    ?.filter((r) => r.decision?.startsWith("rejected"))
-                    .map((r) =>
-                      r.decision?.replace(/^rejected - \s*/i, "").trim(),
-                    )
-                    .join(", ") || "Aucun motif fourni"}
+                  {data.validators.find(
+                    x => x.decision === "rejected"
+                  )?.comment || "Aucun motif fourni"}
                 </p>
               </div>
             </div>
@@ -366,9 +363,8 @@ export function DetailBesoin({
                 <div className="space-y-1">
                   {!!paiement?.proof ? (
                     <Link
-                      href={`${
-                        process.env.NEXT_PUBLIC_API
-                      }/${paiement?.proof as string}`}
+                      href={`${process.env.NEXT_PUBLIC_API
+                        }/${paiement?.proof as string}`}
                       target="_blank"
                       className="flex gap-0.5 items-center"
                     >
@@ -601,11 +597,10 @@ export function DetailBesoin({
                             <p
                               key={ben.id}
                               className="font-semibold capitalize"
-                            >{`${
-                              beneficiary?.firstName +
-                                " " +
-                                beneficiary?.lastName || ben.id
-                            }`}</p>
+                            >{`${beneficiary?.firstName +
+                              " " +
+                              beneficiary?.lastName || ben.id
+                              }`}</p>
                           );
                         })}
                       </div>

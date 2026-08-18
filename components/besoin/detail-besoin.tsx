@@ -351,47 +351,15 @@ export function DetailBesoin({
               <div className="flex flex-col">
                 <p className="view-group-title">{"Motif du rejet"}</p>
                 <p className="text-destructive">
-                  {data.validators
-                    ?.filter((r) => r.decision?.startsWith("rejected"))
-                    .map((r) =>
-                      r.decision?.replace(/^rejected - \s*/i, "").trim(),
-                    )
-                    .join(", ") || "Aucun motif fourni"}
+                  {data.validators.find(
+                    x => x.decision === "rejected"
+                  )?.comment}
                 </p>
               </div>
             </div>
           )}
 
           {/**Commentary */}
-          {(data.state === "validated" || data.state === "store") &&
-            !!data.validators &&
-            data.validators.some(
-              (v) =>
-                v.decision &&
-                v.decision.startsWith("validated") &&
-                v.decision.trim().length > 11,
-            ) && (
-              <div className="view-group">
-                <span className="view-icon">
-                  <MessageSquareXIcon />
-                </span>
-                <div className="flex flex-col">
-                  <p className="view-group-title">{"Commentaire"}</p>
-                  <p className="text-destructive">
-                    {data.validators
-                      .filter(
-                        (r) =>
-                          r.decision?.startsWith("validated") &&
-                          r.decision?.length > 9,
-                      )
-                      .map((r) =>
-                        r.decision?.replace(/^validated - \s*/i, "").trim(),
-                      )
-                      .join(", ")}
-                  </p>
-                </div>
-              </div>
-            )}
 
           {/* Justificatif */}
           {data.type !== "speciaux" && data.type !== "achat" && (

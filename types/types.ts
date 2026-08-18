@@ -222,7 +222,7 @@ export type RequestModelT = {
   beficiaryList?:
   | { id: number; firstName: string; lastName: string; email: string }[]
   | null;
-  state: (typeof REQUEST_STATUS)[number]["value"];
+  state: (typeof REQUEST_STATUS)[number]["value"] | "DISCARDED";
   priority: Priority;
   projectId?: number;
   project?: ProjectT;
@@ -257,6 +257,7 @@ export type RequestModelT = {
     id: number;
     validated: boolean;
     decision?: string;
+    comment?: string;
     rank: number;
     userId: number;
     requestModelId: number;
@@ -389,6 +390,7 @@ export const QUOTATION_STATUS = [
 export const QUOTATION_ELEMENT_STATUS = [
   { value: "SELECTED", name: "Sélectionné" },
   { value: "REJECTED", name: "Rejeté" },
+  { value: "DISCARDED", name: "Annulé" },
 ] as const;
 
 export type QuotationStatus = (typeof QUOTATION_STATUS)[number]["value"];
@@ -451,7 +453,8 @@ export type TicketsData = {
 export type QuotationGroupStatus =
   | "NOT_PROCESSED"
   | "IN_PROGRESS"
-  | "PROCESSED";
+  | "PROCESSED"
+  | "CANCELLED";
 export interface QuotationGroup {
   commandRequest: CommandRequestT;
   quotations: Array<Quotation>;

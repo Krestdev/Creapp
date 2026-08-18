@@ -20,6 +20,7 @@ interface ModalWarningProps {
   onAction?: () => void;
   variant?: "warning" | "error" | "info" | "success";
   name?: string;
+  warning?: string
 }
 
 export function ModalWarning({
@@ -32,6 +33,7 @@ export function ModalWarning({
   onAction,
   variant = "warning",
   name = "",
+  warning = "",
 }: ModalWarningProps) {
   const variantStyles = {
     warning: {
@@ -76,7 +78,7 @@ export function ModalWarning({
         </DialogHeader>
 
         {/* Message content */}
-        {message && <p className="text-foreground">{message}</p>}
+        {message && <p className="text-foreground">{message} <span className="font-bold">{warning}</span></p>}
 
         {/* Footer buttons */}
         <DialogFooter>
