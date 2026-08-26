@@ -283,7 +283,7 @@ function AppSidebar() {
           pageId: "PG-03-02",
           title: "Devis",
           href: "/tableau-de-bord/commande/devis",
-          authorized: ["SUPERADMIN", "SALES"],
+          authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
         },
         {
           pageId: "PG-03-45",
@@ -296,7 +296,7 @@ function AppSidebar() {
           pageId: "PG-03-5",
           title: "Bons de commande",
           href: "/tableau-de-bord/commande/bon-de-commande",
-          authorized: ["SUPERADMIN", "SALES"],
+          authorized: ["SUPERADMIN", "SALES", "SALES_MANAGER"],
           badgeValue: quotationToAssignCount.data?.data,
         },
         {
