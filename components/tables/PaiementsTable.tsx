@@ -377,7 +377,7 @@ export function PaiementsTable({
                   setSelected(item);
                   setOpenRejectModal(true);
                 }}
-                disabled={item.status !== "pending"}
+                disabled={["paid", "cancelled", "rejected"].includes(item.status)}
               >
                 <Trash />
                 {"Annuler"}
@@ -544,9 +544,9 @@ export function PaiementsTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}

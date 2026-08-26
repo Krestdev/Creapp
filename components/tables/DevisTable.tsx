@@ -70,7 +70,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getQuotationAmount, subText, XAF } from "@/lib/utils";
+import { getQuotationAmount, getUserName, subText, XAF } from "@/lib/utils";
 import {
   CommandRequestT,
   DateFilter,
@@ -406,6 +406,23 @@ export function DevisTable({
         </span>
       ),
       cell: ({ row }) => getProviderName(row.getValue("providerId")),
+    },
+    {
+      accessorKey: "userId",
+      header: ({ column }) => (
+        <span
+          className="tablehead"
+          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+        >
+          {"Initié par"}
+          <ArrowUpDown />
+        </span>
+      ),
+      cell: ({ row }) => (
+        <p className="normal-case">
+          {getUserName(users, row.getValue("userId")) ?? "N/A"}
+        </p>
+      ),
     },
     {
       accessorKey: "montant",
@@ -1053,6 +1070,7 @@ export function DevisTable({
                 else if (column.id === "commandRequestId")
                   columnName = "Demande de cotation";
                 else if (column.id === "providerId") columnName = "Fournisseur";
+                else if (column.id === "userId") columnName = "Initié par";
                 else if (column.id === "montant") columnName = "Montant";
                 else if (column.id === "status") columnName = "Statut";
                 else if (column.id === "createdAt")

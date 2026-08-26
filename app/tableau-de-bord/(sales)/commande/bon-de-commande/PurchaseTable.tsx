@@ -365,6 +365,7 @@ export function PurchaseTable({
       ),
       cell: ({ row }) => {
         const name: BonsCommande["devi"] = row.getValue("devi");
+        if (!name?.commandRequest) return <p className="text-muted-foreground">N/A</p>;
         return (
           <>
             {subText({ text: name.commandRequest.title, length: 21 })} -{" "}

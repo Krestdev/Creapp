@@ -1,7 +1,7 @@
 "use client";
 
 import { DownloadFile } from "@/components/base/downLoadFile";
-import { Badge } from "@/components/ui/badge";
+import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -11,7 +11,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { QuotationGroup } from "@/types/types";
+import {
+  QuotationElement,
+  QuotationGroup,
+  QuotationGroupStatus,
+  QuotationStatus,
+} from "@/types/types";
+import { VariantProps } from "class-variance-authority";
 import {
   LucideChevronRight,
   LucideClipboardList,
@@ -29,47 +35,75 @@ interface DetailModalProps {
   devis: QuotationGroup | null;
 }
 
-const STATUS_STYLES = {
-  not_processed: { bg: "bg-gray-100", text: "text-gray-700" },
-  in_progress: { bg: "bg-blue-100", text: "text-blue-700" },
-  pending: { bg: "bg-amber-100", text: "text-amber-700" },
-  completed: { bg: "bg-green-100", text: "text-green-700" },
-  cancelled: { bg: "bg-red-100", text: "text-red-700" },
-} as const;
+// Statut du groupe (affiché en haut de la modale)
+const GROUP_STATUS_STYLES: Record<
+  QuotationGroupStatus,
+  { label: string; bg: string; text: string }
+> = {
+  NOT_PROCESSED: {
+    label: "Non traité",
+    bg: "bg-gray-100",
+    text: "text-gray-700",
+  },
+  IN_PROGRESS: {
+    label: "En cours",
+    bg: "bg-blue-100",
+    text: "text-blue-700",
+  },
+  PROCESSED: {
+    label: "Traité",
+    bg: "bg-green-100",
+    text: "text-green-700",
+  },
+  CANCELLED: {
+    label: "Annulé",
+    bg: "bg-red-100",
+    text: "text-red-700",
+  },
+};
+
+// Statut d'un devis individuel (une ligne de "Devis associés")
+const getDevisStatus = (
+  status: QuotationStatus | undefined,
+  elements: Array<QuotationElement> = [],
+): {
+  label: string;
+  variant: VariantProps<typeof badgeVariants>["variant"];
+} => {
+  // Un devis encore "PENDING" dont tous les éléments ont été annulés est
+  // en réalité annulé, même si son statut n'a pas été mis à jour.
+  if (
+    status === "PENDING" &&
+    elements.length > 0 &&
+    elements.every((el) => el.status === "DISCARDED")
+  ) {
+    return { label: "Annulé", variant: "outline" };
+  }
+
+  switch (status) {
+    case "PENDING":
+      return { label: "En attente", variant: "amber" };
+    case "APPROVED":
+      return { label: "Approuvé", variant: "success" };
+    case "REJECTED":
+      return { label: "Rejeté", variant: "destructive" };
+    case "SUBMITTED":
+      return { label: "Soumis", variant: "primary" };
+    case "CANCELLED":
+      return { label: "Annulé", variant: "outline" };
+    default:
+      return { label: "Statut inconnu", variant: "outline" };
+  }
+};
 
 export function DevisGroup({ open, onOpenChange, devis }: DetailModalProps) {
   const [page, setPage] = React.useState(1);
   const [file, setFile] = React.useState<string | File | undefined>(undefined);
   const [selectedProvider, setSelectedProvider] = React.useState<string>("");
 
-  const translateStatus = (status: string | undefined) => {
-    status = status?.toLowerCase();
-    switch (status) {
-      case "not_processed":
-        return "Non traité";
-      case "in_progress":
-        return "En cours";
-      case "pending":
-        return "En cours";
-      case "completed":
-        return "Complété";
-      case "cancelled":
-        return "Annulé";
-      default:
-        return "Statut inconnu";
-    }
-  };
-
-  const getStatusStyle = (status: string | undefined) => {
-    const normalizedStatus =
-      status?.toLowerCase() as keyof typeof STATUS_STYLES;
-    return (
-      STATUS_STYLES[normalizedStatus] || {
-        bg: "bg-gray-100",
-        text: "text-gray-700",
-      }
-    );
-  };
+  const groupStatus = devis?.status
+    ? GROUP_STATUS_STYLES[devis.status]
+    : undefined;
 
   // const handleViewQuotation = (
   //   proof: string | File | undefined,
@@ -117,18 +151,15 @@ export function DevisGroup({ open, onOpenChange, devis }: DetailModalProps) {
                 <div className="flex flex-col flex-1">
                   <p className="text-sm text-muted-foreground mb-1">Statut</p>
                   <div className="w-fit">
-                    {(() => {
-                      const style = getStatusStyle(devis?.status);
-                      return (
-                        <div
-                          className={`${style.bg} ${style.text} flex items-center justify-center px-3 py-1 rounded-full`}
-                        >
-                          <p className="text-sm font-medium">
-                            {translateStatus(devis?.status) || "N/A"}
-                          </p>
-                        </div>
-                      );
-                    })()}
+                    <div
+                      className={`${groupStatus?.bg ?? "bg-gray-100"} ${
+                        groupStatus?.text ?? "text-gray-700"
+                      } flex items-center justify-center px-3 py-1 rounded-full`}
+                    >
+                      <p className="text-sm font-medium">
+                        {groupStatus?.label ?? "N/A"}
+                      </p>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -191,6 +222,10 @@ export function DevisGroup({ open, onOpenChange, devis }: DetailModalProps) {
                         (x) => x.id === devi.providerId,
                       );
                       const hasProof = !!devi?.proof;
+                      const devisStatus = getDevisStatus(
+                        devi?.status,
+                        devi?.element,
+                      );
 
                       return (
                         <Link
@@ -215,16 +250,10 @@ export function DevisGroup({ open, onOpenChange, devis }: DetailModalProps) {
                                   {provider?.name || "Fournisseur inconnu"}
                                 </p>
                                 <Badge
-                                  variant={
-                                    devis.status === "IN_PROGRESS"
-                                      ? "default"
-                                      : devis.status === "NOT_PROCESSED"
-                                        ? "destructive"
-                                        : "success"
-                                  }
+                                  variant={devisStatus.variant}
                                   className="text-xs"
                                 >
-                                  {translateStatus(devi?.status)}
+                                  {devisStatus.label}
                                 </Badge>
                               </div>
                               {hasProof && (

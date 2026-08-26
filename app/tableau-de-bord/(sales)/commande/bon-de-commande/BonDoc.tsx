@@ -416,37 +416,39 @@ export const BonDocument: React.FC<{
   const real = isRealRegime(doc.provider.regem);
   const applyPrecompte = doc.hasPrecompt === true;
 
-  const lines = doc.devi.element.map((el) => {
-    const lineHTBrut = (el.quantity ?? 0) * (el.priceProposed ?? 0);
-    const lineRRR = lineHTBrut * (el.reduction / 100);
-    const lineBase = Math.max(0, lineHTBrut - lineRRR);
+  const lines = doc.devi.element
+    .filter((el) => el.status === "SELECTED")
+    .map((el) => {
+      const lineHTBrut = (el.quantity ?? 0) * (el.priceProposed ?? 0);
+      const lineRRR = lineHTBrut * (el.reduction / 100);
+      const lineBase = Math.max(0, lineHTBrut - lineRRR);
 
-    const lineTVA = real ? lineBase * (el.tva / 100) : 0;
+      const lineTVA = real ? lineBase * (el.tva / 100) : 0;
 
-    const isIrRate = !el.hasIs
-      ? 0
-      : el.hasIs
-        ? real
-          ? ACOMPTE_IS_REEL
-          : IR_SIMPLIFIE
-        : 0;
+      const isIrRate = !el.hasIs
+        ? 0
+        : el.hasIs
+          ? real
+            ? ACOMPTE_IS_REEL
+            : IR_SIMPLIFIE
+          : 0;
 
-    const lineIsIr = lineBase * isIrRate;
-    const linePrecompte = applyPrecompte ? lineBase * PRECOMPTE : 0;
+      const lineIsIr = lineBase * isIrRate;
+      const linePrecompte = applyPrecompte ? lineBase * PRECOMPTE : 0;
 
-    const lineNetToPay = lineBase + lineTVA - lineIsIr + linePrecompte;
+      const lineNetToPay = lineBase + lineTVA - lineIsIr + linePrecompte;
 
-    return {
-      ...el,
-      lineHTBrut,
-      lineRRR,
-      lineBase,
-      lineTVA,
-      lineIsIr,
-      linePrecompte,
-      lineNetToPay,
-    };
-  });
+      return {
+        ...el,
+        lineHTBrut,
+        lineRRR,
+        lineBase,
+        lineTVA,
+        lineIsIr,
+        linePrecompte,
+        lineNetToPay,
+      };
+    });
 
   const totalHTBrut = lines.reduce((sum, l) => sum + l.lineHTBrut, 0);
   const totalRRR = lines.reduce((sum, l) => sum + l.lineRRR, 0);

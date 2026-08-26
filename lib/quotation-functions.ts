@@ -6,12 +6,32 @@ import {
   QuotationGroupStatus,
 } from "@/types/types";
 
+// Un besoin est considéré annulé quand toutes ses lignes de devis (dans tous
+// les devis du groupe) ont un statut définitif négatif ("DISCARDED" ou "REJECTED").
+export const isBesoinFullyDiscarded = (
+  besoinId: number,
+  quotations: Quotation[],
+): boolean => {
+  const elements = quotations
+    .flatMap((q) => q.element ?? [])
+    .filter((el) => el.requestModelId === besoinId);
+  return (
+    elements.length > 0 &&
+    elements.every(
+      (el) => el.status === "DISCARDED" || el.status === "REJECTED",
+    )
+  );
+};
+
 export const computeQuotationGroupStatus = (
   quotations: Quotation[],
   besoins: CommandRequestT["besoins"] = [],
 ): QuotationGroupStatus => {
   // Si tous les besoins de la demande ont été annulés, le groupe est annulé.
-  if (besoins.length > 0 && besoins.every((b) => b.state === "DISCARDED")) {
+  if (
+    besoins.length > 0 &&
+    besoins.every((b) => isBesoinFullyDiscarded(b.id, quotations))
+  ) {
     return "CANCELLED";
   }
 

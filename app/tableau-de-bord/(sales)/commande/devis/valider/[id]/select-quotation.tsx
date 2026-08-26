@@ -8,8 +8,11 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { queryKeys } from "@/lib/query-keys";
-import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
-import { cn, XAF } from "@/lib/utils";
+import {
+  groupQuotationsByCommandRequest,
+  isBesoinFullyDiscarded,
+} from "@/lib/quotation-functions";
+import { cn, getUserName, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { commandRqstQ } from "@/queries/commandRqstModule";
@@ -266,27 +269,32 @@ function SelectQuotation({ id }: { id: string }) {
 
       {quotationGroup.commandRequest.besoins.map((besoin, index) => {
         const isBesoinLocked = lockedBesoinIds.has(besoin.id);
-        const isBesoinDiscarded = besoin.state === "DISCARDED";
+        const isBesoinDiscarded = isBesoinFullyDiscarded(
+          besoin.id,
+          quotationGroup.quotations,
+        );
 
         return (
           <div
             key={besoin.id}
             className={cn(
-              "flex flex-col gap-4",
+              "flex flex-col gap-4 rounded-xl border bg-white p-5 shadow-xl",
               (isBesoinLocked || isBesoinDiscarded) && "bg-slate-50/50",
               isBesoinDiscarded && "opacity-60",
+              index % 2 === 0 && "bg-primary/3",
             )}
           >
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-lg">
-                  <u>{`Besoin ${index + 1}:`}</u>
-                  {` ${besoin.label}`}
-                </h3>
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
+                  {index + 1}
+                </span>
+                <h3 className="font-semibold text-lg">{besoin.label}</h3>
                 <div className="flex gap-2">
                   <Button
                     type="button"
                     variant={"outline"}
+                    className="h-7 text-[10px]"
                     onClick={() => {
                       setSelectedBesoin(besoin);
                       setIsDetailModalOpen(true);
@@ -296,7 +304,8 @@ function SelectQuotation({ id }: { id: string }) {
                   </Button>
                   <Button
                     type="button"
-                    variant={"destructive"}
+                    variant={"outline"}
+                    className="text-red-600 bg-red-50 hover:bg-red-50/80 h-7 text-[10px] border-red-100"
                     disabled={
                       isBesoinDiscarded ||
                       (isRejectingBesoin && besoinToCancel?.id === besoin.id)
@@ -325,6 +334,8 @@ function SelectQuotation({ id }: { id: string }) {
               </div>
             </div>
 
+            <div className="border-t" />
+
             {isBesoinDiscarded ? (
               <p className="text-gray-600 italic">
                 {
@@ -333,11 +344,7 @@ function SelectQuotation({ id }: { id: string }) {
               </p>
             ) : (
               !quotationGroup.quotations.some((q) =>
-                q.element?.some(
-                  (el) =>
-                    el.requestModelId === besoin.id &&
-                    el.status !== "DISCARDED",
-                ),
+                q.element?.some((el) => el.requestModelId === besoin.id),
               ) && (
                 <p className="text-gray-600 italic">
                   {"Aucun devis ne remplis ce besoin."}
@@ -348,9 +355,7 @@ function SelectQuotation({ id }: { id: string }) {
             <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {quotationGroup.quotations.map((quote) => {
                 const elements = (quote.element || []).filter(
-                  (el) =>
-                    el.requestModelId === besoin.id &&
-                    el.status !== "DISCARDED",
+                  (el) => el.requestModelId === besoin.id,
                 );
                 if (elements.length === 0) return null;
 
@@ -369,7 +374,7 @@ function SelectQuotation({ id }: { id: string }) {
                   <div
                     key={`${besoin.id}-${quote.providerId}`}
                     className={cn(
-                      "relative rounded-lg p-4 flex flex-col gap-3 border transition-all select-none",
+                      "relative rounded-lg p-4 flex flex-col gap-3 border transition-all select-none shadow-md",
                       isSelected
                         ? "border-primary bg-primary/5 ring-1 ring-primary"
                         : "bg-white",
@@ -418,6 +423,12 @@ function SelectQuotation({ id }: { id: string }) {
                         </div>
                       ))}
                     </div>
+
+                    <p className="text-[10px] text-muted-foreground text-right">
+                      {`Devis initié par : ${getUserName(users.data?.data ?? [], quote.userId) ??
+                        "N/A"
+                        }`}
+                    </p>
                   </div>
                 );
               })}

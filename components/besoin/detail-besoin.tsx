@@ -115,6 +115,8 @@ export function DetailBesoin({
         return { label: "Rejeté", variant: "destructive" };
       case "store":
         return { label: "Déstocké", variant: "blue" };
+      case "DISCARDED":
+        return { label: "Annulé", variant: "destructive" };
       default:
         return { label: status, variant: "default" };
     }

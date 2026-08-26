@@ -147,22 +147,17 @@ export const TranslateRole = (role: string) => {
 };
 
 export function totalAmountPurchase(payload: BonsCommande): number {
-  return payload.devi.element.reduce(
-    (total, el) => total + el.priceProposed * el.quantity,
-    0,
-  );
+  if (!payload.devi?.element) return 0;
+  return payload.devi.element
+    .filter((el) => el.status === "SELECTED")
+    .reduce((total, el) => total + el.priceProposed * el.quantity, 0);
 }
 
 // Fonction pour calculer le pourcentage du payment d'un bon
 export function paymentPercentage(payload: BonsCommande): number {
-  return (
-    (payload.devi.element.reduce(
-      (total, el) => total + el.priceProposed * el.quantity,
-      0,
-    ) /
-      totalAmountPurchase(payload)) *
-    100
-  );
+  const total = totalAmountPurchase(payload);
+  if (!total) return 0;
+  return (totalAmountPurchase(payload) / total) * 100;
 }
 
 interface RoleCheck {

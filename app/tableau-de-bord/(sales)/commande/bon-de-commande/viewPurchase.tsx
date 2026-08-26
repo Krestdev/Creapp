@@ -57,6 +57,15 @@ function ViewPurchase({ open, openChange, purchaseOrder }: Props) {
   });
   const status = getPurchaseStatusBadge(purchaseOrder.status);
 
+  const selectedBesoinIds = new Set(
+    (purchaseOrder.devi.element ?? [])
+      .filter((el) => el.status === "SELECTED")
+      .map((el) => el.requestModelId),
+  );
+  const selectedBesoins = purchaseOrder.devi.commandRequest.besoins.filter(
+    (r) => selectedBesoinIds.has(r.id),
+  );
+
   const paymentConditions = (purchase: BonsCommande): string => {
     switch (purchase.receptionMode) {
       case "FULL":
@@ -218,7 +227,7 @@ function ViewPurchase({ open, openChange, purchaseOrder }: Props) {
             <div className="w-full flex flex-col">
               <p className="view-group-title">{"Besoins"}</p>
               <div className="flex flex-col gap-1">
-                {purchaseOrder.devi.commandRequest.besoins.map((r) => (
+                {selectedBesoins.map((r) => (
                   <div key={r.id} className="flex flex-col gap-0.5">
                     <p className="font-semibold">{r.label}</p>
                     <p className="text-sm text-primary-700">{`(x${r.quantity} ${r.unit})`}</p>

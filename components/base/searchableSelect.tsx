@@ -22,6 +22,8 @@ import {
 interface Option {
   value: string;
   label: string;
+  disabled?: boolean;
+  tag?: string;
 }
 
 interface SearchableSelectProps {
@@ -175,7 +177,9 @@ export function SearchableSelect({
                   <CommandItem
                     key={option.value}
                     value={option.label}
+                    disabled={option.disabled}
                     onSelect={() => {
+                      if (option.disabled) return;
                       onChange(option.value);
                       handleOpenChange(false);
                     }}
@@ -186,7 +190,12 @@ export function SearchableSelect({
                         value === option.value ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    {option.label}
+                    <span className="flex-1 truncate">{option.label}</span>
+                    {option.tag && (
+                      <span className="ml-2 shrink-0 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                        {option.tag}
+                      </span>
+                    )}
                   </CommandItem>
                 ))}
               </CommandGroup>

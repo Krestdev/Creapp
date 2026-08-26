@@ -20,7 +20,6 @@ import {
   CircleDollarSignIcon,
   CircleUserRoundIcon,
   EllipsisVertical,
-  GitGraph,
   LandmarkIcon,
   LayoutDashboardIcon,
   LockIcon,
@@ -41,7 +40,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger,
+  DropdownMenuTrigger
 } from "../ui/dropdown-menu";
 import {
   Sidebar,

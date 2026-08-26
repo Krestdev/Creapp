@@ -109,75 +109,13 @@ function ServiceRequestsTable({
     },
   ];
 
-  // Réinitialiser tous les filtres
-  // const resetAllFilters = () => {
-  //   setGlobalFilter("");
-  //   setUserFilter("all");
-  // };
-
-  // const filteredRequests = React.useMemo(() => {
-  //   return requests.filter((req) => {
-  //     const now = new Date();
-  //     let startDate = new Date();
-  //     let endDate = now;
-  //     const search = searchFilter.toLowerCase().trim();
-  //     const matchTab =
-  //       selectedTab === 0
-  //         ? req.decision === "PENDING"
-  //         : req.decision !== "PENDING";
-  //     const matchUser =
-  //       userFilter === "all" ? true : req.userId === Number(userFilter);
-  //     const matchSearch =
-  //       search === ""
-  //         ? true
-  //         : req.id.toString().includes(search) ||
-  //           req.label.toLowerCase().includes(search) ||
-  //           req.description.toLocaleLowerCase().includes(search);
-  //     let matchDate = true;
-  //     if (dateFilter) {
-  //       switch (dateFilter) {
-  //         case "today":
-  //           startDate.setHours(0, 0, 0, 0);
-  //           break;
-  //         case "week":
-  //           startDate.setDate(
-  //             now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-  //           );
-  //           startDate.setHours(0, 0, 0, 0);
-  //           break;
-  //         case "month":
-  //           startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-  //           break;
-  //         case "year":
-  //           startDate = new Date(now.getFullYear(), 0, 1);
-  //           break;
-  //         case "custom":
-  //           if (customDateRange?.from && customDateRange?.to) {
-  //             startDate = customDateRange.from;
-  //             endDate = customDateRange.to;
-  //           }
-  //           break;
-  //       }
-
-  //       if (
-  //         dateFilter !== "custom" ||
-  //         (customDateRange?.from && customDateRange?.to)
-  //       ) {
-  //         matchDate =
-  //           new Date(req.createdAt) >= startDate &&
-  //           new Date(req.createdAt) <= endDate;
-  //       }
-  //     }
-  //     return matchUser && matchSearch && matchDate && matchTab;
-  //   });
-  // }, [
-  //   requests,
-  //   userFilter,
-  //   searchFilter,
-  //   dateFilter,
-  //   customDateRange,
-  //   selectedTab,
-  // ]);
+  const filteredRequests = React.useMemo(() => {
+    return requests.filter((req) =>
+      selectedTab === 0
+        ? req.decision === "PENDING"
+        : req.decision !== "PENDING",
+    );
+  }, [requests, selectedTab]);
 
   const columns: ColumnDef<RequestModelT>[] = [
     {
@@ -214,11 +152,11 @@ function ServiceRequestsTable({
               ? XAF.format(value.amount)
               : "N/A"
             : XAF.format(
-                value.benFac?.list?.reduce(
-                  (acc, item) => acc + item.amount,
-                  0,
-                ) || 0,
-              );
+              value.benFac?.list?.reduce(
+                (acc, item) => acc + item.amount,
+                0,
+              ) || 0,
+            );
         return (
           <div
             className={cn(
@@ -389,7 +327,7 @@ function ServiceRequestsTable({
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data: requests,
+    data: filteredRequests,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -444,9 +382,9 @@ function ServiceRequestsTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}

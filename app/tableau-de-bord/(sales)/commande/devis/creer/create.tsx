@@ -25,6 +25,7 @@ import {
   SelectItem,
   SelectTrigger,
 } from "@/components/ui/select";
+import { isBesoinFullyDiscarded } from "@/lib/quotation-functions";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { commandRqstQ } from "@/queries/commandRqstModule";
@@ -236,18 +237,26 @@ function CreateQuotation({ quotation, openChange }: Props) {
     },
   });
 
+  /** Tous les besoins d'une demande, y compris ceux entièrement annulés */
+  const getCommandBesoins = useCallback(
+    (commandId: number) => {
+      const command = cmdRqstData.data?.data.find((c) => c.id === commandId);
+      return command?.besoins ?? [];
+    },
+    [cmdRqstData.data],
+  );
+
   /** Réinitialiser le formulaire quand `quotation` change */
   useEffect(() => {
     if (quotation) {
       form.reset(defaultValues);
       const commandId = defaultValues.commandRequestId;
       if (commandId && cmdRqstData.data) {
-        const command = cmdRqstData.data.data.find((c) => c.id === commandId);
-        setSelectedNeeds(command?.besoins || []);
+        setSelectedNeeds(getCommandBesoins(commandId));
       }
       setPreviousCommandId(commandId);
     }
-  }, [quotation, defaultValues, cmdRqstData.data, form]);
+  }, [quotation, defaultValues, cmdRqstData.data, form, getCommandBesoins]);
 
   /** Mettre à jour les besoins sélectionnés quand la demande change */
   // eslint-disable-next-line react-hooks/incompatible-library
@@ -256,10 +265,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
   useEffect(() => {
     if (watchedCommandId !== previousCommandId) {
       if (watchedCommandId && cmdRqstData.data) {
-        const command = cmdRqstData.data.data.find(
-          (c) => c.id === watchedCommandId,
-        );
-        setSelectedNeeds(command?.besoins || []);
+        setSelectedNeeds(getCommandBesoins(watchedCommandId));
       } else {
         setSelectedNeeds([]);
       }
@@ -279,7 +285,38 @@ function CreateQuotation({ quotation, openChange }: Props) {
 
       setPreviousCommandId(watchedCommandId);
     }
-  }, [watchedCommandId, previousCommandId, cmdRqstData.data, form]);
+  }, [
+    watchedCommandId,
+    previousCommandId,
+    cmdRqstData.data,
+    form,
+    getCommandBesoins,
+  ]);
+
+  /** Besoins entièrement annulés de la demande sélectionnée (à désactiver dans AddElement) */
+  const discardedNeedIds = useMemo(() => {
+    const commandId = watchedCommandId ?? defaultValues.commandRequestId;
+    if (!commandId) return new Set<number>();
+
+    const relevantQuotations =
+      quotationsData.data?.data.filter(
+        (q) => q.commandRequestId === commandId && q.id !== quotation?.id,
+      ) ?? []; // ← Exclure le devis actuel
+
+    const ids = new Set<number>();
+    for (const besoin of selectedNeeds) {
+      if (isBesoinFullyDiscarded(besoin.id, relevantQuotations)) {
+        ids.add(besoin.id);
+      }
+    }
+    return ids;
+  }, [
+    selectedNeeds,
+    watchedCommandId,
+    defaultValues.commandRequestId,
+    quotationsData.data,
+    quotation?.id,
+  ]);
 
   /** Fonction pour normaliser le texte (recherche) */
   const normalizeText = useCallback(
@@ -317,15 +354,26 @@ function CreateQuotation({ quotation, openChange }: Props) {
       const request = cmdRqstData.data?.data.find((r) => r.id === requestId);
       if (!request) return false;
 
+      const relevantQuotations =
+        quotationsData.data?.data.filter(
+          (q) => q.commandRequestId === requestId && q.id !== quotation?.id,
+        ) ?? []; // ← Exclure le devis actuel
+
+      // Si tous les besoins de la demande sont annulés, plus rien à coter.
+      if (
+        request.besoins.length > 0 &&
+        request.besoins.every((b) =>
+          isBesoinFullyDiscarded(b.id, relevantQuotations),
+        )
+      ) {
+        return false;
+      }
+
       const allBesoinIds = request.besoins.map((b) => b.id);
-      const validatedBesoinIds =
-        quotationsData.data?.data
-          .filter(
-            (q) => q.commandRequestId === requestId && q.id !== quotation?.id,
-          ) // ← Exclure le devis actuel
-          .flatMap((q) => q.element || [])
-          .filter((el) => el.status === "SELECTED")
-          .map((el) => el.requestModelId) || [];
+      const validatedBesoinIds = relevantQuotations
+        .flatMap((q) => q.element || [])
+        .filter((el) => el.status === "SELECTED")
+        .map((el) => el.requestModelId);
 
       return !allBesoinIds.every((id) => validatedBesoinIds.includes(id));
     },
@@ -663,11 +711,10 @@ function CreateQuotation({ quotation, openChange }: Props) {
                                       }
                                     >
                                       <span className="truncate">
-                                        {`${item.designation} - ${
-                                          item.quantity
-                                        } ${item.unit} - ${XAF.format(
-                                          item.price,
-                                        )}`}
+                                        {`${item.designation} - ${item.quantity
+                                          } ${item.unit} - ${XAF.format(
+                                            item.price,
+                                          )}`}
                                       </span>
                                       <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-primary text-primary-foreground">
                                         Modifier
@@ -724,6 +771,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
                               .map((el) => el.requestModelId) || [];
                           return !validatedBesoinIds.includes(n.id);
                         })}
+                        discardedNeedIds={discardedNeedIds}
                         value={field.value}
                         onChange={handleElementsChange}
                         element={editingElement}

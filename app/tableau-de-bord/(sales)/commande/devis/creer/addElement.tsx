@@ -61,6 +61,7 @@ interface Props {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   needs: Array<RequestModelT>;
+  discardedNeedIds?: Set<number>;
   value?: ElementT[];
   onChange: (value: ElementT[]) => void;
   element?: ElementT;
@@ -71,6 +72,7 @@ function AddElement({
   open,
   openChange,
   needs,
+  discardedNeedIds = new Set(),
   value = [],
   onChange,
   element,
@@ -247,6 +249,10 @@ function AddElement({
                             needs.map((need) => ({
                               label: need.label,
                               value: need.id.toString(),
+                              disabled: discardedNeedIds.has(need.id),
+                              tag: discardedNeedIds.has(need.id)
+                                ? "Annulé"
+                                : undefined,
                             })) || []
                           }
                           value={field.value?.toString() || ""}
@@ -521,8 +527,13 @@ function AddElement({
                             className="border p-3 rounded-lg bg-gray-50"
                           >
                             <div className="flex justify-between items-center mb-2">
-                              <h3 className="font-semibold">
+                              <h3 className="font-semibold flex items-center gap-2">
                                 {need?.label || `Besoin #${needId}`}
+                                {discardedNeedIds.has(Number(needId)) && (
+                                  <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
+                                    {"Annulé"}
+                                  </span>
+                                )}
                               </h3>
                             </div>
                             <div className="space-y-2">

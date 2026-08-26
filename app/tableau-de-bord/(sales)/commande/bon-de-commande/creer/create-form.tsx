@@ -318,7 +318,16 @@ function CreateForm({
     //   return;
     // }
 
-    const ids = quotation?.commandRequest.besoins.map((b) => b.id);
+    // Seuls les besoins dont l'élément a été sélectionné doivent être
+    // envoyés dans le bon de commande (un besoin peut avoir plusieurs
+    // éléments sélectionnés, d'où la déduplication).
+    const ids = Array.from(
+      new Set(
+        (quotation.element ?? [])
+          .filter((el) => el.status === "SELECTED")
+          .map((el) => el.requestModelId),
+      ),
+    );
 
     const payload: CreatePurchasePayload = {
       command: {
