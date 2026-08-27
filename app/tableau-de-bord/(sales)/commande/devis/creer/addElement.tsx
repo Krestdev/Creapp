@@ -211,13 +211,13 @@ function AddElement({
         <DialogHeader>
           <DialogTitle className="h-fit">
             {editingIndex !== null ||
-            (element && index !== null && index !== undefined)
+              (element && index !== null && index !== undefined)
               ? "Modifier un élément du devis"
               : "Ajouter des éléments au devis"}
           </DialogTitle>
           <DialogDescription>
             {editingIndex !== null ||
-            (element && index !== null && index !== undefined)
+              (element && index !== null && index !== undefined)
               ? "Mettez à jour les informations de cet élément du devis."
               : "Ajoutez autant d'éléments que nécessaire. Tous seront enregistrés ensemble."}
           </DialogDescription>
@@ -251,7 +251,7 @@ function AddElement({
                               value: need.id.toString(),
                               disabled: discardedNeedIds.has(need.id),
                               tag: discardedNeedIds.has(need.id)
-                                ? "Annulé"
+                                ? "Annulé par approbateur"
                                 : undefined,
                             })) || []
                           }
@@ -540,11 +540,10 @@ function AddElement({
                               {elements.map((item) => (
                                 <div
                                   key={item.index}
-                                  className={`w-full bg-white rounded-sm border px-3 py-2 inline-flex justify-between gap-2 items-center text-sm ${
-                                    editingIndex === item.index
+                                  className={`w-full bg-white rounded-sm border px-3 py-2 inline-flex justify-between gap-2 items-center text-sm ${editingIndex === item.index
                                       ? "border-blue-300 bg-blue-50"
                                       : "border-gray-200"
-                                  }`}
+                                    }`}
                                 >
                                   <div className="flex items-center gap-3 flex-1">
                                     <div className="min-w-6 w-6 h-6 flex items-center justify-center bg-gray-100 rounded text-xs text-gray-600">
