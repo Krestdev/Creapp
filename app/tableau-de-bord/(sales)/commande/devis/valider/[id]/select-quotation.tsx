@@ -261,9 +261,9 @@ function SelectQuotation({ id }: { id: string }) {
   return (
     <div className="space-y-6 pb-20">
       <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">Approbation des devis</h1>
+        <h1 className="text-2xl font-bold">{quotationGroup.commandRequest.title}</h1>
         <p className="text-muted-foreground">
-          Réf: {quotationGroup.commandRequest.title}
+          Réf: {quotationGroup.commandRequest.reference}
         </p>
       </div>
 
