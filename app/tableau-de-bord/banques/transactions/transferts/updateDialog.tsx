@@ -32,7 +32,7 @@ import { bankQ } from "@/queries/bank";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
 import { Transaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -71,6 +71,7 @@ export function EditTransferDialog({
   transfer,
 }: EditTransferDialogProps) {
   // const { user } = useStore();
+  const queryClient = useQueryClient();
 
   // Charger la liste des banques
   const {
@@ -123,6 +124,7 @@ export function EditTransferDialog({
       return transactionQ.update(transfer.id, data);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Transfert modifié avec succès");
       onOpenChange(false);
     },

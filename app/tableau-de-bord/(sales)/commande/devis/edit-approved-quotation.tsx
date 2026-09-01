@@ -46,7 +46,7 @@ import { modificationQ } from "@/queries/modification";
 import { providerQ } from "@/queries/providers";
 import { Provider, Quotation, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, FolderX, InfoIcon, Plus, X } from "lucide-react";
 import React from "react";
@@ -98,8 +98,10 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 function EditApprovedQuotation({ open, openChange, quotation }: Props) {
+  const queryClient = useQueryClient();
   const [openAddElement, setOpenAddElement] = React.useState(false);
-  const [selectedNeeds] = React.useState<Array<RequestModelT>>([]);
+  // `quotation.commandRequest` est déjà chargé avec ses besoins.
+  const selectedNeeds: Array<RequestModelT> = quotation.commandRequest.besoins;
   const [editingIndex, setEditingIndex] = React.useState<number | null>(null);
   const [editingElement, setEditingElement] = React.useState<any>(null);
   const [dueDateOpen, setDueDateOpen] = React.useState(false);
@@ -205,6 +207,7 @@ function EditApprovedQuotation({ open, openChange, quotation }: Props) {
       });
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       openChange(false);
       toast.success("Demande de modification soumise avec succès !");
     },

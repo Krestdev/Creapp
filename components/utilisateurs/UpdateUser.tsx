@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
 import { Role, User as UserT } from "@/types/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import MultiSelectRole from "../base/multiSelectRole";
@@ -54,6 +54,7 @@ export default function UpdateUser({
   userData,
   onSuccess,
 }: UpdateRequestProps) {
+  const queryClient = useQueryClient();
   const [selectedRole, setSelectedRole] = useState<
     { id: number; label: string }[]
   >([]);
@@ -101,6 +102,7 @@ export default function UpdateUser({
       userQ.update(id, data),
 
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Utilisateur modifié avec succès !");
       setOpen(false);
       onSuccess?.();

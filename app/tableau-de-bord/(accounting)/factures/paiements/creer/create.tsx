@@ -41,7 +41,7 @@ import { receptionQ } from "@/queries/reception";
 import { Invoice, PRIORITIES, ProjectT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -117,6 +117,7 @@ interface Props {
 function CreatePaiement({ invoices, projects }: Props) {
   /**Data states */
   const { user } = useStore();
+  const queryClient = useQueryClient();
 
   const router = useRouter();
 
@@ -170,6 +171,7 @@ function CreatePaiement({ invoices, projects }: Props) {
       payload: Omit<NewPayment, "vehiclesId" | "bankId" | "transactionId">,
     ) => paymentQ.new(payload),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre paiement a été initié avec succès !");
       router.push("./");
     },

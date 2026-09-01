@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { userQ } from "@/queries/baseModule";
 import { Signatair, User } from "@/types/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { toast } from "sonner";
 import { signatairQ } from "@/queries/signatair";
@@ -119,6 +119,7 @@ export default function EditSignatairForm({
   signatair,
   onSuccess,
 }: UpdateSignatairProps) {
+  const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -186,6 +187,7 @@ export default function EditSignatairForm({
       signatairQ.update(id, data),
 
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Signataire modifié avec succès !");
       setOpen(false);
       onSuccess?.();

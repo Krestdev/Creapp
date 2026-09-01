@@ -49,7 +49,7 @@ import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { PRIORITIES, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -85,6 +85,7 @@ export default function TransportApprobation({
   users,
 }: Props) {
   const [openDate, setOpenDate] = useState(false);
+  const queryClient = useQueryClient();
 
   const getCategory = useQuery({
     queryKey: queryKeys.category(request.categoryId!),
@@ -134,6 +135,7 @@ export default function TransportApprobation({
       decision?: string;
     }) => requestQ.validate({ id, request, decision }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Le Besoin a été approuvé !");
       onOpenChange(false);
     },

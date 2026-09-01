@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { projectQ } from "@/queries/projectModule";
 import { ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -57,6 +57,7 @@ export function ProjectCreateForm({
   users: User[];
   userId: number;
 }) {
+  const queryClient = useQueryClient();
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
@@ -74,6 +75,7 @@ export function ProjectCreateForm({
       > & { chiefId: number },
     ) => projectQ.create(data),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Projet créé avec succès !");
       form.reset();
     },

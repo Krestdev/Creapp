@@ -38,7 +38,7 @@ import { useStore } from "@/providers/datastore";
 import { requestQ, RequestTaxes } from "@/queries/requestModule";
 import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -105,6 +105,7 @@ const formSchema = z.object({
 function CreateTypeTaxes({ users, categories, projects }: Props) {
   const { user } = useStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [dueDate, setDueDate] = useState<boolean>(false);
 
@@ -129,6 +130,7 @@ function CreateTypeTaxes({ users, categories, projects }: Props) {
     mutationFn: async (payload: RequestTaxes) =>
       requestQ.createTaxesRequest(payload),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre besoin a été soumis avec succès !");
       router.push("./mes-besoins");
     },

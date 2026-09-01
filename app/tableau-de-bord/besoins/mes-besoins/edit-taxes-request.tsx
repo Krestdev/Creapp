@@ -53,7 +53,7 @@ import {
   User,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -122,6 +122,7 @@ function EditTaxesRequest({
   onOpenChange,
 }: Props) {
   const [dueDate, setDueDate] = useState<boolean>(false);
+  const queryClient = useQueryClient();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -168,6 +169,7 @@ function EditTaxesRequest({
       return requestQ.update(request.id, payload);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre besoin a été modifié avec succès !");
       onOpenChange(false);
     },

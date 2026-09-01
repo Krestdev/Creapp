@@ -52,7 +52,7 @@ import {
 import { useStore } from "@/providers/datastore";
 import { vehicleQ } from "@/queries/vehicule";
 import { Role, Vehicle } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
@@ -65,6 +65,7 @@ interface VehiclesTableProps {
 }
 
 export function VehiclesTable({ data }: VehiclesTableProps) {
+  const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -88,6 +89,7 @@ export function VehiclesTable({ data }: VehiclesTableProps) {
     mutationFn: async (data: number) => vehicleQ.delete(Number(data)),
 
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Vehicle supprimé avec succès !");
     },
 

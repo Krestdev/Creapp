@@ -1,7 +1,7 @@
 "use client";
 import PageTitle from "@/components/pageTitle";
 import { userQ } from "@/queries/baseModule";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,7 @@ import { PenLine, UploadCloud, Trash2, Save } from "lucide-react";
 import FilesUpload from "@/components/comp-547";
 
 function Page() {
+  const queryClient = useQueryClient();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [activeTab, setActiveTab] = useState<"draw" | "upload">("draw");
   const [isDrawing, setIsDrawing] = useState(false);
@@ -19,6 +20,7 @@ function Page() {
       return await userQ.createSignature(signature);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre signature a été enregistrée avec succès !");
     },
     onError: (error: Error) => {

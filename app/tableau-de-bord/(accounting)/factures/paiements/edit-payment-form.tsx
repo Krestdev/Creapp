@@ -30,7 +30,7 @@ import { payTypeQ } from "@/queries/payType";
 import { Invoice, PaymentRequest, PRIORITIES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import React from "react";
@@ -81,6 +81,7 @@ interface Props {
 function EditPaymentForm({ payment, invoices, openChange }: Props) {
   /**Data states */
   const { user } = useStore();
+  const queryClient = useQueryClient();
 
   const [dueDate, setDueDate] = React.useState<boolean>(false);
   const today = new Date(); //On part sur 3 jours de delai de base :)
@@ -104,6 +105,7 @@ function EditPaymentForm({ payment, invoices, openChange }: Props) {
     mutationFn: async (data: Partial<UpdatePayment>) =>
       paymentQ.update(payment.id, data),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre paiement a été modifié avec succès !");
       openChange(false);
     },

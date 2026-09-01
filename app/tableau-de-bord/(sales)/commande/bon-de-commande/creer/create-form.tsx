@@ -38,7 +38,7 @@ import {
   RECEPTION_MODES,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import React from "react";
@@ -148,6 +148,7 @@ function CreateForm({
   paymentType: PayType[];
   conditions: CommandCondition[];
 }) {
+  const queryClient = useQueryClient();
   const [selectDate, setSelectDate] = React.useState(false);
   const [selectedConditions, setSelectedConditions] = React.useState<
     CommandCondition[]
@@ -274,6 +275,7 @@ function CreateForm({
   const { mutate, isPending } = useMutation({
     mutationFn: (payload: CreatePurchasePayload) => purchaseQ.create(payload),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre Bon de Commande a été créé avec succès !");
       form.reset({
         priority: "medium",

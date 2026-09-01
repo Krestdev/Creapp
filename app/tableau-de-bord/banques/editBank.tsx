@@ -30,7 +30,7 @@ import { Switch } from "@/components/ui/switch";
 import { BankPayload, bankQ } from "@/queries/bank";
 import { Bank, BANK_TYPES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -105,6 +105,7 @@ const formSchema = z
 type FormValues = z.infer<typeof formSchema>;
 
 function EditBank({ open, openChange, bank }: Props) {
+  const queryClient = useQueryClient();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -148,6 +149,7 @@ function EditBank({ open, openChange, bank }: Props) {
   const update = useMutation({
     mutationFn: async (payload: BankPayload) => bankQ.update(bank.id, payload),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Compte mis à jour avec succès !");
       form.reset({
         label: bank.label,

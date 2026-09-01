@@ -27,7 +27,7 @@ import {
 import { requestQ } from "@/queries/requestModule";
 import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { LoaderIcon } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -61,7 +61,7 @@ export default function UpdatePaymentMethod({
   onSuccess,
   // categories,
 }: UpdatePaymentMethodProps) {
-
+  const queryClient = useQueryClient();
 
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
@@ -102,6 +102,7 @@ export default function UpdatePaymentMethod({
       request: Partial<RequestModelT>;
     }) => requestQ.validate({ id, request }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success(
         "Moyen de paiement mis à jour et besoin approuvé avec succès !",
       );

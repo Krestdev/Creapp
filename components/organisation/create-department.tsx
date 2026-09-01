@@ -12,7 +12,7 @@ import { userQ } from "@/queries/baseModule";
 import { departmentQ } from "@/queries/departmentModule";
 import { DepartmentT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -45,6 +45,7 @@ export function DepartmentCreateForm() {
   });
 
   const { isHydrated } = useStore();
+  const queryClient = useQueryClient();
 
   const departmentApi = useMutation({
     mutationFn: (
@@ -60,6 +61,7 @@ export function DepartmentCreateForm() {
       > & { chiefId: number },
     ) => departmentQ.create(data),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Département créé avec succès !");
       form.reset();
     },

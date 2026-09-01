@@ -28,7 +28,7 @@ import { cn } from "@/lib/utils";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { Category, CommandRequestT, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 import React, { useState } from "react";
@@ -77,6 +77,7 @@ export function UpdateCotationModal({
   requests,
   categories,
 }: UpdateCotationModalProps) {
+  const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Request[]>([]);
   // const [dataSup, setDataSup] = useState<RequestModelT[] | undefined>();
   const [successOpen, setSuccessOpen] = useState(false);
@@ -98,6 +99,7 @@ export function UpdateCotationModal({
     mutationFn: (data: Partial<CommandRequestT>) =>
       commandRqstQ.update(quotationRequest.id, data),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Demande de cotation mise à jour avec succès");
       setSuccessOpen(true);
       onSuccess?.();

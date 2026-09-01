@@ -53,7 +53,7 @@ import {
 } from "@/components/ui/table";
 import { driverQ } from "@/queries/driver";
 import { Driver } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import { ModalWarning } from "../modals/modal-warning";
@@ -75,6 +75,7 @@ interface DriversTableProps {
 }
 
 export function DriverTable({ data }: DriversTableProps) {
+  const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "firstName", desc: true },
   ]);
@@ -100,6 +101,7 @@ export function DriverTable({ data }: DriversTableProps) {
   const driverMutation = useMutation({
     mutationFn: (id: number) => driverQ.delete(id),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Chauffeur supprimé avec succès !");
     },
   });

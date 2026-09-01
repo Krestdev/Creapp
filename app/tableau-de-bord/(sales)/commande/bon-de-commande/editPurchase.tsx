@@ -45,7 +45,7 @@ import {
   RECEPTION_MODES,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import React from "react";
@@ -163,6 +163,7 @@ function EditPurchase({
   quotations,
   paytypes,
 }: Props) {
+  const queryClient = useQueryClient();
   const [selectDate, setSelectDate] = React.useState(false); //Popover select Date
   const [duePopovers, setDuePopovers] = React.useState<Record<number, boolean>>(
     {},
@@ -304,6 +305,7 @@ function EditPurchase({
     mutationFn: (payload: updatePoPayload) =>
       purchaseQ.update(payload, purchaseOrder?.id || 0),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre Bon de Commande a été mis à jour avec succès !");
       openChange(false);
     },

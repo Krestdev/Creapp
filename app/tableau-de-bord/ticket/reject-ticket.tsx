@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { paymentQ } from "@/queries/payment";
 import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -41,6 +41,7 @@ const formSchema = z.object({
 type FormValue = z.infer<typeof formSchema>;
 
 function RejectTicket({ open, openChange, payment }: Props) {
+  const queryClient = useQueryClient();
   const form = useForm<FormValue>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -51,6 +52,7 @@ function RejectTicket({ open, openChange, payment }: Props) {
     mutationFn: async (reason: string) =>
       paymentQ.rejectPayment({ id: payment.id, reason }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Vous avez rejeté un ticket avec succès !");
       form.reset({ reason: "" });
       openChange(false);

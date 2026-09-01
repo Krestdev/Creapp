@@ -51,7 +51,7 @@ import {
 } from "@/components/ui/table";
 import { projectQ } from "@/queries/projectModule";
 import { ProjectT, User } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -94,6 +94,7 @@ export function ProjectTable({
   filters,
   setFilters,
 }: ProjectTableProps) {
+  const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -211,7 +212,7 @@ export function ProjectTable({
     mutationFn: (data: { id: number; status: string }) =>
       projectQ.update(data.id, { status: data.status }),
     onSuccess: () => {
-      // invalidate and refetch
+      queryClient.invalidateQueries();
       toast.success("Projet mis à jour avec succès !");
     },
     onError: () => {

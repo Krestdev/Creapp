@@ -21,7 +21,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { paymentQ } from "@/queries/payment";
 import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,6 +38,7 @@ const formSchema = z.object({
 });
 
 function CancelTicket({ open, openChange, data }: Props) {
+  const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,6 +49,7 @@ function CancelTicket({ open, openChange, data }: Props) {
   const cancelPaymentRequest = useMutation({
     mutationFn: (reason: string) => paymentQ.cancel({ id: data.id, reason }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Ticket annulé avec succès");
       openChange(false);
       form.reset();

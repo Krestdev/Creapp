@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/dialog";
 import { providerQ } from "@/queries/providers";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -45,6 +45,7 @@ interface DetailModalProps {
 }
 
 export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
+  const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -58,6 +59,7 @@ export function ProviderDialog({ open, onOpenChange }: DetailModalProps) {
       providerQ.create(data),
     // Dans ProviderDialog, modifiez le onSuccess :
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Fournisseur ajouté avec succès !");
 
       onOpenChange(false);

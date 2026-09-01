@@ -20,7 +20,7 @@ import { useStore } from "@/providers/datastore";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { Category, CommandRequestT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Calendar as CalendarIcon } from "lucide-react";
@@ -65,6 +65,7 @@ export default function CreateCotation({
   categories,
 }: Props) {
   const { user } = useStore();
+  const queryClient = useQueryClient();
   const [selected, setSelected] = useState<Request[]>([]);
   const [successOpen, setSuccessOpen] = useState(false);
   const [created, setCreated] = useState<CommandRequestT | null>(null);
@@ -87,6 +88,7 @@ export default function CreateCotation({
       >,
     ) => commandRqstQ.create(data),
     onSuccess: (res) => {
+      queryClient.invalidateQueries();
       console.log("Cotation created successfully", res.data);
       setCreated(res.data);
       setSuccessOpen(true);

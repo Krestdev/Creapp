@@ -22,7 +22,7 @@ import { useStore } from "@/providers/datastore";
 import { ApproProps, transactionQ } from "@/queries/transaction";
 import { Bank, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -47,6 +47,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 function CashSupplyForm({ banks }: Props) {
   const { user } = useStore();
+  const queryClient = useQueryClient();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,6 +63,7 @@ function CashSupplyForm({ banks }: Props) {
     mutationFn: async (payload: ApproProps) =>
       transactionQ.createAppro(payload),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre demande de transfert a été initiée avec succès !");
       router.push("./");
     },

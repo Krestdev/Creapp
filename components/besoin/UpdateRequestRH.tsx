@@ -28,7 +28,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { requestQ } from "@/queries/requestModule";
 import { ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -95,7 +95,7 @@ export default function UpdateRHRequest({
   projects,
   users,
 }: UpdateRHRequestProps) {
-
+  const queryClient = useQueryClient();
 
   const USERS = users
     .filter((u) => u.verified)
@@ -191,6 +191,7 @@ export default function UpdateRHRequest({
     },
 
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Besoin RH modifié avec succès !");
       onOpenChange(false);
     },

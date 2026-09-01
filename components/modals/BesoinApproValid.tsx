@@ -32,7 +32,7 @@ import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import React from "react";
@@ -64,6 +64,7 @@ const formSchema = z.object({
 
 function BesoinLastApproVall({ open, setOpen, requestData }: Props) {
   const [dueDate, setDueDate] = React.useState<boolean>(false);
+  const queryClient = useQueryClient();
 
   const defaultDate = new Date();
   defaultDate.setDate(today.getDate() + 7);
@@ -101,6 +102,7 @@ function BesoinLastApproVall({ open, setOpen, requestData }: Props) {
       decision?: string;
     }) => requestQ.validate({ id, request, decision }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Besoin approuvé avec succès !");
       setOpen(false);
     },

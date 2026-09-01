@@ -26,7 +26,7 @@ import { payTypeQ } from "@/queries/payType";
 import { signatairQ } from "@/queries/signatair";
 import { Signatair, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -74,6 +74,7 @@ const formSchema = z
   });
 
 const Page = () => {
+  const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -105,6 +106,7 @@ const Page = () => {
     mutationFn: (data: Omit<Signatair, "id" | "createdAt" | "updatedAt">) =>
       signatairQ.create(data),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Signataire créé avec succès.");
       form.reset({
         bank: "",

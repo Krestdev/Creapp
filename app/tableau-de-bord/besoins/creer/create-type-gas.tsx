@@ -36,7 +36,7 @@ import { useStore } from "@/providers/datastore";
 import { newRequestGas, requestQ } from "@/queries/requestModule";
 import { Category, PRIORITIES, User, Vehicle } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -88,6 +88,7 @@ const formSchema = z.object({
 function CreateTypeGas({ categories, vehicles }: Props) {
   const { user } = useStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [dueDate, setDueDate] = React.useState<boolean>(false);
 
@@ -119,6 +120,7 @@ function CreateTypeGas({ categories, vehicles }: Props) {
     mutationFn: async (payload: newRequestGas) =>
       requestQ.createGasRequest(payload),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre besoin a été soumis avec succès !");
       router.push("./mes-besoins");
     },

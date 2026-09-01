@@ -19,7 +19,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { transactionQ } from "@/queries/transaction";
 import { Transaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -44,6 +44,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 function RejectDialog({ transaction, open, openChange, userId }: Props) {
+  const queryClient = useQueryClient();
   const reject = useMutation({
     mutationFn: async ({ reason }: { reason: string }) =>
       transactionQ.approve({
@@ -53,6 +54,7 @@ function RejectDialog({ transaction, open, openChange, userId }: Props) {
         validatorId: userId,
       }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Demande de transfert rejetée avec succès !");
       openChange(false);
     },

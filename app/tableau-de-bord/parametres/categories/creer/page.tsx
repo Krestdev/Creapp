@@ -27,7 +27,7 @@ import { userQ } from "@/queries/baseModule";
 import { categoryQ, newCategory } from "@/queries/categoryModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import React from "react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -56,6 +56,7 @@ type Schema = z.infer<typeof formSchema>;
 
 const Page = () => {
   // const router = useRouter();
+  const queryClient = useQueryClient();
   const {
     data: types,
     isLoading,
@@ -103,6 +104,7 @@ const Page = () => {
       },
     ) => categoryQ.createCategory(data),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre catégorie a été créée avec succès !");
       form.reset();
     },

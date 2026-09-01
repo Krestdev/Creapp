@@ -34,7 +34,7 @@ import { quotationQ } from "@/queries/quotation";
 import { Quotation, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { SelectValue } from "@radix-ui/react-select";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, FolderX, Plus, X } from "lucide-react";
 import React, { useCallback, useEffect, useMemo } from "react";
@@ -88,6 +88,7 @@ interface Props {
 
 function CreateQuotation({ quotation, openChange }: Props) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const intentRef = React.useRef<"save" | "saveAndCreate">("save");
   const [open, setOpen] = React.useState<boolean>(false);
   const [openP, setOpenP] = React.useState<boolean>(false);
@@ -201,6 +202,7 @@ function CreateQuotation({ quotation, openChange }: Props) {
     },
     onSuccess: (_data, variables) => {
       const intent = intentRef.current;
+      queryClient.invalidateQueries();
       toast.success(
         variables?.id
           ? "Votre devis a été modifié avec succès"

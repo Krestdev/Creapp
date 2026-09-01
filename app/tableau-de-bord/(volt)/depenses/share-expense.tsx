@@ -41,7 +41,7 @@ import {
   User,
 } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { toast } from "sonner";
@@ -87,6 +87,7 @@ function ShareExpense({
   payTypes,
   providers,
 }: Props) {
+  const queryClient = useQueryClient();
   const { user } = useStore();
 
   const getBanks = useQuery({
@@ -316,6 +317,7 @@ function ShareExpense({
     mutationFn: async (payload: TransactionProps) =>
       transactionQ.createDebitTransaction(payload),
     onSuccess: (data) => {
+      queryClient.invalidateQueries();
       toast.success("Votre transaction a été enregistrée avec succès !");
       onOpenChange(false);
       if (data.data.payement) {

@@ -29,7 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { newRequestApprovisionement, requestQ } from "@/queries/requestModule";
 import { Category, PRIORITIES, ProjectT, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -86,6 +86,7 @@ function EditApproRequest({
   onOpenChange,
 }: Props) {
   const [dueDate, setDueDate] = useState<boolean>(false);
+  const queryClient = useQueryClient();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -121,6 +122,7 @@ function EditApproRequest({
       return requestQ.update(request.id, payload);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre besoin a été modifié avec succès !");
       onOpenChange(false);
     },

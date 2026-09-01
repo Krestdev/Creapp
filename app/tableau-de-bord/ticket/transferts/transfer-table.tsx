@@ -39,7 +39,7 @@ import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { transactionQ } from "@/queries/transaction";
 import { DateFilter, Transaction, User } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -88,6 +88,7 @@ function TransferTable({ data, users }: Props) {
   ];
   const [selectedTab, setSelectedTab] = React.useState<number>(0);
   const { user } = useStore();
+  const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -120,6 +121,7 @@ function TransferTable({ data, users }: Props) {
         validatorId: user?.id ?? 0,
       }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Demande approuvée !");
     },
     onError: (error: Error) => {

@@ -35,7 +35,7 @@ import { categoryQ } from "@/queries/categoryModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { Category, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo } from "react";
@@ -63,6 +63,7 @@ type Schema = z.infer<typeof formSchema>;
 
 export default function UpdateCategory({ id }: { id: number }) {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const getCategories = useQuery({
     queryKey: queryKeys.categories,
@@ -149,6 +150,7 @@ export default function UpdateCategory({ id }: { id: number }) {
       return await categoryQ.updateCategory(Number(category?.id), data);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Catégorie mise à jour avec succès !");
       router.push("./");
     },

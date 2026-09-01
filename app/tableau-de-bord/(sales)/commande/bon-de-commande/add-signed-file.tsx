@@ -12,7 +12,7 @@ import { userQ } from "@/queries/baseModule";
 import { AddFileProps, purchaseQ } from "@/queries/purchase-order";
 import { BonsCommande, User } from "@/types/types";
 import { pdf } from "@react-pdf/renderer";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
@@ -27,6 +27,7 @@ interface Props {
 }
 
 function AddSignedFile({ open, openChange, purchaseOrder, users }: Props) {
+  const queryClient = useQueryClient();
   const [isGenerating, setIsGenerating] = useState(false);
   /**Responsable Achat */
   const saleUserId = purchaseOrder.devi.userId;
@@ -63,6 +64,7 @@ function AddSignedFile({ open, openChange, purchaseOrder, users }: Props) {
     mutationFn: ({ id, proof }: AddFileProps) =>
       purchaseQ.addFile({ id, proof }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success(
         "Votre bon de commande signé a été enregistré avec succès !",
       );

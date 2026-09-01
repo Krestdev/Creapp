@@ -25,7 +25,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { BankPayload, bankQ } from "@/queries/bank";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 
@@ -88,6 +88,7 @@ const formSchema = z
 type FormValues = z.infer<typeof formSchema>;
 
 function CreateBank() {
+  const queryClient = useQueryClient();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -109,6 +110,7 @@ function CreateBank() {
   const createBankAccount = useMutation({
     mutationFn: async (payload: BankPayload) => bankQ.create(payload),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Nouveau compte Banque créé avec succès !");
       router.push("../banques");
     },

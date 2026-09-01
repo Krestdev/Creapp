@@ -12,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
 import { Role, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,6 +38,7 @@ const formSchema = z
   });
 
 export default function CreateUserForm() {
+  const queryClient = useQueryClient();
   // Récupérer les rôles
   const roleData = useQuery({
     queryKey: ["roles"],
@@ -92,6 +93,7 @@ export default function CreateUserForm() {
       > & { role: Array<number> },
     ) => userQ.create(data),
     onSuccess: (data) => {
+      queryClient.invalidateQueries();
       toast.success(`Utilisateur ${data.data.firstName} créé avec succès`);
       form.reset({
         firstName: "",

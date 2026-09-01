@@ -35,7 +35,7 @@ import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -79,6 +79,7 @@ export function BesoinLastVal({
   onSuccess,
 }: ValidationModalProps) {
   const [openD, setOpenD] = useState(false);
+  const queryClient = useQueryClient();
 
   // Queries to fetch metadata
   const getUser = useQuery({
@@ -122,6 +123,7 @@ export function BesoinLastVal({
       decision?: string;
     }) => requestQ.validate({ id, request, decision }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Besoin approuvé avec succès !");
       onOpenChange(false);
       onSuccess?.();

@@ -33,7 +33,7 @@ import { useStore } from "@/providers/datastore";
 import { bankQ } from "@/queries/bank";
 import { transactionQ, TransferProps } from "@/queries/transaction";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -63,6 +63,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 function Page() {
   const { user } = useStore();
+  const queryClient = useQueryClient();
   const {
     data: banks,
     isSuccess,
@@ -85,6 +86,7 @@ function Page() {
     mutationFn: async (payload: TransferProps) =>
       transactionQ.createTransfer(payload),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre demande de transfert a été initiée avec succès !");
       setFormData(null);
       router.push("./");

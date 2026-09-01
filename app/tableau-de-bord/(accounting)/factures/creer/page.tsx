@@ -27,7 +27,7 @@ import { commadQ } from "@/queries/command";
 import { invoiceQ, NewInvoice } from "@/queries/invoices";
 import { BonsCommande, Invoice } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale/fr";
 import { CalendarIcon } from "lucide-react";
@@ -59,6 +59,7 @@ const formSchema = z.object({
 });
 
 function Page() {
+  const queryClient = useQueryClient();
   const [dueDate, setDueDate] = React.useState<boolean>(false);
   const today = new Date(); //On part sur 3 jours de delai de base :)
   today.setDate(today.getDate() + 3);
@@ -128,6 +129,7 @@ function Page() {
   const createInvoice = useMutation({
     mutationFn: async (payload: NewInvoice) => invoiceQ.create(payload),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre facture a bien été enregistré");
       form.reset({
         title: "",

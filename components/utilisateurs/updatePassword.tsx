@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
 import { User as UserT } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 /* =========================
@@ -65,6 +65,7 @@ export default function UpdatePassword({
   onSuccess,
 }: UpdateRequestProps) {
   // const router = useRouter();
+  const queryClient = useQueryClient();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -77,6 +78,7 @@ export default function UpdatePassword({
     mutationFn: async (password: string) =>
       userQ.changePassword(userData?.id ?? 0, password),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success(
         `Vous avez modifié le mot de passe de ${userData?.firstName} ${userData?.lastName} avec succès !`,
       );

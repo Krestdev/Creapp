@@ -51,7 +51,7 @@ import {
 } from "@/components/ui/table";
 import { providerQ } from "@/queries/providers";
 import { Provider } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import { ModalWarning } from "../modals/modal-warning";
@@ -73,6 +73,7 @@ interface ProvidersTableProps {
 }
 
 export function ProviderTable({ data }: ProvidersTableProps) {
+  const queryClient = useQueryClient();
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
@@ -93,6 +94,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
   const providerMutation = useMutation({
     mutationFn: (id: number) => providerQ.delete(id),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Fournisseur supprimé avec succès !");
     },
     onError: (error: Error) => {

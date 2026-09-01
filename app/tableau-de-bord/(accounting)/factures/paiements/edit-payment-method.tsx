@@ -32,7 +32,7 @@ import { paymentQ, UpdatePayment } from "@/queries/payment";
 import { payTypeQ } from "@/queries/payType";
 import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import React from "react";
 import { useForm } from "react-hook-form";
@@ -62,6 +62,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 function EditPaymentMethod({ open, openChange, payment }: Props) {
   const { user } = useStore();
+  const queryClient = useQueryClient();
 
   // const [dueDate, setDueDate] = React.useState<boolean>(false);
   const today = new Date(); //On part sur 3 jours de delai de base :)
@@ -83,6 +84,7 @@ function EditPaymentMethod({ open, openChange, payment }: Props) {
     mutationFn: async (data: Partial<UpdatePayment>) =>
       paymentQ.update(payment.id, data),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre paiement a été modifié avec succès !");
       openChange(false);
     },

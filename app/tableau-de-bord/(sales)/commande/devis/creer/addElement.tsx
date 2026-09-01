@@ -45,7 +45,7 @@ const formSchema = z.object({
     .min(1, { message: "Veuillez renseigner une désignation" }),
   quantity: z.number(),
   unit: z.string(),
-  price: z.number().min(1, { message: "Veuillez renseigner un prix" }),
+  price: z.number().min(0, { message: "Le prix doit être positif ou nul" }),
   hasIs: z.boolean(),
   reduction: z.coerce
     .number()
@@ -89,7 +89,7 @@ function AddElement({
       designation: "",
       quantity: 1,
       unit: "piece",
-      price: 1000,
+      price: 0,
       hasIs: false,
       tva: 19.25,
       reduction: 0,
@@ -138,8 +138,8 @@ function AddElement({
       toast.error("Veuillez entrer une quantité supérieure à 0");
       return;
     }
-    if (values.price <= 0) {
-      toast.error("Veuillez entrer un prix supérieure à 0");
+    if (values.price < 0) {
+      toast.error("Le prix ne peut pas être négatif");
       return;
     }
 
@@ -207,7 +207,7 @@ function AddElement({
         }
       }}
     >
-      <DialogContent className="max-w-5xl! max-h-[85vh] overflow-hidden flex flex-col">
+      <DialogContent className="max-w-5xl! max-h-[85vh] overflow-hidden flex flex-col z-[60]">
         <DialogHeader>
           <DialogTitle className="h-fit">
             {editingIndex !== null ||
@@ -423,11 +423,11 @@ function AddElement({
                         <div className="relative">
                           <Input
                             type="number"
-                            value={field.value ?? 1000}
+                            value={field.value ?? 0}
                             onChange={(e) =>
                               field.onChange(
                                 e.target.value === ""
-                                  ? 1000
+                                  ? 0
                                   : Number(e.target.value),
                               )
                             }

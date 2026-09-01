@@ -38,7 +38,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { categoryQ } from "@/queries/categoryModule";
 import { Category, RequestType, ResponseT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronUp, Plus, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
@@ -78,6 +78,7 @@ export function UpdateCategory({
   users: usersList,
   types,
 }: UpdateCategoryProps) {
+  const queryClient = useQueryClient();
   const [isLoading, setIsLoading] = useState(false);
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
@@ -134,6 +135,7 @@ export function UpdateCategory({
       }
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Catégorie mise à jour avec succès !");
       onOpenChange(false);
     },

@@ -18,7 +18,7 @@ import {
 } from "@/lib/utils";
 import { paymentQ, UpdatePayment } from "@/queries/payment";
 import { PaymentRequest, RequestType } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { BanIcon, ChevronDown, Eye, LucideCheck } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
@@ -30,6 +30,7 @@ interface Props {
 }
 
 function CardTicket({ data, requestTypeData }: Props) {
+  const queryClient = useQueryClient();
   const [message, setMessage] = React.useState<string>("");
   const [openDetailModal, setOpenDetailModal] = React.useState(false);
   const [openRejectModal, setOpenRejectModal] = React.useState(false);
@@ -41,6 +42,7 @@ function CardTicket({ data, requestTypeData }: Props) {
       return paymentQ.vaidate(id, data);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success(message);
       if (message.includes("payé")) {
         setOpenValidationModal(false);

@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
 import { Role } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
 
@@ -44,6 +44,7 @@ export default function UpdateRole({
   departmentData,
   onSuccess,
 }: UpdateRequestProps) {
+  const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -62,6 +63,7 @@ export default function UpdateRole({
       userQ.updateRole(Number(departmentData?.id), data),
 
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Besoin modifié avec succès !");
       setOpen(false);
       onSuccess?.();

@@ -42,7 +42,7 @@ import {
   RequestType,
   User,
 } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -188,12 +188,14 @@ export function TicketTable({
   const [message, setMessage] = useState<string>("");
 
   const { user } = useStore();
+  const queryClient = useQueryClient();
 
   const paymentMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: UpdatePayment }) => {
       return paymentQ.update(id, data);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success(message);
       if (message.includes("payé")) {
         setOpenPaiementModal(false);
@@ -211,6 +213,7 @@ export function TicketTable({
       return paymentQ.vaidate(id, data);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success(message);
       if (message.includes("payé")) {
         setOpenPaiementModal(false);

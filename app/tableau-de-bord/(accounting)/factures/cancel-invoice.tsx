@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { invoiceQ } from "@/queries/invoices";
 import { Invoice } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
 
@@ -21,9 +21,11 @@ interface Props {
 }
 
 function CancelInvoice({ open, openChange, invoice }: Props) {
+  const queryClient = useQueryClient();
   const toCancel = useMutation({
     mutationFn: async () => invoiceQ.cancel(invoice.id),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Facture annulée avec succès !");
       openChange(false);
     },

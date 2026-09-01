@@ -27,14 +27,13 @@ import {
 import { queryKeys } from "@/lib/query-keys";
 import { XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { commandRqstQ } from "@/queries/commandRqstModule";
 import { providerQ } from "@/queries/providers";
 import { quotationQ } from "@/queries/quotation";
 import { Quotation } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import { SelectValue } from "@radix-ui/react-select";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, FolderX, Plus, X } from "lucide-react";
 import React, { useCallback, useEffect, useMemo } from "react";
@@ -97,17 +96,14 @@ function EditQuotation({ open, openChange, quotation }: Props) {
   const [dueDateOpen, setDueDateOpen] = React.useState(false);
 
   const { user } = useStore();
+  const queryClient = useQueryClient();
 
   // ── Queries ─────────────────────────────────────────────────────────────────
 
-  const commandRequestData = useQuery({
-    queryKey: queryKeys.quotationRequest(quotation.commandRequestId),
-    queryFn: async () => commandRqstQ.getOne(quotation.commandRequestId),
-  });
-
-  const selectedNeeds = React.useMemo(() => {
-    return commandRequestData.data?.data.besoins ?? [];
-  }, [commandRequestData.data]);
+  // `quotation.commandRequest` est déjà chargé avec ses besoins (via
+  // quotationQ.getAll) — pas besoin d'un appel réseau supplémentaire, et
+  // commandRqstQ.getOne() ne renvoie pas le champ `besoins`.
+  const selectedNeeds = quotation.commandRequest.besoins;
 
   const quotationsData = useQuery({
     queryKey: queryKeys.quotations,
@@ -180,6 +176,7 @@ function EditQuotation({ open, openChange, quotation }: Props) {
         })),
       }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre devis a été modifié avec succès");
       openChange(false);
     },
@@ -270,15 +267,9 @@ function EditQuotation({ open, openChange, quotation }: Props) {
     (p) => p.id === quotation.providerId,
   )?.name;
 
-  const isLoading =
-    commandRequestData.isLoading ||
-    providersData.isLoading ||
-    quotationsData.isLoading;
+  const isLoading = providersData.isLoading || quotationsData.isLoading;
 
-  const isError =
-    commandRequestData.isError ||
-    providersData.isError ||
-    quotationsData.isError;
+  const isError = providersData.isError || quotationsData.isError;
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
@@ -303,7 +294,6 @@ function EditQuotation({ open, openChange, quotation }: Props) {
               variant="outline"
               className="mt-4"
               onClick={() => {
-                commandRequestData.refetch();
                 providersData.refetch();
                 quotationsData.refetch();
               }}
@@ -329,7 +319,7 @@ function EditQuotation({ open, openChange, quotation }: Props) {
                     <FormControl>
                       <Input
                         value={
-                          commandRequestData.data?.data.title ??
+                          quotation.commandRequest.title ??
                           field.value.toString()
                         }
                         disabled

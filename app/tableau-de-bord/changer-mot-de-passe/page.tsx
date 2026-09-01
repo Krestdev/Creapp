@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -36,6 +36,7 @@ type FormValues = z.infer<typeof formSchema>;
 function Page() {
   const { user } = useStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -48,6 +49,7 @@ function Page() {
     mutationFn: async (password: string) =>
       userQ.changePassword(user?.id ?? 0, password),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success(
         `${user?.firstName} votre mot de passe a été mis à jour avec succès !`,
       );

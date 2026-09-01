@@ -36,7 +36,7 @@ import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import { ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -86,6 +86,7 @@ export default function UpdateRequestFac({
   projects,
 }: UpdateFacilitationRequestProps) {
   const { user } = useStore();
+  const queryClient = useQueryClient();
 
   const [openCalendar, setOpenCalendar] = useState(false);
   const [beneficiairesList, setBeneficiairesList] = useState<
@@ -172,6 +173,7 @@ export default function UpdateRequestFac({
     },
 
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre besoin a été modifié avec succès !");
       onOpenChange(false);
     },

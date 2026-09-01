@@ -1,6 +1,6 @@
 "use client";
 
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
 
@@ -44,6 +44,7 @@ export default function UpdateReception({
   devis,
   cmdReqst,
 }: Props) {
+  const queryClient = useQueryClient();
   const defaultFiles: Array<string> = reception?.Proof ? reception.Proof.split(";") : [];
 
   const [deliverables, setDeliverables] = React.useState<Reception["Deliverables"]>(
@@ -68,6 +69,7 @@ export default function UpdateReception({
     mutationFn: ({ id, Deliverables, proof, note }: ReceptionCompletion) =>
       receptionQ.completeReception({ id, Deliverables, proof, note }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Réception mise à jour");
       onOpenChange(false);
     },

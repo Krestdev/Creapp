@@ -42,7 +42,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Signatair } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 // import { ShowUser } from "./show-user";
@@ -57,6 +57,7 @@ interface UtilisateursTableProps {
 }
 
 export function SignatairTable({ data }: UtilisateursTableProps) {
+  const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "Bank", desc: true },
   ]);
@@ -82,6 +83,7 @@ export function SignatairTable({ data }: UtilisateursTableProps) {
   const signatairMutation = useMutation({
     mutationFn: (id: number) => signatairQ.delete(id),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Signatair supprimer");
     },
     onError: (e) => {

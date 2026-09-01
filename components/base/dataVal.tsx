@@ -67,7 +67,7 @@ import {
   RequestType,
   User,
 } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -143,6 +143,7 @@ export function DataVal({
   tabs,
 }: DataTableProps) {
   const { user } = useStore();
+  const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -255,6 +256,7 @@ export function DataVal({
         validator: validator,
       }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success(
         validationType === "approve"
           ? "Besoin approuvé avec succès !"
@@ -336,6 +338,7 @@ export function DataVal({
       }
     },
     onSuccess: (data, variables) => {
+      queryClient.invalidateQueries();
       const selectedCount = Object.keys(rowSelection).length;
       const actionType = variables.validated ? "approuvé" : "rejeté";
 

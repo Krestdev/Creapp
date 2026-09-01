@@ -15,7 +15,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { vehicleQ } from "@/queries/vehicule";
 import { Vehicle } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useState } from "react";
@@ -55,6 +55,7 @@ export const formSchema = z.object({
 type Schema = z.infer<typeof formSchema>;
 
 export function VehicleForm() {
+  const queryClient = useQueryClient();
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
@@ -74,6 +75,7 @@ export function VehicleForm() {
     mutationFn: (data: Omit<Vehicle, "id" | "createdAt" | "updatedAt">) =>
       vehicleQ.create(data),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Véhicule ajouté avec succès");
       form.reset({
         label: "",

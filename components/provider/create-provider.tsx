@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { providerQ } from "@/queries/providers";
 import { Provider } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { z } from "zod";
@@ -112,6 +112,7 @@ const formSchema = z.object({
 });
 
 export default function CreateProviderForm() {
+  const queryClient = useQueryClient();
   const [selectBankDate, setSelectBankDate] = useState<boolean>(false);
   const [selectACFDate, setSelectACFDate] = useState<boolean>(false);
   const [selectCarteDate, setSelectCarteDate] = useState<boolean>(false);
@@ -146,6 +147,7 @@ export default function CreateProviderForm() {
       >,
     ) => providerQ.create(data),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Fournisseur créé avec succès.");
       form.reset({
         email: "",

@@ -23,7 +23,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { vehicleQ } from "@/queries/vehicule";
 import { Vehicle } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { toast } from "sonner";
 import FilesUpload from "../comp-547";
@@ -57,6 +57,7 @@ export default function UpdateVehicle({
   vehicleData,
   onSuccess,
 }: UpdateRequestProps) {
+  const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -90,6 +91,7 @@ export default function UpdateVehicle({
       vehicleQ.update(data.id, data.vehicle),
 
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Véhicule modifié avec succès !");
       setOpen(false);
       onSuccess?.();

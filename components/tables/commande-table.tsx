@@ -56,7 +56,7 @@ import {
   RequestModelT,
 } from "@/types/types";
 import { CollapsibleContent } from "@radix-ui/react-collapsible";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -90,6 +90,7 @@ export function CommandeTable({
   categories,
   requests,
 }: CommandeTableProps) {
+  const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -129,6 +130,7 @@ export function CommandeTable({
   const cancelDevis = useMutation({
     mutationFn: (id: number) => commandRqstQ.delete(id),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Demande de cotation annulée avec succès.");
     },
   });

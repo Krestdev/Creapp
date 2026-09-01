@@ -22,7 +22,7 @@ import { Label } from "@/components/ui/label";
 import { transactionQ } from "@/queries/transaction";
 import { TransferTransaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -42,6 +42,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 function SignTransfer({ transfer, open, onOpenChange }: Props) {
+  const queryClient = useQueryClient();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -53,6 +54,7 @@ function SignTransfer({ transfer, open, onOpenChange }: Props) {
     mutationFn: async (signDoc: File) =>
       transactionQ.sign({ id: transfer.id, signDoc }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre signature a été enregistrée avec succès !");
       onOpenChange(false);
     },

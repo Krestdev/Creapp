@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
 
@@ -21,10 +21,12 @@ interface Props {
 }
 
 function TerminateRequest({ open, onOpenChange, data }: Props) {
+  const queryClient = useQueryClient();
   const process = useMutation({
     mutationFn: (decision: "APPROVED" | "REJECTED") =>
       requestQ.validateServiceRequests(data.id, decision),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       onOpenChange(false);
       toast.success("Besoin traité avec succès");
     },

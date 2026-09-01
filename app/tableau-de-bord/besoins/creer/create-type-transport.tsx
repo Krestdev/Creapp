@@ -36,7 +36,7 @@ import { XAF } from "@/lib/utils";
 import { newRequestTransport, requestQ } from "@/queries/requestModule";
 import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -89,6 +89,7 @@ const formSchema = z.object({
 function CreateTypeTransport({ users, categories, projects }: Props) {
   // const { user } = useStore();
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [dueDate, setDueDate] = React.useState<boolean>(false);
 
@@ -118,6 +119,7 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
     mutationFn: async (payload: newRequestTransport) =>
       requestQ.createTransportRequest(payload),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre besoin a été soumis avec succès !");
       router.push("./mes-besoins");
     },

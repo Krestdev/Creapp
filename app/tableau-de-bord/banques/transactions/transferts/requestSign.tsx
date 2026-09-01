@@ -26,7 +26,7 @@ import {
 import { transactionQ } from "@/queries/transaction";
 import { PayType, TransferTransaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -47,6 +47,7 @@ const formSchema = z.object({
 type FormValue = z.infer<typeof formSchema>;
 
 function RequestSign({ open, openChange, transaction, paymentMethods }: Props) {
+  const queryClient = useQueryClient();
   const form = useForm<FormValue>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -65,6 +66,7 @@ function RequestSign({ open, openChange, transaction, paymentMethods }: Props) {
       docNumber: string;
     }) => transactionQ.initiateSign({ id, methodId, docNumber }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Transfert mis à jour avec succès !");
       openChange(false);
       form.reset();

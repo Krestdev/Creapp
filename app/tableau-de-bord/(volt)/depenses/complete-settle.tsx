@@ -31,7 +31,7 @@ import { PayloadSettleCompletion, paymentQ } from "@/queries/payment";
 import { vehicleQ } from "@/queries/vehicule";
 import { PaymentRequest, RequestType, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import {
   ArchiveIcon,
@@ -89,6 +89,7 @@ function CompleteSettle({
   users,
   requestTypes,
 }: Props) {
+  const queryClient = useQueryClient();
   //Drivers
   const filteredUsers = useMemo(() => {
     return users.filter((u) => u.role.some((r) => r.label === "DRIVER"));
@@ -137,6 +138,7 @@ function CompleteSettle({
     mutationFn: async (payload: PayloadSettleCompletion) =>
       paymentQ.settleCompletion({ payload }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Paiement mis à jour avec succès !");
       onOpenChange(false);
     },

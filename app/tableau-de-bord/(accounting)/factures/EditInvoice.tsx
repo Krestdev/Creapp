@@ -20,7 +20,7 @@ import { Input } from "@/components/ui/input";
 import { invoiceQ } from "@/queries/invoices";
 import { Invoice } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -39,6 +39,7 @@ const formSchema = z.object({
 });
 
 function EditInvoice({ open, openChange, invoice }: Props) {
+  const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -53,6 +54,7 @@ function EditInvoice({ open, openChange, invoice }: Props) {
       return await invoiceQ.update(values.id, { title: values.title });
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Titre de la facture modifié avec succès !");
       openChange(false);
       form.reset();

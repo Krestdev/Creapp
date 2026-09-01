@@ -84,7 +84,7 @@ import {
   PURCHASE_ORDER_STATUS,
   User,
 } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import ViewPurchase from "../viewPurchase";
@@ -142,6 +142,7 @@ const canDecide = (status: Status) =>
   status === "PENDING" || status === "IN-REVIEW";
 
 export function PurchaseApprovalTable({ data, users, invoices }: Props) {
+  const queryClient = useQueryClient();
   const purchaseOrderQuery = React.useMemo(() => purchaseQ, []);
 
   const getProgress = (
@@ -236,6 +237,7 @@ export function PurchaseApprovalTable({ data, users, invoices }: Props) {
       return purchaseOrderQuery.approve(bon);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Bon de commande approuvé ✅");
       setDecisionOpen(false);
     },
@@ -255,6 +257,7 @@ export function PurchaseApprovalTable({ data, users, invoices }: Props) {
       return purchaseOrderQuery.reject(bon, reason);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Bon de commande rejeté ❌");
       setDecisionOpen(false);
       setRejectReason("");

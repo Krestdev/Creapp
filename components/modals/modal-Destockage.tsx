@@ -11,7 +11,7 @@ import { userQ } from "@/queries/baseModule";
 import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Calendar, CalendarFold, Hash, UserRound } from "lucide-react";
 import { toast } from "sonner";
 
@@ -26,6 +26,7 @@ export function ModalDestockage({
   onOpenChange,
   data,
 }: DetailOrderProps) {
+  const queryClient = useQueryClient();
   // Récupération des données
   const usersData = useQuery({
     queryKey: ["users"],
@@ -45,6 +46,7 @@ export function ModalDestockage({
       return { id: Number(id) };
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Le besoin a été déstocké.");
       onOpenChange(false);
     },

@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { transactionQ } from "@/queries/transaction";
 import { Transaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -38,6 +38,7 @@ const formSchema = z.object({
 type FormSchemaType = z.infer<typeof formSchema>;
 
 export function CancelTransfert({ open, onOpenChange, transfer }: CancelProps) {
+  const queryClient = useQueryClient();
   const form = useForm<FormSchemaType>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -51,6 +52,7 @@ export function CancelTransfert({ open, onOpenChange, transfer }: CancelProps) {
       return transactionQ.cancel(transfer.id, data.reason);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Transfert annulé avec succès");
       onOpenChange(false);
     },

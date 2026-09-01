@@ -67,7 +67,7 @@ import {
   RequestType,
   User,
 } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { toast } from "sonner";
@@ -131,6 +131,7 @@ export function TableMyRequests({
   filters,
 }: Props) {
   const { user } = useStore();
+  const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -170,6 +171,7 @@ export function TableMyRequests({
       await requestQ.update(Number(id), data);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Besoin annulé avec succès !");
     },
     onError: () => {

@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/table";
 import { departmentQ } from "@/queries/departmentModule";
 import { DepartmentT, Member } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
 import UpdateDepartment from "./UpdateDeprtment";
@@ -55,6 +55,7 @@ interface DepartementTableProps {
 }
 
 export function DepartementTable({ data }: DepartementTableProps) {
+  const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -76,6 +77,7 @@ export function DepartementTable({ data }: DepartementTableProps) {
     mutationFn: async (data: number) => departmentQ.delete(Number(data)),
 
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Besoin modifié avec succès !");
     },
 

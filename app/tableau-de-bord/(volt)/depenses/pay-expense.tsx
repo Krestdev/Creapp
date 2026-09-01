@@ -23,7 +23,7 @@ import { transactionQ } from "@/queries/transaction";
 import { vehicleQ } from "@/queries/vehicule";
 import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CarIcon, DollarSignIcon, LandmarkIcon } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -44,6 +44,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 function PayExpense({ ticket, open, onOpenChange }: Props) {
+  const queryClient = useQueryClient();
   const request = ticket.request;
 
   const getVehicle = useQuery({
@@ -75,6 +76,7 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
       paymentId: number;
     }) => transactionQ.completePayment(payload),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre transaction a été enregistrée avec succès !");
       onOpenChange(false);
     },

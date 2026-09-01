@@ -22,7 +22,7 @@ import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -98,6 +98,7 @@ const formSchema = z.object({
 
 export default function RHRequestForm({ categories, projects, users }: Props) {
   const { user } = useStore();
+  const queryClient = useQueryClient();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
@@ -145,6 +146,7 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
     ) => requestQ.special(data),
 
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Besoin soumis avec succès !");
       setIsSuccessModalOpen(true);
       form.reset();

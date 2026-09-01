@@ -28,7 +28,7 @@ import { XAF } from "@/lib/utils";
 import { TransactionProps, transactionQ } from "@/queries/transaction";
 import { Bank, TRANSACTION_TYPES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon, Search, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -151,11 +151,13 @@ function TransactionForm({ banks, userId }: Props) {
   });
 
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const create = useMutation({
     mutationFn: async (payload: TransactionProps) =>
       transactionQ.create(payload),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre transaction a été enregistrée avec succès !");
       router.push("./");
     },

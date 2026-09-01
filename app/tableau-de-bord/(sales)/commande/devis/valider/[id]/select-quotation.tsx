@@ -148,6 +148,7 @@ function SelectQuotation({ id }: { id: string }) {
   const { mutate, isPending } = useMutation({
     mutationFn: async (value: SubmitPayload) => quotationQ.validate(value),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Décisions enregistrées avec succès !");
       router.push("/tableau-de-bord/commande/devis/approbation");
     },

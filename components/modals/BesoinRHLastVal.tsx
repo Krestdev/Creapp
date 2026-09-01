@@ -32,7 +32,7 @@ import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -91,6 +91,7 @@ export default function BesoinRHLastVal({
   onSuccess,
   users,
 }: BesoinRHLastValProps) {
+  const queryClient = useQueryClient();
   const USERS =
     users
       .filter((u) => u.verified)
@@ -178,6 +179,7 @@ export default function BesoinRHLastVal({
       decision?: string;
     }) => requestQ.validate({ id, request, decision }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Besoin approuvé avec succès !");
       setOpen(false);
       onSuccess?.();

@@ -27,7 +27,7 @@ import {
 import { paymentQ } from "@/queries/payment";
 import { PayType, PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -52,6 +52,7 @@ function EditPaymentMethodDepenses({
   payTypes,
   payment,
 }: Props) {
+  const queryClient = useQueryClient();
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -63,6 +64,7 @@ function EditPaymentMethodDepenses({
     mutationFn: async (data: number) =>
       paymentQ.updatePaymentMethod(payment.id, { methodId: Number(data) }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre paiement a été modifié avec succès !");
       openChange(false);
     },

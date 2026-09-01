@@ -21,7 +21,7 @@ import { Input } from "@/components/ui/input";
 import { driverQ } from "@/queries/driver";
 import { Driver } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -55,6 +55,7 @@ export default function UpdateDriver({
   driverData,
   onSuccess,
 }: UpdateRequestProps) {
+  const queryClient = useQueryClient();
   // Valeurs par défaut avec le bon type
   const defaultValues: FormValues = useMemo(
     () => ({
@@ -94,6 +95,7 @@ export default function UpdateDriver({
       return driverQ.update(driverData.id, data);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("chauffeur modifié avec succès !");
       setOpen(false);
       form.reset(defaultValues);

@@ -5,7 +5,7 @@ import z from "zod";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ColumnDef,
   flexRender,
@@ -84,6 +84,7 @@ function CashRequestForm({
 }: Props) {
   const router = useRouter();
   const { user } = useStore();
+  const queryClient = useQueryClient();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -104,6 +105,7 @@ function CashRequestForm({
       transactionQ.createAppro(payload),
 
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre demande de transfert a été initiée avec succès !");
 
       router.push("./");

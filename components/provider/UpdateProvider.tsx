@@ -21,7 +21,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { providerQ } from "@/queries/providers";
 import { Provider } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import FilesUpload from "../comp-547";
@@ -85,6 +85,7 @@ export default function UpdateProvider({
   providerData,
   onSuccess,
 }: UpdateRequestProps) {
+  const queryClient = useQueryClient();
   const [selectBankDate, setSelectBankDate] = useState<boolean>(false);
   const [selectACFDate, setSelectACFDate] = useState<boolean>(false);
   const [selectCarteDate, setSelectCarteDate] = useState<boolean>(false);
@@ -155,6 +156,7 @@ export default function UpdateProvider({
       return providerQ.update(providerData.id, data);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Fournisseur modifié avec succès !");
       setOpen(false);
       form.reset(defaultValues);

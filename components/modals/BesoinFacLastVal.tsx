@@ -39,7 +39,7 @@ import { projectQ } from "@/queries/projectModule";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -97,6 +97,7 @@ export default function BesoinFacLastVal({
   const [beneficiairesList, setBeneficiairesList] = useState<
     { id: number; nom: string; montant: number }[]
   >([]);
+  const queryClient = useQueryClient();
 
   const getCategory = useQuery({
     queryKey: queryKeys.category(requestData.categoryId!),
@@ -178,6 +179,7 @@ export default function BesoinFacLastVal({
       decision?: string;
     }) => requestQ.validate({ id, request, decision }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Besoin approuvé avec succès !");
       setOpen(false);
       onSuccess?.();

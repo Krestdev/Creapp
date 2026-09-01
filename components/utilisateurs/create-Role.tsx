@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
 import { Role } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Controller, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
@@ -31,6 +31,7 @@ export const formSchema = z.object({
 type Schema = z.infer<typeof formSchema>;
 
 export function RoleCreateForm() {
+  const queryClient = useQueryClient();
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
@@ -41,6 +42,7 @@ export function RoleCreateForm() {
   const roleApi = useMutation({
     mutationFn: (data: Omit<Role, "id">) => userQ.createRole(data),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Role créé avec succès.");
       form.reset();
     },

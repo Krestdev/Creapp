@@ -17,7 +17,7 @@ import { userQ } from "@/queries/baseModule";
 import { requestQ } from "@/queries/requestModule";
 import { Category, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
@@ -69,6 +69,7 @@ const formSchema = z.object({
 
 export default function SpecialRequestForm({ categories }: Props) {
   const { user } = useStore();
+  const queryClient = useQueryClient();
 
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
@@ -114,6 +115,7 @@ export default function SpecialRequestForm({ categories }: Props) {
     ) => requestQ.special(data),
 
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Besoin soumis avec succès !");
       setIsSuccessModalOpen(true);
       form.reset();

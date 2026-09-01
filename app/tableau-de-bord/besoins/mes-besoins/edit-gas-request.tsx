@@ -39,7 +39,7 @@ import { newRequestGas, requestQ } from "@/queries/requestModule";
 import { vehicleQ } from "@/queries/vehicule";
 import { Category, PRIORITIES, RequestModelT, Vehicle } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -91,6 +91,7 @@ type FormValues = z.infer<typeof formSchema>;
 
 function EditGasRequest({ request, categories, open, onOpenChange }: Props) {
   const [dueDate, setDueDate] = useState<boolean>(false);
+  const queryClient = useQueryClient();
 
   const getVehicles = useQuery({
     queryKey: queryKeys.vehicles,
@@ -140,6 +141,7 @@ function EditGasRequest({ request, categories, open, onOpenChange }: Props) {
       return requestQ.update(request.id, payload);
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre besoin a été modifié avec succès !");
       onOpenChange(false);
     },

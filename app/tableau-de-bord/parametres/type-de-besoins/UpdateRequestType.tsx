@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { requestTypeQ } from "@/queries/requestType";
 import { RequestType } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -52,6 +52,7 @@ export function UpdateRequestType({
   onOpenChange,
   data,
 }: UpdateRequestTypeProps) {
+  const queryClient = useQueryClient();
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -73,6 +74,7 @@ export function UpdateRequestType({
       });
     },
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Type de besoin modifié avec succès");
       onOpenChange(false);
     },

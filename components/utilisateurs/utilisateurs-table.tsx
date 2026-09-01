@@ -59,7 +59,7 @@ import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { signatairQ } from "@/queries/signatair";
 import { Role, User as UserT } from "@/types/types";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { Pagination } from "../base/pagination";
@@ -73,6 +73,7 @@ interface UtilisateursTableProps {
 }
 
 export function UtilisateursTable({ data }: UtilisateursTableProps) {
+  const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([
     { id: "createdAt", desc: true },
   ]);
@@ -129,6 +130,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     mutationFn: (data: { id: number; status: string }) =>
       userQ.changeStatus(data.id, { status: data.status }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Statut mis à jour avec succès !");
     },
   });
@@ -137,6 +139,7 @@ export function UtilisateursTable({ data }: UtilisateursTableProps) {
     mutationFn: async (data: number) => userQ.delete(Number(data)),
 
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Utilisateur supprimé avec succès !");
     },
 

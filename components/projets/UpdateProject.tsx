@@ -27,7 +27,7 @@ import { projectQ } from "@/queries/projectModule";
 import { queryKeys } from "@/lib/query-keys";
 import { ProjectT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -73,6 +73,7 @@ export default function UpdateProject({
   });
 
   const { isHydrated, user } = useStore();
+  const queryClient = useQueryClient();
 
   const projectApi = useMutation({
     mutationFn: (
@@ -82,6 +83,7 @@ export default function UpdateProject({
       > & { chiefId: number },
     ) => projectQ.update(projectData?.id || 0, data),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Projet mis à jour avec succès !");
       form.reset();
       setOpen(false);

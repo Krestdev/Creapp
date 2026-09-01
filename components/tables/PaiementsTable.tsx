@@ -49,7 +49,7 @@ import {
 import { cn, subText, XAF } from "@/lib/utils";
 import { paymentQ } from "@/queries/payment";
 import { PAY_STATUS, PaymentRequest, PRIORITIES } from "@/types/types";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { toast } from "sonner";
@@ -155,6 +155,7 @@ export function PaiementsTable({
   paginationOptions,
   filters,
 }: Props) {
+  const queryClient = useQueryClient();
   const [search, setSearch] = React.useState<string>(
     filters.customFilters.search,
   );
@@ -182,6 +183,7 @@ export function PaiementsTable({
     mutationFn: async (data: PaymentRequest) =>
       paymentQ.update(Number(data.id), { status: "cancelled" }),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Vous avez annulé une facture avec succès !");
       setOpenRejectModal(false);
     },

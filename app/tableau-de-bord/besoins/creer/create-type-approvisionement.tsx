@@ -19,7 +19,7 @@ import {
 import { newRequestApprovisionement, requestQ } from "@/queries/requestModule";
 import { Category, PRIORITIES, ProjectT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarIcon } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -68,6 +68,7 @@ const formSchema = z.object({
 
 function CreateTypeApprovisionement({ categories, projects }: Props) {
   const router = useRouter();
+  const queryClient = useQueryClient();
 
   const [dueDate, setDueDate] = React.useState<boolean>(false);
 
@@ -93,6 +94,7 @@ function CreateTypeApprovisionement({ categories, projects }: Props) {
     mutationFn: async (payload: newRequestApprovisionement) =>
       requestQ.createApprovisionement(payload),
     onSuccess: () => {
+      queryClient.invalidateQueries();
       toast.success("Votre besoin a été soumis avec succès !");
       router.push("./mes-besoins");
     },
