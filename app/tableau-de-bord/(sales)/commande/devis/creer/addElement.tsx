@@ -207,7 +207,7 @@ function AddElement({
         }
       }}
     >
-      <DialogContent className="max-w-5xl! max-h-[85vh] overflow-hidden flex flex-col z-[60]">
+      <DialogContent className="max-w-5xl! max-h-[85vh] overflow-hidden flex flex-col z-40">
         <DialogHeader>
           <DialogTitle className="h-fit">
             {editingIndex !== null ||
@@ -374,7 +374,8 @@ function AddElement({
                               )
                             }
                             placeholder="ex. 10"
-                            min="1"
+                            min="0.01"
+                            step="any"
                           />
                         </FormControl>
                         <FormMessage />
