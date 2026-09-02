@@ -684,11 +684,9 @@ export function TicketTable({
       </section>
       <section className="grid grid-cols-1 @min-[740px]:grid-cols-2 gap-4 @min-[760px]:hidden">
         {data.map((e) => (
-          <>
-            <CardTicket key={e.id} data={e} requestTypeData={requestTypeData} />
-            <Pagination table={table} />
-          </>
+          <CardTicket key={e.id} data={e} requestTypeData={requestTypeData} />
         ))}
+        <Pagination table={table} />
       </section>
 
       {!!selectedTicket && (
