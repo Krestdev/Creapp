@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/table";
 import { XAF, cn, getRequestTypeBadge, subText } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import {} from "@/queries/commandRqstModule";
+import { } from "@/queries/commandRqstModule";
 import { UpdatePayment, paymentQ } from "@/queries/payment";
 import {
   PRIORITIES,
@@ -635,9 +635,9 @@ export function TicketTable({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                       </TableHead>
                     );
                   })}
@@ -684,7 +684,10 @@ export function TicketTable({
       </section>
       <section className="grid grid-cols-1 @min-[740px]:grid-cols-2 gap-4 @min-[760px]:hidden">
         {data.map((e) => (
-          <CardTicket key={e.id} data={e} requestTypeData={requestTypeData} />
+          <>
+            <CardTicket key={e.id} data={e} requestTypeData={requestTypeData} />
+            <Pagination table={table} />
+          </>
         ))}
       </section>
 
