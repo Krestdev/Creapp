@@ -88,6 +88,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import ViewPurchase from "../viewPurchase";
+import ViewDocument from "../view-document";
 
 interface Props {
   data: Array<BonsCommande>;
@@ -864,7 +865,7 @@ export function PurchaseApprovalTable({ data, users, invoices }: Props) {
 
       {/* VIEW */}
       {selectedValue && (
-        <ViewPurchase
+        <ViewDocument
           open={view}
           openChange={setView}
           purchaseOrder={selectedValue}

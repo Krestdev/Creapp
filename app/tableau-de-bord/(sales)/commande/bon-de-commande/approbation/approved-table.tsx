@@ -75,6 +75,7 @@ import {
 import { format } from "date-fns";
 import ViewPurchase from "../viewPurchase";
 import ViewSignedPurchase from "../viewSignedPurchase";
+import ViewDocument from "../view-document";
 
 interface Props {
   data: Array<BonsCommande>;
@@ -637,7 +638,7 @@ export function ApprovedTable({ data, users }: Props) {
       {/* VIEW */}
       {selectedValue && (
         <>
-          <ViewPurchase
+          <ViewDocument
             open={view}
             openChange={setView}
             purchaseOrder={selectedValue}
