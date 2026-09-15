@@ -20,6 +20,7 @@ import {
   Circle,
   Ellipsis,
   Eye,
+  FolderUp,
   LoaderIcon,
   LucideBan,
   LucideCreditCard,
@@ -799,8 +800,13 @@ export function DataVal({
                 {"Voir les détails"}
               </DropdownMenuItem>
               <DropdownMenuItem>
-                <Link href={`/besoins/${item.userId}`}>
-                  {"Voir les derniers besoins"}
+                <Link
+                  href={`${item.userId}`}
+                  className="inline-flex gap-2 items-center"
+                  target="_blank"
+                >
+                  <FolderUp />
+                  {"Derniers besoins"}
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
