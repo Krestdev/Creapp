@@ -425,12 +425,12 @@ class RequestQueries {
       userId: number;
       decision?: string;
       validator?:
-      | {
-        id?: number | undefined;
-        userId: number;
-        rank: number;
-      }
-      | undefined;
+        | {
+            id?: number | undefined;
+            userId: number;
+            rank: number;
+          }
+        | undefined;
     },
   ): Promise<{ data: RequestModelT }> => {
     return api
@@ -670,6 +670,11 @@ class RequestQueries {
       .then((response) => {
         return response.data;
       });
+  };
+  lastrequests = async (userId: number): Promise<RequestModelT[]> => {
+    return api
+      .get(`${this.route}/last5byuser/${userId}`)
+      .then((res) => res.data);
   };
 }
 

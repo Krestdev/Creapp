@@ -8,6 +8,7 @@ import { invoiceQ } from "@/queries/invoices";
 import { useQuery } from "@tanstack/react-query";
 import { PurchaseApprovalTable } from "./approval-table";
 import { userQ } from "@/queries/baseModule";
+import { queryKeys } from "@/lib/query-keys";
 
 function Page() {
   const { user } = useStore();
@@ -20,17 +21,17 @@ function Page() {
     ) ?? false;
 
   const { isSuccess, isError, error, isLoading, data } = useQuery({
-    queryKey: ["purchaseOrders"],
+    queryKey: queryKeys.purchaseOrders,
     queryFn: purchaseQ.getAll,
   });
 
   const getUsers = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
 
   const getInvoices = useQuery({
-    queryKey: ["invoices"],
+    queryKey: queryKeys.invoices,
     queryFn: invoiceQ.getAll,
   });
 
@@ -38,7 +39,11 @@ function Page() {
     return <LoadingPage />;
   }
   if (isError || getUsers.isError || getInvoices.isError) {
-    return <ErrorPage error={error || getUsers.error || getInvoices.error || undefined} />;
+    return (
+      <ErrorPage
+        error={error || getUsers.error || getInvoices.error || undefined}
+      />
+    );
   }
   if (!auth) {
     return (

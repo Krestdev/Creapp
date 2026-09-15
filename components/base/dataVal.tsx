@@ -102,6 +102,7 @@ import { Textarea } from "../ui/textarea";
 import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { TabBar, TabProps } from "./TabBar";
+import Link from "next/link";
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -796,6 +797,11 @@ export function DataVal({
               >
                 <Eye />
                 {"Voir les détails"}
+              </DropdownMenuItem>
+              <DropdownMenuItem>
+                <Link href={`/besoins/${item.userId}`}>
+                  {"Voir les derniers besoins"}
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
