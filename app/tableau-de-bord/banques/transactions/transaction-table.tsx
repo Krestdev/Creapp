@@ -9,6 +9,8 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  PaginationOptions,
+  PaginationState,
   useReactTable,
 } from "@tanstack/react-table";
 import {
@@ -76,10 +78,15 @@ import ViewTransaction from "./view-transaction";
 
 interface Props {
   data: Array<Transaction>;
-  canEdit: boolean;
+  canEdit?: boolean;
   filterByType?: boolean;
   banks: Array<Bank>;
   users: Array<User>;
+  paginationOptions?: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
+  pagination?: PaginationState;
+  customFilters?: any;
+  setCustomFilters?: React.Dispatch<React.SetStateAction<any>>;
+  resetAllFilters?: () => void;
 }
 
 function TransactionTable({
@@ -88,6 +95,11 @@ function TransactionTable({
   banks,
   filterByType = false,
   users,
+  paginationOptions,
+  pagination,
+  customFilters,
+  setCustomFilters,
+  resetAllFilters: resetAllFiltersProp,
 }: Props) {
   // const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -620,12 +632,14 @@ function TransactionTable({
         return value?.toLowerCase().includes(searchValue);
       });
     },
+    ...(paginationOptions ? { manualPagination: true, ...paginationOptions } : {}),
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       globalFilter,
+      ...(pagination ? { pagination } : {}),
     },
   });
 

@@ -8,6 +8,8 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  PaginationOptions,
+  PaginationState,
   useReactTable,
 } from "@tanstack/react-table";
 import {
@@ -86,12 +88,27 @@ import { EditTransferDialog } from "./updateDialog";
 
 interface Props {
   data: Array<TransferTransaction>;
-  banks: Array<Bank>;
-  paymentMethods: Array<PayType>;
+  banks?: Array<Bank>;
+  paymentMethods?: Array<PayType>;
   users: Array<User>;
+  paginationOptions?: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
+  pagination?: PaginationState;
+  customFilters?: any;
+  setCustomFilters?: React.Dispatch<React.SetStateAction<any>>;
+  resetAllFilters?: () => void;
 }
 
-function TransferTable({ data, banks, paymentMethods, users }: Props) {
+function TransferTable({
+  data,
+  banks = [],
+  paymentMethods = [],
+  users,
+  paginationOptions,
+  pagination,
+  customFilters,
+  setCustomFilters,
+  resetAllFilters: resetAllFiltersProp,
+}: Props) {
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
   );
@@ -554,11 +571,13 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
         return value?.toLowerCase().includes(searchValue);
       });
     },
+    ...(paginationOptions ? { manualPagination: true, ...paginationOptions } : {}),
     state: {
       columnFilters,
       columnVisibility,
       rowSelection,
       globalFilter,
+      ...(pagination ? { pagination } : {}),
     },
   });
 
@@ -631,9 +650,6 @@ function TransferTable({ data, banks, paymentMethods, users }: Props) {
                   </Select>
                 </div>
                 {/* Filter by amount */}
-                <div className="grid gap-1.5">
-                  <Label>{"Montant"}</Label>
-                </div>
                 <div className="grid gap-1.5">
                   <Label>{"Montant"}</Label>
                   <span className="grid grid-cols-2 gap-1.5">

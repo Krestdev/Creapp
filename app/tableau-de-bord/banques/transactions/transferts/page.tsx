@@ -119,7 +119,7 @@ function Page() {
           paymentMethods={getPaymentMethods.data.data}
           users={getUsers.data.data}
           paginationOptions={{
-            onPaginationChange: (updater) => {
+            onPaginationChange: (updater: any) => {
               setFilters((prev) => {
                 const next =
                   typeof updater === "function"

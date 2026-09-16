@@ -4,15 +4,15 @@ import { Transaction } from "@/types/types";
 export interface TransactionParams {
   pageIndex?: number | undefined;
   pageSize?: number | undefined;
-  type?: "CREDIT" | "DEBIT" | "TRANSFER" | undefined;
-  status?: "PENDING" | "APPROVED" | "CANCELLED" | undefined;
+  type?: "CREDIT" | "DEBIT" | "TRANSFER" | (string & {}) | undefined;
+  status?: "PENDING" | "APPROVED" | "CANCELLED" | (string & {}) | undefined;
   bankId?: number | undefined;
-  from?: Date | undefined;
-  to?: Date | undefined;
+  from?: Date | string | undefined;
+  to?: Date | string | undefined;
   amountMin?: number | undefined;
   amountMax?: number | undefined;
   search?: string | undefined;
-  date?: "today" | "week" | "month" | "year" | "custom" | undefined;
+  date?: "today" | "week" | "month" | "year" | "custom" | (string & {}) | undefined;
 }
 
 type source = { label: string; accountNumber?: string; phoneNum?: string };

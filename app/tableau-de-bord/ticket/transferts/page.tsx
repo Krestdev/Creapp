@@ -59,7 +59,7 @@ function Page() {
           data={data.data as any}
           users={getUsers.data.data}
           paginationOptions={{
-            onPaginationChange: (updater) => {
+            onPaginationChange: (updater: any) => {
               setFilters((prev) => {
                 const next =
                   typeof updater === "function"

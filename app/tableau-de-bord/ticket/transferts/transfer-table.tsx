@@ -50,6 +50,8 @@ import {
   getFilteredRowModel,
   getPaginationRowModel,
   getSortedRowModel,
+  PaginationOptions,
+  PaginationState,
   useReactTable,
 } from "@tanstack/react-table";
 import { format } from "date-fns";
@@ -73,9 +75,25 @@ import { SoldeDialog } from "./SoldeDialog";
 interface Props {
   data: Array<Transaction>;
   users: Array<User>;
+  paginationOptions?: Pick<
+    PaginationOptions,
+    "onPaginationChange" | "rowCount"
+  >;
+  pagination?: PaginationState;
+  customFilters?: any;
+  setCustomFilters?: React.Dispatch<React.SetStateAction<any>>;
+  resetAllFilters?: () => void;
 }
 
-function TransferTable({ data, users }: Props) {
+function TransferTable({
+  data,
+  users,
+  paginationOptions,
+  pagination,
+  customFilters,
+  setCustomFilters,
+  resetAllFilters: resetAllFiltersProp,
+}: Props) {
   const tabs = [
     {
       id: 0,
@@ -302,9 +320,9 @@ function TransferTable({ data, users }: Props) {
         const destination = row.original.to;
         return (
           <span className="normal-case flex items-center gap-1.5">
-            {source.label}
+            {source?.label ?? "--"}
             <ArrowRightIcon size={12} />
-            {destination.label}
+            {destination?.label ?? "--"}
           </span>
         );
       },
@@ -440,12 +458,16 @@ function TransferTable({ data, users }: Props) {
         return value?.toLowerCase().includes(searchValue);
       });
     },
+    ...(paginationOptions
+      ? { manualPagination: true, ...paginationOptions }
+      : {}),
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
       globalFilter,
+      ...(pagination ? { pagination } : {}),
     },
   });
 
