@@ -275,7 +275,7 @@ export default function SocketProvider({
 
     const invalidateTransactions = () => {
       queryClient.invalidateQueries({
-        queryKey: queryKeys.transactions,
+        queryKey: queryKeys.transactions(),
         refetchType: "active",
       });
       queryClient.invalidateQueries({

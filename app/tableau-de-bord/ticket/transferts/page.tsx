@@ -2,28 +2,45 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { transactionQ } from "@/queries/transaction";
-import TransferTable from "./transfer-table";
-import { useQuery } from "@tanstack/react-query";
+import { queryKeys } from "@/lib/query-keys";
 import { userQ } from "@/queries/baseModule";
-import React from "react";
+import { useFilters } from "@/queries/filters/standard-filter";
+import { transactionQ, TransactionParams } from "@/queries/transaction";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
+import TransferTable from "./transfer-table";
 
 function Page() {
-  const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: ["transactions"],
-    queryFn: transactionQ.getAll,
+  const { filters, setFilters } = useFilters();
+  const [customFilters, setCustomFilters] = useState({
+    search: "",
+    status: "all",
+    date: undefined as string | undefined,
+    from: "",
+    to: "",
   });
+
+  const { data, isSuccess, isError, error, isLoading } = useQuery({
+    queryKey: queryKeys.transactions(filters, customFilters),
+    queryFn: () =>
+      transactionQ.getAll({
+        pageIndex: filters.pageIndex,
+        pageSize: filters.pageSize,
+        search: customFilters.search || undefined,
+        status:
+          customFilters.status !== "all" ? customFilters.status : undefined,
+        date: customFilters.date as TransactionParams["date"],
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+      }),
+    placeholderData: keepPreviousData,
+  });
+
   const getUsers = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
 
-  const filteredData = React.useMemo(() => {
-    if (!data || !data?.data) return [];
-    return data.data
-      .filter((x) => x.from !== null && x.to !== null)
-      .filter((x) => !x.from.type?.includes("CASH"));
-  }, [data]);
   if (isLoading || getUsers.isLoading) {
     return <LoadingPage />;
   }
@@ -38,7 +55,41 @@ function Page() {
           subtitle="Approuvez ou rejetez les demandes de transfert de fonds."
           color="green"
         />
-        <TransferTable data={filteredData} users={getUsers.data.data} />
+        <TransferTable
+          data={data.data as any}
+          users={getUsers.data.data}
+          paginationOptions={{
+            onPaginationChange: (updater) => {
+              setFilters((prev) => {
+                const next =
+                  typeof updater === "function"
+                    ? updater({
+                        pageIndex: prev.pageIndex,
+                        pageSize: prev.pageSize,
+                      })
+                    : updater;
+                return { ...prev, ...next };
+              });
+            },
+            rowCount: data.total ?? data.data.length,
+          }}
+          pagination={{
+            pageIndex: filters.pageIndex,
+            pageSize: filters.pageSize,
+          }}
+          customFilters={customFilters}
+          setCustomFilters={setCustomFilters}
+          resetAllFilters={() => {
+            setCustomFilters({
+              search: "",
+              status: "all",
+              date: undefined,
+              from: "",
+              to: "",
+            });
+            setFilters({ pageIndex: 0, pageSize: 30 });
+          }}
+        />
       </div>
     );
   }

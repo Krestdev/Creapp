@@ -2,17 +2,17 @@
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
+import { queryKeys } from "@/lib/query-keys";
 import { bankQ } from "@/queries/bank";
 import { userQ } from "@/queries/baseModule";
-import { transactionQ } from "@/queries/transaction";
+import { useFilters } from "@/queries/filters/standard-filter";
+import { transactionQ, TransactionParams } from "@/queries/transaction";
 import { NavLink } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
-import React from "react";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
 import TransactionTable from "./transaction-table";
 
 function Page() {
-  // const { user } = useStore();
-  // const auth = isRole({ roleList: user?.role ?? [], role: "trésorier" });
   const links: Array<NavLink> = [
     {
       title: "Créer un rapprochement",
@@ -20,25 +20,55 @@ function Page() {
     },
   ];
 
-  const getTransactions = useQuery({
-    queryKey: ["transactions"],
-    queryFn: transactionQ.getAll,
-  });
-  const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
-  const getUsers = useQuery({
-    queryKey: ["users"],
-    queryFn: userQ.getAll,
+  const { filters, setFilters } = useFilters();
+  const [customFilters, setCustomFilters] = useState({
+    search: "",
+    status: "all",
+    type: "all",
+    bankId: "all",
+    date: undefined as string | undefined,
+    from: "",
+    to: "",
+    amountMin: undefined as number | undefined,
+    amountMax: undefined as number | undefined,
   });
 
-  const filteredTransactions = React.useMemo(() => {
-    if (!getTransactions.data) return [];
-    return getTransactions.data.data
-      .filter((t) => t.status === "APPROVED" /* && t.Type !== "TRANSFER" */)
-      .sort(
-        (a, b) =>
-          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime(),
-      );
-  }, [getTransactions.data]);
+  const getTransactions = useQuery({
+    queryKey: queryKeys.transactions(filters, customFilters),
+    queryFn: () =>
+      transactionQ.getAll({
+        pageIndex: filters.pageIndex,
+        pageSize: filters.pageSize,
+        search: customFilters.search || undefined,
+        status: customFilters.status !== "all" ? customFilters.status : undefined,
+        type: customFilters.type !== "all" ? customFilters.type : undefined,
+        bankId: customFilters.bankId !== "all" ? Number(customFilters.bankId) : undefined,
+        date: customFilters.date as TransactionParams["date"],
+        from: customFilters.from || undefined,
+        to: customFilters.to || undefined,
+        amountMin: customFilters.amountMin,
+        amountMax: customFilters.amountMax,
+      }),
+    placeholderData: keepPreviousData,
+  });
+
+  const getBanks = useQuery({ queryKey: queryKeys.banks, queryFn: bankQ.getAll });
+  const getUsers = useQuery({ queryKey: queryKeys.users, queryFn: userQ.getAll });
+
+  const resetAllFilters = () => {
+    setCustomFilters({
+      search: "",
+      status: "all",
+      type: "all",
+      bankId: "all",
+      date: undefined,
+      from: "",
+      to: "",
+      amountMin: undefined,
+      amountMax: undefined,
+    });
+    setFilters({ pageIndex: 0, pageSize: 30 });
+  };
 
   if (getTransactions.isLoading || getBanks.isLoading || getUsers.isLoading) {
     return <LoadingPage />;
@@ -61,11 +91,27 @@ function Page() {
           links={links}
         />
         <TransactionTable
-          data={filteredTransactions}
+          data={getTransactions.data.data}
           canEdit={true}
           banks={getBanks.data.data}
           filterByType
           users={getUsers.data.data}
+          paginationOptions={{
+            onPaginationChange: (updater) => {
+              setFilters((prev) => {
+                const next =
+                  typeof updater === "function"
+                    ? updater({ pageIndex: prev.pageIndex, pageSize: prev.pageSize })
+                    : updater;
+                return { ...prev, ...next };
+              });
+            },
+            rowCount: getTransactions.data.total ?? getTransactions.data.data.length,
+          }}
+          pagination={{ pageIndex: filters.pageIndex, pageSize: filters.pageSize }}
+          customFilters={customFilters}
+          setCustomFilters={setCustomFilters}
+          resetAllFilters={resetAllFilters}
         />
       </div>
     );

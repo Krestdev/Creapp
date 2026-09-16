@@ -12,16 +12,24 @@ import { payTypeQ } from "@/queries/payType";
 import { signatairQ } from "@/queries/signatair";
 import { transactionQ } from "@/queries/transaction";
 import { TransferTransaction } from "@/types/types";
-import { useQuery } from "@tanstack/react-query";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import SignTransfers from "./sign-transfers";
 import { userQ } from "@/queries/baseModule";
 import { queryKeys } from "@/lib/query-keys";
+import { useFilters } from "@/queries/filters/standard-filter";
 
 function Page() {
+  const { filters } = useFilters();
   const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: queryKeys.transactions,
-    queryFn: transactionQ.getAll,
+    queryKey: queryKeys.transactions(filters),
+    queryFn: () =>
+      transactionQ.getAll({
+        pageIndex: filters.pageIndex,
+        pageSize: filters.pageSize,
+        type: "TRANSFER",
+      }),
+    placeholderData: keepPreviousData,
   });
 
   const signatair = useQuery({

@@ -48,7 +48,7 @@ export const queryKeys = {
   requestTypes: ["requestTypes"] as const,
 
   // ─── Transactions ──────────────────────────────────────────────────────────
-  transactions: ["transactions"] as const,
+  transactions: (...args: any[]) => ["transactions", ...args] as const,
   pendingApprovalsTransactionsCount: [
     "pending-approvals-transactions-count",
   ] as const,

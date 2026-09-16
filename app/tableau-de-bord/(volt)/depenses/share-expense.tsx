@@ -96,8 +96,8 @@ function ShareExpense({
   });
 
   const getTransactions = useQuery({
-    queryKey: queryKeys.transactions,
-    queryFn: transactionQ.getAll,
+    queryKey: queryKeys.transactions(),
+    queryFn: () => transactionQ.getAll(),
   });
 
   const getSignataires = useQuery({

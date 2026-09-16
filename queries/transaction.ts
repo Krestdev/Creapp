@@ -1,6 +1,20 @@
 import api from "@/providers/axios";
 import { Transaction } from "@/types/types";
 
+export interface TransactionParams {
+  pageIndex?: number | undefined;
+  pageSize?: number | undefined;
+  type?: "CREDIT" | "DEBIT" | "TRANSFER" | undefined;
+  status?: "PENDING" | "APPROVED" | "CANCELLED" | undefined;
+  bankId?: number | undefined;
+  from?: Date | undefined;
+  to?: Date | undefined;
+  amountMin?: number | undefined;
+  amountMax?: number | undefined;
+  search?: string | undefined;
+  date?: "today" | "week" | "month" | "year" | "custom" | undefined;
+}
+
 type source = { label: string; accountNumber?: string; phoneNum?: string };
 
 export interface TransactionProps extends Omit<
@@ -53,8 +67,10 @@ export interface StatusUpdateProps {
 class TransactionQuery {
   route = "/request/transaction";
 
-  getAll = async (): Promise<{ data: Array<Transaction> }> => {
-    return api.get(this.route).then((response) => {
+  getAll = async (
+    params?: TransactionParams,
+  ): Promise<{ data: Array<Transaction>; total?: number }> => {
+    return api.get(this.route, { params }).then((response) => {
       return response.data;
     });
   };
