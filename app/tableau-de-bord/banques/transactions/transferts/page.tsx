@@ -38,7 +38,7 @@ function Page() {
   });
 
   const getTransactions = useQuery({
-    queryKey: queryKeys.transactions(filters, customFilters),
+    queryKey: queryKeys.transactions("TRANSFER", filters, customFilters),
     queryFn: () =>
       transactionQ.getAll({
         pageIndex: filters.pageIndex,
