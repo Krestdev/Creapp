@@ -56,7 +56,7 @@ function Page() {
           color="green"
         />
         <TransferTable
-          data={data.data as any}
+          data={data.data.transactions as any}
           users={getUsers.data.data}
           paginationOptions={{
             onPaginationChange: (updater: any) => {
@@ -71,7 +71,7 @@ function Page() {
                 return { ...prev, ...next };
               });
             },
-            rowCount: data.total ?? data.data.length,
+            rowCount: data.data.total ?? data.data.transactions.length,
           }}
           pagination={{
             pageIndex: filters.pageIndex,

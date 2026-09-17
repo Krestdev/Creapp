@@ -91,7 +91,7 @@ function Page() {
           links={links}
         />
         <TransactionTable
-          data={getTransactions.data.data}
+          data={getTransactions.data.data.transactions}
           canEdit={true}
           banks={getBanks.data.data}
           filterByType
@@ -106,7 +106,7 @@ function Page() {
                 return { ...prev, ...next };
               });
             },
-            rowCount: getTransactions.data.total ?? getTransactions.data.data.length,
+            rowCount: getTransactions.data.data.total ?? getTransactions.data.data.transactions.length,
           }}
           pagination={{ pageIndex: filters.pageIndex, pageSize: filters.pageSize }}
           customFilters={customFilters}

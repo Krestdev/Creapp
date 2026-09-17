@@ -12,7 +12,14 @@ export interface TransactionParams {
   amountMin?: number | undefined;
   amountMax?: number | undefined;
   search?: string | undefined;
-  date?: "today" | "week" | "month" | "year" | "custom" | (string & {}) | undefined;
+  date?:
+    | "today"
+    | "week"
+    | "month"
+    | "year"
+    | "custom"
+    | (string & {})
+    | undefined;
 }
 
 type source = { label: string; accountNumber?: string; phoneNum?: string };
@@ -69,7 +76,9 @@ class TransactionQuery {
 
   getAll = async (
     params?: TransactionParams,
-  ): Promise<{ data: Array<Transaction>; total?: number }> => {
+  ): Promise<{
+    data: { transactions: Array<Transaction>; total?: number };
+  }> => {
     return api.get(this.route, { params }).then((response) => {
       return response.data;
     });

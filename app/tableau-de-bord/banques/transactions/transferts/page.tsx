@@ -114,7 +114,7 @@ function Page() {
           links={links}
         />
         <TransferTable
-          data={getTransactions.data.data as any}
+          data={getTransactions.data.data.transactions as any}
           banks={getBanks.data.data}
           paymentMethods={getPaymentMethods.data.data}
           users={getUsers.data.data}
@@ -128,7 +128,7 @@ function Page() {
                 return { ...prev, ...next };
               });
             },
-            rowCount: getTransactions.data.total ?? getTransactions.data.data.length,
+            rowCount: getTransactions.data.data.total ?? getTransactions.data.data.transactions.length,
           }}
           pagination={{ pageIndex: filters.pageIndex, pageSize: filters.pageSize }}
           customFilters={customFilters}

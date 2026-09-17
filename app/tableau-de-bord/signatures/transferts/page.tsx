@@ -60,7 +60,7 @@ function Page() {
   // Calculs mémoïsés pour éviter les recalculs inutiles
   const filteredData: Array<TransferTransaction> = useMemo(() => {
     if (!data || !signatair.data) return [];
-    return data.data
+    return data.data.transactions
       .filter((t) => t.Type === "TRANSFER")
       .filter((t) => {
         if (!t.methodId) return false;

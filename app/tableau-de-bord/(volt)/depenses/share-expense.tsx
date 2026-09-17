@@ -110,7 +110,7 @@ function ShareExpense({
   const [openDoc, setOpenDoc] = useState(false);
   const [paiement, setPaiement] = useState<PaymentRequest | null>(null);
 
-  const transactions = getTransactions.data?.data;
+  const transactions = getTransactions.data?.data.transactions;
 
   // const debitTransactions = transactions?.filter((t) => t.Type === "DEBIT");
   const banks = getBanks.data?.data;
