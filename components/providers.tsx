@@ -1,19 +1,24 @@
 "use client";
-import React from "react";
+import React, { useState } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "./ui/sonner";
 import SocketProvider from "@/providers/socketProvider";
 
 function Providers({ children }: { children: React.ReactNode }) {
   // This component is used to wrap the application with providers
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        refetchOnWindowFocus: false, // default: true
-        staleTime: 30000,
-      },
-    },
-  });
+  // useState ensures a single QueryClient instance per component lifetime (not recreated on re-renders)
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            refetchOnWindowFocus: false,
+            staleTime: 30000,
+            refetchOnMount: true, // refetch si les données sont stale lors du montage d'une page
+          },
+        },
+      }),
+  );
   return (
     <React.Fragment>
       <QueryClientProvider client={queryClient}>
