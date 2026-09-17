@@ -91,7 +91,10 @@ interface Props {
   banks?: Array<Bank>;
   paymentMethods?: Array<PayType>;
   users: Array<User>;
-  paginationOptions?: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
+  paginationOptions?: Pick<
+    PaginationOptions,
+    "onPaginationChange" | "rowCount"
+  >;
   pagination?: PaginationState;
   customFilters?: any;
   setCustomFilters?: React.Dispatch<React.SetStateAction<any>>;
@@ -360,7 +363,7 @@ function TransferTable({
       },
       cell: ({ row }) => {
         const source = row.original.from;
-        return <p className="normal-case">{source.label}</p>;
+        return <p className="normal-case">{source.label ?? "--"}</p>;
       },
     },
     {
@@ -378,7 +381,7 @@ function TransferTable({
       },
       cell: ({ row }) => {
         const target = row.original.to;
-        return <p className="normal-case">{target.label}</p>;
+        return <p className="normal-case">{target.label ?? "--"}</p>;
       },
     },
     {
@@ -571,7 +574,9 @@ function TransferTable({
         return value?.toLowerCase().includes(searchValue);
       });
     },
-    ...(paginationOptions ? { manualPagination: true, ...paginationOptions } : {}),
+    ...(paginationOptions
+      ? { manualPagination: true, ...paginationOptions }
+      : {}),
     state: {
       columnFilters,
       columnVisibility,
