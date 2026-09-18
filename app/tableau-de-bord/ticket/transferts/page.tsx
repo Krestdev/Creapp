@@ -20,24 +20,20 @@ function Page() {
     to: "",
   });
 
+  const transactionsParams: TransactionParams = {
+    pageIndex: filters.pageIndex,
+    pageSize: filters.pageSize,
+    type: "TRANSFER",
+    search: customFilters.search || undefined,
+    status: customFilters.status !== "all" ? customFilters.status : undefined,
+    date: customFilters.date as TransactionParams["date"],
+    from: customFilters.from || undefined,
+    to: customFilters.to || undefined,
+  };
+
   const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: queryKeys.transactions(
-      filters,
-      customFilters,
-      "APPROBATION-TRANSFERS",
-    ),
-    queryFn: () =>
-      transactionQ.getAll({
-        pageIndex: filters.pageIndex,
-        pageSize: filters.pageSize,
-        type: "TRANSFER",
-        search: customFilters.search || undefined,
-        status:
-          customFilters.status !== "all" ? customFilters.status : undefined,
-        date: customFilters.date as TransactionParams["date"],
-        from: customFilters.from || undefined,
-        to: customFilters.to || undefined,
-      }),
+    queryKey: queryKeys.transferApprovalsList(transactionsParams),
+    queryFn: () => transactionQ.getAll(transactionsParams),
     placeholderData: keepPreviousData,
   });
 

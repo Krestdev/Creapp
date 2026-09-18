@@ -37,26 +37,24 @@ function Page() {
     amountMax: undefined as number | undefined,
   });
 
+  const transactionsParams: TransactionParams = {
+    pageIndex: filters.pageIndex,
+    pageSize: filters.pageSize,
+    type: "TRANSFER",
+    search: customFilters.search || undefined,
+    status: customFilters.status !== "all" ? customFilters.status : undefined,
+    bankId:
+      customFilters.bankId !== "all" ? Number(customFilters.bankId) : undefined,
+    date: customFilters.date as TransactionParams["date"],
+    from: customFilters.from || undefined,
+    to: customFilters.to || undefined,
+    amountMin: customFilters.amountMin,
+    amountMax: customFilters.amountMax,
+  };
+
   const getTransactions = useQuery({
-    queryKey: queryKeys.transactions("TRANSFERS", filters, customFilters),
-    queryFn: () =>
-      transactionQ.getAll({
-        pageIndex: filters.pageIndex,
-        pageSize: filters.pageSize,
-        type: "TRANSFER",
-        search: customFilters.search || undefined,
-        status:
-          customFilters.status !== "all" ? customFilters.status : undefined,
-        bankId:
-          customFilters.bankId !== "all"
-            ? Number(customFilters.bankId)
-            : undefined,
-        date: customFilters.date as TransactionParams["date"],
-        from: customFilters.from || undefined,
-        to: customFilters.to || undefined,
-        amountMin: customFilters.amountMin,
-        amountMax: customFilters.amountMax,
-      }),
+    queryKey: queryKeys.bankTransfersList(transactionsParams),
+    queryFn: () => transactionQ.getAll(transactionsParams),
     placeholderData: keepPreviousData,
   });
 
