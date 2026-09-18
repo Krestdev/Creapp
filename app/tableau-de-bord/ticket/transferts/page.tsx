@@ -21,11 +21,16 @@ function Page() {
   });
 
   const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: queryKeys.transactions(filters, customFilters),
+    queryKey: queryKeys.transactions(
+      filters,
+      customFilters,
+      "APPROBATION-TRANSFERS",
+    ),
     queryFn: () =>
       transactionQ.getAll({
         pageIndex: filters.pageIndex,
         pageSize: filters.pageSize,
+        type: "TRANSFER",
         search: customFilters.search || undefined,
         status:
           customFilters.status !== "all" ? customFilters.status : undefined,

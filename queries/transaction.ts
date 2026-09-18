@@ -22,6 +22,26 @@ export interface TransactionParams {
     | undefined;
 }
 
+export interface TransactionApprovalParams {
+  pageIndex?: number | undefined;
+  pageSize?: number | undefined;
+  tab: "PENDING" | "HISTORY";
+  bankId?: number | undefined;
+  from?: Date | string | undefined;
+  to?: Date | string | undefined;
+  amountMin?: number | undefined;
+  amountMax?: number | undefined;
+  search?: string | undefined;
+  date?:
+    | "today"
+    | "week"
+    | "month"
+    | "year"
+    | "custom"
+    | (string & {})
+    | undefined;
+}
+
 type source = { label: string; accountNumber?: string; phoneNum?: string };
 
 export interface TransactionProps extends Omit<
@@ -80,6 +100,16 @@ class TransactionQuery {
     data: { transactions: Array<Transaction>; total?: number };
   }> => {
     return api.get(this.route, { params }).then((response) => {
+      return response.data;
+    });
+  };
+
+  getApprovalTransactions = async (
+    params?: TransactionApprovalParams,
+  ): Promise<{
+    data: { transactions: Array<Transaction>; total?: number };
+  }> => {
+    return api.get(`${this.route}/approvals`).then((response) => {
       return response.data;
     });
   };

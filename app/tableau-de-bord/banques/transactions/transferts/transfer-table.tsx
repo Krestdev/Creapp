@@ -327,7 +327,7 @@ function TransferTable({
       },
       cell: ({ row }) => {
         const value = row.original.label;
-        return value;
+        return <p className="normal-case">{value ?? "--"}</p>;
       },
     },
     {
@@ -381,7 +381,7 @@ function TransferTable({
       },
       cell: ({ row }) => {
         const target = row.original.to;
-        return <p className="normal-case">{target.label ?? "--"}</p>;
+        return <p className="normal-case">{target ? target.label : "--"}</p>;
       },
     },
     {
