@@ -34,15 +34,23 @@ function Page() {
   });
 
   const getTransactions = useQuery({
-    queryKey: queryKeys.transactions(filters, customFilters),
+    queryKey: queryKeys.transactions(
+      filters,
+      customFilters,
+      "ALL-TRANSACTIONS",
+    ),
     queryFn: () =>
       transactionQ.getAll({
         pageIndex: filters.pageIndex,
         pageSize: filters.pageSize,
         search: customFilters.search || undefined,
-        status: customFilters.status !== "all" ? customFilters.status : undefined,
+        status:
+          customFilters.status !== "all" ? customFilters.status : undefined,
         type: customFilters.type !== "all" ? customFilters.type : undefined,
-        bankId: customFilters.bankId !== "all" ? Number(customFilters.bankId) : undefined,
+        bankId:
+          customFilters.bankId !== "all"
+            ? Number(customFilters.bankId)
+            : undefined,
         date: customFilters.date as TransactionParams["date"],
         from: customFilters.from || undefined,
         to: customFilters.to || undefined,
@@ -52,8 +60,14 @@ function Page() {
     placeholderData: keepPreviousData,
   });
 
-  const getBanks = useQuery({ queryKey: queryKeys.banks, queryFn: bankQ.getAll });
-  const getUsers = useQuery({ queryKey: queryKeys.users, queryFn: userQ.getAll });
+  const getBanks = useQuery({
+    queryKey: queryKeys.banks,
+    queryFn: bankQ.getAll,
+  });
+  const getUsers = useQuery({
+    queryKey: queryKeys.users,
+    queryFn: userQ.getAll,
+  });
 
   const resetAllFilters = () => {
     setCustomFilters({
@@ -101,14 +115,22 @@ function Page() {
               setFilters((prev) => {
                 const next =
                   typeof updater === "function"
-                    ? updater({ pageIndex: prev.pageIndex, pageSize: prev.pageSize })
+                    ? updater({
+                        pageIndex: prev.pageIndex,
+                        pageSize: prev.pageSize,
+                      })
                     : updater;
                 return { ...prev, ...next };
               });
             },
-            rowCount: getTransactions.data.data.total ?? getTransactions.data.data.transactions.length,
+            rowCount:
+              getTransactions.data.data.total ??
+              getTransactions.data.data.transactions.length,
           }}
-          pagination={{ pageIndex: filters.pageIndex, pageSize: filters.pageSize }}
+          pagination={{
+            pageIndex: filters.pageIndex,
+            pageSize: filters.pageSize,
+          }}
           customFilters={customFilters}
           setCustomFilters={setCustomFilters}
           resetAllFilters={resetAllFilters}
