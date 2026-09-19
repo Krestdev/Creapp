@@ -1,0 +1,16 @@
+@token =eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOjEsImVtYWlsIjoid2Fzc29tQGdtYWlsLmNvbSIsInJvbGVzIjpbIlVTRVIiLCJBRE1JTiIsIk1BTkFHRVIiLCJTQUxFUyIsIlNBTEVTX01BTkFHRVIiLCJWT0xUIiwiVk9MVF9NQU5BR0VSIiwiUkgiLCJBQ0NPVU5UQU5UIiwiRFJJVkVSIiwiU1VQRVJBRE1JTiJdLCJpYXQiOjE3ODk4MTc4NjIsImV4cCI6MTc4OTkwNDI2Mn0.pE7ugsGnPc3zcWhEp92sH6pcNhGiMwaHu4X7h3Takg4
+
+### login
+POST http://192.168.1.66:5000/api/v1.0.0/base/user/login
+Content-Type: application/json
+
+{
+    "email": "wassom@gmail.com",
+    "password": "1234567"
+}
+
+
+###
+GET http://192.168.1.66:5000/api/v1.0.0/request/transaction/transfer/approvals?pageIndex=0&pageSize=30&tab=COMPLETED
+Content-Type: application/json
+Authorization: Bearer {{token}}

@@ -25,7 +25,7 @@ export interface TransactionParams {
 export interface TransactionApprovalParams {
   pageIndex?: number | undefined;
   pageSize?: number | undefined;
-  tab: "PENDING" | "HISTORY";
+  tab: "PENDING" | "COMPLETED";
   bankId?: number | undefined;
   from?: Date | string | undefined;
   to?: Date | string | undefined;
@@ -109,9 +109,11 @@ class TransactionQuery {
   ): Promise<{
     data: { transactions: Array<Transaction>; total?: number };
   }> => {
-    return api.get(`${this.route}/approvals`).then((response) => {
-      return response.data;
-    });
+    return api
+      .get(`${this.route}/transfer/approvals`, { params })
+      .then((response) => {
+        return response.data;
+      });
   };
 
   getOne = async (id: number): Promise<{ data: Transaction }> => {

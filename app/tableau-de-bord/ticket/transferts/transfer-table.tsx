@@ -37,7 +37,7 @@ import {
 } from "@/components/ui/table";
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
-import { transactionQ } from "@/queries/transaction";
+import { transactionQ, TransactionApprovalParams } from "@/queries/transaction";
 import { DateFilter, Transaction, User } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -47,8 +47,6 @@ import {
   type VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   PaginationOptions,
   PaginationState,
@@ -72,17 +70,24 @@ import ViewTransaction from "../../banques/transactions/view-transaction";
 import RejectDialog from "./reject-dialog";
 import { SoldeDialog } from "./SoldeDialog";
 
+export interface ApprovalFilters {
+  search: string;
+  tab: TransactionApprovalParams["tab"];
+  date: DateFilter;
+  from: string;
+  to: string;
+  amountMin: number | undefined;
+  amountMax: number | undefined;
+}
+
 interface Props {
   data: Array<Transaction>;
   users: Array<User>;
-  paginationOptions?: Pick<
-    PaginationOptions,
-    "onPaginationChange" | "rowCount"
-  >;
-  pagination?: PaginationState;
-  customFilters?: any;
-  setCustomFilters?: React.Dispatch<React.SetStateAction<any>>;
-  resetAllFilters?: () => void;
+  paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
+  pagination: PaginationState;
+  customFilters: ApprovalFilters;
+  setCustomFilters: (filters: ApprovalFilters) => void;
+  resetAllFilters: () => void;
 }
 
 function TransferTable({
@@ -92,19 +97,18 @@ function TransferTable({
   pagination,
   customFilters,
   setCustomFilters,
-  resetAllFilters: resetAllFiltersProp,
+  resetAllFilters,
 }: Props) {
-  const tabs = [
+  const tabs: Array<{ id: ApprovalFilters["tab"]; title: string }> = [
     {
-      id: 0,
+      id: "PENDING",
       title: "Transferts en attente",
     },
     {
-      id: 1,
+      id: "COMPLETED",
       title: "Historique des transferts",
     },
   ];
-  const [selectedTab, setSelectedTab] = React.useState<number>(0);
   const { user } = useStore();
   const queryClient = useQueryClient();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -114,22 +118,36 @@ function TransferTable({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [globalFilter, setGlobalFilter] = React.useState("");
-  const [searchFilter, setSearchFilter] = React.useState("");
   const [selected, setSelected] = React.useState<Transaction>();
   const [reject, setReject] = React.useState<boolean>(false);
   const [view, setView] = React.useState<boolean>(false);
 
-  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
-  const [amountFilter, setAmountFilter] = React.useState<number>(0);
-  const [amountTypeFilter, setAmountTypeFilter] = React.useState<
-    "greater" | "inferior" | "equal"
-  >("greater");
-  const [customDateRange, setCustomDateRange] = React.useState<
-    { from: Date; to: Date } | undefined
-  >();
+  // Saisies locales, appliquées au backend sur Entrée / clic / blur
+  const [searchText, setSearchText] = React.useState(customFilters.search);
+  const [amountMinText, setAmountMinText] = React.useState(
+    customFilters.amountMin?.toString() ?? "",
+  );
+  const [amountMaxText, setAmountMaxText] = React.useState(
+    customFilters.amountMax?.toString() ?? "",
+  );
+  React.useEffect(() => {
+    setSearchText(customFilters.search);
+  }, [customFilters.search]);
+  React.useEffect(() => {
+    setAmountMinText(customFilters.amountMin?.toString() ?? "");
+    setAmountMaxText(customFilters.amountMax?.toString() ?? "");
+  }, [customFilters.amountMin, customFilters.amountMax]);
+
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
   const [showSolde, setShowSolde] = React.useState<boolean>(false);
+
+  const applyAmounts = () => {
+    const min = amountMinText.trim() === "" ? undefined : Number(amountMinText);
+    const max = amountMaxText.trim() === "" ? undefined : Number(amountMaxText);
+    if (min === customFilters.amountMin && max === customFilters.amountMax)
+      return;
+    setCustomFilters({ ...customFilters, amountMin: min, amountMax: max });
+  };
 
   const approve = useMutation({
     mutationFn: async ({ id }: { id: number }) =>
@@ -146,94 +164,6 @@ function TransferTable({
       toast.error(error.message);
     },
   });
-
-  const filteredData = React.useMemo(() => {
-    return data.filter((transaction) => {
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
-      const search = searchFilter.toLocaleLowerCase();
-      // Search Filter
-      const matchSearch =
-        search.trim() === ""
-          ? true
-          : transaction.id.toString().toLocaleLowerCase().includes(search) ||
-            transaction.label.toLocaleLowerCase().includes(search) ||
-            transaction.amount.toString().includes(search) ||
-            transaction.to.label.toLocaleLowerCase().includes(search) ||
-            transaction.from.label.toLocaleLowerCase().includes(search);
-      //Filter Tab
-      const matchTab =
-        selectedTab === 0
-          ? transaction.Type === "TRANSFER" && transaction.status === "PENDING"
-          : transaction.Type === "TRANSFER" && transaction.status !== "PENDING";
-
-      // Filter amount
-      const matchAmount =
-        amountTypeFilter === "greater"
-          ? transaction.amount >= amountFilter
-          : amountTypeFilter === "equal"
-            ? transaction.amount === amountFilter
-            : transaction.amount <= amountFilter;
-
-      // Filtre par date
-      let matchDate = true;
-      if (dateFilter) {
-        switch (dateFilter) {
-          case "today":
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "week":
-            startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-            );
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "month":
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          case "year":
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
-          case "custom":
-            if (customDateRange?.from && customDateRange?.to) {
-              startDate = customDateRange.from;
-              endDate = customDateRange.to;
-            }
-            break;
-        }
-
-        if (
-          dateFilter !== "custom" ||
-          (customDateRange?.from && customDateRange?.to)
-        ) {
-          matchDate =
-            new Date(transaction.createdAt) >= startDate &&
-            new Date(transaction.createdAt) <= endDate;
-        }
-      }
-      return matchDate && matchAmount && matchTab && matchSearch;
-    });
-  }, [
-    data,
-    dateFilter,
-    customDateRange,
-    amountFilter,
-    amountTypeFilter,
-    selectedTab,
-    searchFilter,
-  ]);
-
-  // Réinitialiser tous les filtres
-  const resetAllFilters = () => {
-    setDateFilter(undefined);
-    if (setCustomDateRange) {
-      setCustomDateRange(undefined);
-    }
-    setAmountFilter(0);
-    setAmountTypeFilter("greater");
-    setGlobalFilter("");
-  };
 
   const columns: ColumnDef<Transaction>[] = [
     {
@@ -433,41 +363,22 @@ function TransferTable({
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data: filteredData,
+    data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["id", "label", "amount", "from", "to"];
-      const searchValue = filterValue.toLowerCase();
-
-      return searchableColumns.some((column) => {
-        if (column === "from" || column === "to") {
-          const source = row.original[column];
-          const label = source.label;
-          return label?.toLowerCase().includes(searchValue);
-        }
-        const value = row.getValue(column) as string;
-        return value?.toLowerCase().includes(searchValue);
-      });
-    },
-    ...(paginationOptions
-      ? { manualPagination: true, ...paginationOptions }
-      : {}),
+    manualPagination: true,
+    ...paginationOptions,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
-      globalFilter,
-      ...(pagination ? { pagination } : {}),
+      pagination,
     },
   });
 
@@ -476,10 +387,38 @@ function TransferTable({
       <div className="flex flex-wrap items-end justify-between gap-4">
         <TabBar
           tabs={tabs}
-          selectedTab={selectedTab}
-          setSelectedTab={setSelectedTab}
+          selectedTab={customFilters.tab}
+          setSelectedTab={(tab: ApprovalFilters["tab"]) =>
+            setCustomFilters({ ...customFilters, tab })
+          }
         />
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <Input
+            placeholder="Référence, libellé, compte"
+            name="search"
+            type="search"
+            value={searchText}
+            onChange={(event) => {
+              setSearchText(event.target.value);
+              if (event.target.value === "") {
+                setCustomFilters({ ...customFilters, search: "" });
+              }
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                setCustomFilters({ ...customFilters, search: searchText });
+              }
+            }}
+            className="w-full sm:w-[250px] h-9"
+          />
+          <Button
+            className="h-9"
+            onClick={() =>
+              setCustomFilters({ ...customFilters, search: searchText })
+            }
+          >
+            {"Rechercher"}
+          </Button>
           <Button onClick={() => setShowSolde(true)} variant={"primary"}>
             {"Voir les soldes"}
           </Button>
@@ -499,76 +438,33 @@ function TransferTable({
               </SheetHeader>
               <div className="px-5 grid gap-5">
                 <div className="grid gap-1.5">
-                  <Label htmlFor="searchCommand">{"Recherche globale"}</Label>
-                  <Input
-                    name="search"
-                    type="search"
-                    id="searchCommand"
-                    placeholder="Référence, libellé"
-                    value={searchFilter}
-                    onChange={(event) => setSearchFilter(event.target.value)}
-                    className="w-full"
-                  />
-                </div>
-
-                {/* Filter by amount */}
-                <div className="grid gap-1.5">
-                  <Label>{"Comparer le montant"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {amountTypeFilter === "greater"
-                            ? "Supérieur"
-                            : amountTypeFilter === "equal"
-                              ? "Égal"
-                              : amountTypeFilter === "inferior"
-                                ? "Inférieur"
-                                : "Sélectionner"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                      <DropdownMenuItem
-                        onClick={() => setAmountTypeFilter("greater")}
-                        className={
-                          amountTypeFilter === "greater" ? "bg-accent" : ""
-                        }
-                      >
-                        <span>Supérieur</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setAmountTypeFilter("equal")}
-                        className={
-                          amountTypeFilter === "equal" ? "bg-accent" : ""
-                        }
-                      >
-                        <span>Égal</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => setAmountTypeFilter("inferior")}
-                        className={
-                          amountTypeFilter === "inferior" ? "bg-accent" : ""
-                        }
-                      >
-                        <span>Inférieur</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-
-                <div className="grid gap-1.5">
-                  <Label>{"Montant"}</Label>
+                  <Label>{"Montant minimum"}</Label>
                   <div className="relative">
                     <Input
                       type="number"
                       placeholder="Ex. 250 000"
-                      value={amountFilter ?? 0}
-                      onChange={(e) => setAmountFilter(Number(e.target.value))}
+                      value={amountMinText}
+                      onChange={(e) => setAmountMinText(e.target.value)}
+                      onBlur={applyAmounts}
+                      onKeyDown={(e) => e.key === "Enter" && applyAmounts()}
+                      className="w-full pr-12"
+                    />
+                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                      {"FCFA"}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="grid gap-1.5">
+                  <Label>{"Montant maximum"}</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="Ex. 1 000 000"
+                      value={amountMaxText}
+                      onChange={(e) => setAmountMaxText(e.target.value)}
+                      onBlur={applyAmounts}
+                      onKeyDown={(e) => e.key === "Enter" && applyAmounts()}
                       className="w-full pr-12"
                     />
                     <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
@@ -587,17 +483,17 @@ function TransferTable({
                         className="w-full justify-between"
                       >
                         <span className="truncate">
-                          {dateFilter === undefined
+                          {customFilters.date === undefined
                             ? "Toutes les périodes"
-                            : dateFilter === "today"
+                            : customFilters.date === "today"
                               ? "Aujourd'hui"
-                              : dateFilter === "week"
+                              : customFilters.date === "week"
                                 ? "Cette semaine"
-                                : dateFilter === "month"
+                                : customFilters.date === "month"
                                   ? "Ce mois"
-                                  : dateFilter === "year"
+                                  : customFilters.date === "year"
                                     ? "Cette année"
-                                    : dateFilter === "custom"
+                                    : customFilters.date === "custom"
                                       ? "Personnalisé"
                                       : "Sélectionner une période"}
                         </span>
@@ -607,56 +503,57 @@ function TransferTable({
                     <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
                       <DropdownMenuItem
                         onClick={() => {
-                          setDateFilter(undefined);
-                          setCustomDateRange(undefined);
+                          setCustomFilters({
+                            ...customFilters,
+                            date: undefined,
+                            from: "",
+                            to: "",
+                          });
                           setCustomOpen(false);
                         }}
-                        className={dateFilter === undefined ? "bg-accent" : ""}
+                        className={
+                          customFilters.date === undefined ? "bg-accent" : ""
+                        }
                       >
                         <span>Toutes les périodes</span>
                       </DropdownMenuItem>
+                      {(
+                        [
+                          ["today", "Aujourd'hui"],
+                          ["week", "Cette semaine"],
+                          ["month", "Ce mois"],
+                          ["year", "Cette année"],
+                        ] as const
+                      ).map(([value, label]) => (
+                        <DropdownMenuItem
+                          key={value}
+                          onClick={() => {
+                            setCustomFilters({
+                              ...customFilters,
+                              date: value,
+                              from: "",
+                              to: "",
+                            });
+                            setCustomOpen(false);
+                          }}
+                          className={
+                            customFilters.date === value ? "bg-accent" : ""
+                          }
+                        >
+                          <span>{label}</span>
+                        </DropdownMenuItem>
+                      ))}
                       <DropdownMenuItem
                         onClick={() => {
-                          setDateFilter("today");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "today" ? "bg-accent" : ""}
-                      >
-                        <span>{"Aujourd'hui"}</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("week");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "week" ? "bg-accent" : ""}
-                      >
-                        <span>Cette semaine</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("month");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "month" ? "bg-accent" : ""}
-                      >
-                        <span>Ce mois</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("year");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "year" ? "bg-accent" : ""}
-                      >
-                        <span>Cette année</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("custom");
+                          setCustomFilters({
+                            ...customFilters,
+                            date: "custom",
+                          });
                           setCustomOpen(true);
                         }}
-                        className={dateFilter === "custom" ? "bg-accent" : ""}
+                        className={
+                          customFilters.date === "custom" ? "bg-accent" : ""
+                        }
                       >
                         <span>Personnalisé</span>
                       </DropdownMenuItem>
@@ -666,7 +563,7 @@ function TransferTable({
                   <Collapsible
                     open={customOpen}
                     onOpenChange={setCustomOpen}
-                    disabled={dateFilter !== "custom"}
+                    disabled={customFilters.date !== "custom"}
                   >
                     <CollapsibleTrigger asChild>
                       <Button
@@ -675,11 +572,11 @@ function TransferTable({
                       >
                         {"Plage personnalisée"}
                         <span className="text-muted-foreground text-xs">
-                          {customDateRange?.from && customDateRange.to
+                          {customFilters.from && customFilters.to
                             ? `${format(
-                                customDateRange.from,
+                                new Date(customFilters.from),
                                 "dd/MM/yyyy",
-                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              )} → ${format(new Date(customFilters.to), "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
                       </Button>
@@ -688,10 +585,25 @@ function TransferTable({
                     <CollapsibleContent className="space-y-4 pt-4">
                       <Calendar
                         mode="range"
-                        selected={customDateRange}
-                        onSelect={(range) =>
-                          setCustomDateRange(range as { from: Date; to: Date })
-                        }
+                        selected={{
+                          from: customFilters.from
+                            ? new Date(customFilters.from)
+                            : undefined,
+                          to: customFilters.to
+                            ? new Date(customFilters.to)
+                            : undefined,
+                        }}
+                        onSelect={(range) => {
+                          if (!range?.from || !range?.to) return;
+                          const from = new Date(range.from);
+                          const to = new Date(range.to);
+                          to.setHours(23, 59, 59, 999);
+                          setCustomFilters({
+                            ...customFilters,
+                            from: from.toISOString(),
+                            to: to.toISOString(),
+                          });
+                        }}
                         numberOfMonths={1}
                         className="rounded-md border w-full"
                       />
@@ -699,8 +611,11 @@ function TransferTable({
                         <Button
                           className="w-full"
                           onClick={() => {
-                            setCustomDateRange(undefined);
-                            setDateFilter(undefined);
+                            setCustomFilters({
+                              ...customFilters,
+                              from: "",
+                              to: "",
+                            });
                             setCustomOpen(false);
                           }}
                         >
@@ -709,9 +624,7 @@ function TransferTable({
                         <Button
                           className="w-full"
                           variant={"outline"}
-                          onClick={() => {
-                            setCustomOpen(false);
-                          }}
+                          onClick={() => setCustomOpen(false)}
                         >
                           {"Réduire"}
                         </Button>
@@ -724,7 +637,10 @@ function TransferTable({
                 <div className="flex items-end">
                   <Button
                     variant="outline"
-                    onClick={resetAllFilters}
+                    onClick={() => {
+                      setCustomOpen(false);
+                      resetAllFilters();
+                    }}
                     className="w-full"
                   >
                     {"Réinitialiser"}
@@ -772,7 +688,7 @@ function TransferTable({
           </DropdownMenu>
         </div>
       </div>
-      <h3>{`Transferts (${filteredData.length})`}</h3>
+      <h3>{`Transferts (${paginationOptions.rowCount ?? data.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

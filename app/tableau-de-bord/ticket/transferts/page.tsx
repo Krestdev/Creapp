@@ -5,39 +5,45 @@ import PageTitle from "@/components/pageTitle";
 import { queryKeys } from "@/lib/query-keys";
 import { userQ } from "@/queries/baseModule";
 import { useFilters } from "@/queries/filters/standard-filter";
-import { transactionQ, TransactionParams } from "@/queries/transaction";
+import {
+  transactionQ,
+  TransactionApprovalParams,
+} from "@/queries/transaction";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
-import TransferTable from "./transfer-table";
+import TransferTable, { ApprovalFilters } from "./transfer-table";
+
+const defaultCustomFilters: ApprovalFilters = {
+  search: "",
+  tab: "PENDING",
+  date: undefined,
+  from: "",
+  to: "",
+  amountMin: undefined,
+  amountMax: undefined,
+};
 
 function Page() {
   const { filters, setFilters } = useFilters();
-  const [customFilters, setCustomFilters] = useState({
-    search: "",
-    status: "all",
-    date: undefined as string | undefined,
-    from: "",
-    to: "",
-  });
+  const [customFilters, setCustomFilters] = useState<ApprovalFilters>(
+    defaultCustomFilters,
+  );
+
+  const approvalParams: TransactionApprovalParams = {
+    pageIndex: filters.pageIndex,
+    pageSize: filters.pageSize,
+    tab: customFilters.tab,
+    search: customFilters.search || undefined,
+    date: customFilters.date,
+    from: customFilters.from || undefined,
+    to: customFilters.to || undefined,
+    amountMin: customFilters.amountMin,
+    amountMax: customFilters.amountMax,
+  };
 
   const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: queryKeys.transactions(
-      filters,
-      customFilters,
-      "APPROBATION-TRANSFERS",
-    ),
-    queryFn: () =>
-      transactionQ.getAll({
-        pageIndex: filters.pageIndex,
-        pageSize: filters.pageSize,
-        type: "TRANSFER",
-        search: customFilters.search || undefined,
-        status:
-          customFilters.status !== "all" ? customFilters.status : undefined,
-        date: customFilters.date as TransactionParams["date"],
-        from: customFilters.from || undefined,
-        to: customFilters.to || undefined,
-      }),
+    queryKey: queryKeys.transactions("TRANSFER-APPROVALS", approvalParams),
+    queryFn: () => transactionQ.getApprovalTransactions(approvalParams),
     placeholderData: keepPreviousData,
   });
 
@@ -45,6 +51,12 @@ function Page() {
     queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
+
+  // Tout changement de filtre ou d'onglet renvoie à la première page
+  const updateCustomFilters = (next: ApprovalFilters) => {
+    setCustomFilters(next);
+    setFilters((prev) => ({ ...prev, pageIndex: 0 }));
+  };
 
   if (isLoading || getUsers.isLoading) {
     return <LoadingPage />;
@@ -61,10 +73,10 @@ function Page() {
           color="green"
         />
         <TransferTable
-          data={data.data.transactions as any}
+          data={data.data.transactions}
           users={getUsers.data.data}
           paginationOptions={{
-            onPaginationChange: (updater: any) => {
+            onPaginationChange: (updater) => {
               setFilters((prev) => {
                 const next =
                   typeof updater === "function"
@@ -83,15 +95,9 @@ function Page() {
             pageSize: filters.pageSize,
           }}
           customFilters={customFilters}
-          setCustomFilters={setCustomFilters}
+          setCustomFilters={updateCustomFilters}
           resetAllFilters={() => {
-            setCustomFilters({
-              search: "",
-              status: "all",
-              date: undefined,
-              from: "",
-              to: "",
-            });
+            setCustomFilters(defaultCustomFilters);
             setFilters({ pageIndex: 0, pageSize: 30 });
           }}
         />
