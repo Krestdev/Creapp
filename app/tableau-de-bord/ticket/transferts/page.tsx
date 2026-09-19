@@ -38,7 +38,7 @@ function Page() {
   };
 
   const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: queryKeys.transactions("TRANSFER-APPROVALS", approvalParams),
+    queryKey: queryKeys.transferApprovalsList(approvalParams),
     queryFn: () => transactionQ.getApprovalTransactions(approvalParams),
     placeholderData: keepPreviousData,
   });
