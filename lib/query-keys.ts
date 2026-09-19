@@ -48,7 +48,23 @@ export const queryKeys = {
   requestTypes: ["requestTypes"] as const,
 
   // ─── Transactions ──────────────────────────────────────────────────────────
-  transactions: (...args: any[]) => ["transactions", ...args] as const,
+  // Clé racine : sert UNIQUEMENT de préfixe pour l'invalidation globale
+  // (socket, mutations). Ne jamais l'utiliser comme queryKey d'un useQuery.
+  transactions: () => ["transactions"] as const,
+  // Une sous-clé dédiée par page/usage, construite à partir de l'objet
+  // `params` réellement envoyé au backend (pagination + filtres). Deux pages
+  // différentes ne peuvent donc jamais partager le même cache, et un
+  // changement de page/filtre change toujours la clé.
+  bankTransactionsList: <T extends object>(params: T) =>
+    ["transactions", "bank-transactions-list", params] as const,
+  bankTransfersList: <T extends object>(params: T) =>
+    ["transactions", "bank-transfers-list", params] as const,
+  transferApprovalsList: <T extends object>(params: T) =>
+    ["transactions", "transfer-approvals-list", params] as const,
+  signatureTransfersList: <T extends object>(params: T) =>
+    ["transactions", "signature-transfers-list", params] as const,
+  allTransactions: <T extends object>(params?: T) =>
+    ["transactions", "all", params] as const,
   pendingApprovalsTransactionsCount: [
     "pending-approvals-transactions-count",
   ] as const,

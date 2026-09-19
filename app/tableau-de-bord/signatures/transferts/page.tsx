@@ -21,14 +21,14 @@ import { useFilters } from "@/queries/filters/standard-filter";
 
 function Page() {
   const { filters } = useFilters();
+  const transactionsParams = {
+    pageIndex: filters.pageIndex,
+    pageSize: filters.pageSize,
+    type: "TRANSFER" as const,
+  };
   const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: queryKeys.transactions(filters),
-    queryFn: () =>
-      transactionQ.getAll({
-        pageIndex: filters.pageIndex,
-        pageSize: filters.pageSize,
-        type: "TRANSFER",
-      }),
+    queryKey: queryKeys.signatureTransfersList(transactionsParams),
+    queryFn: () => transactionQ.getAll(transactionsParams),
     placeholderData: keepPreviousData,
   });
 

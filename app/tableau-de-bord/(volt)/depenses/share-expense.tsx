@@ -96,7 +96,7 @@ function ShareExpense({
   });
 
   const getTransactions = useQuery({
-    queryKey: queryKeys.transactions(),
+    queryKey: queryKeys.allTransactions(),
     queryFn: () => transactionQ.getAll(),
   });
 

@@ -5,10 +5,7 @@ import PageTitle from "@/components/pageTitle";
 import { queryKeys } from "@/lib/query-keys";
 import { userQ } from "@/queries/baseModule";
 import { useFilters } from "@/queries/filters/standard-filter";
-import {
-  transactionQ,
-  TransactionApprovalParams,
-} from "@/queries/transaction";
+import { transactionQ, TransactionApprovalParams } from "@/queries/transaction";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
 import TransferTable, { ApprovalFilters } from "./transfer-table";
@@ -25,9 +22,8 @@ const defaultCustomFilters: ApprovalFilters = {
 
 function Page() {
   const { filters, setFilters } = useFilters();
-  const [customFilters, setCustomFilters] = useState<ApprovalFilters>(
-    defaultCustomFilters,
-  );
+  const [customFilters, setCustomFilters] =
+    useState<ApprovalFilters>(defaultCustomFilters);
 
   const approvalParams: TransactionApprovalParams = {
     pageIndex: filters.pageIndex,
