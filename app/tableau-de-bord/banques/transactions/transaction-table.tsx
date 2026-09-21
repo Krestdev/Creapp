@@ -6,8 +6,6 @@ import {
   type VisibilityState,
   flexRender,
   getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
   getSortedRowModel,
   PaginationOptions,
   PaginationState,
@@ -76,17 +74,29 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import ViewTransaction from "./view-transaction";
 
+export interface TransactionFilters {
+  search: string;
+  status: string;
+  type: string;
+  bankId: string;
+  date: DateFilter;
+  from: string;
+  to: string;
+  amountMin: number | undefined;
+  amountMax: number | undefined;
+}
+
 interface Props {
   data: Array<Transaction>;
   canEdit?: boolean;
   filterByType?: boolean;
   banks: Array<Bank>;
   users: Array<User>;
-  paginationOptions?: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
-  pagination?: PaginationState;
-  customFilters?: any;
-  setCustomFilters?: React.Dispatch<React.SetStateAction<any>>;
-  resetAllFilters?: () => void;
+  paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
+  pagination: PaginationState;
+  customFilters: TransactionFilters;
+  setCustomFilters: (filters: TransactionFilters) => void;
+  resetAllFilters: () => void;
 }
 
 function TransactionTable({
@@ -99,7 +109,7 @@ function TransactionTable({
   pagination,
   customFilters,
   setCustomFilters,
-  resetAllFilters: resetAllFiltersProp,
+  resetAllFilters,
 }: Props) {
   // const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
@@ -109,30 +119,36 @@ function TransactionTable({
   const [columnVisibility, setColumnVisibility] =
     React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
-  const [globalFilter, setGlobalFilter] = React.useState("");
-  const [searchFilter, setSearchFilter] = React.useState("");
   const [selected, setSelected] = React.useState<Transaction>();
   const [view, setView] = React.useState<boolean>(false);
-
-  const [amountFilter, setAmountFilter] = React.useState<number>(0);
-  const [bankFilter, setBankFilter] = React.useState<string>("all");
-  const [amountTypeFilter, setAmountTypeFilter] = React.useState<
-    "greater" | "inferior" | "equal" | "aucun"
-  >("aucun");
-  const [dateFilter, setDateFilter] = React.useState<DateFilter>();
-  const [customDateRange, setCustomDateRange] = React.useState<
-    { from: Date; to: Date } | undefined
-  >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
-  const [statusFilter, setStatusFilter] = React.useState<
-    "all" | Transaction["status"]
-  >("all");
-  const [typeFilter, setTypeFilter] = React.useState<
-    "all" | Transaction["Type"]
-  >("all");
   // States pour les recherches dans les dropdowns
   const [typeSearch, setTypeSearch] = React.useState("");
   const [bankSearch, setBankSearch] = React.useState("");
+
+  // Saisies locales, appliquées au backend sur Entrée / clic / blur
+  const [searchText, setSearchText] = React.useState(customFilters.search);
+  const [amountMinText, setAmountMinText] = React.useState(
+    customFilters.amountMin?.toString() ?? "",
+  );
+  const [amountMaxText, setAmountMaxText] = React.useState(
+    customFilters.amountMax?.toString() ?? "",
+  );
+  React.useEffect(() => {
+    setSearchText(customFilters.search);
+  }, [customFilters.search]);
+  React.useEffect(() => {
+    setAmountMinText(customFilters.amountMin?.toString() ?? "");
+    setAmountMaxText(customFilters.amountMax?.toString() ?? "");
+  }, [customFilters.amountMin, customFilters.amountMax]);
+
+  const applyAmounts = () => {
+    const min = amountMinText.trim() === "" ? undefined : Number(amountMinText);
+    const max = amountMaxText.trim() === "" ? undefined : Number(amountMaxText);
+    if (min === customFilters.amountMin && max === customFilters.amountMax)
+      return;
+    setCustomFilters({ ...customFilters, amountMin: min, amountMax: max });
+  };
 
   const getBadge = (
     transaction: Transaction,
@@ -180,165 +196,11 @@ function TransactionTable({
     }
   };
 
-  // Réinitialiser tous les filtres
-  const resetAllFilters = () => {
-    setDateFilter(undefined);
-    if (setCustomDateRange) {
-      setCustomDateRange(undefined);
-    }
-    setAmountFilter(0);
-    setAmountTypeFilter("greater");
-    setGlobalFilter("");
-    setStatusFilter("all");
-    setTypeFilter("all");
-    setBankFilter("all");
-    setSearchFilter("");
-  };
-
-  const filteredData = React.useMemo(() => {
-    return data.filter((transaction) => {
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
-      const search = searchFilter.toLocaleLowerCase();
-
-      // Search Filter - amélioré pour inclure les comptes source et destination
-      const matchSearch =
-        search.trim() === ""
-          ? true
-          : (() => {
-              // Vérifier si la recherche correspond à un ID
-              const isIdMatch = transaction.id.toString().includes(search);
-              if (isIdMatch) return true;
-
-              // Vérifier si la recherche correspond au libellé
-              const isLabelMatch = transaction.label
-                .toLocaleLowerCase()
-                .includes(search);
-              if (isLabelMatch) return true;
-
-              // Vérifier si la recherche correspond au montant
-              const isAmountMatch = transaction.amount
-                .toString()
-                .includes(search);
-              if (isAmountMatch) return true;
-
-              // Vérifier si la recherche correspond au compte source
-              const sourceLabel = transaction.from.label.toLocaleLowerCase();
-              const isSourceMatch = sourceLabel.includes(search);
-              if (isSourceMatch) return true;
-
-              // Vérifier si la recherche correspond au compte destination
-              const destinationLabel = transaction.to.label.toLocaleLowerCase();
-              const isDestinationMatch = destinationLabel.includes(search);
-              if (isDestinationMatch) return true;
-
-              return false;
-            })();
-
-      // Status Filter
-      const matchStatus =
-        statusFilter === "all" ? true : transaction.status === statusFilter;
-
-      // Bank Filter - selon le type de transaction
-      let matchBank = bankFilter === "all" ? true : false;
-
-      if (bankFilter !== "all") {
-        switch (transaction.Type) {
-          case "DEBIT":
-            matchBank = transaction.from.id.toString() === bankFilter;
-            break;
-          case "CREDIT":
-            matchBank = transaction.to.id.toString() === bankFilter;
-            break;
-          case "TRANSFER":
-            matchBank =
-              transaction.from.id.toString() === bankFilter ||
-              transaction.to.id.toString() === bankFilter;
-            break;
-          default:
-            matchBank = false;
-        }
-      }
-
-      // Type Filter
-      const matchType =
-        typeFilter === "all" ? true : transaction.Type === typeFilter;
-
-      // Filter amount
-      const matchAmount =
-        amountTypeFilter === "aucun"
-          ? true
-          : amountTypeFilter === "greater"
-            ? transaction.amount > amountFilter
-            : amountTypeFilter === "equal"
-              ? transaction.amount === amountFilter
-              : transaction.amount < amountFilter;
-
-      // Filtre par date
-      let matchDate = true;
-      if (dateFilter) {
-        switch (dateFilter) {
-          case "today":
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "week":
-            startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-            );
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "month":
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          case "year":
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
-          case "custom":
-            if (customDateRange?.from && customDateRange?.to) {
-              startDate = customDateRange.from;
-              endDate = customDateRange.to;
-              endDate.setHours(23);
-            }
-            break;
-        }
-
-        if (
-          dateFilter !== "custom" ||
-          (customDateRange?.from && customDateRange?.to)
-        ) {
-          matchDate =
-            new Date(transaction.updatedAt) >= startDate &&
-            new Date(transaction.updatedAt) <= endDate;
-        }
-      }
-
-      return (
-        matchStatus &&
-        matchType &&
-        matchDate &&
-        matchAmount &&
-        matchBank &&
-        matchSearch
-      );
-    });
-  }, [
-    data,
-    dateFilter,
-    customDateRange,
-    amountFilter,
-    amountTypeFilter,
-    statusFilter,
-    typeFilter,
-    bankFilter,
-    searchFilter,
-  ]);
-
-  const entreeTrans = filteredData.filter((t) => t.Type === "CREDIT");
+  const entreeTrans = data.filter((t) => t.Type === "CREDIT");
   const montantEntree = entreeTrans.reduce((sum, t) => sum + t.amount, 0);
-  const sortieTrans = filteredData.filter((t) => t.Type === "DEBIT");
+  const sortieTrans = data.filter((t) => t.Type === "DEBIT");
   const montantSotie = sortieTrans.reduce((sum, t) => sum + t.amount, 0);
-  const total = filteredData.filter((x) => x.Type !== "TRANSFER");
+  const total = data.filter((x) => x.Type !== "TRANSFER");
 
   const Statistics: Array<StatisticProps> = [
     {
@@ -607,39 +469,22 @@ function TransactionTable({
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
-    data: filteredData,
+    data,
     columns,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["id", "label", "amount", "type", "from", "to"];
-      const searchValue = filterValue.toLowerCase();
-
-      return searchableColumns.some((column) => {
-        if (column === "from" || column === "to") {
-          const source = row.original[column];
-          const label = source.label;
-          return label?.toLowerCase().includes(searchValue);
-        }
-        const value = row.getValue(column) as string;
-        return value?.toLowerCase().includes(searchValue);
-      });
-    },
-    ...(paginationOptions ? { manualPagination: true, ...paginationOptions } : {}),
+    manualPagination: true,
+    ...paginationOptions,
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
-      globalFilter,
-      ...(pagination ? { pagination } : {}),
+      pagination,
     },
   });
 
@@ -652,10 +497,28 @@ function TransactionTable({
             type="search"
             id="searchCommand"
             placeholder="Recherche par référence, libellé, source, destination..."
-            value={searchFilter}
-            onChange={(event) => setSearchFilter(event.target.value)}
+            value={searchText}
+            onChange={(event) => {
+              setSearchText(event.target.value);
+              if (event.target.value === "") {
+                setCustomFilters({ ...customFilters, search: "" });
+              }
+            }}
+            onKeyDown={(event) => {
+              if (event.key === "Enter") {
+                setCustomFilters({ ...customFilters, search: searchText });
+              }
+            }}
             className="max-w-md h-10 bg-background"
           />
+          <Button
+            className="h-10"
+            onClick={() =>
+              setCustomFilters({ ...customFilters, search: searchText })
+            }
+          >
+            {"Rechercher"}
+          </Button>
           <Sheet>
             <SheetTrigger asChild className="w-fit">
               <Button variant={"outline"}>
@@ -682,10 +545,10 @@ function TransactionTable({
                           className="w-full justify-between"
                         >
                           <span className="truncate">
-                            {typeFilter === "all"
+                            {customFilters.type === "all"
                               ? "Tous les types"
                               : TRANSACTION_TYPES.find(
-                                  (t) => t.value === typeFilter,
+                                  (t) => t.value === customFilters.type,
                                 )?.name || "Sélectionner"}
                           </span>
                           <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
@@ -707,10 +570,12 @@ function TransactionTable({
                         <DropdownMenuSeparator />
                         <DropdownMenuItem
                           onClick={() => {
-                            setTypeFilter("all");
+                            setCustomFilters({ ...customFilters, type: "all" });
                             setTypeSearch("");
                           }}
-                          className={typeFilter === "all" ? "bg-accent" : ""}
+                          className={
+                            customFilters.type === "all" ? "bg-accent" : ""
+                          }
                         >
                           <span>Tous les types</span>
                         </DropdownMenuItem>
@@ -724,11 +589,16 @@ function TransactionTable({
                             <DropdownMenuItem
                               key={t.value}
                               onClick={() => {
-                                setTypeFilter(t.value);
+                                setCustomFilters({
+                                  ...customFilters,
+                                  type: t.value,
+                                });
                                 setTypeSearch("");
                               }}
                               className={
-                                typeFilter === t.value ? "bg-accent" : ""
+                                customFilters.type === t.value
+                                  ? "bg-accent"
+                                  : ""
                               }
                             >
                               <span>{t.name}</span>
@@ -760,10 +630,11 @@ function TransactionTable({
                         className="w-full justify-between"
                       >
                         <span className="truncate">
-                          {bankFilter === "all"
+                          {customFilters.bankId === "all"
                             ? "Tous les comptes"
-                            : banks.find((b) => String(b.id) === bankFilter)
-                                ?.label || "Sélectionner"}
+                            : banks.find(
+                                (b) => String(b.id) === customFilters.bankId,
+                              )?.label || "Sélectionner"}
                         </span>
                         <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
                       </Button>
@@ -784,10 +655,12 @@ function TransactionTable({
                       <DropdownMenuSeparator />
                       <DropdownMenuItem
                         onClick={() => {
-                          setBankFilter("all");
+                          setCustomFilters({ ...customFilters, bankId: "all" });
                           setBankSearch("");
                         }}
-                        className={bankFilter === "all" ? "bg-accent" : ""}
+                        className={
+                          customFilters.bankId === "all" ? "bg-accent" : ""
+                        }
                       >
                         <span>Tous les comptes</span>
                       </DropdownMenuItem>
@@ -802,11 +675,16 @@ function TransactionTable({
                           <DropdownMenuItem
                             key={bank.id}
                             onClick={() => {
-                              setBankFilter(String(bank.id));
+                              setCustomFilters({
+                                ...customFilters,
+                                bankId: String(bank.id),
+                              });
                               setBankSearch("");
                             }}
                             className={
-                              bankFilter === String(bank.id) ? "bg-accent" : ""
+                              customFilters.bankId === String(bank.id)
+                                ? "bg-accent"
+                                : ""
                             }
                           >
                             <span className="truncate">{bank.label}</span>
@@ -829,78 +707,38 @@ function TransactionTable({
 
                 {/* Montant */}
                 <div className="grid gap-1.5">
-                  <Label>{"Montant"}</Label>
-                  <span className="grid gap-1.5 grid-cols-2">
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          className="w-full justify-between"
-                        >
-                          <span className="truncate">
-                            {amountTypeFilter === "aucun"
-                              ? "Aucun"
-                              : amountTypeFilter === "greater"
-                                ? "Supérieur"
-                                : amountTypeFilter === "equal"
-                                  ? "Égal"
-                                  : amountTypeFilter === "inferior"
-                                    ? "Inférieur"
-                                    : "Sélectionner"}
-                          </span>
-                          <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                        <DropdownMenuItem
-                          onClick={() => setAmountTypeFilter("aucun")}
-                          className={
-                            amountTypeFilter === "aucun" ? "bg-accent" : ""
-                          }
-                        >
-                          <span>Aucun</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setAmountTypeFilter("greater")}
-                          className={
-                            amountTypeFilter === "greater" ? "bg-accent" : ""
-                          }
-                        >
-                          <span>Supérieur</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setAmountTypeFilter("equal")}
-                          className={
-                            amountTypeFilter === "equal" ? "bg-accent" : ""
-                          }
-                        >
-                          <span>Égal</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem
-                          onClick={() => setAmountTypeFilter("inferior")}
-                          className={
-                            amountTypeFilter === "inferior" ? "bg-accent" : ""
-                          }
-                        >
-                          <span>Inférieur</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <div className="relative">
-                      <Input
-                        type="number"
-                        placeholder="Ex. 250 000"
-                        value={amountFilter ?? 0}
-                        onChange={(e) =>
-                          setAmountFilter(Number(e.target.value))
-                        }
-                        className="w-full pr-12"
-                      />
-                      <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                        {"FCFA"}
-                      </span>
-                    </div>
-                  </span>
+                  <Label>{"Montant minimum"}</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="Ex. 250 000"
+                      value={amountMinText}
+                      onChange={(e) => setAmountMinText(e.target.value)}
+                      onBlur={applyAmounts}
+                      onKeyDown={(e) => e.key === "Enter" && applyAmounts()}
+                      className="w-full pr-12"
+                    />
+                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                      {"FCFA"}
+                    </span>
+                  </div>
+                </div>
+                <div className="grid gap-1.5">
+                  <Label>{"Montant maximum"}</Label>
+                  <div className="relative">
+                    <Input
+                      type="number"
+                      placeholder="Ex. 1 000 000"
+                      value={amountMaxText}
+                      onChange={(e) => setAmountMaxText(e.target.value)}
+                      onBlur={applyAmounts}
+                      onKeyDown={(e) => e.key === "Enter" && applyAmounts()}
+                      className="w-full pr-12"
+                    />
+                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                      {"FCFA"}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Période */}
@@ -913,17 +751,17 @@ function TransactionTable({
                         className="w-full justify-between"
                       >
                         <span className="truncate">
-                          {dateFilter === undefined
+                          {customFilters.date === undefined
                             ? "Toutes les périodes"
-                            : dateFilter === "today"
+                            : customFilters.date === "today"
                               ? "Aujourd'hui"
-                              : dateFilter === "week"
+                              : customFilters.date === "week"
                                 ? "Cette semaine"
-                                : dateFilter === "month"
+                                : customFilters.date === "month"
                                   ? "Ce mois"
-                                  : dateFilter === "year"
+                                  : customFilters.date === "year"
                                     ? "Cette année"
-                                    : dateFilter === "custom"
+                                    : customFilters.date === "custom"
                                       ? "Personnalisé"
                                       : "Sélectionner"}
                         </span>
@@ -933,56 +771,57 @@ function TransactionTable({
                     <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
                       <DropdownMenuItem
                         onClick={() => {
-                          setDateFilter(undefined);
-                          setCustomDateRange(undefined);
+                          setCustomFilters({
+                            ...customFilters,
+                            date: undefined,
+                            from: "",
+                            to: "",
+                          });
                           setCustomOpen(false);
                         }}
-                        className={dateFilter === undefined ? "bg-accent" : ""}
+                        className={
+                          customFilters.date === undefined ? "bg-accent" : ""
+                        }
                       >
                         <span>Toutes les périodes</span>
                       </DropdownMenuItem>
+                      {(
+                        [
+                          ["today", "Aujourd'hui"],
+                          ["week", "Cette semaine"],
+                          ["month", "Ce mois"],
+                          ["year", "Cette année"],
+                        ] as const
+                      ).map(([value, label]) => (
+                        <DropdownMenuItem
+                          key={value}
+                          onClick={() => {
+                            setCustomFilters({
+                              ...customFilters,
+                              date: value,
+                              from: "",
+                              to: "",
+                            });
+                            setCustomOpen(false);
+                          }}
+                          className={
+                            customFilters.date === value ? "bg-accent" : ""
+                          }
+                        >
+                          <span>{label}</span>
+                        </DropdownMenuItem>
+                      ))}
                       <DropdownMenuItem
                         onClick={() => {
-                          setDateFilter("today");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "today" ? "bg-accent" : ""}
-                      >
-                        <span>{"Aujourd'hui"}</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("week");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "week" ? "bg-accent" : ""}
-                      >
-                        <span>Cette semaine</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("month");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "month" ? "bg-accent" : ""}
-                      >
-                        <span>Ce mois</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("year");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "year" ? "bg-accent" : ""}
-                      >
-                        <span>Cette année</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("custom");
+                          setCustomFilters({
+                            ...customFilters,
+                            date: "custom",
+                          });
                           setCustomOpen(true);
                         }}
-                        className={dateFilter === "custom" ? "bg-accent" : ""}
+                        className={
+                          customFilters.date === "custom" ? "bg-accent" : ""
+                        }
                       >
                         <span>Personnalisé</span>
                       </DropdownMenuItem>
@@ -992,7 +831,7 @@ function TransactionTable({
                   <Collapsible
                     open={customOpen}
                     onOpenChange={setCustomOpen}
-                    disabled={dateFilter !== "custom"}
+                    disabled={customFilters.date !== "custom"}
                   >
                     <CollapsibleTrigger asChild>
                       <Button
@@ -1001,11 +840,11 @@ function TransactionTable({
                       >
                         {"Plage personnalisée"}
                         <span className="text-muted-foreground text-xs">
-                          {customDateRange?.from && customDateRange.to
+                          {customFilters.from && customFilters.to
                             ? `${format(
-                                customDateRange.from,
+                                new Date(customFilters.from),
                                 "dd/MM/yyyy",
-                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                              )} → ${format(new Date(customFilters.to), "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
                       </Button>
@@ -1014,13 +853,24 @@ function TransactionTable({
                     <CollapsibleContent className="space-y-4 pt-4">
                       <Calendar
                         mode="range"
-                        selected={customDateRange}
+                        selected={{
+                          from: customFilters.from
+                            ? new Date(customFilters.from)
+                            : undefined,
+                          to: customFilters.to
+                            ? new Date(customFilters.to)
+                            : undefined,
+                        }}
                         onSelect={(range) => {
                           if (!range?.from || !range?.to) return;
                           const from = new Date(range.from);
                           const to = new Date(range.to);
                           to.setHours(23, 59, 59, 999);
-                          setCustomDateRange({ from, to });
+                          setCustomFilters({
+                            ...customFilters,
+                            from: from.toISOString(),
+                            to: to.toISOString(),
+                          });
                         }}
                         numberOfMonths={1}
                         className="rounded-md border w-full"
@@ -1029,8 +879,12 @@ function TransactionTable({
                         <Button
                           className="w-full"
                           onClick={() => {
-                            setCustomDateRange(undefined);
-                            setDateFilter(undefined);
+                            setCustomFilters({
+                              ...customFilters,
+                              date: undefined,
+                              from: "",
+                              to: "",
+                            });
                             setCustomOpen(false);
                           }}
                         >
@@ -1039,9 +893,7 @@ function TransactionTable({
                         <Button
                           className="w-full"
                           variant={"outline"}
-                          onClick={() => {
-                            setCustomOpen(false);
-                          }}
+                          onClick={() => setCustomOpen(false)}
                         >
                           {"Réduire"}
                         </Button>
@@ -1054,7 +906,10 @@ function TransactionTable({
                 <div className="flex items-end">
                   <Button
                     variant="outline"
-                    onClick={resetAllFilters}
+                    onClick={() => {
+                      setCustomOpen(false);
+                      resetAllFilters();
+                    }}
                     className="w-full"
                   >
                     {"Réinitialiser"}
@@ -1119,7 +974,7 @@ function TransactionTable({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Transactions (${data.length})`}</h3>
+      <h3>{`Transactions (${paginationOptions.rowCount ?? data.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

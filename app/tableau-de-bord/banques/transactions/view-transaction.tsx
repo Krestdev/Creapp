@@ -358,7 +358,7 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Besoins associés"}</p>
                   <div className="flex flex-col">
-                    {transaction.payementappro &&
+                    {!!transaction.payementappro &&
                       transaction.payementappro.map((item, i) => (
                         <span
                           key={item.id}

@@ -10,7 +10,19 @@ import { transactionQ, TransactionParams } from "@/queries/transaction";
 import { NavLink } from "@/types/types";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import React, { useState } from "react";
-import TransactionTable from "./transaction-table";
+import TransactionTable, { TransactionFilters } from "./transaction-table";
+
+const defaultCustomFilters: TransactionFilters = {
+  search: "",
+  status: "all",
+  type: "all",
+  bankId: "all",
+  date: undefined,
+  from: "",
+  to: "",
+  amountMin: undefined,
+  amountMax: undefined,
+};
 
 function Page() {
   const links: Array<NavLink> = [
@@ -21,17 +33,8 @@ function Page() {
   ];
 
   const { filters, setFilters } = useFilters();
-  const [customFilters, setCustomFilters] = useState({
-    search: "",
-    status: "all",
-    type: "all",
-    bankId: "all",
-    date: undefined as string | undefined,
-    from: "",
-    to: "",
-    amountMin: undefined as number | undefined,
-    amountMax: undefined as number | undefined,
-  });
+  const [customFilters, setCustomFilters] =
+    useState<TransactionFilters>(defaultCustomFilters);
 
   const transactionsParams: TransactionParams = {
     pageIndex: filters.pageIndex,
@@ -63,18 +66,14 @@ function Page() {
     queryFn: userQ.getAll,
   });
 
+  // Tout changement de filtre renvoie à la première page
+  const updateCustomFilters = (next: TransactionFilters) => {
+    setCustomFilters(next);
+    setFilters((prev) => ({ ...prev, pageIndex: 0 }));
+  };
+
   const resetAllFilters = () => {
-    setCustomFilters({
-      search: "",
-      status: "all",
-      type: "all",
-      bankId: "all",
-      date: undefined,
-      from: "",
-      to: "",
-      amountMin: undefined,
-      amountMax: undefined,
-    });
+    setCustomFilters(defaultCustomFilters);
     setFilters({ pageIndex: 0, pageSize: 30 });
   };
 
@@ -126,7 +125,7 @@ function Page() {
             pageSize: filters.pageSize,
           }}
           customFilters={customFilters}
-          setCustomFilters={setCustomFilters}
+          setCustomFilters={updateCustomFilters}
           resetAllFilters={resetAllFilters}
         />
       </div>
