@@ -38,7 +38,12 @@ import {
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { transactionQ, TransactionApprovalParams } from "@/queries/transaction";
-import { DateFilter, Transaction, User } from "@/types/types";
+import {
+  DateFilter,
+  Transaction,
+  TransferTransaction,
+  User,
+} from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   type ColumnDef,
@@ -81,7 +86,7 @@ export interface ApprovalFilters {
 }
 
 interface Props {
-  data: Array<Transaction>;
+  data: Array<TransferTransaction>;
   users: Array<User>;
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
   pagination: PaginationState;

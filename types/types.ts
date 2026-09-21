@@ -220,8 +220,8 @@ export type RequestModelT = {
   period?: DateRange | undefined;
   paytype?: "cash" | "chq" | "ov";
   beficiaryList?:
-  | { id: number; firstName: string; lastName: string; email: string }[]
-  | null;
+    | { id: number; firstName: string; lastName: string; email: string }[]
+    | null;
   state: (typeof REQUEST_STATUS)[number]["value"] | "DISCARDED";
   priority: Priority;
   projectId?: number;
@@ -766,6 +766,7 @@ export type TransferTransaction = TransactionBase & {
   signers: Array<TransactionSigners>;
   signDoc?: string;
   payments: Array<PaymentRequest>;
+  payementappro?: Array<PaymentRequest>;
 };
 
 export type Transaction =
@@ -892,7 +893,7 @@ export type StatsPerVehicle = {
   vehicle: number;
   liters: number;
   total: number;
-}
+};
 export type VehicleStats = {
   statsPerVehicle: StatsPerVehicle[];
   globalVehicleStats: {

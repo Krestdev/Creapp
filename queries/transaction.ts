@@ -1,5 +1,5 @@
 import api from "@/providers/axios";
-import { Transaction } from "@/types/types";
+import { Transaction, TransferTransaction } from "@/types/types";
 
 export interface TransactionParams {
   pageIndex?: number | undefined;
@@ -107,13 +107,23 @@ class TransactionQuery {
   getApprovalTransactions = async (
     params?: TransactionApprovalParams,
   ): Promise<{
-    data: { transactions: Array<Transaction>; total?: number };
+    data: { transactions: Array<TransferTransaction>; total?: number };
   }> => {
     return api
       .get(`${this.route}/transfer/approvals`, { params })
       .then((response) => {
         return response.data;
       });
+  };
+
+  getSignatureTransfers = async (
+    params?: TransactionApprovalParams,
+  ): Promise<{
+    data: { transactions: Array<TransferTransaction>; total?: number };
+  }> => {
+    return api.get(`${this.route}/transfer`, { params }).then((response) => {
+      return response.data;
+    });
   };
 
   getOne = async (id: number): Promise<{ data: Transaction }> => {

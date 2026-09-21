@@ -6,35 +6,58 @@ import {
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { useStore } from "@/providers/datastore";
-import { bankQ } from "@/queries/bank";
-import { payTypeQ } from "@/queries/payType";
-import { signatairQ } from "@/queries/signatair";
-import { transactionQ } from "@/queries/transaction";
-import { TransferTransaction } from "@/types/types";
-import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
-import SignTransfers from "./sign-transfers";
-import { userQ } from "@/queries/baseModule";
 import { queryKeys } from "@/lib/query-keys";
+import { bankQ } from "@/queries/bank";
+import { userQ } from "@/queries/baseModule";
 import { useFilters } from "@/queries/filters/standard-filter";
+import { payTypeQ } from "@/queries/payType";
+import {
+  transactionQ,
+  TransactionApprovalParams,
+} from "@/queries/transaction";
+import { keepPreviousData, useQuery } from "@tanstack/react-query";
+import { useState } from "react";
+import SignTransfers, { SignatureFilters } from "./sign-transfers";
+
+const defaultCustomFilters: SignatureFilters = {
+  search: "",
+  tab: "PENDING",
+  bankId: "all",
+  date: undefined,
+  from: "",
+  to: "",
+  amountMin: undefined,
+  amountMax: undefined,
+};
 
 function Page() {
-  const { filters } = useFilters();
-  const transactionsParams = {
+  const { filters, setFilters } = useFilters();
+  const [customFilters, setCustomFilters] =
+    useState<SignatureFilters>(defaultCustomFilters);
+
+  const signatureParams: TransactionApprovalParams = {
     pageIndex: filters.pageIndex,
     pageSize: filters.pageSize,
-    type: "TRANSFER" as const,
+    tab: customFilters.tab,
+    search: customFilters.search || undefined,
+    bankId:
+      customFilters.bankId !== "all" ? Number(customFilters.bankId) : undefined,
+    date: customFilters.date,
+    from: customFilters.from || undefined,
+    to: customFilters.to || undefined,
+    amountMin: customFilters.amountMin,
+    amountMax: customFilters.amountMax,
   };
+
   const { data, isSuccess, isError, error, isLoading } = useQuery({
-    queryKey: queryKeys.signatureTransfersList(transactionsParams),
-    queryFn: () => transactionQ.getAll(transactionsParams),
+    queryKey: queryKeys.signatureTransfersList(signatureParams),
+    queryFn: () => transactionQ.getSignatureTransfers(signatureParams),
     placeholderData: keepPreviousData,
   });
 
-  const signatair = useQuery({
-    queryKey: queryKeys.signataires,
-    queryFn: signatairQ.getAll,
+  const pendingCount = useQuery({
+    queryKey: queryKeys.pendingToSignTransfersCount,
+    queryFn: () => transactionQ.getPendingToSignCount(),
   });
   const getBanks = useQuery({
     queryKey: queryKeys.banks,
@@ -44,63 +67,22 @@ function Page() {
     queryKey: queryKeys.paymentTypes,
     queryFn: payTypeQ.getAll,
   });
-
   const getUsers = useQuery({
     queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
 
-  const { user } = useStore();
-
-  /* function canSign(bankId:number,payTypeId:number){
-  const signers = signatair.data?.data.find(x=>x.bankId === bankId && x.payTypeId === payTypeId )?.user?.some(u=> u.id === user?.id);
-  return !!signers ;
-  } */
-
-  // Calculs mémoïsés pour éviter les recalculs inutiles
-  const filteredData: Array<TransferTransaction> = useMemo(() => {
-    if (!data || !signatair.data) return [];
-    return data.data.transactions
-      .filter((t) => t.Type === "TRANSFER")
-      .filter((t) => {
-        if (!t.methodId) return false;
-        if (t.from.type === "BANK") {
-          return signatair.data.data
-            .find((x) => x.bankId === t.from.id && x.payTypeId === t.method?.id)
-            ?.user?.some((u) => u.id === user?.id);
-        }
-        return false;
-      });
-  }, [data, signatair.data, user?.id]);
-
-  //console.log(filteredData);
-  const unsigned = filteredData.filter(
-    (t) =>
-      t.isSigned === false && !t.signers.find((s) => s.userId === user?.id),
-  );
-  //console.log(unsigned);
-  const signed = filteredData.filter(
-    (t) => !!t.signers?.find((s) => s.userId === user?.id),
-  );
-  const signedByOthers = filteredData.filter(
-    (t) =>
-      t.isSigned === true && !t.signers?.find((s) => s.userId === user?.id),
-  );
+  // Tout changement de filtre ou d'onglet renvoie à la première page
+  const updateCustomFilters = (next: SignatureFilters) => {
+    setCustomFilters(next);
+    setFilters((prev) => ({ ...prev, pageIndex: 0 }));
+  };
 
   const statistics: Array<StatisticProps> = [
     {
       title: "En attente signature",
-      value: unsigned.length,
+      value: pendingCount.data?.data ?? 0,
       variant: "primary",
-    },
-    {
-      title: "Signés",
-      value: signed.length,
-      variant: "success",
-      more: {
-        title: "Signé par un autre signataire",
-        value: signedByOthers.length,
-      },
     },
   ];
 
@@ -108,26 +90,18 @@ function Page() {
     isLoading ||
     getBanks.isLoading ||
     getPayType.isLoading ||
-    signatair.isLoading ||
     getUsers.isLoading
   ) {
     return <LoadingPage />;
   }
 
-  if (
-    isError ||
-    getBanks.isError ||
-    getPayType.isError ||
-    signatair.isError ||
-    getUsers.isError
-  ) {
+  if (isError || getBanks.isError || getPayType.isError || getUsers.isError) {
     return (
       <ErrorPage
         error={
           error ||
           getBanks.error ||
           getPayType.error ||
-          signatair.error ||
           getUsers.error ||
           undefined
         }
@@ -139,7 +113,6 @@ function Page() {
     isSuccess &&
     getBanks.isSuccess &&
     getPayType.isSuccess &&
-    signatair.isSuccess &&
     getUsers.isSuccess
   ) {
     return (
@@ -151,15 +124,41 @@ function Page() {
         />
 
         <div className="h-fit grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
-          {statistics.map((data, id) => (
-            <StatisticCard key={id} {...data} className="h-full" />
+          {statistics.map((stat, id) => (
+            <StatisticCard key={id} {...stat} className="h-full" />
           ))}
         </div>
         <SignTransfers
-          data={filteredData}
+          data={data.data.transactions}
           banks={getBanks.data.data}
           paymentMethods={getPayType.data.data}
           users={getUsers.data.data}
+          pendingCount={pendingCount.data?.data}
+          paginationOptions={{
+            onPaginationChange: (updater) => {
+              setFilters((prev) => {
+                const next =
+                  typeof updater === "function"
+                    ? updater({
+                        pageIndex: prev.pageIndex,
+                        pageSize: prev.pageSize,
+                      })
+                    : updater;
+                return { ...prev, ...next };
+              });
+            },
+            rowCount: data.data.total ?? data.data.transactions.length,
+          }}
+          pagination={{
+            pageIndex: filters.pageIndex,
+            pageSize: filters.pageSize,
+          }}
+          customFilters={customFilters}
+          setCustomFilters={updateCustomFilters}
+          resetAllFilters={() => {
+            setCustomFilters(defaultCustomFilters);
+            setFilters({ pageIndex: 0, pageSize: 30 });
+          }}
         />
       </div>
     );

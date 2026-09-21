@@ -358,24 +358,25 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
                 <div className="flex flex-col">
                   <p className="view-group-title">{"Besoins associés"}</p>
                   <div className="flex flex-col">
-                    {transaction.payments.map((item, i) => (
-                      <span
-                        key={item.id}
-                        className={`p-1.5 w-full grid grid-cols-2 gap-2 justify-between text-sm ${i % 2 === 0 ? "bg-gray-100" : ""}`}
-                      >
-                        <p className="line-clamp-1">{item.title}</p>
-                        <div className="grid grid-cols-2 items-center max-w-[300px]">
-                          <p>{XAF.format(item.price ?? 0)}</p>
-                          <Badge
-                            variant={
-                              getPaiementStatusBadge(item.status).variant
-                            }
-                          >
-                            {getPaiementStatusBadge(item.status).label}
-                          </Badge>
-                        </div>
-                      </span>
-                    ))}
+                    {transaction.payementappro &&
+                      transaction.payementappro.map((item, i) => (
+                        <span
+                          key={item.id}
+                          className={`p-1.5 w-full grid grid-cols-2 gap-2 justify-between text-sm ${i % 2 === 0 ? "bg-gray-100" : ""}`}
+                        >
+                          <p className="line-clamp-1">{item.title}</p>
+                          <div className="grid grid-cols-2 items-center max-w-[300px]">
+                            <p>{XAF.format(item.price ?? 0)}</p>
+                            <Badge
+                              variant={
+                                getPaiementStatusBadge(item.status).variant
+                              }
+                            >
+                              {getPaiementStatusBadge(item.status).label}
+                            </Badge>
+                          </div>
+                        </span>
+                      ))}
                   </div>
                 </div>
               </div>
