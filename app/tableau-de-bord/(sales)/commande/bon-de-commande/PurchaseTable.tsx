@@ -598,7 +598,7 @@ export function PurchaseTable({
       return (
         String(po.reference).includes(s.toLocaleLowerCase()) ||
         String(po.id).includes(s) ||
-        String(po.deviId).includes(s) ||
+        String(po.devi.ref).includes(s) ||
         String(po.providerId).includes(s) ||
         statusText.includes(s) ||
         priorityText.includes(s) ||
