@@ -365,7 +365,8 @@ export function PurchaseTable({
       ),
       cell: ({ row }) => {
         const name: BonsCommande["devi"] = row.getValue("devi");
-        if (!name?.commandRequest) return <p className="text-muted-foreground">N/A</p>;
+        if (!name?.commandRequest)
+          return <p className="text-muted-foreground">N/A</p>;
         return (
           <>
             {subText({ text: name.commandRequest.title, length: 21 })} -{" "}
@@ -595,6 +596,7 @@ export function PurchaseTable({
         `${po.devi?.commandRequest?.title ?? ""} ${po.devi?.commandRequest?.reference ?? ""}`.toLowerCase();
 
       return (
+        String(po.reference).includes(s.toLocaleLowerCase()) ||
         String(po.id).includes(s) ||
         String(po.deviId).includes(s) ||
         String(po.providerId).includes(s) ||
