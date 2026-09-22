@@ -129,30 +129,12 @@ function TransferTable({
 
   // Saisies locales, appliquées au backend sur Entrée / clic / blur
   const [searchText, setSearchText] = React.useState(customFilters.search);
-  const [amountMinText, setAmountMinText] = React.useState(
-    customFilters.amountMin?.toString() ?? "",
-  );
-  const [amountMaxText, setAmountMaxText] = React.useState(
-    customFilters.amountMax?.toString() ?? "",
-  );
   React.useEffect(() => {
     setSearchText(customFilters.search);
   }, [customFilters.search]);
-  React.useEffect(() => {
-    setAmountMinText(customFilters.amountMin?.toString() ?? "");
-    setAmountMaxText(customFilters.amountMax?.toString() ?? "");
-  }, [customFilters.amountMin, customFilters.amountMax]);
 
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
   const [showSolde, setShowSolde] = React.useState<boolean>(false);
-
-  const applyAmounts = () => {
-    const min = amountMinText.trim() === "" ? undefined : Number(amountMinText);
-    const max = amountMaxText.trim() === "" ? undefined : Number(amountMaxText);
-    if (min === customFilters.amountMin && max === customFilters.amountMax)
-      return;
-    setCustomFilters({ ...customFilters, amountMin: min, amountMax: max });
-  };
 
   const approve = useMutation({
     mutationFn: async ({ id }: { id: number }) =>
@@ -448,10 +430,13 @@ function TransferTable({
                     <Input
                       type="number"
                       placeholder="Ex. 250 000"
-                      value={amountMinText}
-                      onChange={(e) => setAmountMinText(e.target.value)}
-                      onBlur={applyAmounts}
-                      onKeyDown={(e) => e.key === "Enter" && applyAmounts()}
+                      value={customFilters.amountMin?.toString() ?? ""}
+                      onChange={(e) =>
+                        setCustomFilters({
+                          ...customFilters,
+                          amountMin: Number(e.target.value),
+                        })
+                      }
                       className="w-full pr-12"
                     />
                     <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
@@ -466,10 +451,13 @@ function TransferTable({
                     <Input
                       type="number"
                       placeholder="Ex. 1 000 000"
-                      value={amountMaxText}
-                      onChange={(e) => setAmountMaxText(e.target.value)}
-                      onBlur={applyAmounts}
-                      onKeyDown={(e) => e.key === "Enter" && applyAmounts()}
+                      value={customFilters.amountMax?.toString() ?? ""}
+                      onChange={(e) =>
+                        setCustomFilters({
+                          ...customFilters,
+                          amountMax: Number(e.target.value),
+                        })
+                      }
                       className="w-full pr-12"
                     />
                     <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
