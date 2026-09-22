@@ -370,9 +370,7 @@ export function PurchaseTable({
         return (
           <>
             {subText({ text: name.commandRequest.title, length: 21 })} -{" "}
-            <span className="text-red-500">
-              {name.commandRequest.reference}
-            </span>
+            <span className="text-red-500">{name.ref}</span>
           </>
         );
       },
