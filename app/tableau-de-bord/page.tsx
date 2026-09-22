@@ -32,6 +32,7 @@ import { queryKeys } from "@/lib/query-keys";
 import { isRole, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
+import { receptionQ } from "@/queries/reception";
 import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { DateFilter } from "@/types/types";
@@ -83,6 +84,16 @@ const DashboardPage = () => {
     roleList: user?.role ?? [],
     role: "SUPERADMIN",
   });
+  // Rôles ayant accès au module Achats/Commandes (même périmètre que le
+  // layout de "(sales)"), pour n'afficher les stats de réception qu'à eux.
+  const canSeeReceptions =
+    isRole({ roleList: user?.role ?? [], role: "achat" }) ||
+    isRole({ roleList: user?.role ?? [], role: "Donner d'ordre achat" }) ||
+    isRole({
+      roleList: user?.role ?? [],
+      role: "Donneur d'ordre décaissement",
+    }) ||
+    super_admin;
 
   const getRequestsStats = useQuery({
     queryKey: queryKeys.dashboardStats(dateFilter, customFilters),
@@ -152,6 +163,12 @@ const DashboardPage = () => {
   const requestType = useQuery({
     queryKey: queryKeys.requestTypes,
     queryFn: requestTypeQ.getAll,
+  });
+
+  const getReceptions = useQuery({
+    queryKey: queryKeys.receptions,
+    queryFn: receptionQ.getAll,
+    enabled: !!user?.id && canSeeReceptions,
   });
 
   const filterByDate = React.useCallback(
@@ -257,6 +274,10 @@ const DashboardPage = () => {
   const filteredTotalPaid = React.useMemo(() => {
     return filteredPayments.reduce((acc, p) => acc + (p.price || 0), 0);
   }, [filteredPayments]);
+
+  const filteredReceptions = React.useMemo(() => {
+    return filterByDate(getReceptions.data?.data || []);
+  }, [getReceptions.data?.data, filterByDate]);
 
   const requestTypeDistributionData = React.useMemo(() => {
     // Utiliser filteredAll si disponible (ex: pour les admins), sinon filteredSubmited
@@ -449,6 +470,45 @@ const DashboardPage = () => {
       },
     ];
 
+    const receptionStatistics: Array<StatisticProps> = [
+      {
+        title: "Total réceptions",
+        value: String(filteredReceptions.length),
+        variant: "default",
+        more: {
+          title: "Réceptions complétées",
+          value: String(
+            filteredReceptions.filter((r) => r.Status === "COMPLETED").length,
+          ),
+        },
+      },
+      {
+        title: "Réceptions en attente",
+        value: String(
+          filteredReceptions.filter(
+            (r) => r.Status === "PENDING" || r.Status === "PARTIAL",
+          ).length,
+        ),
+        variant: "primary",
+        more: {
+          title: "Réceptions partielles",
+          value: String(
+            filteredReceptions.filter((r) => r.Status === "PARTIAL").length,
+          ),
+        },
+      },
+      {
+        title: "Réceptions en retard",
+        value: String(
+          filteredReceptions.filter(
+            (r) =>
+              r.Status !== "COMPLETED" && new Date(r.Deadline) < new Date(),
+          ).length,
+        ),
+        variant: "destructive",
+      },
+    ];
+
     console.log("distribution data", requestTypeDistributionData);
 
     return (
@@ -487,28 +547,43 @@ const DashboardPage = () => {
         </div>
 
         {/* Cartes de statistiques */}
-        <div className="grid-stats-4">
-          {statistics
-            .filter((item) => {
-              if (
-                user.role.some(
-                  (r) =>
-                    r.label === "VOLT_MANAGER" ||
-                    r.label === "ADMIN" ||
-                    r.label === "SUPERADMIN",
-                )
-              ) {
-                return true;
-              }
-              if (user.validators && user.validators.length > 0) {
-                return item.title !== "Total besoins soumis";
-              }
-              return item.title === "Mes besoins soumis";
-            })
-            .map((item) => (
-              <StatisticCard key={item.title} {...item} />
-            ))}
+        <div className="flex flex-col gap-2">
+          <h3 className="font-semibold">{"Besoins"}</h3>
+          <div className="grid-stats-4">
+            {statistics
+              .filter((item) => {
+                if (
+                  user.role.some(
+                    (r) =>
+                      r.label === "VOLT_MANAGER" ||
+                      r.label === "ADMIN" ||
+                      r.label === "SUPERADMIN",
+                  )
+                ) {
+                  return true;
+                }
+                if (user.validators && user.validators.length > 0) {
+                  return item.title !== "Total besoins soumis";
+                }
+                return item.title === "Mes besoins soumis";
+              })
+              .map((item) => (
+                <StatisticCard key={item.title} {...item} />
+              ))}
+          </div>
         </div>
+
+        {/* Cartes de statistiques: Réceptions */}
+        {canSeeReceptions && getReceptions.isSuccess && (
+          <div className="flex flex-col gap-2">
+            <h3 className="font-semibold">{"Réceptions"}</h3>
+            <div className="grid-stats-4">
+              {receptionStatistics.map((item) => (
+                <StatisticCard key={item.title} {...item} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Barchart: Type de besoins soumis */}
         {manager && (

@@ -250,10 +250,19 @@ export function ReceptionTable({ data, devis, cmdReqst, purchases }: Props) {
       ),
       cell: ({ row }) => {
         const base = row.getValue("Deadline") as string;
+        const deadline = new Date(base);
+        const isLate = deadline < new Date() && row.original.Status !== "COMPLETED";
         return (
-          <p className="normal-case">
-            {format(new Date(base), "dd MMMM yyyy", { locale: fr })}
-          </p>
+          <div>
+            <p className="normal-case">
+              {format(deadline, "dd MMMM yyyy", { locale: fr })}
+            </p>
+            {isLate && (
+              <p className="text-xs font-medium text-destructive">
+                {"En retard"}
+              </p>
+            )}
+          </div>
         );
       },
     },
