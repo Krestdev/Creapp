@@ -523,7 +523,7 @@ export function PurchaseTable({
                   setSelectedValue(item);
                   setEdit(true);
                 }}
-                disabled={item.status === "APPROVED"}
+                //disabled={item.status === "APPROVED"}
               >
                 <Pencil />
                 {"Modifier"}
