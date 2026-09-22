@@ -35,10 +35,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { transactionQ, TransactionApprovalParams } from "@/queries/transaction";
 import {
+  Bank,
   DateFilter,
   Transaction,
   TransferTransaction,
@@ -78,6 +86,8 @@ import { SoldeDialog } from "./SoldeDialog";
 export interface ApprovalFilters {
   search: string;
   tab: TransactionApprovalParams["tab"];
+  fromBankId: string;
+  toBankId: string;
   date: DateFilter;
   from: string;
   to: string;
@@ -87,6 +97,7 @@ export interface ApprovalFilters {
 
 interface Props {
   data: Array<TransferTransaction>;
+  banks: Array<Bank>;
   users: Array<User>;
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
   pagination: PaginationState;
@@ -97,6 +108,7 @@ interface Props {
 
 function TransferTable({
   data,
+  banks,
   users,
   paginationOptions,
   pagination,
@@ -424,6 +436,54 @@ function TransferTable({
                 </SheetDescription>
               </SheetHeader>
               <div className="px-5 grid gap-5">
+                <div className="grid gap-1.5">
+                  <Label>{"Compte source"}</Label>
+                  <Select
+                    value={customFilters.fromBankId}
+                    onValueChange={(fromBankId) =>
+                      setCustomFilters({ ...customFilters, fromBankId })
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un compte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {banks
+                        .filter((b) => !!b.type)
+                        .map((bank) => (
+                          <SelectItem key={bank.id} value={String(bank.id)}>
+                            {bank.label}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-1.5">
+                  <Label>{"Compte destinataire"}</Label>
+                  <Select
+                    value={customFilters.toBankId}
+                    onValueChange={(toBankId) =>
+                      setCustomFilters({ ...customFilters, toBankId })
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un compte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {banks
+                        .filter((b) => !!b.type)
+                        .map((bank) => (
+                          <SelectItem key={bank.id} value={String(bank.id)}>
+                            {bank.label}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="grid gap-1.5">
                   <Label>{"Montant minimum"}</Label>
                   <div className="relative">
