@@ -161,7 +161,14 @@ function BankTable({ data, canEdit }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.label;
-        return <p className="normal-case">{value}</p>;
+        return (
+          <div className="flex items-center gap-2">
+            <p className="normal-case">{value}</p>
+            {row.original.isTemporary && (
+              <Badge variant="secondary">{"Compte temporaire"}</Badge>
+            )}
+          </div>
+        );
       },
     },
     {
@@ -179,7 +186,13 @@ function BankTable({ data, canEdit }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.balance;
-        return <p className="normal-case">{XAF.format(value)}</p>;
+        const valueTemp = row.original.tempAccount?.balance;
+        return (
+          <p className="normal-case">
+            {XAF.format(value)}{" "}
+            <span>{valueTemp ? `(${XAF.format(valueTemp)})` : ""}</span>
+          </p>
+        );
       },
     },
     {

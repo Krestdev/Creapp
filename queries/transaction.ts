@@ -234,6 +234,22 @@ class TransactionQuery {
     });
   };
 
+  markCheckStatus = async ({
+    id,
+    status,
+    reason,
+    validatorId,
+  }: {
+    id: number;
+    status: "paid" | "rejected";
+    reason?: string;
+    validatorId: number;
+  }): Promise<{ data: Transaction }> => {
+    return api
+      .put(`${this.route}/markCheckStatus/${id}`, { status, reason, validatorId })
+      .then((response) => response.data);
+  };
+
   update = async (
     id: number,
     data: Omit<TransactionProps, "userId" | "updatedAt">,

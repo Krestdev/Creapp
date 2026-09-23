@@ -243,7 +243,9 @@ function ShareExpense({
     if (!banks) return [];
     if (!paymentMethod?.type) {
       // Si pas de méthode de paiement définie, afficher tous les comptes actifs
-      return banks?.filter((x) => x.type !== null && x.Status === true);
+      return banks?.filter(
+        (x) => x.type !== null && x.Status === true && !x.isTemporary,
+      );
     }
 
     const paymentType = paymentMethod.type.toLowerCase();
@@ -253,18 +255,22 @@ function ShareExpense({
         return banks?.filter(
           (bank) =>
             (bank.type === "CASH_REGISTER" || bank.type === "CASH") &&
-            bank.Status === true,
+            bank.Status === true &&
+            !bank.isTemporary,
         );
       case "ov": // Ordre de virement
       case "chq": // Chèque
         // Pour les virements et chèques : banques uniquement
         return banks?.filter(
-          (bank) => bank.type === "BANK" && bank.Status === true,
+          (bank) =>
+            bank.type === "BANK" && bank.Status === true && !bank.isTemporary,
         );
 
       default:
         // Par défaut, afficher tous les comptes actifs
-        return banks?.filter((x) => x.type !== null && x.Status === true);
+        return banks?.filter(
+          (x) => x.type !== null && x.Status === true && !x.isTemporary,
+        );
     }
   }, [banks, paymentMethod?.type, ticket.type]);
 

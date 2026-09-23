@@ -684,6 +684,9 @@ export type Bank = {
   key?: string;
   phoneNum?: string;
   merchantNum?: string;
+  isTemporary?: boolean;
+  tempAccountId?: number | null;
+  tempAccount?: Bank | null;
   createdAt: Date;
   updatedAt?: Date;
 };
@@ -729,6 +732,7 @@ export type TransactionBase = {
   method?: PayType;
   fromBankName?: string;
   toBankName?: string;
+  checkStatus?: "pending" | "paid" | "rejected" | null;
 };
 
 export type DebitTransaction = TransactionBase & {

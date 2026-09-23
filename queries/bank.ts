@@ -22,6 +22,9 @@ class BankQuery {
     formData.append("balance", String(payload.balance));
     formData.append("type", payload.type);
     formData.append("Status", String(payload.Status));
+    formData.append("isTemporary", String(!!payload.isTemporary));
+    if (payload.tempAccountId)
+      formData.append("tempAccountId", String(payload.tempAccountId));
     if (!!payload.accountNumber)
       formData.append("accountNumber", payload.accountNumber);
     if (!!payload.atmCode) formData.append("atmCode", payload.atmCode);
@@ -50,6 +53,9 @@ class BankQuery {
     formData.append("balance", String(payload.balance));
     formData.append("type", payload.type);
     formData.append("Status", String(payload.Status));
+    formData.append("isTemporary", String(!!payload.isTemporary));
+    if (payload.tempAccountId)
+      formData.append("tempAccountId", String(payload.tempAccountId));
     if (!!payload.accountNumber)
       formData.append("accountNumber", payload.accountNumber);
     if (!!payload.atmCode) formData.append("atmCode", payload.atmCode);

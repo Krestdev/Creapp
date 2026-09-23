@@ -89,6 +89,32 @@ function ViewBank({ open, openChange, bank }: Props) {
               </Badge>
             </div>
           </div>
+          {/**Compte temporaire */}
+          <div className="view-group">
+            <span className="view-icon">
+              <Landmark />
+            </span>
+            <div className="flex flex-col">
+              <p className="view-group-title">
+                {bank.isTemporary
+                  ? "Type de compte"
+                  : "Compte temporaire lié"}
+              </p>
+              {bank.isTemporary ? (
+                <Badge variant="secondary">{"Compte temporaire"}</Badge>
+              ) : bank.tempAccount ? (
+                <p className="font-semibold">
+                  {bank.tempAccount.label}
+                  {" — "}
+                  {XAF.format(bank.tempAccount.balance)}
+                </p>
+              ) : (
+                <p className="italic">
+                  {"Aucun (créé automatiquement au 1er chèque)"}
+                </p>
+              )}
+            </div>
+          </div>
           {/**Infos */}
           <div className="view-group">
             <span className="view-icon">

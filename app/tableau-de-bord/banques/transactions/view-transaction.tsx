@@ -196,6 +196,24 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
                 <Badge variant={getStatusBadge(transaction.status).variant}>
                   {getStatusBadge(transaction.status).label}
                 </Badge>
+                {!!transaction.checkStatus && (
+                  <Badge
+                    className="ml-1"
+                    variant={
+                      transaction.checkStatus === "paid"
+                        ? "success"
+                        : transaction.checkStatus === "rejected"
+                          ? "destructive"
+                          : "amber"
+                    }
+                  >
+                    {transaction.checkStatus === "paid"
+                      ? "Chèque encaissé"
+                      : transaction.checkStatus === "rejected"
+                        ? "Chèque rejeté"
+                        : "Chèque en attente"}
+                  </Badge>
+                )}
                 {!!transaction.reason && (
                   <span className="mt-1 text-xs text-destructive font-normal">{`Motif: ${transaction.reason}`}</span>
                 )}
