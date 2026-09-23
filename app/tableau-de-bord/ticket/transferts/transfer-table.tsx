@@ -87,7 +87,7 @@ import { SoldeDialog } from "./SoldeDialog";
 export interface ApprovalFilters {
   search: string;
   tab: TransactionApprovalParams["tab"];
-  fromBankId: string;
+  bankId: string;
   toBankId: string;
   bankId: string;
   userId: string;
@@ -442,9 +442,9 @@ function TransferTable({
                 <div className="grid gap-1.5">
                   <Label>{"Compte source"}</Label>
                   <Select
-                    value={customFilters.fromBankId}
-                    onValueChange={(fromBankId) =>
-                      setCustomFilters({ ...customFilters, fromBankId })
+                    value={customFilters.bankId}
+                    onValueChange={(bankId) =>
+                      setCustomFilters({ ...customFilters, bankId })
                     }
                   >
                     <SelectTrigger className="w-full">

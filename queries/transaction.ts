@@ -27,7 +27,6 @@ export interface TransactionApprovalParams {
   pageSize?: number | undefined;
   tab: "PENDING" | "COMPLETED";
   bankId?: number | undefined;
-  fromBankId?: number | undefined;
   toBankId?: number | undefined;
   userId?: number | undefined;
   from?: Date | string | undefined;
