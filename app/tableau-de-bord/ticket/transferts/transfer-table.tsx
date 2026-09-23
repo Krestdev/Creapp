@@ -89,7 +89,6 @@ export interface ApprovalFilters {
   tab: TransactionApprovalParams["tab"];
   bankId: string;
   toBankId: string;
-  bankId: string;
   userId: string;
   date: DateFilter;
   from: string;
@@ -672,9 +671,9 @@ function TransferTable({
                         <span className="text-muted-foreground text-xs">
                           {customFilters.from && customFilters.to
                             ? `${format(
-                                new Date(customFilters.from),
-                                "dd/MM/yyyy",
-                              )} → ${format(new Date(customFilters.to), "dd/MM/yyyy")}`
+                              new Date(customFilters.from),
+                              "dd/MM/yyyy",
+                            )} → ${format(new Date(customFilters.to), "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
                       </Button>
@@ -798,9 +797,9 @@ function TransferTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}
