@@ -1,5 +1,6 @@
 "use client";
 import { Pagination } from "@/components/base/pagination";
+import { SearchableSelect } from "@/components/base/searchableSelect";
 import { TabBar } from "@/components/base/TabBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -35,10 +36,18 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { transactionQ, TransactionApprovalParams } from "@/queries/transaction";
 import {
+  Bank,
   DateFilter,
   Transaction,
   TransferTransaction,
@@ -78,6 +87,9 @@ import { SoldeDialog } from "./SoldeDialog";
 export interface ApprovalFilters {
   search: string;
   tab: TransactionApprovalParams["tab"];
+  bankId: string;
+  toBankId: string;
+  userId: string;
   date: DateFilter;
   from: string;
   to: string;
@@ -87,6 +99,7 @@ export interface ApprovalFilters {
 
 interface Props {
   data: Array<TransferTransaction>;
+  banks: Array<Bank>;
   users: Array<User>;
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
   pagination: PaginationState;
@@ -97,6 +110,7 @@ interface Props {
 
 function TransferTable({
   data,
+  banks,
   users,
   paginationOptions,
   pagination,
@@ -129,30 +143,12 @@ function TransferTable({
 
   // Saisies locales, appliquées au backend sur Entrée / clic / blur
   const [searchText, setSearchText] = React.useState(customFilters.search);
-  const [amountMinText, setAmountMinText] = React.useState(
-    customFilters.amountMin?.toString() ?? "",
-  );
-  const [amountMaxText, setAmountMaxText] = React.useState(
-    customFilters.amountMax?.toString() ?? "",
-  );
   React.useEffect(() => {
     setSearchText(customFilters.search);
   }, [customFilters.search]);
-  React.useEffect(() => {
-    setAmountMinText(customFilters.amountMin?.toString() ?? "");
-    setAmountMaxText(customFilters.amountMax?.toString() ?? "");
-  }, [customFilters.amountMin, customFilters.amountMax]);
 
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
   const [showSolde, setShowSolde] = React.useState<boolean>(false);
-
-  const applyAmounts = () => {
-    const min = amountMinText.trim() === "" ? undefined : Number(amountMinText);
-    const max = amountMaxText.trim() === "" ? undefined : Number(amountMaxText);
-    if (min === customFilters.amountMin && max === customFilters.amountMax)
-      return;
-    setCustomFilters({ ...customFilters, amountMin: min, amountMax: max });
-  };
 
   const approve = useMutation({
     mutationFn: async ({ id }: { id: number }) =>
@@ -443,15 +439,108 @@ function TransferTable({
               </SheetHeader>
               <div className="px-5 grid gap-5">
                 <div className="grid gap-1.5">
+                  <Label>{"Compte source"}</Label>
+                  <Select
+                    value={customFilters.bankId}
+                    onValueChange={(bankId) =>
+                      setCustomFilters({ ...customFilters, bankId })
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un compte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {banks
+                        .filter((b) => !!b.type)
+                        .map((bank) => (
+                          <SelectItem key={bank.id} value={String(bank.id)}>
+                            {bank.label}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-1.5">
+                  <Label>{"Compte destinataire"}</Label>
+                  <Select
+                    value={customFilters.toBankId}
+                    onValueChange={(toBankId) =>
+                      setCustomFilters({ ...customFilters, toBankId })
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un compte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {banks
+                        .filter((b) => !!b.type)
+                        .map((bank) => (
+                          <SelectItem key={bank.id} value={String(bank.id)}>
+                            {bank.label}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-1.5">
+                  <Label>{"Compte (source ou destinataire)"}</Label>
+                  <Select
+                    value={customFilters.bankId}
+                    onValueChange={(bankId) =>
+                      setCustomFilters({ ...customFilters, bankId })
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un compte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {banks
+                        .filter((b) => !!b.type)
+                        .map((bank) => (
+                          <SelectItem key={bank.id} value={String(bank.id)}>
+                            {bank.label}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-1.5">
+                  <Label>{"Initié par"}</Label>
+                  <SearchableSelect
+                    width="w-full"
+                    allLabel="Tous"
+                    options={users.map((u) => ({
+                      label: `${u.firstName} ${u.lastName}`,
+                      value: String(u.id),
+                    }))}
+                    value={customFilters.userId}
+                    onChange={(userId) =>
+                      setCustomFilters({ ...customFilters, userId })
+                    }
+                    placeholder="Sélectionner un utilisateur"
+                    emptyLabel="Aucun utilisateur trouvé"
+                  />
+                </div>
+
+                <div className="grid gap-1.5">
                   <Label>{"Montant minimum"}</Label>
                   <div className="relative">
                     <Input
                       type="number"
                       placeholder="Ex. 250 000"
-                      value={amountMinText}
-                      onChange={(e) => setAmountMinText(e.target.value)}
-                      onBlur={applyAmounts}
-                      onKeyDown={(e) => e.key === "Enter" && applyAmounts()}
+                      value={customFilters.amountMin?.toString() ?? ""}
+                      onChange={(e) =>
+                        setCustomFilters({
+                          ...customFilters,
+                          amountMin: Number(e.target.value),
+                        })
+                      }
                       className="w-full pr-12"
                     />
                     <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
@@ -466,10 +555,13 @@ function TransferTable({
                     <Input
                       type="number"
                       placeholder="Ex. 1 000 000"
-                      value={amountMaxText}
-                      onChange={(e) => setAmountMaxText(e.target.value)}
-                      onBlur={applyAmounts}
-                      onKeyDown={(e) => e.key === "Enter" && applyAmounts()}
+                      value={customFilters.amountMax?.toString() ?? ""}
+                      onChange={(e) =>
+                        setCustomFilters({
+                          ...customFilters,
+                          amountMax: Number(e.target.value),
+                        })
+                      }
                       className="w-full pr-12"
                     />
                     <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
@@ -579,9 +671,9 @@ function TransferTable({
                         <span className="text-muted-foreground text-xs">
                           {customFilters.from && customFilters.to
                             ? `${format(
-                                new Date(customFilters.from),
-                                "dd/MM/yyyy",
-                              )} → ${format(new Date(customFilters.to), "dd/MM/yyyy")}`
+                              new Date(customFilters.from),
+                              "dd/MM/yyyy",
+                            )} → ${format(new Date(customFilters.to), "dd/MM/yyyy")}`
                             : "Choisir"}
                         </span>
                       </Button>
@@ -705,9 +797,9 @@ function TransferTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                     </TableHead>
                   );
                 })}

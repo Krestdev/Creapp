@@ -68,8 +68,8 @@ export function DevisModal({
   const getUserName = (userId?: number) => {
     return (
       users.find((u) => u.id === userId)?.firstName +
-      " " +
-      users.find((u) => u.id === userId)?.lastName || "Non spécifique"
+        " " +
+        users.find((u) => u.id === userId)?.lastName || "Non spécifique"
     );
   };
 
@@ -292,7 +292,8 @@ export function DevisModal({
                           {el.status === "SELECTED" && (
                             <CheckCircle size={12} className="text-green-600" />
                           )}
-                          {(el.status === "REJECTED" || el.status === "DISCARDED") && (
+                          {(el.status === "REJECTED" ||
+                            el.status === "DISCARDED") && (
                             <XCircle size={12} className="text-destructive" />
                           )}
                         </TableCell>
@@ -313,15 +314,15 @@ export function DevisModal({
               </Table>
             </div>
             <div className="col-span-full flex justify-end items-center gap-2">
-              <span className="text-gray-600">{"Total HT"}</span>
-              <span className="font-semibold text-gray-900">
-                {XAF.format(totals.totalBase)}
-              </span>
-            </div>
-            <div className="col-span-full flex justify-end items-center gap-2">
               <span className="text-gray-600">{"Total Réduction"}</span>
               <span className="font-semibold text-gray-900">
                 {XAF.format(totals.totalReduction)}
+              </span>
+            </div>
+            <div className="col-span-full flex justify-end items-center gap-2">
+              <span className="text-gray-600">{"Total HT"}</span>
+              <span className="font-semibold text-gray-900">
+                {XAF.format(totals.totalBase - totals.totalReduction)}
               </span>
             </div>
             <div className="col-span-full flex justify-end items-center gap-2">
@@ -341,9 +342,9 @@ export function DevisModal({
               <span className="font-semibold bg-primary-100 py-1.5 px-3 text-primary-700">
                 {XAF.format(
                   totals.totalBase -
-                  totals.totalReduction +
-                  totals.totalTVA -
-                  totals.totalIsIR,
+                    totals.totalReduction +
+                    totals.totalTVA -
+                    totals.totalIsIR,
                 )}
               </span>
             </div>

@@ -1,5 +1,6 @@
 "use client";
 import MultiSelectConditions from "@/components/base/multiSelectConditions";
+import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -377,41 +378,29 @@ function CreateForm({
             <FormItem>
               <FormLabel isRequired>{"Devis"}</FormLabel>
               <FormControl>
-                <Select
-                  value={field.value ? String(field.value) : undefined}
-                  onValueChange={field.onChange}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {quotations
-                      .filter(
-                        (c) =>
-                          c.status === "APPROVED" &&
-                          !purchases
-                            .filter((p) => p.status !== "REJECTED")
-                            .some((a) => a.deviId === c.id),
-                      )
-                      .map((quote) => (
-                        <SelectItem
-                          key={quote.id}
-                          value={String(quote.id)}
-                          className="line-clamp-1"
-                        >
-                          {`${quote.commandRequest.title} - ${formatToShortName(
-                            providers.find((p) => p.id === quote.providerId)
-                              ?.name,
-                          )}`}
-                        </SelectItem>
-                      ))}
-                    {quotations.length === 0 && (
-                      <SelectItem value="-" disabled>
-                        {"Aucun devis disponible"}
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
+                <SearchableSelect
+                  width="w-full"
+                  allLabel=""
+                  options={quotations
+                    .filter(
+                      (c) =>
+                        c.status === "APPROVED" &&
+                        !purchases
+                          .filter((p) => p.status !== "REJECTED")
+                          .some((a) => a.deviId === c.id),
+                    )
+                    .map((quote) => ({
+                      label: `${quote.commandRequest.title} - ${formatToShortName(
+                        providers.find((p) => p.id === quote.providerId)
+                          ?.name,
+                      )}`,
+                      value: String(quote.id),
+                    }))}
+                  value={field.value ? String(field.value) : ""}
+                  onChange={field.onChange}
+                  placeholder="Sélectionner"
+                  emptyLabel="Aucun devis disponible"
+                />
               </FormControl>
               {!!netToPay && (
                 <FormDescription>

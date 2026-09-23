@@ -3,6 +3,7 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
 import { queryKeys } from "@/lib/query-keys";
+import { bankQ } from "@/queries/bank";
 import { userQ } from "@/queries/baseModule";
 import { useFilters } from "@/queries/filters/standard-filter";
 import { transactionQ, TransactionApprovalParams } from "@/queries/transaction";
@@ -13,6 +14,9 @@ import TransferTable, { ApprovalFilters } from "./transfer-table";
 const defaultCustomFilters: ApprovalFilters = {
   search: "",
   tab: "PENDING",
+  bankId: "all",
+  toBankId: "all",
+  userId: "all",
   date: undefined,
   from: "",
   to: "",
@@ -30,6 +34,14 @@ function Page() {
     pageSize: filters.pageSize,
     tab: customFilters.tab,
     search: customFilters.search || undefined,
+    bankId:
+      customFilters.bankId !== "all" ? Number(customFilters.bankId) : undefined,
+    toBankId:
+      customFilters.toBankId !== "all"
+        ? Number(customFilters.toBankId)
+        : undefined,
+    userId:
+      customFilters.userId !== "all" ? Number(customFilters.userId) : undefined,
     date: customFilters.date,
     from: customFilters.from || undefined,
     to: customFilters.to || undefined,
@@ -43,6 +55,11 @@ function Page() {
     placeholderData: keepPreviousData,
   });
 
+  const getBanks = useQuery({
+    queryKey: queryKeys.banks,
+    queryFn: bankQ.getAll,
+  });
+
   const getUsers = useQuery({
     queryKey: queryKeys.users,
     queryFn: userQ.getAll,
@@ -54,13 +71,17 @@ function Page() {
     setFilters((prev) => ({ ...prev, pageIndex: 0 }));
   };
 
-  if (isLoading || getUsers.isLoading) {
+  if (isLoading || getBanks.isLoading || getUsers.isLoading) {
     return <LoadingPage />;
   }
-  if (isError || getUsers.isError) {
-    return <ErrorPage error={error || getUsers.error || undefined} />;
+  if (isError || getBanks.isError || getUsers.isError) {
+    return (
+      <ErrorPage
+        error={error || getBanks.error || getUsers.error || undefined}
+      />
+    );
   }
-  if (isSuccess && getUsers.isSuccess) {
+  if (isSuccess && getBanks.isSuccess && getUsers.isSuccess) {
     return (
       <div className="content">
         <PageTitle
@@ -70,6 +91,7 @@ function Page() {
         />
         <TransferTable
           data={data.data.transactions}
+          banks={getBanks.data.data}
           users={getUsers.data.data}
           paginationOptions={{
             onPaginationChange: (updater) => {
@@ -77,9 +99,9 @@ function Page() {
                 const next =
                   typeof updater === "function"
                     ? updater({
-                        pageIndex: prev.pageIndex,
-                        pageSize: prev.pageSize,
-                      })
+                      pageIndex: prev.pageIndex,
+                      pageSize: prev.pageSize,
+                    })
                     : updater;
                 return { ...prev, ...next };
               });
