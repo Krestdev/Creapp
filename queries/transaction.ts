@@ -29,6 +29,7 @@ export interface TransactionApprovalParams {
   bankId?: number | undefined;
   fromBankId?: number | undefined;
   toBankId?: number | undefined;
+  userId?: number | undefined;
   from?: Date | string | undefined;
   to?: Date | string | undefined;
   amountMin?: number | undefined;

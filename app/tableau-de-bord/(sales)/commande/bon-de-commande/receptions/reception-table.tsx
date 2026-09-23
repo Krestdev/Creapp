@@ -61,7 +61,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 
-import { subText } from "@/lib/utils";
+import { isPastDeadline, subText } from "@/lib/utils";
 import {
   BonsCommande,
   CommandRequestT,
@@ -251,7 +251,8 @@ export function ReceptionTable({ data, devis, cmdReqst, purchases }: Props) {
       cell: ({ row }) => {
         const base = row.getValue("Deadline") as string;
         const deadline = new Date(base);
-        const isLate = deadline < new Date() && row.original.Status !== "COMPLETED";
+        const isLate =
+          isPastDeadline(deadline) && row.original.Status !== "COMPLETED";
         return (
           <div>
             <p className="normal-case">

@@ -16,6 +16,8 @@ const defaultCustomFilters: ApprovalFilters = {
   tab: "PENDING",
   fromBankId: "all",
   toBankId: "all",
+  bankId: "all",
+  userId: "all",
   date: undefined,
   from: "",
   to: "",
@@ -41,6 +43,10 @@ function Page() {
       customFilters.toBankId !== "all"
         ? Number(customFilters.toBankId)
         : undefined,
+    bankId:
+      customFilters.bankId !== "all" ? Number(customFilters.bankId) : undefined,
+    userId:
+      customFilters.userId !== "all" ? Number(customFilters.userId) : undefined,
     date: customFilters.date,
     from: customFilters.from || undefined,
     to: customFilters.to || undefined,

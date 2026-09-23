@@ -146,6 +146,17 @@ export const TranslateRole = (role: string) => {
   }
 };
 
+// Une échéance n'est en retard qu'à partir du lendemain de sa date limite
+// (comparaison au jour près, l'heure n'entre pas en compte : si la date
+// limite est aujourd'hui, ce n'est pas encore en retard).
+export function isPastDeadline(deadline: Date | string): boolean {
+  const deadlineDay = new Date(deadline);
+  deadlineDay.setHours(0, 0, 0, 0);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return deadlineDay < today;
+}
+
 export function totalAmountPurchase(payload: BonsCommande): number {
   if (!payload.devi?.element) return 0;
   return payload.devi.element

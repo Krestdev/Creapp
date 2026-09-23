@@ -1,5 +1,6 @@
 "use client";
 import { Pagination } from "@/components/base/pagination";
+import { SearchableSelect } from "@/components/base/searchableSelect";
 import { TabBar } from "@/components/base/TabBar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -88,6 +89,8 @@ export interface ApprovalFilters {
   tab: TransactionApprovalParams["tab"];
   fromBankId: string;
   toBankId: string;
+  bankId: string;
+  userId: string;
   date: DateFilter;
   from: string;
   to: string;
@@ -482,6 +485,48 @@ function TransferTable({
                         ))}
                     </SelectContent>
                   </Select>
+                </div>
+
+                <div className="grid gap-1.5">
+                  <Label>{"Compte (source ou destinataire)"}</Label>
+                  <Select
+                    value={customFilters.bankId}
+                    onValueChange={(bankId) =>
+                      setCustomFilters({ ...customFilters, bankId })
+                    }
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Sélectionner un compte" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">{"Tous"}</SelectItem>
+                      {banks
+                        .filter((b) => !!b.type)
+                        .map((bank) => (
+                          <SelectItem key={bank.id} value={String(bank.id)}>
+                            {bank.label}
+                          </SelectItem>
+                        ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-1.5">
+                  <Label>{"Initié par"}</Label>
+                  <SearchableSelect
+                    width="w-full"
+                    allLabel="Tous"
+                    options={users.map((u) => ({
+                      label: `${u.firstName} ${u.lastName}`,
+                      value: String(u.id),
+                    }))}
+                    value={customFilters.userId}
+                    onChange={(userId) =>
+                      setCustomFilters({ ...customFilters, userId })
+                    }
+                    placeholder="Sélectionner un utilisateur"
+                    emptyLabel="Aucun utilisateur trouvé"
+                  />
                 </div>
 
                 <div className="grid gap-1.5">

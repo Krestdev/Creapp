@@ -75,7 +75,6 @@ import {
 import { Slider } from "@/components/ui/slider";
 import {
   getPurchaseStatusBadge,
-  subText,
   totalAmountPurchase,
   XAF,
 } from "@/lib/utils";
@@ -356,10 +355,10 @@ export function PurchaseTable({
       accessorKey: "devi",
       header: ({ column }) => (
         <span
-          className="tablehead"
+          className="tablehead min-w-[220px]"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
         >
-          {"Cotation"}
+          {"Devis"}
           <ArrowUpDown />
         </span>
       ),
@@ -368,10 +367,12 @@ export function PurchaseTable({
         if (!name?.commandRequest)
           return <p className="text-muted-foreground">N/A</p>;
         return (
-          <>
-            {subText({ text: name.commandRequest.title, length: 21 })} -{" "}
-            <span className="text-red-500">{name.ref}</span>
-          </>
+          <div className="min-w-[220px] max-w-[280px]">
+            <p className="font-medium text-red-500">{name.ref}</p>
+            <p className="text-xs text-muted-foreground truncate">
+              {name.commandRequest.title}
+            </p>
+          </div>
         );
       },
     },
@@ -686,7 +687,7 @@ export function PurchaseTable({
           <Input
             id="searchPO"
             type="search"
-            placeholder="Ref, Cotation, fournisseur, statut"
+            placeholder="Ref, Devis, fournisseur, statut"
             value={globalFilter ?? ""}
             onChange={(e) => setGlobalFilter(e.target.value)}
             className="w-56 h-9"
@@ -927,9 +928,9 @@ export function PurchaseTable({
                   </DropdownMenu>
                 </div>
 
-                {/* Filtre par cotation avec recherche */}
+                {/* Filtre par devis avec recherche */}
                 <div className="grid gap-1.5">
-                  <Label>{"Cotation"}</Label>
+                  <Label>{"Devis"}</Label>
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
                       <Button
@@ -938,7 +939,7 @@ export function PurchaseTable({
                       >
                         <span className="truncate">
                           {cotationFilter === "all"
-                            ? "Toutes les cotations"
+                            ? "Tous les devis"
                             : uniqueCotations.find(
                                 (c) => c.id === parseInt(cotationFilter),
                               )?.label || "Sélectionner"}
@@ -949,7 +950,7 @@ export function PurchaseTable({
                     <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
                       <div className="p-2 sticky top-0 bg-popover z-10 border-b">
                         <Input
-                          placeholder="Rechercher une cotation..."
+                          placeholder="Rechercher un devis..."
                           className="h-8"
                           value={cotationSearch}
                           onChange={(e) => setCotationSearch(e.target.value)}
@@ -967,7 +968,7 @@ export function PurchaseTable({
                         }}
                         className={cotationFilter === "all" ? "bg-accent" : ""}
                       >
-                        <span>Toutes les cotations</span>
+                        <span>Tous les devis</span>
                       </DropdownMenuItem>
                       {uniqueCotations
                         .filter(
@@ -1002,7 +1003,7 @@ export function PurchaseTable({
                           .includes(cotationSearch.toLowerCase()),
                       ).length === 0 && (
                         <div className="px-2 py-4 text-sm text-muted-foreground text-center">
-                          Aucune cotation trouvée
+                          Aucun devis trouvé
                         </div>
                       )}
                     </DropdownMenuContent>
@@ -1208,7 +1209,7 @@ export function PurchaseTable({
 
               {cotationFilter !== "all" && (
                 <Badge variant="outline" className="font-normal">
-                  {`Cotation: ${uniqueCotations.find((c) => c.id === parseInt(cotationFilter))?.reference}`}
+                  {`Devis: ${uniqueCotations.find((c) => c.id === parseInt(cotationFilter))?.reference}`}
                 </Badge>
               )}
 
@@ -1263,6 +1264,7 @@ export function PurchaseTable({
                 if (column.id === "id") columnName = "#";
                 else if (column.id === "devi") columnName = "Devis";
                 else if (column.id === "reference") columnName = "Référence";
+                else if (column.id === "devi") columnName = "Devis";
                 else if (column.id === "provider") columnName = "Fournisseur";
                 else if (column.id === "amount") columnName = "Montant";
                 else if (column.id === "priority") columnName = "Priorité";

@@ -29,7 +29,7 @@ import {
   SheetTrigger,
 } from "@/components/ui/sheet";
 import { queryKeys } from "@/lib/query-keys";
-import { isRole, XAF } from "@/lib/utils";
+import { isPastDeadline, isRole, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { paymentQ } from "@/queries/payment";
 import { receptionQ } from "@/queries/reception";
@@ -502,7 +502,7 @@ const DashboardPage = () => {
         value: String(
           filteredReceptions.filter(
             (r) =>
-              r.Status !== "COMPLETED" && new Date(r.Deadline) < new Date(),
+              r.Status !== "COMPLETED" && isPastDeadline(r.Deadline),
           ).length,
         ),
         variant: "destructive",
