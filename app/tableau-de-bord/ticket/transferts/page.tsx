@@ -14,7 +14,7 @@ import TransferTable, { ApprovalFilters } from "./transfer-table";
 const defaultCustomFilters: ApprovalFilters = {
   search: "",
   tab: "PENDING",
-  fromBankId: "all",
+  bankId: "all",
   toBankId: "all",
   date: undefined,
   from: "",
@@ -33,10 +33,8 @@ function Page() {
     pageSize: filters.pageSize,
     tab: customFilters.tab,
     search: customFilters.search || undefined,
-    fromBankId:
-      customFilters.fromBankId !== "all"
-        ? Number(customFilters.fromBankId)
-        : undefined,
+    bankId:
+      customFilters.bankId !== "all" ? Number(customFilters.bankId) : undefined,
     toBankId:
       customFilters.toBankId !== "all"
         ? Number(customFilters.toBankId)

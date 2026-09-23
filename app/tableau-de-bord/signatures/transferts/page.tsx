@@ -11,10 +11,7 @@ import { bankQ } from "@/queries/bank";
 import { userQ } from "@/queries/baseModule";
 import { useFilters } from "@/queries/filters/standard-filter";
 import { payTypeQ } from "@/queries/payType";
-import {
-  transactionQ,
-  TransactionApprovalParams,
-} from "@/queries/transaction";
+import { transactionQ, TransactionApprovalParams } from "@/queries/transaction";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import SignTransfers, { SignatureFilters } from "./sign-transfers";
