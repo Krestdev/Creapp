@@ -16,7 +16,6 @@ const defaultCustomFilters: ApprovalFilters = {
   tab: "PENDING",
   bankId: "all",
   toBankId: "all",
-  bankId: "all",
   userId: "all",
   date: undefined,
   from: "",
@@ -41,8 +40,6 @@ function Page() {
       customFilters.toBankId !== "all"
         ? Number(customFilters.toBankId)
         : undefined,
-    bankId:
-      customFilters.bankId !== "all" ? Number(customFilters.bankId) : undefined,
     userId:
       customFilters.userId !== "all" ? Number(customFilters.userId) : undefined,
     date: customFilters.date,
@@ -102,9 +99,9 @@ function Page() {
                 const next =
                   typeof updater === "function"
                     ? updater({
-                        pageIndex: prev.pageIndex,
-                        pageSize: prev.pageSize,
-                      })
+                      pageIndex: prev.pageIndex,
+                      pageSize: prev.pageSize,
+                    })
                     : updater;
                 return { ...prev, ...next };
               });
