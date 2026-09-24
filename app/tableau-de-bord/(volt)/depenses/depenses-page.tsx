@@ -90,9 +90,8 @@ function DepensesPage({
   const [dateFilter, setDateFilter] = React.useState<DateFilter>();
   const [searchText, setSearchText] = React.useState<string>("");
 
-  const [customFilters, setCustomFilters] = React.useState<
-    DepenseFiltersProps["customFilters"]
-  >(defaultCustomFilters);
+  const [customFilters, setCustomFilters] =
+    React.useState<DepenseFiltersProps["customFilters"]>(defaultCustomFilters);
 
   const resetAllFilters = () => {
     setCustomFilters(defaultCustomFilters);
@@ -401,10 +400,12 @@ function DepensesPage({
         <section className="grid gap-2">
           <h3>{"Légende"}</h3>
           <div className="flex gap-3 items-center">
-            <div className="inline-flex gap-1.5 items-center">
-              <BoostedLegend />
-              {"Dépense approvisionnée"}
-            </div>
+            {paymentMethod === "cash" && (
+              <div className="inline-flex gap-1.5 items-center">
+                <BoostedLegend />
+                {"Dépense approvisionnée"}
+              </div>
+            )}
             {paymentMethod === "chq" && (
               <div className="inline-flex gap-1.5 items-center">
                 <UncashedCheckLegend />
