@@ -30,7 +30,7 @@ import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
 import { TabBar, TabProps } from "@/components/base/TabBar";
-import { BoostedLegend } from "@/components/legends";
+import { BoostedLegend, UncashedCheckLegend } from "@/components/legends";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -327,6 +327,10 @@ function ExpensesTable({
             {value.selected === true && value.paymentApproId && (
               <BoostedLegend />
             )}
+            {value.status === "paid" &&
+              value.transaction?.checkStatus === "pending" && (
+                <UncashedCheckLegend />
+              )}
             <span className="line-clamp-1">
               {subText({ text: value.title ?? "--", length: 21 })}
             </span>
@@ -647,7 +651,9 @@ function ExpensesTable({
                     }}
                   >
                     <DollarSign />
-                    {"Payer"}
+                    {item.method?.type?.toLowerCase() === "chq"
+                      ? "Décharger"
+                      : "Payer"}
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Decharge

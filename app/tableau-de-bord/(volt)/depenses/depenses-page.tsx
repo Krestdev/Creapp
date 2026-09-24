@@ -31,7 +31,7 @@ import { Settings2 } from "lucide-react";
 import React from "react";
 import DepenseFilters, { DepenseFiltersProps } from "./depenseFilters";
 import ExpensesTable from "./expenses-table";
-import { BoostedLegend } from "@/components/legends";
+import { BoostedLegend, UncashedCheckLegend } from "@/components/legends";
 
 export type DepensePaymentMethod = (typeof PAYMENT_METHOD)[number]["value"];
 
@@ -405,6 +405,12 @@ function DepensesPage({
               <BoostedLegend />
               {"Dépense approvisionnée"}
             </div>
+            {paymentMethod === "chq" && (
+              <div className="inline-flex gap-1.5 items-center">
+                <UncashedCheckLegend />
+                {"Chèque non encaissé"}
+              </div>
+            )}
           </div>
         </section>
       </div>

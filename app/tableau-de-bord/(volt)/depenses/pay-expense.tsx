@@ -24,7 +24,14 @@ import { vehicleQ } from "@/queries/vehicule";
 import { PaymentRequest } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { CarIcon, DollarSignIcon, LandmarkIcon } from "lucide-react";
+import {
+  CarIcon,
+  DollarSignIcon,
+  LandmarkIcon,
+  ReceiptTextIcon,
+  SquareUserRound,
+  TypeIcon,
+} from "lucide-react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import z from "zod";
@@ -61,6 +68,7 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
 
   const vehicle = getVehicle.data?.data;
   const transaction = getTransaction.data?.data;
+  const isCheque = ticket.method?.type?.toLowerCase() === "chq";
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -77,7 +85,11 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
     }) => transactionQ.completePayment(payload),
     onSuccess: () => {
       queryClient.invalidateQueries();
-      toast.success("Votre transaction a été enregistrée avec succès !");
+      toast.success(
+        isCheque
+          ? "Le ticket a été déchargé avec succès !"
+          : "Votre transaction a été enregistrée avec succès !",
+      );
       onOpenChange(false);
     },
     onError: (error: Error) => {
@@ -110,11 +122,49 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{`Payer - ${ticket.title}`}</DialogTitle>
-          <DialogDescription>{`Paiement du ticket ${ticket.reference}`}</DialogDescription>
+          <DialogTitle>{`${isCheque ? "Décharger" : "Payer"} - ${ticket.title}`}</DialogTitle>
+          <DialogDescription>{`${isCheque ? "Décharge" : "Paiement"} du ticket ${ticket.reference}`}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-6 pb-4">
           <div className="bg-primary-50 border border-dashed border-primary-200 rounded-md grid gap-2 p-3">
+            {isCheque && (
+              <div className="view-group">
+                <span className="view-icon">
+                  <SquareUserRound />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Fournisseur"}</p>
+                  <p className="font-semibold">
+                    {ticket.facture?.command.provider.name ?? "--"}
+                  </p>
+                </div>
+              </div>
+            )}
+            {isCheque && (
+              <div className="view-group">
+                <span className="view-icon">
+                  <TypeIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Objet"}</p>
+                  <p className="font-semibold">{ticket.title}</p>
+                </div>
+              </div>
+            )}
+            {isCheque && (
+              <div className="view-group">
+                <span className="view-icon">
+                  <ReceiptTextIcon />
+                </span>
+                <div className="flex flex-col">
+                  <p className="view-group-title">{"Chèque"}</p>
+                  <p className="font-semibold">
+                    {ticket.transaction?.docNumber ?? "--"}
+                  </p>
+                </div>
+              </div>
+            )}
+            {/**Bank */}
             <div className="view-group">
               <span className="view-icon">
                 <LandmarkIcon />
@@ -140,7 +190,9 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
                 <DollarSignIcon />
               </span>
               <div className="flex flex-col">
-                <p className="view-group-title">{"Montant à payer"}</p>
+                <p className="view-group-title">
+                  {isCheque ? "Montant du chèque" : "Montant à payer"}
+                </p>
                 <p className="font-semibold">{XAF.format(ticket.price)}</p>
               </div>
             </div>
@@ -196,7 +248,7 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
             disabled={pay.isPending}
             isLoading={pay.isPending}
           >
-            {"Payer"}
+            {isCheque ? "Décharger" : "Payer"}
           </Button>
           <Button
             variant={"outline"}
