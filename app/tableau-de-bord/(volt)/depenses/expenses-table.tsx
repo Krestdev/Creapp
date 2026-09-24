@@ -58,6 +58,7 @@ import {
   ProjectT,
   Provider,
   RequestType,
+  Transaction,
   User,
 } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
@@ -174,7 +175,13 @@ function getPriorityConfig(priority: PaymentRequest["priority"]) {
   );
 }
 
-function getStatusBadge(status: PaymentRequest["status"]): {
+function getStatusBadge({
+  status,
+  transaction,
+}: {
+  status: PaymentRequest["status"];
+  transaction?: Transaction;
+}): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
 } {
@@ -183,15 +190,17 @@ function getStatusBadge(status: PaymentRequest["status"]): {
       ? "En attente de signature"
       : status === "signed"
         ? "Signé"
-        : status === "paid"
+        : status === "paid" && transaction?.checkStatus === "paid"
           ? "Payé"
-          : status === "simple_signed"
-            ? "Paiement ouvert"
-            : status === "cancelled"
-              ? "Annulé"
-              : status === "validated"
-                ? "En attente"
-                : status;
+          : status === "paid" && transaction?.checkStatus !== "paid"
+            ? "Déchargé"
+            : status === "simple_signed"
+              ? "Paiement ouvert"
+              : status === "cancelled"
+                ? "Annulé"
+                : status === "validated"
+                  ? "En attente"
+                  : status;
 
   switch (status) {
     case "pending_depense":
@@ -201,7 +210,10 @@ function getStatusBadge(status: PaymentRequest["status"]): {
     case "signed":
       return { label, variant: "lime" };
     case "paid":
-      return { label, variant: "success" };
+      if (transaction?.checkStatus === "paid") {
+        return { label, variant: "success" };
+      }
+      return { label, variant: "fuchsia" };
     case "simple_signed":
       return { label, variant: "success" };
     case "cancelled":
@@ -484,11 +496,11 @@ function ExpensesTable({
         };
         const priorityA =
           priorityOrder[
-          rowA.getValue(columnId) as keyof typeof priorityOrder
+            rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-          rowB.getValue(columnId) as keyof typeof priorityOrder
+            rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         return priorityA - priorityB;
       },
@@ -511,7 +523,10 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const status = getStatusBadge(value.status);
+        const status = getStatusBadge({
+          status: value.status,
+          transaction: value.transaction,
+        });
         return <Badge variant={status.variant}>{status.label}</Badge>;
       },
       filterFn: (row, id, value) => {
@@ -837,9 +852,9 @@ function ExpensesTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
