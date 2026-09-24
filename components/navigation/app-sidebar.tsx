@@ -14,12 +14,14 @@ import {
   ArrowLeftRightIcon,
   ArrowRightLeftIcon,
   BadgeDollarSignIcon,
+  BanknoteIcon,
   BriefcaseBusiness,
   Building2Icon,
   ChartAreaIcon,
   CircleDollarSignIcon,
   CircleUserRoundIcon,
   EllipsisVertical,
+  FileCheckIcon,
   LandmarkIcon,
   LayoutDashboardIcon,
   LockIcon,
@@ -55,6 +57,23 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 import { Skeleton } from "../ui/skeleton";
+
+function usePendingDepenseCount(
+  paymentMethod: "cash" | "chq" | "ov",
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: queryKeys.depensesStats("pending-count", paymentMethod),
+    queryFn: () =>
+      paymentQ.getDepensesStats({
+        paymentMethod,
+        amount: 0,
+        amountType: "greater",
+      }),
+    select: (stats) => stats.validated.count,
+    enabled,
+  });
+}
 
 function AppSidebar() {
   const { user, logout, isSignataire } = useStore();
@@ -124,12 +143,14 @@ function AppSidebar() {
     enabled: !!user,
   });
 
-  //Pending Depense Count
-  const pendingDepenseCount = useQuery({
-    queryKey: queryKeys.pendingDepenseCount,
-    queryFn: () => paymentQ.getPendingDepenseCount(),
-    enabled: !!user,
-  });
+  //Pending Depense Count (par moyen de paiement)
+  const canSeeDepenses =
+    user?.role.some((r) =>
+      ["SUPERADMIN", "ACCOUNTANT", "VOLT"].includes(r.label),
+    ) ?? false;
+  const cashDepenseCount = usePendingDepenseCount("cash", canSeeDepenses);
+  const chqDepenseCount = usePendingDepenseCount("chq", canSeeDepenses);
+  const ovDepenseCount = usePendingDepenseCount("ov", canSeeDepenses);
 
   //Payment to Sign
   const paymentsToSignCount = useQuery({
@@ -161,7 +182,6 @@ function AppSidebar() {
     purchaseOrdersPendingCount.isLoading ||
     voltPendingCount.isLoading ||
     pendingApprovalsTransactionsCount.isLoading ||
-    pendingDepenseCount.isLoading ||
     paymentsToSignCount.isLoading ||
     pendingToSignTransfersCount.isLoading ||
     pendingTransfersCount.isLoading
@@ -380,10 +400,26 @@ function AppSidebar() {
       items: [
         {
           pageId: "PG-23354987-00",
-          title: "Dépenses",
+          title: "Espèces",
+          icon: BanknoteIcon,
+          href: "/tableau-de-bord/depenses/especes",
+          badgeValue: cashDepenseCount.data,
+          authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
+        },
+        {
+          pageId: "PG-23354987-02",
+          title: "Chèques",
+          icon: FileCheckIcon,
+          href: "/tableau-de-bord/depenses/cheques",
+          badgeValue: chqDepenseCount.data,
+          authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
+        },
+        {
+          pageId: "PG-23354987-03",
+          title: "Ordres de virement",
           icon: BadgeDollarSignIcon,
-          href: "/tableau-de-bord/depenses",
-          badgeValue: pendingDepenseCount.data?.data,
+          href: "/tableau-de-bord/depenses/ordres-de-virement",
+          badgeValue: ovDepenseCount.data,
           authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
         },
         /* {

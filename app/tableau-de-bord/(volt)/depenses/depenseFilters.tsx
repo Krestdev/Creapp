@@ -17,7 +17,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   DateFilter,
-  PAYMENT_METHOD,
   PaymentRequest,
   PRIORITIES,
   Provider,
@@ -36,8 +35,7 @@ export interface DepenseFiltersProps {
     amountType: "equal" | "greater" | "less";
     provider: "all" | number;
     priority: "all" | PaymentRequest["priority"];
-    paymentMethod: "all" | string;
-    tab: "validated" | "processed" | "paid" | "cancelled";
+    tab: "validated" | "processed" | "paid" | "cancelled" | "discharged" | "cashed";
     isSelected: "all" | string;
     type: "all" | string;
     date: DateFilter;
@@ -51,8 +49,7 @@ export interface DepenseFiltersProps {
     amountType: "equal" | "greater" | "less";
     provider: "all" | number;
     priority: "all" | PaymentRequest["priority"];
-    paymentMethod: "all" | string;
-    tab: "validated" | "processed" | "paid" | "cancelled";
+    tab: "validated" | "processed" | "paid" | "cancelled" | "discharged" | "cashed";
     isSelected: "all" | string;
     type: "all" | string;
     date: DateFilter;
@@ -353,61 +350,6 @@ export default function DepenseFilters({
               >
                 <div className="flex items-center gap-2">
                   <span>{priority.name}</span>
-                </div>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-      {/**Payment Method Filter */}
-      <div className="grid gap-1.5">
-        <Label htmlFor="method">Méthode de paiement</Label>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="w-full justify-between">
-              <span className="truncate">
-                {customFilters.paymentMethod === "all"
-                  ? "Toutes les méthodes de paiement"
-                  : PAYMENT_METHOD.find(
-                      (p) => p.value === customFilters.paymentMethod,
-                    )?.name}
-              </span>
-              <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width] max-h-[300px] overflow-y-auto">
-            <DropdownMenuItem
-              onClick={() => {
-                setCustomFilters({
-                  ...customFilters,
-                  paymentMethod: "all",
-                });
-              }}
-              className={
-                customFilters.paymentMethod === "all" ? "bg-accent" : ""
-              }
-            >
-              <div className="flex items-center gap-2">
-                <span>Toutes les méthodes de paiement</span>
-              </div>
-            </DropdownMenuItem>
-            {PAYMENT_METHOD.map((method) => (
-              <DropdownMenuItem
-                key={method.value}
-                onClick={() => {
-                  setCustomFilters({
-                    ...customFilters,
-                    paymentMethod: method.value,
-                  });
-                }}
-                className={
-                  customFilters.paymentMethod === method.value
-                    ? "bg-accent"
-                    : ""
-                }
-              >
-                <div className="flex items-center gap-2">
-                  <span>{method.name}</span>
                 </div>
               </DropdownMenuItem>
             ))}

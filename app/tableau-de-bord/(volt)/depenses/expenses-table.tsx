@@ -16,6 +16,7 @@ import {
   ArrowRightToLine,
   ArrowUpDown,
   BanIcon,
+  CheckCircle2,
   ChevronDown,
   DollarSign,
   Download,
@@ -63,6 +64,7 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import MarkCheckStatusDialog from "../../banques/transactions/mark-check-status-dialog";
 import AddProove from "./addProove";
 import CancelTicket from "./cancel-ticket";
 import CompleteGas from "./complete-gas";
@@ -265,6 +267,7 @@ function ExpensesTable({
   const [showAddFile, setShowAddFile] = React.useState<boolean>(false);
   const [showCancel, setShowCancel] = React.useState<boolean>(false);
   const [editDialog, setEditDialog] = React.useState<boolean>(false);
+  const [checkAction, setCheckAction] = React.useState<"paid" | "rejected">();
 
   const columns: ColumnDef<PaymentRequest>[] = [
     {
@@ -590,6 +593,29 @@ function ExpensesTable({
                   {"Ajouter la preuve"}
                 </DropdownMenuItem>
               )}
+              {item.status === "paid" &&
+                item.transaction?.checkStatus === "pending" && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelected(item);
+                        setCheckAction("paid");
+                      }}
+                    >
+                      <CheckCircle2 />
+                      {"Marquer chèque encaissé"}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelected(item);
+                        setCheckAction("rejected");
+                      }}
+                    >
+                      <BanIcon />
+                      {"Marquer chèque rejeté"}
+                    </DropdownMenuItem>
+                  </>
+                )}
               {(item.type === "gas" || item.type === "settle") && (
                 <DropdownMenuItem
                   disabled={isGasComplete(item) || isSettleComplete(item)}
@@ -910,6 +936,15 @@ function ExpensesTable({
             open={editDialog}
           />
         </>
+      )}
+      {selected?.transaction && checkAction && (
+        <MarkCheckStatusDialog
+          transaction={selected.transaction}
+          open={!!checkAction}
+          openChange={() => setCheckAction(undefined)}
+          status={checkAction}
+          userId={user?.id ?? 0}
+        />
       )}
     </div>
   );
