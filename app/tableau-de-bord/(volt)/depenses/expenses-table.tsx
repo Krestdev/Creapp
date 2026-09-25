@@ -666,7 +666,9 @@ function ExpensesTable({
                     }}
                   >
                     <DollarSign />
-                    {item.method?.type?.toLowerCase() === "chq"
+                    {["chq", "ov"].includes(
+                      item.method?.type?.toLowerCase() ?? "",
+                    )
                       ? "Décharger"
                       : "Payer"}
                   </DropdownMenuItem>

@@ -69,6 +69,8 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
   const vehicle = getVehicle.data?.data;
   const transaction = getTransaction.data?.data;
   const isCheque = ticket.method?.type?.toLowerCase() === "chq";
+  const isOv = ticket.method?.type?.toLowerCase() === "ov";
+  const isNotCash = isCheque || isOv;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -86,7 +88,7 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
     onSuccess: () => {
       queryClient.invalidateQueries();
       toast.success(
-        isCheque
+        isNotCash
           ? "Le ticket a été déchargé avec succès !"
           : "Votre transaction a été enregistrée avec succès !",
       );
@@ -122,8 +124,8 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{`${isCheque ? "Décharger" : "Payer"} - ${ticket.title}`}</DialogTitle>
-          <DialogDescription>{`${isCheque ? "Décharge" : "Paiement"} du ticket ${ticket.reference}`}</DialogDescription>
+          <DialogTitle>{`${isNotCash ? "Décharger" : "Payer"} - ${ticket.title}`}</DialogTitle>
+          <DialogDescription>{`${isNotCash ? "Décharge" : "Paiement"} du ticket ${ticket.reference}`}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-6 pb-4">
           <div className="bg-primary-50 border border-dashed border-primary-200 rounded-md grid gap-2 p-3">
@@ -140,7 +142,7 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
                 </div>
               </div>
             )}
-            {isCheque && (
+            {isNotCash && (
               <div className="view-group">
                 <span className="view-icon">
                   <TypeIcon />
@@ -151,13 +153,15 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
                 </div>
               </div>
             )}
-            {isCheque && (
+            {isNotCash && (
               <div className="view-group">
                 <span className="view-icon">
                   <ReceiptTextIcon />
                 </span>
                 <div className="flex flex-col">
-                  <p className="view-group-title">{"Chèque"}</p>
+                  <p className="view-group-title">
+                    {isCheque ? "Chèque" : "Ordre de virement"}
+                  </p>
                   <p className="font-semibold">
                     {ticket.transaction?.docNumber ?? "--"}
                   </p>
