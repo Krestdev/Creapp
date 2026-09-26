@@ -46,6 +46,7 @@ import {
   DropletIcon,
   FileIcon,
   FuelIcon,
+  HistoryIcon,
   LucideFile,
   LucideHash,
   MailXIcon,
@@ -753,6 +754,51 @@ function ViewExpense({
                       </div>
                     );
                   })}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Chèques annulés / rejetés */}
+          {!!payment.abortedTransaction?.length && (
+            <div className="view-group col-span-full">
+              <span className="view-icon">
+                <HistoryIcon />
+              </span>
+              <div className="w-full flex flex-col">
+                <p className="view-group-title">
+                  {"Chèques annulés / rejetés"}
+                </p>
+                <div className="grid gap-2">
+                  {payment.abortedTransaction.map((tx) => (
+                    <div
+                      key={tx.id}
+                      className="px-3 py-2 flex flex-col gap-1 border bg-red-50 border-red-200"
+                    >
+                      <div className="flex flex-wrap items-center justify-between gap-2">
+                        <p className="text-sm font-medium text-gray-700">
+                          {tx.docNumber
+                            ? `Chèque n° ${tx.docNumber}`
+                            : `Transaction #${tx.id}`}
+                          {" · "}
+                          {XAF.format(tx.amount)}
+                        </p>
+                        <p className="text-sm text-destructive">
+                          {tx.checkStatus === "rejected"
+                            ? "Rejeté par la banque"
+                            : "Annulé"}
+                        </p>
+                      </div>
+                      {!!tx.reason && (
+                        <p className="text-sm text-gray-600">{tx.reason}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {format(new Date(tx.updatedAt), "dd MMMM yyyy à kk:mm", {
+                          locale: fr,
+                        })}
+                      </p>
+                    </div>
+                  ))}
                 </div>
               </div>
             </div>

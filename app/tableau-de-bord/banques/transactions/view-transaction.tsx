@@ -202,7 +202,8 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
                     variant={
                       transaction.checkStatus === "paid"
                         ? "success"
-                        : transaction.checkStatus === "rejected"
+                        : transaction.checkStatus === "rejected" ||
+                            transaction.checkStatus === "cancelled"
                           ? "destructive"
                           : "amber"
                     }
@@ -211,7 +212,9 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
                       ? "Chèque encaissé"
                       : transaction.checkStatus === "rejected"
                         ? "Chèque rejeté"
-                        : "Chèque en attente"}
+                        : transaction.checkStatus === "cancelled"
+                          ? "Chèque annulé"
+                          : "Chèque en attente"}
                   </Badge>
                 )}
                 {!!transaction.reason && (

@@ -27,37 +27,34 @@ import z from "zod";
 
 interface Props {
   open: boolean;
-  openChange: React.Dispatch<React.SetStateAction<boolean>>;
+  openChange: (open: boolean) => void;
   transaction: Transaction;
   userId: number;
-  status: "paid" | "rejected";
 }
 
 const formSchema = z.object({
-  reason: z.string().max(80, { message: "Le motif ne peut pas dépasser 80 caractères" }).optional(),
+  reason: z
+    .string()
+    .trim()
+    .min(1, { message: "Veuillez indiquer le motif de l'annulation" })
+    .max(80, { message: "Le motif ne peut pas dépasser 80 caractères" }),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-function MarkCheckStatusDialog({ open, openChange, transaction, userId, status }: Props) {
+function CancelCheckDialog({ open, openChange, transaction, userId }: Props) {
   const queryClient = useQueryClient();
-  const isRejection = status === "rejected";
 
-  const markStatus = useMutation({
-    mutationFn: async ({ reason }: { reason?: string }) =>
-      transactionQ.markCheckStatus({
+  const cancelCheck = useMutation({
+    mutationFn: async ({ reason }: FormValues) =>
+      transactionQ.cancelCheck({
         id: transaction.id,
-        status,
         reason,
         validatorId: userId,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries();
-      toast.success(
-        isRejection
-          ? "Chèque marqué comme rejeté avec succès !"
-          : "Chèque marqué comme encaissé avec succès !",
-      );
+      toast.success("Chèque annulé. Le ticket peut être traité à nouveau.");
       openChange(false);
     },
     onError: (error: Error) => {
@@ -73,48 +70,41 @@ function MarkCheckStatusDialog({ open, openChange, transaction, userId, status }
   });
 
   const onSubmit = (values: FormValues) => {
-    markStatus.mutate(values);
+    cancelCheck.mutate(values);
   };
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{transaction.label}</DialogTitle>
+          <DialogTitle>{"Annuler le chèque"}</DialogTitle>
           <DialogDescription>
-            {isRejection
-              ? "Marquer ce chèque comme rejeté par la banque. Le montant sera retiré du compte temporaire et recrédité sur le compte d'origine. Le ticket repassera au statut \"Validé\" pour émettre un nouveau chèque."
-              : "Marquer ce chèque comme encaissé. Le montant sera définitivement retiré du compte temporaire."}
+            {`Le chèque ${transaction.docNumber ? `n° ${transaction.docNumber} ` : ""}sera annulé et conservé dans l'historique du ticket. Si les fonds ont été placés sur le compte temporaire, ils seront recrédités sur le compte d'origine. Le ticket repassera au statut "Validé" pour émettre un nouveau chèque.`}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-            {isRejection && (
-              <FormField
-                control={form.control}
-                name="reason"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{"Motif du rejet (optionnel)"}</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Ex. Provision insuffisante"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="reason"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel isRequired>{"Motif de l'annulation"}</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} placeholder="Ex. Chèque perdu" />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <div className="w-full flex justify-end gap-2">
               <Button
                 type="submit"
-                variant={isRejection ? "destructive" : "primary"}
-                disabled={markStatus.isPending}
-                isLoading={markStatus.isPending}
+                variant={"destructive"}
+                disabled={cancelCheck.isPending}
+                isLoading={cancelCheck.isPending}
               >
-                {isRejection ? "Marquer comme rejeté" : "Marquer comme encaissé"}
+                {"Annuler le chèque"}
               </Button>
               <Button
                 variant={"outline"}
@@ -123,7 +113,7 @@ function MarkCheckStatusDialog({ open, openChange, transaction, userId, status }
                   openChange(false);
                 }}
               >
-                {"Annuler"}
+                {"Fermer"}
               </Button>
             </div>
           </form>
@@ -133,4 +123,4 @@ function MarkCheckStatusDialog({ open, openChange, transaction, userId, status }
   );
 }
 
-export default MarkCheckStatusDialog;
+export default CancelCheckDialog;

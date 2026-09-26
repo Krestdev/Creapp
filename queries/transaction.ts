@@ -252,6 +252,20 @@ class TransactionQuery {
       .then((response) => response.data);
   };
 
+  cancelCheck = async ({
+    id,
+    reason,
+    validatorId,
+  }: {
+    id: number;
+    reason?: string;
+    validatorId: number;
+  }): Promise<{ data: Transaction }> => {
+    return api
+      .put(`${this.route}/cancelCheck/${id}`, { reason, validatorId })
+      .then((response) => response.data);
+  };
+
   update = async (
     id: number,
     data: Omit<TransactionProps, "userId" | "updatedAt">,

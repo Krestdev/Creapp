@@ -18,6 +18,7 @@ import {
   BanIcon,
   CheckCircle2,
   ChevronDown,
+  CircleX,
   DollarSign,
   Download,
   Ellipsis,
@@ -67,6 +68,7 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import MarkCheckStatusDialog from "../../banques/transactions/mark-check-status-dialog";
 import AddProove from "./addProove";
+import CancelCheckDialog from "./cancel-check-dialog";
 import CancelTicket from "./cancel-ticket";
 import CompleteGas from "./complete-gas";
 import CompleteSettle from "./complete-settle";
@@ -280,6 +282,22 @@ function ExpensesTable({
   const [showCancel, setShowCancel] = React.useState<boolean>(false);
   const [editDialog, setEditDialog] = React.useState<boolean>(false);
   const [checkAction, setCheckAction] = React.useState<"paid" | "rejected">();
+  const [showCancelCheck, setShowCancelCheck] = React.useState<boolean>(false);
+
+  // A signed cheque can be voided until it is cashed, then re-issued via "Traiter"
+  const canCancelCheck = (item: PaymentRequest) => {
+    const isCheck =
+      item.method?.type?.toLowerCase() === "chq" ||
+      !!item.method?.label?.toLowerCase().includes("chèque");
+    const checkStatus = item.transaction?.checkStatus;
+    return (
+      isCheck &&
+      !!item.transaction &&
+      (!checkStatus || checkStatus === "pending") &&
+      (!!item.signed ||
+        ["signed", "simple_signed", "paid"].includes(item.status))
+    );
+  };
 
   const columns: ColumnDef<PaymentRequest>[] = [
     {
@@ -635,6 +653,18 @@ function ExpensesTable({
                     </DropdownMenuItem>
                   </>
                 )}
+              {canCancelCheck(item) && (
+                <DropdownMenuItem
+                  disabled={!auth}
+                  onClick={() => {
+                    setSelected(item);
+                    setShowCancelCheck(true);
+                  }}
+                >
+                  <CircleX />
+                  {"Annuler le chèque"}
+                </DropdownMenuItem>
+              )}
               {(item.type === "gas" || item.type === "settle") && (
                 <DropdownMenuItem
                   disabled={isGasComplete(item) || isSettleComplete(item)}
@@ -957,6 +987,14 @@ function ExpensesTable({
             open={editDialog}
           />
         </>
+      )}
+      {selected?.transaction && showCancelCheck && (
+        <CancelCheckDialog
+          transaction={selected.transaction}
+          open={showCancelCheck}
+          openChange={setShowCancelCheck}
+          userId={user?.id ?? 0}
+        />
       )}
       {selected?.transaction && checkAction && (
         <MarkCheckStatusDialog
