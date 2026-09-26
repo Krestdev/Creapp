@@ -21,6 +21,7 @@ import {
   IdCardIcon,
   Landmark,
   LucideHash,
+  Vault,
 } from "lucide-react";
 import Link from "next/link";
 import React from "react";
@@ -64,6 +65,21 @@ function ViewBank({ open, openChange, bank }: Props) {
               <p className="font-semibold">{XAF.format(bank.balance)}</p>
             </div>
           </div>
+          {/** Solde réel */}
+          {bank.tempAccount && (
+            <div className="view-group">
+              <span className="view-icon">
+                <Vault />
+              </span>
+              <div className="flex flex-col">
+                <p className="view-group-title">{"Solde réel"}</p>
+                <p className="font-semibold">
+                  {XAF.format(bank.balance + bank.tempAccount.balance)}
+                  <span className="ml-1 text-destructive">{`(dont ${XAF.format(bank.tempAccount.balance)} réservés)`}</span>
+                </p>
+              </div>
+            </div>
+          )}
           {/**Method */}
           <div className="view-group">
             <span className="view-icon">
@@ -90,15 +106,13 @@ function ViewBank({ open, openChange, bank }: Props) {
             </div>
           </div>
           {/**Compte temporaire */}
-          <div className="view-group">
+          {/* <div className="view-group">
             <span className="view-icon">
               <Landmark />
             </span>
             <div className="flex flex-col">
               <p className="view-group-title">
-                {bank.isTemporary
-                  ? "Type de compte"
-                  : "Compte temporaire lié"}
+                {bank.isTemporary ? "Type de compte" : "Compte temporaire lié"}
               </p>
               {bank.isTemporary ? (
                 <Badge variant="secondary">{"Compte temporaire"}</Badge>
@@ -114,7 +128,7 @@ function ViewBank({ open, openChange, bank }: Props) {
                 </p>
               )}
             </div>
-          </div>
+          </div> */}
           {/**Infos */}
           <div className="view-group">
             <span className="view-icon">
@@ -177,9 +191,7 @@ function ViewBank({ open, openChange, bank }: Props) {
               <p className="view-group-title">{"Justificatif"}</p>
               {!!bank.justification ? (
                 <Link
-                  href={`${
-                    process.env.NEXT_PUBLIC_API
-                  }/${bank.justification}`}
+                  href={`${process.env.NEXT_PUBLIC_API}/${bank.justification}`}
                   target="_blank"
                   className="flex gap-0.5 items-center"
                 >
