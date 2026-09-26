@@ -181,7 +181,10 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
                       {transaction.from?.label}
                       <span>{"- Solde :"}</span>
                       <strong className="text-primary-600">
-                        {`(${XAF.format(transaction.from?.balance)})`}
+                        {`${XAF.format(transaction.from?.balance)}`}
+                        <span className="font-extralight text-xs">
+                          {` -- (${XAF.format(transaction.from?.tempAccount?.balance ?? 0)})`}
+                        </span>
                       </strong>
                     </span>
                   )}
