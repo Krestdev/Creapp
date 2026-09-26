@@ -50,6 +50,15 @@ function Page() {
             .reduce((sum, bank) => sum + bank.balance, 0),
         ),
         variant: "primary",
+        more: {
+          title: "Solde réservé",
+          value: XAF.format(
+            getBanks.data.data.reduce(
+              (sum, bank) => sum + (bank.tempAccount?.balance ?? 0),
+              0,
+            ),
+          ),
+        },
       },
       {
         title: "Comptes Bancaires",

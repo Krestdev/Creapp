@@ -529,7 +529,7 @@ function EditQuotation({ open, openChange, quotation }: Props) {
                                           }
                                         >
                                           <span className="truncate">
-                                            {`${item.designation} - ${item.quantity} ${item.unit} - ${XAF.format(item.price)}`}
+                                            {`${item.designation} - ${item.quantity} ${item.unit} - ${XAF.format(item.price)} - TVA ${item.tva}%`}
                                           </span>
                                           <span className="text-xs font-medium px-1.5 py-0.5 rounded bg-primary text-primary-foreground">
                                             Modifier

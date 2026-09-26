@@ -30,12 +30,13 @@ import { units } from "@/data/unit";
 import { RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import React, { useState, useEffect } from "react";
-import { useForm } from "react-hook-form";
+import { DefaultValues, useForm } from "react-hook-form";
 import z from "zod";
 import { Plus, Check, X, Pencil, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
+import { cn } from "@/lib/utils";
 
 const formSchema = z.object({
   id: z.number().optional(),
@@ -56,6 +57,18 @@ const formSchema = z.object({
 });
 
 type ElementT = z.infer<typeof formSchema>;
+
+const emptyElement: DefaultValues<ElementT> = {
+  id: undefined,
+  needId: undefined,
+  designation: "",
+  quantity: 1,
+  unit: "piece",
+  price: 0,
+  hasIs: false,
+  tva: 19.25,
+  reduction: 0,
+};
 
 interface Props {
   open: boolean;
@@ -83,17 +96,7 @@ function AddElement({
 
   const form = useForm<ElementT>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      id: undefined,
-      needId: undefined,
-      designation: "",
-      quantity: 1,
-      unit: "piece",
-      price: 0,
-      hasIs: false,
-      tva: 19.25,
-      reduction: 0,
-    },
+    defaultValues: emptyElement,
   });
 
   const [prevOpen, setPrevOpen] = useState(false);
@@ -118,30 +121,34 @@ function AddElement({
         form.reset(element);
       } else {
         // Mode ajout ou réinitialisation
-        form.reset();
+        form.reset(emptyElement);
       }
     }
   }, [open, element, index, form]);
 
-  // Fonction pour ajouter ou modifier un élément
-  const handleAddOrUpdateElement = (values: ElementT) => {
-    // Validation
+  const isElementValid = (values: ElementT): boolean => {
     if (values.needId === undefined) {
       toast.error("Veuillez sélectionner un besoin");
-      return;
+      return false;
     }
     if (values.designation.trim() === "") {
       toast.error("Veuillez entrer une désignation");
-      return;
+      return false;
     }
     if (values.quantity <= 0) {
       toast.error("Veuillez entrer une quantité supérieure à 0");
-      return;
+      return false;
     }
     if (values.price < 0) {
       toast.error("Le prix ne peut pas être négatif");
-      return;
+      return false;
     }
+    return true;
+  };
+
+  // Fonction pour ajouter ou modifier un élément
+  const handleAddOrUpdateElement = (values: ElementT) => {
+    if (!isElementValid(values)) return;
 
     let updatedElements: ElementT[];
 
@@ -157,7 +164,7 @@ function AddElement({
     setTempElements(updatedElements);
 
     // Réinitialiser le formulaire pour le prochain ajout
-    form.reset();
+    form.reset(emptyElement);
 
     setEditingIndex(null);
   };
@@ -177,7 +184,7 @@ function AddElement({
     // Si on supprime l'élément en cours d'édition
     if (editingIndex === index) {
       setEditingIndex(null);
-      form.reset();
+      form.reset(emptyElement);
     } else if (editingIndex !== null && editingIndex > index) {
       // Ajuster l'index d'édition si on supprime un élément avant
       setEditingIndex(editingIndex - 1);
@@ -185,8 +192,23 @@ function AddElement({
   };
 
   // Fonction pour valider tous les éléments
-  const handleSaveAll = () => {
-    onChange(tempElements);
+  const handleSaveAll = async () => {
+    let elements = tempElements;
+
+    // Un élément est en cours de modification avec des changements non validés :
+    // on les applique avant d'enregistrer pour ne pas les perdre silencieusement.
+    if (editingIndex !== null && form.formState.isDirty) {
+      let applied = false;
+      await form.handleSubmit((values) => {
+        if (!isElementValid(values)) return;
+        elements = [...tempElements];
+        elements[editingIndex] = values;
+        applied = true;
+      })();
+      if (!applied) return;
+    }
+
+    onChange(elements);
     openChange(false);
   };
 
@@ -194,7 +216,7 @@ function AddElement({
   const handleCancel = () => {
     setTempElements(value);
     setEditingIndex(null);
-    form.reset();
+    form.reset(emptyElement);
     openChange(false);
   };
 
@@ -211,13 +233,13 @@ function AddElement({
         <DialogHeader>
           <DialogTitle className="h-fit">
             {editingIndex !== null ||
-              (element && index !== null && index !== undefined)
+            (element && index !== null && index !== undefined)
               ? "Modifier un élément du devis"
               : "Ajouter des éléments au devis"}
           </DialogTitle>
           <DialogDescription>
             {editingIndex !== null ||
-              (element && index !== null && index !== undefined)
+            (element && index !== null && index !== undefined)
               ? "Mettez à jour les informations de cet élément du devis."
               : "Ajoutez autant d'éléments que nécessaire. Tous seront enregistrés ensemble."}
           </DialogDescription>
@@ -472,7 +494,7 @@ function AddElement({
                       variant="outline"
                       onClick={() => {
                         setEditingIndex(null);
-                        form.reset();
+                        form.reset(emptyElement);
                       }}
                     >
                       <X />
@@ -541,17 +563,24 @@ function AddElement({
                               {elements.map((item) => (
                                 <div
                                   key={item.index}
-                                  className={`w-full bg-white rounded-sm border px-3 py-2 inline-flex justify-between gap-2 items-center text-sm ${editingIndex === item.index
-                                      ? "border-blue-300 bg-blue-50"
-                                      : "border-gray-200"
-                                    }`}
+                                  className={`w-full rounded-sm border border-white px-3 py-2 inline-flex justify-between gap-2 items-center text-sm ${
+                                    editingIndex === item.index
+                                      ? "bg-primary-100 outline-2 outline-primary-200"
+                                      : "bg-white"
+                                  }`}
                                 >
                                   <div className="flex items-center gap-3 flex-1">
                                     <div className="min-w-6 w-6 h-6 flex items-center justify-center bg-gray-100 rounded text-xs text-gray-600">
                                       {item.index + 1}
                                     </div>
                                     <div className="truncate flex-1">
-                                      <div className="font-medium truncate">
+                                      <div
+                                        className={cn(
+                                          "font-medium truncate",
+                                          editingIndex === item.index &&
+                                            "text-primary-700 font-semibold",
+                                        )}
+                                      >
                                         {item.designation}
                                       </div>
                                       <div className="text-xs text-gray-600 truncate">
