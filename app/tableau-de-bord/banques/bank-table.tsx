@@ -187,10 +187,27 @@ function BankTable({ data, canEdit }: Props) {
       cell: ({ row }) => {
         const value = row.original.balance;
         const valueTemp = row.original.tempAccount?.balance;
+        return <p className="normal-case">{XAF.format(value)} </p>;
+      },
+    },
+    {
+      accessorKey: "balance-real",
+      header: ({ column }) => {
         return (
-          <p className="normal-case">
-            {XAF.format(value)}{" "}
-            <span>{valueTemp ? `(${XAF.format(valueTemp)})` : ""}</span>
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Soldes Réels"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        return (
+          <p className="normal-case text-secondary">
+            {XAF.format(value.balance + (value.tempAccount?.balance ?? 0))}
           </p>
         );
       },
