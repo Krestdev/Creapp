@@ -16,8 +16,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import { getClearingInstrument } from "@/lib/utils";
 import { transactionQ } from "@/queries/transaction";
-import { Transaction } from "@/types/types";
+import { PayType, Transaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
@@ -29,6 +30,7 @@ interface Props {
   open: boolean;
   openChange: (open: boolean) => void;
   transaction: Transaction;
+  method?: PayType;
   userId: number;
 }
 
@@ -42,8 +44,18 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function CancelCheckDialog({ open, openChange, transaction, userId }: Props) {
+function CancelCheckDialog({
+  open,
+  openChange,
+  transaction,
+  method,
+  userId,
+}: Props) {
   const queryClient = useQueryClient();
+  const instrument = getClearingInstrument(method ?? transaction.method) ?? {
+    label: "Chèque",
+    withArticle: "le chèque",
+  };
 
   const cancelCheck = useMutation({
     mutationFn: async ({ reason }: FormValues) =>
@@ -54,7 +66,9 @@ function CancelCheckDialog({ open, openChange, transaction, userId }: Props) {
       }),
     onSuccess: () => {
       queryClient.invalidateQueries();
-      toast.success("Chèque annulé. Le ticket peut être traité à nouveau.");
+      toast.success(
+        `${instrument.label} annulé. Le ticket peut être traité à nouveau.`,
+      );
       openChange(false);
     },
     onError: (error: Error) => {
@@ -77,9 +91,9 @@ function CancelCheckDialog({ open, openChange, transaction, userId }: Props) {
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>{"Annuler le chèque"}</DialogTitle>
+          <DialogTitle>{`Annuler ${instrument.withArticle}`}</DialogTitle>
           <DialogDescription>
-            {`Le chèque ${transaction.docNumber ? `n° ${transaction.docNumber} ` : ""}sera annulé et conservé dans l'historique du ticket. Si les fonds ont été placés sur le compte temporaire, ils seront recrédités sur le compte d'origine. Le ticket repassera au statut "Validé" pour émettre un nouveau chèque.`}
+            {`${instrument.withArticle.charAt(0).toUpperCase()}${instrument.withArticle.slice(1)} ${transaction.docNumber ? `n° ${transaction.docNumber} ` : ""}sera annulé et conservé dans l'historique du ticket. Si les fonds ont été placés sur le compte temporaire, ils seront recrédités sur le compte d'origine. Le ticket repassera au statut "Validé" pour être traité à nouveau, avec le même moyen de paiement ou un autre.`}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -91,7 +105,10 @@ function CancelCheckDialog({ open, openChange, transaction, userId }: Props) {
                 <FormItem>
                   <FormLabel isRequired>{"Motif de l'annulation"}</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="Ex. Chèque perdu" />
+                    <Textarea
+                      {...field}
+                      placeholder="Ex. Document perdu, erreur de montant"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -104,7 +121,7 @@ function CancelCheckDialog({ open, openChange, transaction, userId }: Props) {
                 disabled={cancelCheck.isPending}
                 isLoading={cancelCheck.isPending}
               >
-                {"Annuler le chèque"}
+                {`Annuler ${instrument.withArticle}`}
               </Button>
               <Button
                 variant={"outline"}

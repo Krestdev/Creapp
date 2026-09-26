@@ -767,7 +767,7 @@ function ViewExpense({
               </span>
               <div className="w-full flex flex-col">
                 <p className="view-group-title">
-                  {"Chèques annulés / rejetés"}
+                  {"Paiements annulés / rejetés"}
                 </p>
                 <div className="grid gap-2">
                   {payment.abortedTransaction.map((tx) => (
@@ -777,9 +777,7 @@ function ViewExpense({
                     >
                       <div className="flex flex-wrap items-center justify-between gap-2">
                         <p className="text-sm font-medium text-gray-700">
-                          {tx.docNumber
-                            ? `Chèque n° ${tx.docNumber}`
-                            : `Transaction #${tx.id}`}
+                          {`${tx.method?.label ?? "Transaction"} ${tx.docNumber ? `n° ${tx.docNumber}` : `#${tx.id}`}`}
                           {" · "}
                           {XAF.format(tx.amount)}
                         </p>

@@ -50,7 +50,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getRequestTypeBadge, isRole, subText, XAF } from "@/lib/utils";
+import {
+  cn,
+  getClearingInstrument,
+  getRequestTypeBadge,
+  isRole,
+  subText,
+  XAF,
+} from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
   PaymentRequest,
@@ -284,18 +291,15 @@ function ExpensesTable({
   const [checkAction, setCheckAction] = React.useState<"paid" | "rejected">();
   const [showCancelCheck, setShowCancelCheck] = React.useState<boolean>(false);
 
-  // A signed cheque can be voided until it is cashed, then re-issued via "Traiter"
+  // A signed cheque / transfer order can be voided until the bank clears it,
+  // then re-issued via "Traiter"
   const canCancelCheck = (item: PaymentRequest) => {
-    const isCheck =
-      item.method?.type?.toLowerCase() === "chq" ||
-      !!item.method?.label?.toLowerCase().includes("chèque");
     const checkStatus = item.transaction?.checkStatus;
+    if (!getClearingInstrument(item.method) || !item.transaction) return false;
+    if (item.status === "paid") return checkStatus === "pending";
     return (
-      isCheck &&
-      !!item.transaction &&
       (!checkStatus || checkStatus === "pending") &&
-      (!!item.signed ||
-        ["signed", "simple_signed", "paid"].includes(item.status))
+      (!!item.signed || ["signed", "simple_signed"].includes(item.status))
     );
   };
 
@@ -640,7 +644,7 @@ function ExpensesTable({
                       }}
                     >
                       <CheckCircle2 />
-                      {"Marquer chèque encaissé"}
+                      {`Marquer ${getClearingInstrument(item.method)?.name ?? "chèque"} ${getClearingInstrument(item.method)?.cleared ?? "encaissé"}`}
                     </DropdownMenuItem>
                     <DropdownMenuItem
                       onClick={() => {
@@ -649,7 +653,7 @@ function ExpensesTable({
                       }}
                     >
                       <BanIcon />
-                      {"Marquer chèque rejeté"}
+                      {`Marquer ${getClearingInstrument(item.method)?.name ?? "chèque"} rejeté`}
                     </DropdownMenuItem>
                   </>
                 )}
@@ -662,7 +666,7 @@ function ExpensesTable({
                   }}
                 >
                   <CircleX />
-                  {"Annuler le chèque"}
+                  {`Annuler ${getClearingInstrument(item.method)?.withArticle}`}
                 </DropdownMenuItem>
               )}
               {(item.type === "gas" || item.type === "settle") && (
@@ -993,6 +997,7 @@ function ExpensesTable({
       {selected?.transaction && showCancelCheck && (
         <CancelCheckDialog
           transaction={selected.transaction}
+          method={selected.method}
           open={showCancelCheck}
           openChange={setShowCancelCheck}
           userId={user?.id ?? 0}
@@ -1001,6 +1006,7 @@ function ExpensesTable({
       {selected?.transaction && checkAction && (
         <MarkCheckStatusDialog
           transaction={selected.transaction}
+          method={selected.method}
           open={!!checkAction}
           openChange={() => setCheckAction(undefined)}
           status={checkAction}
