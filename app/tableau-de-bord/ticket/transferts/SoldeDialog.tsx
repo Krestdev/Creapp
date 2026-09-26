@@ -106,8 +106,13 @@ export function SoldeDialog({ open, onOpenChange }: ApproveTicketProps) {
                       <div>
                         <h3 className="font-medium">{bank.label}</h3>
                         <p className="text-sm text-primary font-semibold">
-                          {XAF.format(bank.balance)}
+                          {`Solde Disponible : ${XAF.format(bank.balance)}`}
                         </p>
+                        {bank.tempAccount && (
+                          <p className="text-sm text-secondary font-semibold">
+                            {`Solde Réel : ${XAF.format(bank.balance + bank.tempAccount.balance)}`}
+                          </p>
+                        )}
                       </div>
                     </div>
                   ))}

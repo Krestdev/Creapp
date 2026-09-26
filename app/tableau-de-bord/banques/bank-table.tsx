@@ -179,14 +179,13 @@ function BankTable({ data, canEdit }: Props) {
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Soldes"}
+            {"Soldes Utilisables"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
         const value = row.original.balance;
-        const valueTemp = row.original.tempAccount?.balance;
         return <p className="normal-case">{XAF.format(value)} </p>;
       },
     },

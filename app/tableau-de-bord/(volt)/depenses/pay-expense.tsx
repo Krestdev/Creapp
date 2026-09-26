@@ -175,22 +175,21 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
               </span>
               <div className="flex flex-col">
                 <p className="view-group-title">{"Compte payeur"}</p>
-                <p className="font-semibold">
+                <div className="font-semibold">
                   {!!transaction && transaction.Type === "DEBIT" && (
                     <div>
                       <span className="flex gap-1.5">
                         {transaction.from?.label}
-                        <span>{"- Solde :"}</span>
-                        <strong className="text-primary-600">
-                          {`${XAF.format(transaction.from?.balance)}`}
-                        </strong>
                       </span>
-                      <span className="">
-                        {`Solde Réel: ${XAF.format((transaction.from?.balance ?? 0) + (transaction.from?.tempAccount?.balance ?? 0))} (${XAF.format(transaction.from?.tempAccount?.balance ?? 0)} réservés)`}
-                      </span>
+                      <p className="text-primary-600">
+                        {`Solde Utilisable: ${XAF.format(transaction.from?.balance ?? 0)}`}
+                      </p>
+                      <p>
+                        {`Solde Réel: ${XAF.format((transaction.from?.balance ?? 0) + (transaction.from?.tempAccount?.balance ?? 0))}`}
+                      </p>
                     </div>
                   )}
-                </p>
+                </div>
               </div>
             </div>
             {/**Montant à payer */}
