@@ -42,7 +42,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import {
   Sidebar,
@@ -57,6 +57,7 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 import { Skeleton } from "../ui/skeleton";
+import { Separator } from "../ui/separator";
 
 function usePendingDepenseCount(
   paymentMethod: "cash" | "chq" | "ov",
@@ -556,43 +557,48 @@ function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="p-2 flex flex-col gap-1.5">
         {filteredNavLinks.map(({ items, title, className }, id) => (
-          <SidebarGroup key={id}>
-            <SidebarGroupLabel className={cn(className)}>
-              {title}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {items
-                  .filter((i) => {
-                    if (i.authorized.length === 0) return true;
-                    if (i.pageId === "PG-02-05") {
-                      return typeof user?.serviceUserId === "number";
-                    }
-                    return i.authorized.some((role) =>
-                      userRoles.includes(role),
-                    );
-                  })
-                  .map((item, id) => (
-                    <SidebarMenuItem key={id}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.href}
-                      >
-                        <Link href={item.href}>
-                          {item.icon && <item.icon size={20} />}
-                          <span className="w-full">{item.title}</span>
-                          {!!item.badgeValue && item.badgeValue > 0 && (
-                            <span className="inline-flex shrink-0 h-[26px] min-w-[26px] px-1 items-center justify-center text-center rounded bg-accent text-xs font-medium text-primary-700">
-                              {item.badgeValue > 99 ? "99+" : item.badgeValue}
-                            </span>
-                          )}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <>
+            <SidebarGroup key={id}>
+              <SidebarGroupLabel
+                className={cn(className, "font-bold tracking-widest")}
+              >
+                {title}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {items
+                    .filter((i) => {
+                      if (i.authorized.length === 0) return true;
+                      if (i.pageId === "PG-02-05") {
+                        return typeof user?.serviceUserId === "number";
+                      }
+                      return i.authorized.some((role) =>
+                        userRoles.includes(role),
+                      );
+                    })
+                    .map((item, id) => (
+                      <SidebarMenuItem key={id}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname === item.href}
+                        >
+                          <Link href={item.href}>
+                            {item.icon && <item.icon size={20} />}
+                            <span className="w-full">{item.title}</span>
+                            {!!item.badgeValue && item.badgeValue > 0 && (
+                              <span className="inline-flex shrink-0 h-[26px] min-w-[26px] px-1 items-center justify-center text-center rounded bg-accent text-xs font-medium text-primary-700">
+                                {item.badgeValue > 99 ? "99+" : item.badgeValue}
+                              </span>
+                            )}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            <Separator orientation="horizontal" />
+          </>
         ))}
       </SidebarContent>
       <SidebarFooter className="px-0">
