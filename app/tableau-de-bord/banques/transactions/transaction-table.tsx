@@ -62,7 +62,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getTransactionTypeBadge, subText, XAF } from "@/lib/utils";
+import {
+  cn,
+  getClearingInstrument,
+  getTransactionTypeBadge,
+  subText,
+  XAF,
+} from "@/lib/utils";
 import {
   Bank,
   DateFilter,
@@ -464,7 +470,7 @@ function TransactionTable({
                     }}
                   >
                     <CheckCircle2 />
-                    {"Marquer chèque encaissé"}
+                    {`Marquer ${getClearingInstrument(item.method)?.name ?? "chèque"} ${getClearingInstrument(item.method)?.cleared ?? "encaissé"}`}
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => {
@@ -473,7 +479,7 @@ function TransactionTable({
                     }}
                   >
                     <Ban />
-                    {"Marquer chèque rejeté"}
+                    {`Marquer ${getClearingInstrument(item.method)?.name ?? "chèque"} rejeté`}
                   </DropdownMenuItem>
                 </>
               )}

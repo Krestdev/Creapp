@@ -412,6 +412,12 @@ function DepensesPage({
                 {"Chèque non encaissé"}
               </div>
             )}
+            {paymentMethod === "ov" && (
+              <div className="inline-flex gap-1.5 items-center">
+                <UncashedCheckLegend />
+                {"Ordre de virement non exécuté"}
+              </div>
+            )}
           </div>
         </section>
       </div>

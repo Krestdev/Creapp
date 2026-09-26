@@ -16,8 +16,9 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Textarea } from "@/components/ui/textarea";
+import { getClearingInstrument } from "@/lib/utils";
 import { transactionQ } from "@/queries/transaction";
-import { Transaction } from "@/types/types";
+import { PayType, Transaction } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
@@ -29,6 +30,7 @@ interface Props {
   open: boolean;
   openChange: React.Dispatch<React.SetStateAction<boolean>>;
   transaction: Transaction;
+  method?: PayType;
   userId: number;
   status: "paid" | "rejected";
 }
@@ -39,9 +41,21 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-function MarkCheckStatusDialog({ open, openChange, transaction, userId, status }: Props) {
+function MarkCheckStatusDialog({
+  open,
+  openChange,
+  transaction,
+  method,
+  userId,
+  status,
+}: Props) {
   const queryClient = useQueryClient();
   const isRejection = status === "rejected";
+  const instrument = getClearingInstrument(method ?? transaction.method) ?? {
+    label: "Chèque",
+    withArticle: "le chèque",
+    cleared: "encaissé",
+  };
 
   const markStatus = useMutation({
     mutationFn: async ({ reason }: { reason?: string }) =>
@@ -55,8 +69,8 @@ function MarkCheckStatusDialog({ open, openChange, transaction, userId, status }
       queryClient.invalidateQueries();
       toast.success(
         isRejection
-          ? "Chèque marqué comme rejeté avec succès !"
-          : "Chèque marqué comme encaissé avec succès !",
+          ? `${instrument.label} marqué comme rejeté avec succès !`
+          : `${instrument.label} marqué comme ${instrument.cleared} avec succès !`,
       );
       openChange(false);
     },
@@ -83,8 +97,8 @@ function MarkCheckStatusDialog({ open, openChange, transaction, userId, status }
           <DialogTitle>{transaction.label}</DialogTitle>
           <DialogDescription>
             {isRejection
-              ? "Marquer ce chèque comme rejeté par la banque. Le montant sera retiré du compte temporaire et recrédité sur le compte d'origine. Le ticket repassera au statut \"Validé\" pour émettre un nouveau chèque."
-              : "Marquer ce chèque comme encaissé. Le montant sera définitivement retiré du compte temporaire."}
+              ? `Marquer ${instrument.withArticle} comme rejeté par la banque. Le montant sera retiré du compte temporaire et recrédité sur le compte d'origine. Le ticket repassera au statut "Validé" pour être traité à nouveau.`
+              : `Marquer ${instrument.withArticle} comme ${instrument.cleared}. Le montant sera définitivement retiré du compte temporaire.`}
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -114,7 +128,9 @@ function MarkCheckStatusDialog({ open, openChange, transaction, userId, status }
                 disabled={markStatus.isPending}
                 isLoading={markStatus.isPending}
               >
-                {isRejection ? "Marquer comme rejeté" : "Marquer comme encaissé"}
+                {isRejection
+                  ? "Marquer comme rejeté"
+                  : `Marquer comme ${instrument.cleared}`}
               </Button>
               <Button
                 variant={"outline"}

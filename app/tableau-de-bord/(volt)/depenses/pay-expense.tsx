@@ -195,7 +195,11 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
               </span>
               <div className="flex flex-col">
                 <p className="view-group-title">
-                  {isCheque ? "Montant du chèque" : "Montant à payer"}
+                  {isCheque
+                    ? "Montant du chèque"
+                    : isOv
+                      ? "Montant de l'ordre de virement"
+                      : "Montant à payer"}
                 </p>
                 <p className="font-semibold">{XAF.format(ticket.price)}</p>
               </div>
@@ -252,7 +256,7 @@ function PayExpense({ ticket, open, onOpenChange }: Props) {
             disabled={pay.isPending}
             isLoading={pay.isPending}
           >
-            {isCheque ? "Décharger" : "Payer"}
+            {isNotCash ? "Décharger" : "Payer"}
           </Button>
           <Button
             variant={"outline"}
