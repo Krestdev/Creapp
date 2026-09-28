@@ -839,7 +839,7 @@ function TransferTable({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <h3>{`Transactions (${data.length})`}</h3>
+      <h3>{`Transferts (${data.length})`}</h3>
       <div className="rounded-md border">
         <Table>
           <TableHeader>

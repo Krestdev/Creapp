@@ -405,7 +405,7 @@ function AppSidebar() {
           icon: BanknoteIcon,
           href: "/tableau-de-bord/depenses/especes",
           badgeValue: cashDepenseCount.data,
-          authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
+          authorized: ["SUPERADMIN", "VOLT"],
         },
         {
           pageId: "PG-23354987-02",
@@ -421,7 +421,7 @@ function AppSidebar() {
           icon: BadgeDollarSignIcon,
           href: "/tableau-de-bord/depenses/ordres-de-virement",
           badgeValue: ovDepenseCount.data,
-          authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
+          authorized: ["SUPERADMIN", "VOLT"],
         },
         /* {
             pageId: "PG-23354987-01",
