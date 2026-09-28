@@ -634,29 +634,36 @@ function ExpensesTable({
                   {"Ajouter la preuve"}
                 </DropdownMenuItem>
               )}
-              {item.status === "paid" &&
-                item.transaction?.checkStatus === "pending" && (
-                  <>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setSelected(item);
-                        setCheckAction("paid");
-                      }}
-                    >
-                      <CheckCircle2 />
-                      {`Marquer ${getClearingInstrument(item.method)?.name ?? "chèque"} ${getClearingInstrument(item.method)?.cleared ?? "encaissé"}`}
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => {
-                        setSelected(item);
-                        setCheckAction("rejected");
-                      }}
-                    >
-                      <BanIcon />
-                      {`Marquer ${getClearingInstrument(item.method)?.name ?? "chèque"} rejeté`}
-                    </DropdownMenuItem>
-                  </>
-                )}
+              {item.method?.type !== "cash" && (
+                <>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelected(item);
+                      setCheckAction("paid");
+                    }}
+                    disabled={
+                      item.status !== "paid" ||
+                      item.transaction?.checkStatus !== "pending"
+                    }
+                  >
+                    <CheckCircle2 />
+                    {`Marquer ${getClearingInstrument(item.method)?.name ?? "chèque"} ${getClearingInstrument(item.method)?.cleared ?? "encaissé"}`}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelected(item);
+                      setCheckAction("rejected");
+                    }}
+                    disabled={
+                      item.status !== "paid" ||
+                      item.transaction?.checkStatus !== "pending"
+                    }
+                  >
+                    <BanIcon />
+                    {`Marquer ${getClearingInstrument(item.method)?.name ?? "chèque"} rejeté`}
+                  </DropdownMenuItem>
+                </>
+              )}
               {canCancelCheck(item) && (
                 <DropdownMenuItem
                   disabled={!auth}
@@ -752,20 +759,22 @@ function ExpensesTable({
                   </PDFDownloadLink>
                 </DropdownMenuItem>
               )}
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelected(item);
-                  setShowCancel(true);
-                }}
-                disabled={
-                  item.type === "achat" ||
-                  ["paid", "cancelled", "rejected"].includes(item.status) ||
-                  !auth
-                }
-              >
-                <BanIcon />
-                {"Annulation"}
-              </DropdownMenuItem>
+              {item.method?.type === "cash" && (
+                <DropdownMenuItem
+                  onClick={() => {
+                    setSelected(item);
+                    setShowCancel(true);
+                  }}
+                  disabled={
+                    item.type === "achat" ||
+                    ["paid", "cancelled", "rejected"].includes(item.status) ||
+                    !auth
+                  }
+                >
+                  <BanIcon />
+                  {"Annulation"}
+                </DropdownMenuItem>
+              )}
               <DropdownMenuItem
                 onClick={() => {
                   setSelected(item);
