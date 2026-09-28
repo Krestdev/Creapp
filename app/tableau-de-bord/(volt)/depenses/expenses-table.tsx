@@ -628,7 +628,6 @@ function ExpensesTable({
                     setSelected(item);
                     setShowAddFile(true);
                   }}
-                  disabled={!auth}
                 >
                   <FilePenLineIcon />
                   {"Ajouter la preuve"}
@@ -699,7 +698,7 @@ function ExpensesTable({
                       (item.status !== "pending_depense" &&
                         item.status !== "signed" &&
                         item.status !== "simple_signed") ||
-                      !auth
+                      (item.method?.type !== "chq" && !auth)
                     }
                     onClick={() => {
                       setSelected(item);
@@ -729,7 +728,7 @@ function ExpensesTable({
                     item.status === "unsigned" ||
                     (item.type === "gas" && !isGasComplete(item)) ||
                     (item.type === "settle" && !isSettleComplete(item)) ||
-                    !auth
+                    (item.method?.type !== "chq" && !auth)
                   }
                   onClick={() => {
                     setSelected(item);
@@ -740,7 +739,7 @@ function ExpensesTable({
                   {"Traiter"}
                 </DropdownMenuItem>
               )}
-              {!!item.invoiceId && !!auth && (
+              {!!item.invoiceId && (
                 <DropdownMenuItem disabled={item.status !== "paid"}>
                   <PDFDownloadLink
                     document={<NoticeFile payment={item} />}
