@@ -170,7 +170,7 @@ function Page() {
           />
         </div>
         <SignTransfers
-          data={data.data.transactions}
+          data={data?.data?.transactions ?? []}
           banks={getBanks.data.data}
           paymentMethods={getPayType.data.data}
           users={getUsers.data.data}
@@ -188,7 +188,7 @@ function Page() {
                 return { ...prev, ...next };
               });
             },
-            rowCount: data.data.total ?? data.data.transactions.length,
+            rowCount: data?.data?.total ?? data?.data?.transactions.length,
           }}
           pagination={{
             pageIndex: filters.pageIndex,

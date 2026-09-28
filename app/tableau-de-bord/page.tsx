@@ -549,7 +549,7 @@ const DashboardPage = () => {
         {/* Cartes de statistiques */}
         <div className="flex flex-col gap-2">
           <h3 className="font-semibold">{"Besoins"}</h3>
-          <div className="grid-stats-4">
+          <div className="grid-stats-5">
             {statistics
               .filter((item) => {
                 if (
@@ -577,7 +577,7 @@ const DashboardPage = () => {
         {canSeeReceptions && getReceptions.isSuccess && (
           <div className="flex flex-col gap-2">
             <h3 className="font-semibold">{"Réceptions"}</h3>
-            <div className="grid-stats-4">
+            <div className="grid-stats-5">
               {receptionStatistics.map((item) => (
                 <StatisticCard key={item.title} {...item} />
               ))}
