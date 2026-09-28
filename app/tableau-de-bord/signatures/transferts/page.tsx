@@ -1,8 +1,5 @@
 "use client";
-import {
-  StatisticCard,
-  StatisticProps,
-} from "@/components/base/TitleValueCard";
+import StatsCard from "@/components/base/StatsCard";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
@@ -14,7 +11,13 @@ import { payTypeQ } from "@/queries/payType";
 import { transactionQ, TransactionApprovalParams } from "@/queries/transaction";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
+import { useStore } from "@/providers/datastore";
+import { TransferTransaction } from "@/types/types";
 import SignTransfers, { SignatureFilters } from "./sign-transfers";
+
+// Le backend n'expose pas de compteur par utilisateur : on charge les
+// transferts en une seule page pour calculer les statistiques côté client.
+const STATS_PAGE_SIZE = 1000;
 
 const defaultCustomFilters: SignatureFilters = {
   search: "",
@@ -28,6 +31,7 @@ const defaultCustomFilters: SignatureFilters = {
 };
 
 function Page() {
+  const { user } = useStore();
   const { filters, setFilters } = useFilters();
   const [customFilters, setCustomFilters] =
     useState<SignatureFilters>(defaultCustomFilters);
@@ -75,13 +79,45 @@ function Page() {
     setFilters((prev) => ({ ...prev, pageIndex: 0 }));
   };
 
-  const statistics: Array<StatisticProps> = [
-    {
-      title: "En attente signature",
-      value: pendingCount.data?.data ?? 0,
-      variant: "primary",
+  // Statistiques du signataire connecté, indépendantes de l'onglet et des
+  // filtres. Le backend ignore `userId` sur cet endpoint : on récupère les
+  // deux onglets et on ne garde que ce qui concerne l'utilisateur connecté.
+  const statsQuery = useQuery({
+    queryKey: queryKeys.signatureTransfersList({
+      scope: "my-stats",
+      userId: user?.id,
+    }),
+    queryFn: async () => {
+      const [pending, completed] = await Promise.all([
+        transactionQ.getSignatureTransfers({
+          tab: "PENDING",
+          pageIndex: 0,
+          pageSize: STATS_PAGE_SIZE,
+        }),
+        transactionQ.getSignatureTransfers({
+          tab: "COMPLETED",
+          pageIndex: 0,
+          pageSize: STATS_PAGE_SIZE,
+        }),
+      ]);
+      return {
+        pending: pending.data.transactions,
+        completed: completed.data.transactions,
+      };
     },
-  ];
+    enabled: !!user?.id,
+  });
+
+  const hasSigned = (t: TransferTransaction) =>
+    !!t.signers?.some((s) => s.userId === user?.id && s.signed === true);
+  // En attente : à traiter et pas encore signé par moi
+  const pendingValue = (statsQuery.data?.pending ?? []).filter(
+    (t) => !hasSigned(t),
+  ).length;
+  // Signés : uniquement ceux que j'ai moi-même signés
+  const signedValue = (statsQuery.data?.completed ?? []).filter(hasSigned)
+    .length;
+  const totalValue = pendingValue + signedValue;
 
   if (
     isLoading ||
@@ -121,12 +157,20 @@ function Page() {
         />
 
         <div className="h-fit grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
-          {statistics.map((stat, id) => (
-            <StatisticCard key={id} {...stat} className="h-full" />
-          ))}
+          <StatsCard
+            title="Mes signatures"
+            titleColor="text-primary-100"
+            value={totalValue}
+            description="En attente :"
+            descriptionValue={String(pendingValue)}
+            descriptionColor="text-primary-100"
+            dvalueColor="text-white"
+            dividerColor="bg-primary-200"
+            className="h-full bg-primary-600 border-primary-200 text-white"
+          />
         </div>
         <SignTransfers
-          data={data.data.transactions}
+          data={data?.data?.transactions ?? []}
           banks={getBanks.data.data}
           paymentMethods={getPayType.data.data}
           users={getUsers.data.data}
@@ -137,14 +181,14 @@ function Page() {
                 const next =
                   typeof updater === "function"
                     ? updater({
-                        pageIndex: prev.pageIndex,
-                        pageSize: prev.pageSize,
-                      })
+                      pageIndex: prev.pageIndex,
+                      pageSize: prev.pageSize,
+                    })
                     : updater;
                 return { ...prev, ...next };
               });
             },
-            rowCount: data.data.total ?? data.data.transactions.length,
+            rowCount: data?.data?.total ?? data?.data?.transactions.length,
           }}
           pagination={{
             pageIndex: filters.pageIndex,
