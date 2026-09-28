@@ -51,11 +51,64 @@ export type AddFileProps = {
   proof: File;
 };
 
+export interface PurchaseOrderParams {
+  pageIndex?: number | undefined;
+  pageSize?: number | undefined;
+  //Onglet des pages d'approbation : PENDING = PENDING + IN-REVIEW, COMPLETED = APPROVED + REJECTED
+  tab?: "PENDING" | "COMPLETED" | undefined;
+  //Recherche : id, reference, devi.ref, provider.name, devi.commandRequest (titre, reference), deliveryLocation, paymentTerms
+  search?: string | undefined;
+  status?: BonsCommande["status"] | undefined;
+  priority?: BonsCommande["priority"] | undefined;
+  providerId?: number | undefined;
+  deviId?: number | undefined;
+  //Progression du paiement en % de netToPay (0-100)
+  paymentMin?: number | undefined;
+  paymentMax?: number | undefined;
+  //Filtre sur createdAt : préréglage ou plage personnalisée (from/to en ISO)
+  date?: "today" | "week" | "month" | "year" | "custom" | undefined;
+  from?: string | undefined;
+  to?: string | undefined;
+}
+
+export type PurchaseOrderListItem = BonsCommande & {
+  //Somme des paiements au statut "paid" des factures liées au bon
+  paidAmount: number;
+};
+
+export type PurchaseOrderStats = {
+  total: number;
+  totalAmount: number;
+  pending: number;
+  rejected: number;
+  approved: number;
+  approvedAmount: number;
+};
+
 class PurchaseOrder {
   route = "/request/command";
 
   getAll = async (): Promise<{ data: Array<BonsCommande> }> => {
     return api.get(this.route).then((response) => {
+      return response.data;
+    });
+  };
+
+  getPaginated = async (
+    params?: PurchaseOrderParams,
+  ): Promise<{
+    data: { data: Array<PurchaseOrderListItem>; total: number };
+  }> => {
+    return api.get(this.route, { params }).then((response) => {
+      return response.data;
+    });
+  };
+
+  //Statistiques calculées sur l'ensemble filtré (mêmes filtres que getPaginated, sans pagination)
+  getStats = async (
+    params?: Omit<PurchaseOrderParams, "pageIndex" | "pageSize">,
+  ): Promise<{ data: PurchaseOrderStats }> => {
+    return api.get(`${this.route}/stats`, { params }).then((response) => {
       return response.data;
     });
   };

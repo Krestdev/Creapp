@@ -28,6 +28,7 @@ import {
   FileText,
   FileTextIcon,
   Pencil,
+  PencilRuler,
   Settings2,
 } from "lucide-react";
 import * as React from "react";
@@ -73,11 +74,7 @@ import {
   ProgressValue,
 } from "@/components/ui/progress";
 import { Slider } from "@/components/ui/slider";
-import {
-  getPurchaseStatusBadge,
-  totalAmountPurchase,
-  XAF,
-} from "@/lib/utils";
+import { getPurchaseStatusBadge, totalAmountPurchase, XAF } from "@/lib/utils";
 import {
   BonsCommande,
   CommandCondition,
@@ -92,6 +89,7 @@ import {
 import { format } from "date-fns";
 import AddSignedFile from "./add-signed-file";
 import EditPurchase from "./editPurchase";
+import EditTerms from "./editTerms";
 import ViewDocument from "./view-document";
 import ViewPurchase from "./viewPurchase";
 import ViewSignedPurchase from "./viewSignedPurchase";
@@ -234,6 +232,8 @@ export function PurchaseTable({
   const [viewDocument, setViewDocument] = React.useState<boolean>(false);
   //EditModal
   const [edit, setEdit] = React.useState<boolean>(false);
+  //EditTermsModal
+  const [editTermsDialog, setEditTermsDialog] = React.useState<boolean>(false);
   //Complete Modal
   const [complete, setComplete] = React.useState<boolean>(false);
   //ViewSignedModal
@@ -524,10 +524,23 @@ export function PurchaseTable({
                   setSelectedValue(item);
                   setEdit(true);
                 }}
-                //disabled={item.status === "APPROVED"}
+                disabled={
+                  item.status === "APPROVED" || item.status === "REJECTED"
+                }
               >
                 <Pencil />
                 {"Modifier"}
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="cursor-pointer"
+                onClick={() => {
+                  setSelectedValue(item);
+                  setEditTermsDialog(true);
+                }}
+                disabled={item.status === "REJECTED"}
+              >
+                <PencilRuler />
+                {"Modifier les termes"}
               </DropdownMenuItem>
               <DropdownMenuItem
                 className="cursor-pointer"
@@ -1385,6 +1398,14 @@ export function PurchaseTable({
           conditions={conditions}
           quotations={quotations}
           paytypes={paytypes}
+        />
+      )}
+      {selectedValue && (
+        <EditTerms
+          open={editTermsDialog}
+          openChange={setEditTermsDialog}
+          purchaseOrder={selectedValue}
+          conditions={conditions}
         />
       )}
       {selectedValue && (

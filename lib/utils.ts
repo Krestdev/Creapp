@@ -36,6 +36,36 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Payment methods whose funds are held in the bank's temporary account from
+// signature until the bank clears or rejects them (mirrors the API rule).
+export function getClearingInstrument(
+  method?: { type?: string | null; label?: string | null } | null,
+) {
+  const type = method?.type?.toLowerCase();
+
+  if (type === "chq" || !!method?.label?.toLowerCase().includes("chèque")) {
+    return {
+      kind: "chq",
+      label: "Chèque",
+      name: "chèque",
+      withArticle: "le chèque",
+      cleared: "encaissé",
+    } as const;
+  }
+
+  if (type === "ov") {
+    return {
+      kind: "ov",
+      label: "Ordre de virement",
+      name: "ordre de virement",
+      withArticle: "l'ordre de virement",
+      cleared: "exécuté",
+    } as const;
+  }
+
+  return null;
+}
+
 export const company = {
   name: "CREACONSULT",
   address: "BP 11735 Douala - Cameroun",

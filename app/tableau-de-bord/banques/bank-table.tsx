@@ -161,7 +161,14 @@ function BankTable({ data, canEdit }: Props) {
       },
       cell: ({ row }) => {
         const value = row.original.label;
-        return <p className="normal-case">{value}</p>;
+        return (
+          <div className="flex items-center gap-2">
+            <p className="normal-case">{value}</p>
+            {row.original.isTemporary && (
+              <Badge variant="secondary">{"Compte temporaire"}</Badge>
+            )}
+          </div>
+        );
       },
     },
     {
@@ -172,14 +179,36 @@ function BankTable({ data, canEdit }: Props) {
             className="tablehead"
             onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
           >
-            {"Soldes"}
+            {"Soldes Utilisables"}
             <ArrowUpDown />
           </span>
         );
       },
       cell: ({ row }) => {
         const value = row.original.balance;
-        return <p className="normal-case">{XAF.format(value)}</p>;
+        return <p className="normal-case">{XAF.format(value)} </p>;
+      },
+    },
+    {
+      accessorKey: "balance-real",
+      header: ({ column }) => {
+        return (
+          <span
+            className="tablehead"
+            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+          >
+            {"Soldes Réels"}
+            <ArrowUpDown />
+          </span>
+        );
+      },
+      cell: ({ row }) => {
+        const value = row.original;
+        return (
+          <p className="normal-case text-secondary">
+            {XAF.format(value.balance + (value.tempAccount?.balance ?? 0))}
+          </p>
+        );
       },
     },
     {

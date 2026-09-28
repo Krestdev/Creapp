@@ -24,6 +24,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Switch } from "@/components/ui/switch";
 import { BankPayload, bankQ } from "@/queries/bank";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
@@ -44,6 +45,8 @@ const formSchema = z
     justification: z
       .array(z.instanceof(File, { message: "Doit être un fichier valide" }))
       .min(0),
+
+    isTemporary: z.boolean(),
 
     // Champs spécifiques à BANK
     accountNumber: z.string().optional(),
@@ -95,6 +98,7 @@ function CreateBank() {
       label: "",
       type: "BANK",
       balance: 0,
+      isTemporary: false,
       justification: [],
       accountNumber: "",
       bankCode: "",
@@ -212,6 +216,27 @@ function CreateBank() {
                   <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
                     {"FCFA"}
                   </span>
+                </div>
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
+        {/* Compte temporaire */}
+        <FormField
+          control={form.control}
+          name="isTemporary"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>{"Compte temporaire (chèques en attente)"}</FormLabel>
+              <FormControl>
+                <div className="flex items-center gap-2">
+                  <Switch
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                  <span>{field.value ? "Oui" : "Non"}</span>
                 </div>
               </FormControl>
               <FormMessage />

@@ -30,7 +30,7 @@ import { Switch } from "@/components/ui/switch";
 import { BankPayload, bankQ } from "@/queries/bank";
 import { Bank, BANK_TYPES } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -61,6 +61,8 @@ const formSchema = z
       )
       .min(0),
     Status: z.boolean(),
+    isTemporary: z.boolean(),
+    tempAccountId: z.number().nullable().optional(),
 
     // Champs spécifiques à BANK
     accountNumber: z.string().optional(),
@@ -112,6 +114,8 @@ function EditBank({ open, openChange, bank }: Props) {
       label: bank.label,
       type: bank.type,
       Status: bank.Status,
+      isTemporary: !!bank.isTemporary,
+      tempAccountId: bank.tempAccountId ?? null,
       balance: bank.balance,
       justification:
         !!bank.justification && bank.justification.length > 0
@@ -130,6 +134,8 @@ function EditBank({ open, openChange, bank }: Props) {
         label: bank.label,
         type: bank.type,
         Status: bank.Status,
+        isTemporary: !!bank.isTemporary,
+        tempAccountId: bank.tempAccountId ?? null,
         balance: bank.balance,
         justification:
           !!bank.justification && bank.justification.length > 0
@@ -145,6 +151,12 @@ function EditBank({ open, openChange, bank }: Props) {
 
   // eslint-disable-next-line react-hooks/incompatible-library
   const type = form.watch("type");
+  const isTemporary = form.watch("isTemporary");
+
+  const getBanks = useQuery({ queryKey: ["banks"], queryFn: () => bankQ.getAll() });
+  const tempAccountOptions = (getBanks.data?.data ?? []).filter(
+    (b) => b.isTemporary && b.id !== bank.id,
+  );
 
   const update = useMutation({
     mutationFn: async (payload: BankPayload) => bankQ.update(bank.id, payload),
@@ -155,6 +167,8 @@ function EditBank({ open, openChange, bank }: Props) {
         label: bank.label,
         type: bank.type,
         Status: bank.Status,
+        isTemporary: !!bank.isTemporary,
+        tempAccountId: bank.tempAccountId ?? null,
         balance: bank.balance,
         justification:
           bank.justification.length > 0 ? [bank.justification] : [],
@@ -296,6 +310,64 @@ function EditBank({ open, openChange, bank }: Props) {
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="isTemporary"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>{"Compte temporaire (chèques en attente)"}</FormLabel>
+                  <FormControl>
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={field.value}
+                        onCheckedChange={(checked) => {
+                          field.onChange(checked);
+                          if (checked) form.setValue("tempAccountId", null);
+                        }}
+                      />
+                      <span>{field.value ? "Oui" : "Non"}</span>
+                    </div>
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            {!isTemporary && (
+              <FormField
+                control={form.control}
+                name="tempAccountId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>{"Compte temporaire lié"}</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value ? String(field.value) : "none"}
+                        onValueChange={(v) =>
+                          field.onChange(v === "none" ? null : Number(v))
+                        }
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Aucun (créé automatiquement au 1er chèque)" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">
+                            {"Aucun (créé automatiquement au 1er chèque)"}
+                          </SelectItem>
+                          {tempAccountOptions.map((b) => (
+                            <SelectItem key={b.id} value={String(b.id)}>
+                              {b.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             {/* Champs conditionnels pour BANK */}
             {type === "BANK" && (

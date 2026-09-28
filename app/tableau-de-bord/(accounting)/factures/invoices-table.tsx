@@ -618,8 +618,8 @@ export function InvoicesTable({
                   <Label>{"Bon de commande"}</Label>
                   <SearchableSelect
                     onChange={(v) => setPurchaseFilter(v)}
-                    options={purchases.map((x) => ({
-                      label: x.devi.commandRequest.title,
+                    options={purchases?.map((x) => ({
+                      label: x.devi?.commandRequest?.title ?? "--",
                       value: x.id.toString(),
                     }))}
                     value={purchaseFilter}

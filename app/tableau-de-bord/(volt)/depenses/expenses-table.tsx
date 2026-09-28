@@ -16,7 +16,9 @@ import {
   ArrowRightToLine,
   ArrowUpDown,
   BanIcon,
+  CheckCircle2,
   ChevronDown,
+  CircleX,
   DollarSign,
   Download,
   Ellipsis,
@@ -29,7 +31,7 @@ import * as React from "react";
 
 import { Pagination } from "@/components/base/pagination";
 import { TabBar, TabProps } from "@/components/base/TabBar";
-import { BoostedLegend } from "@/components/legends";
+import { BoostedLegend, UncashedCheckLegend } from "@/components/legends";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -48,7 +50,14 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getRequestTypeBadge, isRole, subText, XAF } from "@/lib/utils";
+import {
+  cn,
+  getClearingInstrument,
+  getRequestTypeBadge,
+  isRole,
+  subText,
+  XAF,
+} from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
   PaymentRequest,
@@ -57,13 +66,16 @@ import {
   ProjectT,
   Provider,
   RequestType,
+  Transaction,
   User,
 } from "@/types/types";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import MarkCheckStatusDialog from "../../banques/transactions/mark-check-status-dialog";
 import AddProove from "./addProove";
+import CancelCheckDialog from "./cancel-check-dialog";
 import CancelTicket from "./cancel-ticket";
 import CompleteGas from "./complete-gas";
 import CompleteSettle from "./complete-settle";
@@ -172,7 +184,13 @@ function getPriorityConfig(priority: PaymentRequest["priority"]) {
   );
 }
 
-function getStatusBadge(status: PaymentRequest["status"]): {
+function getStatusBadge({
+  status,
+  transaction,
+}: {
+  status: PaymentRequest["status"];
+  transaction?: Transaction;
+}): {
   label: string;
   variant: VariantProps<typeof badgeVariants>["variant"];
 } {
@@ -181,15 +199,17 @@ function getStatusBadge(status: PaymentRequest["status"]): {
       ? "En attente de signature"
       : status === "signed"
         ? "Signé"
-        : status === "paid"
+        : status === "paid" && transaction?.checkStatus === "paid"
           ? "Payé"
-          : status === "simple_signed"
-            ? "Paiement ouvert"
-            : status === "cancelled"
-              ? "Annulé"
-              : status === "validated"
-                ? "En attente"
-                : status;
+          : status === "paid" && transaction?.checkStatus !== "paid"
+            ? "Déchargé"
+            : status === "simple_signed"
+              ? "Paiement ouvert"
+              : status === "cancelled"
+                ? "Annulé"
+                : status === "validated"
+                  ? "En attente"
+                  : status;
 
   switch (status) {
     case "pending_depense":
@@ -199,7 +219,10 @@ function getStatusBadge(status: PaymentRequest["status"]): {
     case "signed":
       return { label, variant: "lime" };
     case "paid":
-      return { label, variant: "success" };
+      if (transaction?.checkStatus === "paid") {
+        return { label, variant: "success" };
+      }
+      return { label, variant: "fuchsia" };
     case "simple_signed":
       return { label, variant: "success" };
     case "cancelled":
@@ -265,6 +288,20 @@ function ExpensesTable({
   const [showAddFile, setShowAddFile] = React.useState<boolean>(false);
   const [showCancel, setShowCancel] = React.useState<boolean>(false);
   const [editDialog, setEditDialog] = React.useState<boolean>(false);
+  const [checkAction, setCheckAction] = React.useState<"paid" | "rejected">();
+  const [showCancelCheck, setShowCancelCheck] = React.useState<boolean>(false);
+
+  // A signed cheque / transfer order can be voided until the bank clears it,
+  // then re-issued via "Traiter"
+  const canCancelCheck = (item: PaymentRequest) => {
+    const checkStatus = item.transaction?.checkStatus;
+    if (!getClearingInstrument(item.method) || !item.transaction) return false;
+    if (item.status === "paid") return checkStatus === "pending";
+    return (
+      (!checkStatus || checkStatus === "pending") &&
+      (!!item.signed || ["signed", "simple_signed"].includes(item.status))
+    );
+  };
 
   const columns: ColumnDef<PaymentRequest>[] = [
     {
@@ -324,6 +361,10 @@ function ExpensesTable({
             {value.selected === true && value.paymentApproId && (
               <BoostedLegend />
             )}
+            {value.status === "paid" &&
+              value.transaction?.checkStatus === "pending" && (
+                <UncashedCheckLegend />
+              )}
             <span className="line-clamp-1">
               {subText({ text: value.title ?? "--", length: 21 })}
             </span>
@@ -477,11 +518,11 @@ function ExpensesTable({
         };
         const priorityA =
           priorityOrder[
-          rowA.getValue(columnId) as keyof typeof priorityOrder
+            rowA.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         const priorityB =
           priorityOrder[
-          rowB.getValue(columnId) as keyof typeof priorityOrder
+            rowB.getValue(columnId) as keyof typeof priorityOrder
           ] || 0;
         return priorityA - priorityB;
       },
@@ -504,7 +545,10 @@ function ExpensesTable({
       },
       cell: ({ row }) => {
         const value = row.original;
-        const status = getStatusBadge(value.status);
+        const status = getStatusBadge({
+          status: value.status,
+          transaction: value.transaction,
+        });
         return <Badge variant={status.variant}>{status.label}</Badge>;
       },
       filterFn: (row, id, value) => {
@@ -590,6 +634,41 @@ function ExpensesTable({
                   {"Ajouter la preuve"}
                 </DropdownMenuItem>
               )}
+              {item.status === "paid" &&
+                item.transaction?.checkStatus === "pending" && (
+                  <>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelected(item);
+                        setCheckAction("paid");
+                      }}
+                    >
+                      <CheckCircle2 />
+                      {`Marquer ${getClearingInstrument(item.method)?.name ?? "chèque"} ${getClearingInstrument(item.method)?.cleared ?? "encaissé"}`}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setSelected(item);
+                        setCheckAction("rejected");
+                      }}
+                    >
+                      <BanIcon />
+                      {`Marquer ${getClearingInstrument(item.method)?.name ?? "chèque"} rejeté`}
+                    </DropdownMenuItem>
+                  </>
+                )}
+              {canCancelCheck(item) && (
+                <DropdownMenuItem
+                  disabled={!auth}
+                  onClick={() => {
+                    setSelected(item);
+                    setShowCancelCheck(true);
+                  }}
+                >
+                  <CircleX />
+                  {`Annuler ${getClearingInstrument(item.method)?.withArticle}`}
+                </DropdownMenuItem>
+              )}
               {(item.type === "gas" || item.type === "settle") && (
                 <DropdownMenuItem
                   disabled={isGasComplete(item) || isSettleComplete(item)}
@@ -621,7 +700,11 @@ function ExpensesTable({
                     }}
                   >
                     <DollarSign />
-                    {"Payer"}
+                    {["chq", "ov"].includes(
+                      item.method?.type?.toLowerCase() ?? "",
+                    )
+                      ? "Décharger"
+                      : "Payer"}
                   </DropdownMenuItem>
                   <DropdownMenuItem>
                     <Decharge
@@ -805,9 +888,9 @@ function ExpensesTable({
                       {header.isPlaceholder
                         ? null
                         : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
                     </TableHead>
                   );
                 })}
@@ -910,6 +993,25 @@ function ExpensesTable({
             open={editDialog}
           />
         </>
+      )}
+      {selected?.transaction && showCancelCheck && (
+        <CancelCheckDialog
+          transaction={selected.transaction}
+          method={selected.method}
+          open={showCancelCheck}
+          openChange={setShowCancelCheck}
+          userId={user?.id ?? 0}
+        />
+      )}
+      {selected?.transaction && checkAction && (
+        <MarkCheckStatusDialog
+          transaction={selected.transaction}
+          method={selected.method}
+          open={!!checkAction}
+          openChange={() => setCheckAction(undefined)}
+          status={checkAction}
+          userId={user?.id ?? 0}
+        />
       )}
     </div>
   );

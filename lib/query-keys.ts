@@ -76,6 +76,10 @@ export const queryKeys = {
   commands: ["commands"] as const,
   pendingCommandRequestsCount: ["pending-commandRequests-count"] as const,
   purchaseOrders: ["purchaseOrders"] as const,
+  purchaseOrdersList: <T extends object>(params: T) =>
+    ["purchaseOrders", "list", params] as const,
+  purchaseOrdersStats: <T extends object>(params: T) =>
+    ["purchaseOrders", "stats", params] as const,
   purchaseOrdersPendingCount: ["purchaseOrders-pending-count"] as const,
   purchaseOrder: (id: number) => ["purchaseOrder", id] as const,
 

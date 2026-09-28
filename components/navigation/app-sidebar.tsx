@@ -14,12 +14,14 @@ import {
   ArrowLeftRightIcon,
   ArrowRightLeftIcon,
   BadgeDollarSignIcon,
+  BanknoteIcon,
   BriefcaseBusiness,
   Building2Icon,
   ChartAreaIcon,
   CircleDollarSignIcon,
   CircleUserRoundIcon,
   EllipsisVertical,
+  FileCheckIcon,
   LandmarkIcon,
   LayoutDashboardIcon,
   LockIcon,
@@ -40,7 +42,7 @@ import {
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
-  DropdownMenuTrigger
+  DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
 import {
   Sidebar,
@@ -55,6 +57,24 @@ import {
   SidebarMenuItem,
 } from "../ui/sidebar";
 import { Skeleton } from "../ui/skeleton";
+import { Separator } from "../ui/separator";
+
+function usePendingDepenseCount(
+  paymentMethod: "cash" | "chq" | "ov",
+  enabled: boolean,
+) {
+  return useQuery({
+    queryKey: queryKeys.depensesStats("pending-count", paymentMethod),
+    queryFn: () =>
+      paymentQ.getDepensesStats({
+        paymentMethod,
+        amount: 0,
+        amountType: "greater",
+      }),
+    select: (stats) => stats.validated.count,
+    enabled,
+  });
+}
 
 function AppSidebar() {
   const { user, logout, isSignataire } = useStore();
@@ -124,12 +144,14 @@ function AppSidebar() {
     enabled: !!user,
   });
 
-  //Pending Depense Count
-  const pendingDepenseCount = useQuery({
-    queryKey: queryKeys.pendingDepenseCount,
-    queryFn: () => paymentQ.getPendingDepenseCount(),
-    enabled: !!user,
-  });
+  //Pending Depense Count (par moyen de paiement)
+  const canSeeDepenses =
+    user?.role.some((r) =>
+      ["SUPERADMIN", "ACCOUNTANT", "VOLT"].includes(r.label),
+    ) ?? false;
+  const cashDepenseCount = usePendingDepenseCount("cash", canSeeDepenses);
+  const chqDepenseCount = usePendingDepenseCount("chq", canSeeDepenses);
+  const ovDepenseCount = usePendingDepenseCount("ov", canSeeDepenses);
 
   //Payment to Sign
   const paymentsToSignCount = useQuery({
@@ -161,7 +183,6 @@ function AppSidebar() {
     purchaseOrdersPendingCount.isLoading ||
     voltPendingCount.isLoading ||
     pendingApprovalsTransactionsCount.isLoading ||
-    pendingDepenseCount.isLoading ||
     paymentsToSignCount.isLoading ||
     pendingToSignTransfersCount.isLoading ||
     pendingTransfersCount.isLoading
@@ -380,10 +401,26 @@ function AppSidebar() {
       items: [
         {
           pageId: "PG-23354987-00",
-          title: "Dépenses",
+          title: "Espèces",
+          icon: BanknoteIcon,
+          href: "/tableau-de-bord/depenses/especes",
+          badgeValue: cashDepenseCount.data,
+          authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
+        },
+        {
+          pageId: "PG-23354987-02",
+          title: "Chèques",
+          icon: FileCheckIcon,
+          href: "/tableau-de-bord/depenses/cheques",
+          badgeValue: chqDepenseCount.data,
+          authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
+        },
+        {
+          pageId: "PG-23354987-03",
+          title: "Ordres de virement",
           icon: BadgeDollarSignIcon,
-          href: "/tableau-de-bord/depenses",
-          badgeValue: pendingDepenseCount.data?.data,
+          href: "/tableau-de-bord/depenses/ordres-de-virement",
+          badgeValue: ovDepenseCount.data,
           authorized: ["SUPERADMIN", "ACCOUNTANT", "VOLT"],
         },
         /* {
@@ -520,43 +557,48 @@ function AppSidebar() {
       </SidebarHeader>
       <SidebarContent className="p-2 flex flex-col gap-1.5">
         {filteredNavLinks.map(({ items, title, className }, id) => (
-          <SidebarGroup key={id}>
-            <SidebarGroupLabel className={cn(className)}>
-              {title}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {items
-                  .filter((i) => {
-                    if (i.authorized.length === 0) return true;
-                    if (i.pageId === "PG-02-05") {
-                      return typeof user?.serviceUserId === "number";
-                    }
-                    return i.authorized.some((role) =>
-                      userRoles.includes(role),
-                    );
-                  })
-                  .map((item, id) => (
-                    <SidebarMenuItem key={id}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.href}
-                      >
-                        <Link href={item.href}>
-                          {item.icon && <item.icon size={20} />}
-                          <span className="w-full">{item.title}</span>
-                          {!!item.badgeValue && item.badgeValue > 0 && (
-                            <span className="inline-flex shrink-0 h-[26px] min-w-[26px] px-1 items-center justify-center text-center rounded bg-accent text-xs font-medium text-primary-700">
-                              {item.badgeValue > 99 ? "99+" : item.badgeValue}
-                            </span>
-                          )}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-          </SidebarGroup>
+          <>
+            <SidebarGroup key={id}>
+              <SidebarGroupLabel
+                className={cn(className, "font-bold tracking-widest")}
+              >
+                {title}
+              </SidebarGroupLabel>
+              <SidebarGroupContent>
+                <SidebarMenu>
+                  {items
+                    .filter((i) => {
+                      if (i.authorized.length === 0) return true;
+                      if (i.pageId === "PG-02-05") {
+                        return typeof user?.serviceUserId === "number";
+                      }
+                      return i.authorized.some((role) =>
+                        userRoles.includes(role),
+                      );
+                    })
+                    .map((item, id) => (
+                      <SidebarMenuItem key={id}>
+                        <SidebarMenuButton
+                          asChild
+                          isActive={pathname === item.href}
+                        >
+                          <Link href={item.href}>
+                            {item.icon && <item.icon size={20} />}
+                            <span className="w-full">{item.title}</span>
+                            {!!item.badgeValue && item.badgeValue > 0 && (
+                              <span className="inline-flex shrink-0 h-[26px] min-w-[26px] px-1 items-center justify-center text-center rounded bg-accent text-xs font-medium text-primary-700">
+                                {item.badgeValue > 99 ? "99+" : item.badgeValue}
+                              </span>
+                            )}
+                          </Link>
+                        </SidebarMenuButton>
+                      </SidebarMenuItem>
+                    ))}
+                </SidebarMenu>
+              </SidebarGroupContent>
+            </SidebarGroup>
+            <Separator orientation="horizontal" />
+          </>
         ))}
       </SidebarContent>
       <SidebarFooter className="px-0">

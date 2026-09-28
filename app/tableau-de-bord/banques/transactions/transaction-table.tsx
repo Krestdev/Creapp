@@ -13,6 +13,8 @@ import {
 } from "@tanstack/react-table";
 import {
   ArrowUpDown,
+  Ban,
+  CheckCircle2,
   ChevronDown,
   Ellipsis,
   Eye,
@@ -60,7 +62,13 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getTransactionTypeBadge, subText, XAF } from "@/lib/utils";
+import {
+  cn,
+  getClearingInstrument,
+  getTransactionTypeBadge,
+  subText,
+  XAF,
+} from "@/lib/utils";
 import {
   Bank,
   DateFilter,
@@ -69,9 +77,11 @@ import {
   TRANSACTION_TYPES,
   User,
 } from "@/types/types";
+import { useStore } from "@/providers/datastore";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
+import MarkCheckStatusDialog from "./mark-check-status-dialog";
 import ViewTransaction from "./view-transaction";
 
 export interface TransactionFilters {
@@ -111,7 +121,7 @@ function TransactionTable({
   setCustomFilters,
   resetAllFilters,
 }: Props) {
-  // const { user } = useStore();
+  const { user } = useStore();
   const [sorting, setSorting] = React.useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
     [],
@@ -121,6 +131,7 @@ function TransactionTable({
   const [rowSelection, setRowSelection] = React.useState({});
   const [selected, setSelected] = React.useState<Transaction>();
   const [view, setView] = React.useState<boolean>(false);
+  const [checkAction, setCheckAction] = React.useState<"paid" | "rejected">();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
   // States pour les recherches dans les dropdowns
   const [typeSearch, setTypeSearch] = React.useState("");
@@ -449,6 +460,29 @@ function TransactionTable({
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
+              {item.checkStatus === "pending" && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelected(item);
+                      setCheckAction("paid");
+                    }}
+                  >
+                    <CheckCircle2 />
+                    {`Marquer ${getClearingInstrument(item.method)?.name ?? "chèque"} ${getClearingInstrument(item.method)?.cleared ?? "encaissé"}`}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      setSelected(item);
+                      setCheckAction("rejected");
+                    }}
+                  >
+                    <Ban />
+                    {`Marquer ${getClearingInstrument(item.method)?.name ?? "chèque"} rejeté`}
+                  </DropdownMenuItem>
+                </>
+              )}
               {/* {canEdit && (
                 <DropdownMenuItem
                   onClick={() => {
@@ -1033,6 +1067,15 @@ function TransactionTable({
           open={view}
           openChange={setView}
           users={users}
+        />
+      )}
+      {selected && checkAction && (
+        <MarkCheckStatusDialog
+          transaction={selected}
+          open={!!checkAction}
+          openChange={() => setCheckAction(undefined)}
+          status={checkAction}
+          userId={user?.id ?? 0}
         />
       )}
       {/* {selected && <EditTransaction transaction={selected} open={edit} openChange={setEdit} />} */}

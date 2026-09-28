@@ -66,7 +66,10 @@ class PaymentQueries {
   // CREATE (POST)
   // --------------------------------------
   create = async (
-    data: Omit<PaymentRequest, "id" | "createdAt" | "updatedAt" | "signer">,
+    data: Omit<
+      PaymentRequest,
+      "id" | "createdAt" | "updatedAt" | "signer" | "abortedTransaction"
+    >,
   ): Promise<{ message: string; data: PaymentRequest }> => {
     const formData = new FormData();
 
@@ -101,7 +104,12 @@ class PaymentQueries {
   createDepense = async (
     data: Omit<
       PaymentRequest,
-      "id" | "createdAt" | "updatedAt" | "signer" | "selected"
+      | "id"
+      | "createdAt"
+      | "updatedAt"
+      | "signer"
+      | "selected"
+      | "abortedTransaction"
     > & {
       caisseId: number;
     },

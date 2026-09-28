@@ -107,6 +107,7 @@ export type PaymentRequest = {
   bankId?: number | null;
   transactionId?: number | null;
   transaction?: Transaction;
+  abortedTransaction?: Transaction[];
   methodId?: number | null;
   method?: PayType;
   bank?: Bank;
@@ -684,6 +685,9 @@ export type Bank = {
   key?: string;
   phoneNum?: string;
   merchantNum?: string;
+  isTemporary?: boolean;
+  tempAccountId?: number | null;
+  tempAccount?: Bank | null;
   createdAt: Date;
   updatedAt?: Date;
 };
@@ -729,6 +733,8 @@ export type TransactionBase = {
   method?: PayType;
   fromBankName?: string;
   toBankName?: string;
+  checkStatus?: "pending" | "paid" | "rejected" | "cancelled" | null;
+  abortedFromPaymentId?: number | null;
 };
 
 export type DebitTransaction = TransactionBase & {

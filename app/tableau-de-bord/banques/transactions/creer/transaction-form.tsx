@@ -178,7 +178,9 @@ function TransactionForm({ banks, userId }: Props) {
 
   // Filtrer les banques pour la source
   const filteredFromBanks = useMemo(() => {
-    const availableBanks = banks.filter((b) => !!b.type && b.type !== "null");
+    const availableBanks = banks.filter(
+      (b) => !!b.type && b.type !== "null" && !b.isTemporary,
+    );
     return availableBanks.filter((bank) =>
       normalizeText(bank.label).includes(normalizeText(searchFromBank)),
     );
@@ -186,7 +188,9 @@ function TransactionForm({ banks, userId }: Props) {
 
   // Filtrer les banques pour la destination
   const filteredToBanks = useMemo(() => {
-    const availableBanks = banks.filter((b) => !!b.type && b.type !== "null");
+    const availableBanks = banks.filter(
+      (b) => !!b.type && b.type !== "null" && !b.isTemporary,
+    );
     return availableBanks.filter((bank) =>
       normalizeText(bank.label).includes(normalizeText(searchToBank)),
     );

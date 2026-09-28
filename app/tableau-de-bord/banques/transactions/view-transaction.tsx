@@ -9,7 +9,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { getTransactionTypeBadge, XAF } from "@/lib/utils";
+import {
+  getClearingInstrument,
+  getTransactionTypeBadge,
+  XAF,
+} from "@/lib/utils";
 import {
   PaymentRequest,
   Transaction,
@@ -196,6 +200,30 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
                 <Badge variant={getStatusBadge(transaction.status).variant}>
                   {getStatusBadge(transaction.status).label}
                 </Badge>
+                {!!transaction.checkStatus && (
+                  <Badge
+                    className="ml-1"
+                    variant={
+                      transaction.checkStatus === "paid"
+                        ? "success"
+                        : transaction.checkStatus === "rejected" ||
+                            transaction.checkStatus === "cancelled"
+                          ? "destructive"
+                          : "amber"
+                    }
+                  >
+                    {`${getClearingInstrument(transaction.method)?.label ?? "Chèque"} ${
+                      transaction.checkStatus === "paid"
+                        ? (getClearingInstrument(transaction.method)?.cleared ??
+                          "encaissé")
+                        : transaction.checkStatus === "rejected"
+                          ? "rejeté"
+                          : transaction.checkStatus === "cancelled"
+                            ? "annulé"
+                            : "en attente"
+                    }`}
+                  </Badge>
+                )}
                 {!!transaction.reason && (
                   <span className="mt-1 text-xs text-destructive font-normal">{`Motif: ${transaction.reason}`}</span>
                 )}
