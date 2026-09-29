@@ -1,13 +1,5 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { cn, getQuotationAmount, XAF } from "@/lib/utils";
 import { Provider, Quotation, User } from "@/types/types";
 import { format } from "date-fns";
@@ -24,6 +16,14 @@ import {
   XCircle,
 } from "lucide-react";
 import Link from "next/link";
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "../ui/drawer";
 import {
   Table,
   TableBody,
@@ -112,16 +112,16 @@ export function DevisModal({
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
+    <Drawer swipeDirection="right" open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className={"w-full sm:max-w-2/3 sm:w-full"}>
         {/* Header */}
-        <DialogHeader>
-          <DialogTitle>{`Devis - ${title || "Sans titre"}`}</DialogTitle>
-          <DialogDescription>{"Détail du devis"}</DialogDescription>
-        </DialogHeader>
+        <DrawerHeader>
+          <DrawerTitle>{`Devis - ${title || "Sans titre"}`}</DrawerTitle>
+          <DrawerDescription>{"Détail du devis"}</DrawerDescription>
+        </DrawerHeader>
 
-        <div className="flex gap-3 p-4">
-          <div className="w-full grid grid-cols-3 gap-3 py-3">
+        <div className="flex-1 overflow-y-auto gap-3 p-4">
+          <div className="w-full flex flex-col gap-3 @min-[640px]/drawer:grid @min-[640px]/drawer:grid-cols-3">
             {/* Référence */}
             <div className="view-group">
               <span className="view-icon">
@@ -354,12 +354,16 @@ export function DevisModal({
         </div>
 
         {/* Footer */}
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+        <DrawerFooter>
+          <Button
+            variant="outline"
+            className="w-fit"
+            onClick={() => onOpenChange(false)}
+          >
             {"Fermer"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
