@@ -51,9 +51,17 @@ function Page() {
     amountMax: customFilters.amountMax,
   };
 
+  const { pageIndex, pageSize, ...statParams } = transactionsParams;
+
   const getTransactions = useQuery({
     queryKey: queryKeys.bankTransactionsList(transactionsParams),
     queryFn: () => transactionQ.getAll(transactionsParams),
+    placeholderData: keepPreviousData,
+  });
+
+  const getStats = useQuery({
+    queryKey: queryKeys.bankTransactionsStats(statParams),
+    queryFn: () => transactionQ.getAllStats(statParams),
     placeholderData: keepPreviousData,
   });
 
@@ -77,19 +85,38 @@ function Page() {
     setFilters({ pageIndex: 0, pageSize: 30 });
   };
 
-  if (getTransactions.isLoading || getBanks.isLoading || getUsers.isLoading) {
+  if (
+    getTransactions.isLoading ||
+    getBanks.isLoading ||
+    getUsers.isLoading ||
+    getStats.isLoading
+  ) {
     return <LoadingPage />;
   }
-  if (getTransactions.isError || getBanks.isError || getUsers.isError) {
+  if (
+    getTransactions.isError ||
+    getBanks.isError ||
+    getUsers.isError ||
+    getStats.isError
+  ) {
     return (
       <ErrorPage
         error={
-          getTransactions.error || getBanks.error || getUsers.error || undefined
+          getTransactions.error ||
+          getBanks.error ||
+          getUsers.error ||
+          getStats.error ||
+          undefined
         }
       />
     );
   }
-  if (getTransactions.isSuccess && getBanks.isSuccess && getUsers.isSuccess)
+  if (
+    getTransactions.isSuccess &&
+    getBanks.isSuccess &&
+    getUsers.isSuccess &&
+    getStats.isSuccess
+  )
     return (
       <div className="content">
         <PageTitle
@@ -99,6 +126,7 @@ function Page() {
         />
         <TransactionTable
           data={getTransactions.data.data.transactions}
+          stats={getStats.data.data}
           canEdit={true}
           banks={getBanks.data.data}
           filterByType

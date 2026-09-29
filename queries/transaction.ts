@@ -110,9 +110,9 @@ class TransactionQuery {
     params?: TransactionParams,
   ): Promise<{
     data: {
-      credit: number;
+      creditCount: number;
       creditAmount: number;
-      debit: number;
+      debitCount: number;
       debitAmount: number;
     };
   }> => {
@@ -144,8 +144,8 @@ class TransactionQuery {
   };
 
   getSignatureTransfersStats = async (
-    params?: TransactionApprovalParams,
-  ): Promise<{ data: { signed: number; awaiting: number } }> => {
+    params?: Omit<TransactionApprovalParams, "tab">,
+  ): Promise<{ data: { signed: number; unsigned: number } }> => {
     return api
       .get(`${this.route}/transfer/stats`, { params })
       .then((response) => {

@@ -1,5 +1,4 @@
 "use client";
-import StatsCard from "@/components/base/StatsCard";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
@@ -11,14 +10,8 @@ import { payTypeQ } from "@/queries/payType";
 import { transactionQ, TransactionApprovalParams } from "@/queries/transaction";
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { useStore } from "@/providers/datastore";
-import { TransferTransaction } from "@/types/types";
 import SignTransfers, { SignatureFilters } from "./sign-transfers";
 import { StatisticCard } from "@/components/base/TitleValueCard";
-
-// Le backend n'expose pas de compteur par utilisateur : on charge les
-// transferts en une seule page pour calculer les statistiques côté client.
-const STATS_PAGE_SIZE = 1000;
 
 const defaultCustomFilters: SignatureFilters = {
   search: "",
@@ -32,7 +25,6 @@ const defaultCustomFilters: SignatureFilters = {
 };
 
 function Page() {
-  const { user } = useStore();
   const { filters, setFilters } = useFilters();
   const [customFilters, setCustomFilters] =
     useState<SignatureFilters>(defaultCustomFilters);
@@ -50,6 +42,7 @@ function Page() {
     amountMin: customFilters.amountMin,
     amountMax: customFilters.amountMax,
   };
+  const { tab, pageIndex, pageSize, ...statParams } = signatureParams;
 
   const { data, isSuccess, isError, error, isLoading } = useQuery({
     queryKey: queryKeys.signatureTransfersList(signatureParams),
@@ -58,8 +51,8 @@ function Page() {
   });
 
   const stats = useQuery({
-    queryKey: queryKeys.signatureTransfersStats(signatureParams),
-    queryFn: () => transactionQ.getSignatureTransfersStats(signatureParams),
+    queryKey: queryKeys.signatureTransfersStats(statParams),
+    queryFn: () => transactionQ.getSignatureTransfersStats(statParams),
     placeholderData: keepPreviousData,
   });
 
@@ -85,47 +78,6 @@ function Page() {
     setCustomFilters(next);
     setFilters((prev) => ({ ...prev, pageIndex: 0 }));
   };
-
-  // Statistiques du signataire connecté, indépendantes de l'onglet et des
-  // filtres. Le backend ignore `userId` sur cet endpoint : on récupère les
-  // deux onglets et on ne garde que ce qui concerne l'utilisateur connecté.
-  const statsQuery = useQuery({
-    queryKey: queryKeys.signatureTransfersList({
-      scope: "my-stats",
-      userId: user?.id,
-    }),
-    queryFn: async () => {
-      const [pending, completed] = await Promise.all([
-        transactionQ.getSignatureTransfers({
-          tab: "PENDING",
-          pageIndex: 0,
-          pageSize: STATS_PAGE_SIZE,
-        }),
-        transactionQ.getSignatureTransfers({
-          tab: "COMPLETED",
-          pageIndex: 0,
-          pageSize: STATS_PAGE_SIZE,
-        }),
-      ]);
-      return {
-        pending: pending.data.transactions,
-        completed: completed.data.transactions,
-      };
-    },
-    enabled: !!user?.id,
-  });
-
-  const hasSigned = (t: TransferTransaction) =>
-    !!t.signers?.some((s) => s.userId === user?.id && s.signed === true);
-  // En attente : à traiter et pas encore signé par moi
-  const pendingValue = (statsQuery.data?.pending ?? []).filter(
-    (t) => !hasSigned(t),
-  ).length;
-  // Signés : uniquement ceux que j'ai moi-même signés
-  const signedValue = (statsQuery.data?.completed ?? []).filter(
-    hasSigned,
-  ).length;
-  const totalValue = pendingValue + signedValue;
 
   if (
     isLoading ||
@@ -168,24 +120,13 @@ function Page() {
         />
 
         <div className="h-fit grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
-          <StatsCard
-            title="Mes signatures"
-            titleColor="text-primary-100"
-            value={totalValue}
-            description="En attente :"
-            descriptionValue={String(pendingValue)}
-            descriptionColor="text-primary-100"
-            dvalueColor="text-white"
-            dividerColor="bg-primary-200"
-            className="h-full bg-primary-600 border-primary-200 text-white"
-          />
           <StatisticCard
             title={"Mes Signatures"}
             value={stats.data.data.signed}
             variant={"primary"}
             more={{
               title: "En attente",
-              value: stats.data.data.awaiting,
+              value: stats.data.data.unsigned,
             }}
           />
         </div>

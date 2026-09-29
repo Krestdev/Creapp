@@ -96,8 +96,16 @@ export interface TransactionFilters {
   amountMax: number | undefined;
 }
 
+interface TransactionStats {
+  creditCount: number;
+  creditAmount: number;
+  debitCount: number;
+  debitAmount: number;
+}
+
 interface Props {
   data: Array<Transaction>;
+  stats: TransactionStats;
   canEdit?: boolean;
   filterByType?: boolean;
   banks: Array<Bank>;
@@ -111,6 +119,7 @@ interface Props {
 
 function TransactionTable({
   data,
+  stats,
   // canEdit,
   banks,
   filterByType = false,
@@ -207,34 +216,28 @@ function TransactionTable({
     }
   };
 
-  const entreeTrans = data.filter((t) => t.Type === "CREDIT");
-  const montantEntree = entreeTrans.reduce((sum, t) => sum + t.amount, 0);
-  const sortieTrans = data.filter((t) => t.Type === "DEBIT");
-  const montantSotie = sortieTrans.reduce((sum, t) => sum + t.amount, 0);
-  const total = data.filter((x) => x.Type !== "TRANSFER");
-
   const Statistics: Array<StatisticProps> = [
     {
       title: "Entrée",
-      value: entreeTrans.length,
+      value: stats.creditCount,
       variant: "secondary",
       more: {
         title: "Montant Total",
-        value: XAF.format(montantEntree),
+        value: XAF.format(stats.creditAmount),
       },
     },
     {
       title: "Sortie",
-      value: sortieTrans.length,
+      value: stats.debitCount,
       variant: "default",
       more: {
         title: "Montant Total",
-        value: XAF.format(montantSotie),
+        value: XAF.format(stats.debitAmount),
       },
     },
     {
       title: "Total",
-      value: total.length,
+      value: stats.creditCount + stats.debitCount,
       variant: "default",
     },
   ];
