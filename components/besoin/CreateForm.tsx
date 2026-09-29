@@ -55,6 +55,10 @@ interface Props {
 const today = new Date();
 today.setHours(0, 0, 0, 0);
 
+const dayStart = new Date();
+dayStart.setDate(dayStart.getDate() - 1);
+dayStart.setHours(0, 0, 0, 0);
+
 const formSchema = z.object({
   projet: z.string().min(1, "Le projet est requis"),
   categoryId: z.coerce.number({
@@ -336,7 +340,7 @@ export default function MyForm({ categories, users, projects }: Props) {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date <= new Date()}
+                      disabled={(date) => date <= dayStart}
                     />
                   </PopoverContent>
                 </Popover>
