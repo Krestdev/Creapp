@@ -297,7 +297,9 @@ export function DevisModal({
                             <XCircle size={12} className="text-destructive" />
                           )}
                         </TableCell>
-                        <TableCell>{el.title ?? "N/A"}</TableCell>
+                        <TableCell className="sm:whitespace-normal">
+                          {el.title ?? "N/A"}
+                        </TableCell>
                         <TableCell>{`${XAF.format(el.priceProposed ?? 0)} x(${el.quantity})`}</TableCell>
                         <TableCell>{XAF.format(lineReduction)}</TableCell>
                         <TableCell>{XAF.format(lineTVA)}</TableCell>
