@@ -106,6 +106,21 @@ class TransactionQuery {
     });
   };
 
+  getAllStats = async (
+    params?: TransactionParams,
+  ): Promise<{
+    data: {
+      credit: number;
+      creditAmount: number;
+      debit: number;
+      debitAmount: number;
+    };
+  }> => {
+    return api.get(`${this.route}/stats`, { params }).then((response) => {
+      return response.data;
+    });
+  };
+
   getApprovalTransactions = async (
     params?: TransactionApprovalParams,
   ): Promise<{
@@ -126,6 +141,16 @@ class TransactionQuery {
     return api.get(`${this.route}/transfer`, { params }).then((response) => {
       return response.data;
     });
+  };
+
+  getSignatureTransfersStats = async (
+    params?: TransactionApprovalParams,
+  ): Promise<{ data: { signed: number; awaiting: number } }> => {
+    return api
+      .get(`${this.route}/transfer/stats`, { params })
+      .then((response) => {
+        return response.data;
+      });
   };
 
   getOne = async (id: number): Promise<{ data: Transaction }> => {
@@ -248,7 +273,11 @@ class TransactionQuery {
     validatorId: number;
   }): Promise<{ data: Transaction }> => {
     return api
-      .put(`${this.route}/markCheckStatus/${id}`, { status, reason, validatorId })
+      .put(`${this.route}/markCheckStatus/${id}`, {
+        status,
+        reason,
+        validatorId,
+      })
       .then((response) => response.data);
   };
 

@@ -63,6 +63,8 @@ export const queryKeys = {
     ["transactions", "transfer-approvals-list", params] as const,
   signatureTransfersList: <T extends object>(params: T) =>
     ["transactions", "signature-transfers-list", params] as const,
+  signatureTransfersStats: <T extends object>(params: T) =>
+    ["transactions", "signature-transfers-list", params] as const,
   allTransactions: <T extends object>(params?: T) =>
     ["transactions", "all", params] as const,
   pendingApprovalsTransactionsCount: [

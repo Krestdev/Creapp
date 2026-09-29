@@ -14,6 +14,7 @@ import { useState } from "react";
 import { useStore } from "@/providers/datastore";
 import { TransferTransaction } from "@/types/types";
 import SignTransfers, { SignatureFilters } from "./sign-transfers";
+import { StatisticCard } from "@/components/base/TitleValueCard";
 
 // Le backend n'expose pas de compteur par utilisateur : on charge les
 // transferts en une seule page pour calculer les statistiques côté client.
@@ -53,6 +54,12 @@ function Page() {
   const { data, isSuccess, isError, error, isLoading } = useQuery({
     queryKey: queryKeys.signatureTransfersList(signatureParams),
     queryFn: () => transactionQ.getSignatureTransfers(signatureParams),
+    placeholderData: keepPreviousData,
+  });
+
+  const stats = useQuery({
+    queryKey: queryKeys.signatureTransfersStats(signatureParams),
+    queryFn: () => transactionQ.getSignatureTransfersStats(signatureParams),
     placeholderData: keepPreviousData,
   });
 
@@ -115,15 +122,17 @@ function Page() {
     (t) => !hasSigned(t),
   ).length;
   // Signés : uniquement ceux que j'ai moi-même signés
-  const signedValue = (statsQuery.data?.completed ?? []).filter(hasSigned)
-    .length;
+  const signedValue = (statsQuery.data?.completed ?? []).filter(
+    hasSigned,
+  ).length;
   const totalValue = pendingValue + signedValue;
 
   if (
     isLoading ||
     getBanks.isLoading ||
     getPayType.isLoading ||
-    getUsers.isLoading
+    getUsers.isLoading ||
+    stats.isLoading
   ) {
     return <LoadingPage />;
   }
@@ -136,6 +145,7 @@ function Page() {
           getBanks.error ||
           getPayType.error ||
           getUsers.error ||
+          stats.error ||
           undefined
         }
       />
@@ -146,7 +156,8 @@ function Page() {
     isSuccess &&
     getBanks.isSuccess &&
     getPayType.isSuccess &&
-    getUsers.isSuccess
+    getUsers.isSuccess &&
+    stats.isSuccess
   ) {
     return (
       <div className="content">
@@ -168,6 +179,15 @@ function Page() {
             dividerColor="bg-primary-200"
             className="h-full bg-primary-600 border-primary-200 text-white"
           />
+          <StatisticCard
+            title={"Mes Signatures"}
+            value={stats.data.data.signed}
+            variant={"primary"}
+            more={{
+              title: "En attente",
+              value: stats.data.data.awaiting,
+            }}
+          />
         </div>
         <SignTransfers
           data={data?.data?.transactions ?? []}
@@ -181,9 +201,9 @@ function Page() {
                 const next =
                   typeof updater === "function"
                     ? updater({
-                      pageIndex: prev.pageIndex,
-                      pageSize: prev.pageSize,
-                    })
+                        pageIndex: prev.pageIndex,
+                        pageSize: prev.pageSize,
+                      })
                     : updater;
                 return { ...prev, ...next };
               });
