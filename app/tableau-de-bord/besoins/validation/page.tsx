@@ -114,11 +114,7 @@ const Page = () => {
   });
 
   const requestStatsData = useQuery({
-    queryKey: queryKeys.requestsForApprovalStats(
-      filters,
-      customFilters,
-      dateFilter,
-    ),
+    queryKey: queryKeys.requestsForApprovalStats(customFilters, dateFilter),
     queryFn: () =>
       requestQ.getValidatorRequestsStats({
         user: customFilters.user !== "all" ? customFilters.user : undefined,
