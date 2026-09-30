@@ -665,7 +665,7 @@ function ExpensesTable({
               )}
               {canCancelCheck(item) && (
                 <DropdownMenuItem
-                  disabled={!auth}
+                  disabled={!accountant}
                   onClick={() => {
                     setSelected(item);
                     setShowCancelCheck(true);
