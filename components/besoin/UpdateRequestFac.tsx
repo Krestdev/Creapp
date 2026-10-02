@@ -59,12 +59,15 @@ const SingleFileSchema = z.array(
   ]),
 );
 
+const startOfToday = new Date();
+startOfToday.setHours(0, 0, 0, 0);
+
 const formSchema = z.object({
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
   projet: z.string().min(1, "Le projet est requis"),
   delai: z
     .date()
-    .min(new Date(), "Le delai d'exécution doit être dans le futur"),
+    .min(startOfToday, "Le delai d'exécution doit être dans le futur"),
   title: z.string().min(1, "Le titre est requis"),
   description: z.string().min(1, "La description est requise"),
   justificatif: SingleFileSchema,
@@ -93,7 +96,6 @@ export default function UpdateRequestFac({
     { id: number; nom: string; montant: number }[]
   >([]);
 
-
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
   // ----------------------------------------------------------------------
@@ -114,7 +116,9 @@ export default function UpdateRequestFac({
   // ----------------------------------------------------------------------
 
   const [prevOpen, setPrevOpen] = useState(false);
-  const [prevRequestDataId, setPrevRequestDataId] = useState<number | null>(null);
+  const [prevRequestDataId, setPrevRequestDataId] = useState<number | null>(
+    null,
+  );
 
   if (open !== prevOpen || requestData?.id !== prevRequestDataId) {
     setPrevOpen(open);
@@ -153,10 +157,7 @@ export default function UpdateRequestFac({
           justificatif: requestData.proof,
         });
       } catch (error) {
-        console.error(
-          "Erreur lors de l'initialisation du formulaire:",
-          error,
-        );
+        console.error("Erreur lors de l'initialisation du formulaire:", error);
         toast.error("Erreur lors du chargement des données");
       }
     }
