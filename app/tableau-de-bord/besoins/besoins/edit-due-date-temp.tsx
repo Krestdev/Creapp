@@ -28,7 +28,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { toast } from "sonner";
 
 interface Props {
@@ -41,12 +41,17 @@ function EditDueDateTemp({ request, open, onOpenChange }: Props) {
   const queryClient = useQueryClient();
   const [date, setDate] = useState<Date | undefined>(undefined);
   const [calendarOpen, setCalendarOpen] = useState(false);
+  const [wasOpen, setWasOpen] = useState(false);
 
-  useEffect(() => {
-    if (open && request?.dueDate) {
-      setDate(new Date(request.dueDate));
-    }
-  }, [open, request]);
+  // Initialise la date à chaque ouverture du dialogue. On ajuste l'état
+  // pendant le rendu (plutôt que dans un useEffect) pour suivre le pattern
+  // recommandé par React et éviter un rendu en cascade.
+  if (open && !wasOpen) {
+    setWasOpen(true);
+    setDate(request?.dueDate ? new Date(request.dueDate) : undefined);
+  } else if (!open && wasOpen) {
+    setWasOpen(false);
+  }
 
   const { mutate, isPending } = useMutation({
     mutationFn: async (dueDate: Date) => {
