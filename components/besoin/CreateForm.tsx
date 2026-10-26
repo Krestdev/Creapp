@@ -52,13 +52,14 @@ interface Props {
 // ----------------------------------------------------------------------
 // VALIDATION
 // ----------------------------------------------------------------------
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-
-const dayStart = new Date();
-dayStart.setDate(dayStart.getDate() - 1);
-dayStart.setHours(0, 0, 0, 0);
-
+// Remarque : on ne calcule plus "today"/"dayStart" une seule fois au
+// chargement du module. Si l'onglet reste ouvert d'un jour sur l'autre
+// (navigation côté client sans rechargement complet), une constante figée
+// au chargement du module ne serait plus jamais remise à jour : le
+// calendrier continuerait à autoriser des dates déjà passées, et c'est ce
+// qui provoque l'erreur backend "la date limite ne peut être antérieure à
+// la date de création du besoin". On recalcule donc "maintenant" à chaque
+// validation / rendu.
 const formSchema = z.object({
   projet: z.string().min(1, "Le projet est requis"),
   categoryId: z.coerce.number({
@@ -70,7 +71,11 @@ const formSchema = z.object({
     .number()
     .refine((val) => val > 0, "La quantité doit être supérieure à 0"),
   unite: z.string().min(1, "L'unité est requise"),
-  datelimite: z.date().min(today, "La date limite doit être dans le futur"),
+  datelimite: z.date().refine((d) => {
+    const minDate = new Date();
+    minDate.setHours(0, 0, 0, 0);
+    return d >= minDate;
+  }, "La date limite doit être dans le futur"),
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
   beneficiaireId: z.string().optional(), // Nouveau champ pour sélectionner un seul utilisateur
 });
@@ -340,7 +345,12 @@ export default function MyForm({ categories, users, projects }: Props) {
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
-                      disabled={(date) => date <= dayStart}
+                      disabled={(date) => {
+                        const dayStart = new Date();
+                        dayStart.setDate(dayStart.getDate() - 1);
+                        dayStart.setHours(0, 0, 0, 0);
+                        return date <= dayStart;
+                      }}
                     />
                   </PopoverContent>
                 </Popover>

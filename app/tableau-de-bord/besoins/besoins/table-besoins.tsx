@@ -64,6 +64,8 @@ import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import Filters, { RequestFiltersProps } from "./filters";
+// TEMPORAIRE : à retirer avec le bouton "Modifier la date" ci-dessous.
+import EditDueDateTemp from "./edit-due-date-temp";
 import ViewRequest from "./view-request";
 
 interface Props {
@@ -110,6 +112,8 @@ export function RequestsTable({
   // modal specific states
   const [selectedItem, setSelectedItem] = React.useState<RequestModelT>();
   const [view, setView] = React.useState(false);
+  // TEMPORAIRE : à retirer avec le bouton "Modifier la date" ci-dessous.
+  const [editDate, setEditDate] = React.useState(false);
 
   // Fonction sécurisée pour obtenir la configuration du statut
   const getStatusBadge = (
@@ -407,6 +411,17 @@ export function RequestsTable({
                 <Eye />
                 {"Voir"}
               </DropdownMenuItem>
+              {/* TEMPORAIRE : masqué (cf. demande). Décommenter pour
+                  réactiver la correction manuelle de la date limite. */}
+              {/* <DropdownMenuItem
+                onClick={() => {
+                  setSelectedItem(item);
+                  setEditDate(true);
+                }}
+              >
+                <CalendarCog />
+                {"Modifier la date (temp.)"}
+              </DropdownMenuItem> */}
             </DropdownMenuContent>
           </DropdownMenu>
         );
@@ -617,6 +632,12 @@ export function RequestsTable({
           requestTypes={requestTypes}
         />
       )}
+      {/* TEMPORAIRE : à retirer avec le bouton "Modifier la date" ci-dessus. */}
+      <EditDueDateTemp
+        open={editDate}
+        onOpenChange={setEditDate}
+        request={selectedItem}
+      />
     </div>
   );
 }

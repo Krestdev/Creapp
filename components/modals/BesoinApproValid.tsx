@@ -48,8 +48,6 @@ interface Props {
   requestData?: RequestModelT;
 }
 
-const today = new Date();
-
 const formSchema = z.object({
   amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
@@ -66,6 +64,10 @@ function BesoinLastApproVall({ open, setOpen, requestData }: Props) {
   const [dueDate, setDueDate] = React.useState<boolean>(false);
   const queryClient = useQueryClient();
 
+  // Calculé à chaque rendu (et non au chargement du module) pour que la
+  // date suggérée par défaut ne devienne pas obsolète si l'onglet reste
+  // ouvert d'un jour sur l'autre.
+  const today = new Date();
   const defaultDate = new Date();
   defaultDate.setDate(today.getDate() + 7);
 

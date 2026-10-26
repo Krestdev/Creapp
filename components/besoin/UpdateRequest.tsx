@@ -65,9 +65,6 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
   ...(typeof PRIORITIES)[number]["value"][],
 ];
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-
 const formSchema = z.object({
   label: z
     .string({ message: "Veuillez renseigner un titre" })
@@ -100,6 +97,12 @@ function EditTypeOthers({
   // const { user } = useStore();
   const [dueDate, setDueDate] = useState<boolean>(false);
   const queryClient = useQueryClient();
+
+  // Calculé à chaque rendu (et non au chargement du module) pour que le
+  // verrou sur les dates passées ne devienne pas obsolète si l'onglet
+  // reste ouvert d'un jour sur l'autre.
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
