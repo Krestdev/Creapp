@@ -59,7 +59,7 @@ export function ApproveModal({ open, onOpenChange, data }: DetailModalProps) {
       <DialogContent className="max-w-md max-h-[80vh] overflow-y-auto gap-0 overflow-x-hidden border-none">
         {/* Header with burgundy background */}
         <DialogHeader variant={"success"}>
-          <DialogTitle className="text-xl font-semibold text-white">
+          <DialogTitle className="text-xl font-semibold">
             {"Soumettre un besoin"}
           </DialogTitle>
           <DialogDescription>{"Approbation du besoin"}</DialogDescription>

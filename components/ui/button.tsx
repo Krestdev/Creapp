@@ -5,32 +5,47 @@ import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 import { LoaderCircle } from "lucide-react";
 
+/**
+ * Bouton CreApp (Figma · Components V2 › Button).
+ * Un seul `default` (Primary) par zone d'action. `destructive` = rejeter /
+ * annuler, toujours suivi d'une confirmation avec motif.
+ * `primary`, `delete`, `success`, `accent` et `iconlg` sont conservés pour les
+ * pages existantes.
+ */
 const buttonVariants = cva(
-  "inline-flex items-center font-mono justify-center gap-2 whitespace-nowrap rounded text-sm font-medium transition-all ease-linear cursor-pointer disabled:pointer-events-none disabled:opacity-40 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-5 shrink-0 [&_svg]:shrink-0 outline-none focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px] aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive",
+  "group/button inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-md border border-transparent text-body-medium whitespace-nowrap transition-colors outline-none select-none focus-visible:shadow-focus-ring disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-5",
   {
     variants: {
       variant: {
-        default: "bg-gray-900 text-white hover:bg-gray-900/80",
-        primary: "bg-primary text-primary-foreground hover:bg-primary/80",
-        destructive:
-          "bg-destructive text-white hover:bg-destructive/90 focus-visible:ring-destructive/20 dark:focus-visible:ring-destructive/40 dark:bg-destructive/60",
+        default:
+          "bg-brand text-text-on-brand hover:bg-brand-hover active:bg-brand-pressed disabled:bg-disabled disabled:text-text-disabled",
+        primary:
+          "bg-brand text-text-on-brand hover:bg-brand-hover active:bg-brand-pressed disabled:bg-disabled disabled:text-text-disabled",
+        secondary:
+          "border-border-strong bg-surface text-text-primary hover:bg-hover disabled:border-border-default disabled:bg-surface disabled:text-text-disabled",
         outline:
-          "border border-gray-200 bg-white hover:bg-gray-50 text-gray-900 dark:bg-input/30 dark:border-input dark:hover:bg-input/50",
-        secondary: "bg-secondary text-white hover:bg-secondary/80",
-        accent: "bg-accent text-accent-foreground hover:bg-accent-700",
-        ghost: "text-gray-900 bg-white hover:bg-gray-50",
-        link: "text-primary underline-offset-4 hover:underline",
-        delete: "text-destructive bg-destructive/5 hover:bg-destructive/15",
-        success: "bg-green-600 text-primary-foreground hover:bg-green-800",
+          "border-border-strong bg-surface text-text-primary hover:bg-hover disabled:border-border-default disabled:bg-surface disabled:text-text-disabled",
+        ghost: "text-brand hover:bg-brand-subtle disabled:text-text-disabled",
+        destructive:
+          "bg-status-danger-fg text-text-on-brand hover:bg-status-danger-hover disabled:bg-disabled disabled:text-text-disabled",
+        link: "text-text-link underline-offset-4 hover:underline disabled:text-text-disabled",
+        accent:
+          "bg-accent-orange text-text-on-brand hover:bg-accent-orange-fg disabled:bg-disabled disabled:text-text-disabled",
+        delete:
+          "bg-status-danger-bg text-status-danger-fg hover:bg-status-danger-border disabled:bg-disabled disabled:text-text-disabled",
+        success:
+          "bg-status-success-fg text-text-on-brand hover:bg-status-success-fg/85 disabled:bg-disabled disabled:text-text-disabled",
       },
       size: {
-        default: "h-9 px-5 py-1",
-        sm: "h-8 text-sm! rounded-md gap-1.5 px-3 has-[>svg]:px-2.5",
-        lg: "h-11 rounded-md px-5",
-        icon: "size-8",
+        default: "h-9 px-4",
+        sm: "h-8 px-3 has-[>svg]:px-2.5 [&_svg:not([class*='size-'])]:size-4",
+        xs: "h-6 gap-1 rounded-sm px-2 text-label [&_svg:not([class*='size-'])]:size-3.5",
+        lg: "h-10 px-5",
+        icon: "size-9",
+        "icon-sm": "size-8 [&_svg:not([class*='size-'])]:size-4",
+        "icon-xs": "size-6 rounded-sm [&_svg:not([class*='size-'])]:size-3.5",
+        "icon-lg": "size-10",
         iconlg: "size-10",
-        "icon-xs":
-          "size-6 rounded-[min(var(--radius-md),10px)] in-data-[slot=button-group]:rounded-lg [&_svg:not([class*='size-'])]:size-3",
       },
     },
     defaultVariants: {

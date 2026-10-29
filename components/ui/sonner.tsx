@@ -1,14 +1,17 @@
 "use client"
 
-import { useTheme } from "next-themes"
-import { Toaster as Sonner, ToasterProps } from "sonner"
+import { Toaster as Sonner, type ToasterProps } from "sonner"
 
+/**
+ * Conteneur des toasts : bas-centre, 6 s, pause au survol (Figma · Toast).
+ * `notify()` (components/ds/toast.tsx) fournit le rendu du design system ;
+ * les `toast.success()` / `toast.error()` existants gardent le rendu coloré
+ * de sonner (`richColors`).
+ */
 const Toaster = ({ ...props }: ToasterProps) => {
-  const { theme = "system" } = useTheme()
-
   return (
     <Sonner
-      theme={theme as ToasterProps["theme"]}
+      theme="light"
       className="toaster group"
       style={
         {
@@ -17,8 +20,9 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--normal-border": "var(--border)",
         } as React.CSSProperties
       }
-      position="top-center"
-      duration={3000}
+      position="bottom-center"
+      duration={6000}
+      visibleToasts={3}
       richColors
       {...props}
     />

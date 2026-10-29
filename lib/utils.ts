@@ -25,12 +25,68 @@ import {
   LucideIcon,
 } from "lucide-react";
 import { DateRange } from "react-day-picker";
-import { twMerge } from "tailwind-merge";
+import { extendTailwindMerge } from "tailwind-merge";
 
 interface typesProps {
   type: RequestModelT["type"];
   requestTypes: Array<RequestType>;
 }
+
+/**
+ * Fusion des classes Tailwind (tailwind-merge) avec les utilitaires propres au
+ * design system V2 : sans cette déclaration, `text-heading-1` serait pris pour
+ * une couleur et supprimé dès qu’une vraie couleur de texte (`text-text-primary`)
+ * suit. À tenir à jour avec les tokens de app/globals.css (typographie,
+ * dégradés, ombres personnalisées).
+ */
+const twMerge = extendTailwindMerge({
+  extend: {
+    classGroups: {
+      "font-size": [
+        {
+          text: [
+            "display",
+            "heading-1",
+            "heading-2",
+            "heading-3",
+            "title",
+            "subtitle",
+            "body-large",
+            "body",
+            "body-medium",
+            "body-strong",
+            "label",
+            "caption",
+            "overline",
+          ],
+        },
+      ],
+      "bg-image": [
+        {
+          bg: [
+            "gradient-brand",
+            "gradient-whass-ai",
+            "gradient-whass-ai-soft",
+            "gradient-whass-dock",
+            "gradient-aurora",
+            "gradient-glass",
+            "gradient-tint-green",
+            "gradient-tint-mint",
+            "gradient-tint-cyan",
+            "gradient-tint-blue",
+            "gradient-tint-indigo",
+            "gradient-tint-purple",
+            "gradient-tint-pink",
+            "gradient-tint-orange",
+            "gradient-tint-yellow",
+            "gradient-tint-red",
+          ],
+        },
+      ],
+      shadow: [{ shadow: ["focus-ring", "glass"] }],
+    },
+  },
+});
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));

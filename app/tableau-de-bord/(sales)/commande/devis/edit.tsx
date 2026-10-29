@@ -278,7 +278,7 @@ function EditQuotation({ open, openChange, quotation }: Props) {
           <DialogTitle className="uppercase">
             {`Devis - ${providerName ?? ""}`}
           </DialogTitle>
-          <DialogDescription className="text-white/80">
+          <DialogDescription>
             Modifiez les informations du devis
           </DialogDescription>
         </DialogHeader>

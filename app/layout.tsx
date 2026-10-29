@@ -1,22 +1,20 @@
 import type { Metadata } from "next";
-import { Poppins, Work_Sans } from "next/font/google";
+import { Familjen_Grotesk, Inter } from "next/font/google";
 import "./globals.css";
 import Providers from "@/components/providers";
 
-const sans = Work_Sans({
-  variable: "--font-worksans",
+// Familjen Grotesk (texte et titres) et Inter (chiffres, code) : polices du design system V2.
+const sans = Familjen_Grotesk({
+  variable: "--font-familjen",
   subsets: ["latin"],
   display: "swap",
-  weight: ["300", "400", "500", "600", "700"],
 });
 
-const mono = Poppins({
-  variable: "--font-poppins",
-  subsets : ["latin"],
+const mono = Inter({
+  variable: "--font-inter",
+  subsets: ["latin"],
   display: "swap",
-  weight: ["400", "500", "600", "700"]
-})
-
+});
 
 export const metadata: Metadata = {
   title: {
@@ -38,10 +36,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="fr">
-      <body
-        className={`${sans.variable} ${mono.variable} antialiased`}
-      >
+    <html lang="fr" className={`${sans.variable} ${mono.variable}`}>
+      <body className="antialiased">
         <Providers>
           {children}
         </Providers>

@@ -2,10 +2,14 @@
 
 import * as React from "react";
 import * as CheckboxPrimitive from "@radix-ui/react-checkbox";
-import { CheckIcon } from "lucide-react";
+import { CheckIcon, MinusIcon } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+/**
+ * Case à cocher 18 px (Figma · Checkbox). Cible cliquable étendue à 32 px.
+ * `checked="indeterminate"` = sélection partielle (en-tête de liste).
+ */
 function Checkbox({
   className,
   ...props
@@ -14,16 +18,20 @@ function Checkbox({
     <CheckboxPrimitive.Root
       data-slot="checkbox"
       className={cn(
-        "peer border-input dark:bg-input/30 data-[state=checked]:bg-white data-[state=checked]:text-primary-foreground dark:data-[state=checked]:bg-primary data-[state=checked]:border-[#DFDFDF] focus-visible:border-ring focus-visible:ring-ring/50 aria-invalid:ring-destructive/20 dark:aria-invalid:ring-destructive/40 aria-invalid:border-destructive size-4 shrink-0 border shadow-xs transition-shadow outline-none focus-visible:ring-[3px] disabled:cursor-not-allowed disabled:opacity-50 rounded-[4px] cursor-pointer flex items-center justify-center",
+        "peer relative flex size-[18px] shrink-0 cursor-pointer items-center justify-center rounded-xs border-[1.5px] border-border-strong bg-surface transition-colors outline-none after:absolute after:-inset-1.5 hover:border-neutral-400 focus-visible:shadow-focus-ring disabled:cursor-not-allowed disabled:border-border-default disabled:bg-disabled aria-invalid:border-status-danger-fg data-[state=checked]:border-brand data-[state=checked]:bg-brand data-[state=checked]:text-text-on-brand data-[state=indeterminate]:border-brand data-[state=indeterminate]:bg-brand data-[state=indeterminate]:text-text-on-brand data-[disabled]:data-[state=checked]:border-transparent data-[disabled]:data-[state=checked]:bg-brand-soft",
         className
       )}
       {...props}
     >
       <CheckboxPrimitive.Indicator
         data-slot="checkbox-indicator"
-        className="grid place-content-center text-current transition-none"
+        className="grid place-content-center text-current transition-none [&>svg]:size-3.5"
       >
-        <span className="size-2.5 rounded-[2px] bg-primary-600" />
+        {props.checked === "indeterminate" ? (
+          <MinusIcon strokeWidth={3} />
+        ) : (
+          <CheckIcon strokeWidth={3} />
+        )}
       </CheckboxPrimitive.Indicator>
     </CheckboxPrimitive.Root>
   );

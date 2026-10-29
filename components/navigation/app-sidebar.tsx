@@ -1,6 +1,5 @@
 import useAuthGuard from "@/hooks/useAuthGuard";
 import { queryKeys } from "@/lib/query-keys";
-import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { commandRqstQ } from "@/queries/commandRqstModule";
 import { paymentQ } from "@/queries/payment";
@@ -20,44 +19,38 @@ import {
   ChartAreaIcon,
   CircleDollarSignIcon,
   CircleUserRoundIcon,
-  EllipsisVertical,
+  ClipboardList,
   FileCheckIcon,
   LandmarkIcon,
   LayoutDashboardIcon,
-  LockIcon,
-  LogOutIcon,
+  LucideIcon,
   ReceiptIcon,
   Settings2Icon,
   SettingsIcon,
+  ShoppingCart,
   SignatureIcon,
   TablePropertiesIcon,
   Ticket,
   VoteIcon,
+  Wallet,
 } from "lucide-react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../ui/dropdown-menu";
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarFooter,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarHeader,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from "../ui/sidebar";
-import { Skeleton } from "../ui/skeleton";
-import { Separator } from "../ui/separator";
+import { Sidebar, type ShellNavGroup } from "../shell/sidebar";
+
+// Icône de chaque groupe (affichée quand la sidebar est repliée).
+const groupIcons: Record<string, LucideIcon> = {
+  "PG-00-00": LayoutDashboardIcon,
+  "PG-00": BriefcaseBusiness,
+  "PG-02": ClipboardList,
+  "PG-03": ShoppingCart,
+  "PG-03-07": ReceiptIcon,
+  "PG-04": Ticket,
+  "PG-91": Wallet,
+  "PG-0000551": SignatureIcon,
+  "PG-56489713246": LandmarkIcon,
+  "PG-0000354650": Building2Icon,
+  "PG-10235-01": SettingsIcon,
+  "PG-55540665489": CircleUserRoundIcon,
+};
 
 function usePendingDepenseCount(
   paymentMethod: "cash" | "chq" | "ov",
@@ -76,15 +69,16 @@ function usePendingDepenseCount(
   });
 }
 
-function AppSidebar() {
-  const { user, logout, isSignataire } = useStore();
-  const router = useRouter();
-  const pathname = usePathname();
-
-  const sessionClose = () => {
-    logout();
-    router.replace("/connexion");
-  };
+function AppSidebar({
+  collapsed,
+  onExpand,
+  onNavigate,
+}: {
+  collapsed: boolean;
+  onExpand?: () => void;
+  onNavigate?: () => void;
+}) {
+  const { user, isSignataire } = useStore();
 
   // Utilisation du hook pour la protection globale
   const { userRoles } = useAuthGuard({
@@ -188,18 +182,13 @@ function AppSidebar() {
     pendingTransfersCount.isLoading
   ) {
     return (
-      <Sidebar>
-        <SidebarHeader>
-          <Link href={"/tableau-de-bord"}>
-            <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
-          </Link>
-        </SidebarHeader>
-        <SidebarContent className="p-2 flex flex-col gap-2">
-          {[...Array(12)].map((_, i) => (
-            <Skeleton key={i} className="w-full h-10" />
-          ))}
-        </SidebarContent>
-      </Sidebar>
+      <Sidebar
+        groups={[]}
+        loading
+        collapsed={collapsed}
+        onExpand={onExpand}
+        onNavigate={onNavigate}
+      />
     );
   }
 
@@ -548,98 +537,35 @@ function AppSidebar() {
     return navLink.authorized.some((role) => userRoles.includes(role));
   });
 
+  const groups: ShellNavGroup[] = filteredNavLinks
+    .map(({ pageId, title, items }) => ({
+      id: pageId,
+      title,
+      icon: groupIcons[pageId] ?? LayoutDashboardIcon,
+      items: items
+        .filter((i) => {
+          if (i.authorized.length === 0) return true;
+          if (i.pageId === "PG-02-05") {
+            return typeof user?.serviceUserId === "number";
+          }
+          return i.authorized.some((role) => userRoles.includes(role));
+        })
+        .map((i) => ({
+          title: i.title,
+          href: i.href,
+          icon: i.icon,
+          badge: i.badgeValue,
+        })),
+    }))
+    .filter((group) => group.items.length > 0);
+
   return (
-    <Sidebar>
-      <SidebarHeader>
-        <Link href={"/tableau-de-bord"}>
-          <img src={"/logo.svg"} alt="Logo" className="h-8 w-auto" />
-        </Link>
-      </SidebarHeader>
-      <SidebarContent className="p-2 flex flex-col gap-1.5">
-        {filteredNavLinks.map(({ items, title, className }, id) => (
-          <SidebarGroup key={id}>
-            <SidebarGroupLabel
-              className={cn(className, "font-bold tracking-widest")}
-            >
-              {title}
-            </SidebarGroupLabel>
-            <SidebarGroupContent>
-              <SidebarMenu>
-                {items
-                  .filter((i) => {
-                    if (i.authorized.length === 0) return true;
-                    if (i.pageId === "PG-02-05") {
-                      return typeof user?.serviceUserId === "number";
-                    }
-                    return i.authorized.some((role) =>
-                      userRoles.includes(role),
-                    );
-                  })
-                  .map((item, id) => (
-                    <SidebarMenuItem key={id}>
-                      <SidebarMenuButton
-                        asChild
-                        isActive={pathname === item.href}
-                      >
-                        <Link href={item.href}>
-                          {item.icon && <item.icon size={20} />}
-                          <span className="w-full">{item.title}</span>
-                          {!!item.badgeValue && item.badgeValue > 0 && (
-                            <span className="inline-flex shrink-0 h-[26px] min-w-[26px] px-1 items-center justify-center text-center rounded bg-accent text-xs font-medium text-primary-700">
-                              {item.badgeValue > 99 ? "99+" : item.badgeValue}
-                            </span>
-                          )}
-                        </Link>
-                      </SidebarMenuButton>
-                    </SidebarMenuItem>
-                  ))}
-              </SidebarMenu>
-            </SidebarGroupContent>
-            {id < filteredNavLinks.length - 1 && (
-              <Separator orientation="horizontal" className="mt-3" />
-            )}
-          </SidebarGroup>
-        ))}
-      </SidebarContent>
-      <SidebarFooter className="px-0">
-        <DropdownMenu>
-          <DropdownMenuTrigger className="w-full h-auto border-none shadow-none p-2 flex items-center gap-2 justify-between cursor-pointer hover:shadow-sm transition-all duration-300 ease-out">
-            <div className="flex flex-col gap-1 text-left flex-start">
-              <span className="text-sm font-medium leading-[120%] text-gray-900 capitalize">
-                {user?.lastName + " " + user?.firstName || "Utilisateur"}
-              </span>
-              <span className="text-xs leading-[120%] text-gray-500">
-                {/* {getRoleName(user?.role || [])} */}
-                {user?.post}
-              </span>
-            </div>
-            <EllipsisVertical size={16} className="text-gray-900!" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent>
-            <DropdownMenuLabel className="flex flex-col gap-0.5">
-              <span>{"Mon Compte"}</span>
-              <span className="text-xs font-normal text-gray-600">
-                {user?.email}
-              </span>
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem>
-              <Link
-                href={"/tableau-de-bord/changer-mot-de-passe"}
-                className="inline-flex gap-2 items-center"
-              >
-                <LockIcon />
-                {"Changer de mot de passe"}
-              </Link>
-            </DropdownMenuItem>
-            <DropdownMenuItem variant="destructive" onClick={sessionClose}>
-              <LogOutIcon />
-              {"Se déconnecter"}
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </SidebarFooter>
-    </Sidebar>
+    <Sidebar
+      groups={groups}
+      collapsed={collapsed}
+      onExpand={onExpand}
+      onNavigate={onNavigate}
+    />
   );
 }
 
