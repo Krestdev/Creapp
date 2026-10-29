@@ -47,15 +47,20 @@ function EditTerms({ open, openChange, purchaseOrder, conditions }: Props) {
   const [paymentTerms, setPaymentTerms] = React.useState(
     purchaseOrder.paymentTerms ?? "",
   );
+  const [wasOpen, setWasOpen] = React.useState(false);
 
-  React.useEffect(() => {
-    if (open) {
-      setSelectedConditions(purchaseOrder.commandConditions);
-      setReceptionMode(purchaseOrder.receptionMode);
-      setPayDelay(purchaseOrder.payDelay?.toString() ?? "0");
-      setPaymentTerms(purchaseOrder.paymentTerms ?? "");
-    }
-  }, [open, purchaseOrder]);
+  // Réinitialise le formulaire à chaque ouverture du dialogue. On ajuste
+  // l'état pendant le rendu (plutôt que dans un useEffect) pour suivre le
+  // pattern recommandé par React et éviter un rendu en cascade.
+  if (open && !wasOpen) {
+    setWasOpen(true);
+    setSelectedConditions(purchaseOrder.commandConditions);
+    setReceptionMode(purchaseOrder.receptionMode);
+    setPayDelay(purchaseOrder.payDelay?.toString() ?? "0");
+    setPaymentTerms(purchaseOrder.paymentTerms ?? "");
+  } else if (!open && wasOpen) {
+    setWasOpen(false);
+  }
 
   const hasDelay = receptionMode === "FULL" || receptionMode === "PARTIAL";
   const payDelayValue = Number(payDelay);

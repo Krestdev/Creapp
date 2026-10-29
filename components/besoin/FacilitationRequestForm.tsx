@@ -48,9 +48,6 @@ interface Props {
 // VALIDATION
 // ----------------------------------------------------------------------
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-
 const SingleFileSchema = z
   .array(
     z.union([
@@ -64,7 +61,14 @@ const SingleFileSchema = z
 const formSchema = z.object({
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
   projet: z.string().min(1, "Le projet est requis"),
-  delai: z.date().min(today, "Le delai d'exécution doit être dans le futur"),
+  // "today" est recalculé à chaque validation (et non figé au chargement
+  // du module) pour que le verrou ne devienne pas obsolète si l'onglet
+  // reste ouvert d'un jour sur l'autre.
+  delai: z.date().refine((d) => {
+    const minDate = new Date();
+    minDate.setHours(0, 0, 0, 0);
+    return d >= minDate;
+  }, "Le delai d'exécution doit être dans le futur"),
   categoryId: z.coerce.number({
     message: "Veuillez sélectionner une catégorie",
   }),

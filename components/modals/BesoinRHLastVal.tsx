@@ -55,9 +55,6 @@ import { Textarea } from "../ui/textarea";
 // VALIDATION
 // ----------------------------------------------------------------------
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-
 const formSchema = z.object({
   periode: z
     .object({

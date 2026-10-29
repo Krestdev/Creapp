@@ -39,9 +39,6 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
   ...(typeof PRIORITIES)[number]["value"][],
 ];
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-
 const formSchema = z.object({
   label: z
     .string({ message: "Veuillez renseigner un titre" })
@@ -56,10 +53,15 @@ const formSchema = z.object({
     message: "Veuillez sélectionner un projet",
   }),
   amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
+  // "minDate" est recalculé à chaque validation (et non figé au chargement
+  // du module) pour que le verrou ne devienne pas obsolète si l'onglet
+  // reste ouvert d'un jour sur l'autre.
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
       const d = new Date(val);
-      return !isNaN(d.getTime()) && d >= today;
+      const minDate = new Date();
+      minDate.setHours(0, 0, 0, 0);
+      return !isNaN(d.getTime()) && d >= minDate;
     },
     { message: "Date invalide" },
   ),

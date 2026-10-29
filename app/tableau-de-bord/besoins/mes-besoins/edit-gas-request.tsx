@@ -59,9 +59,6 @@ const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
   ...(typeof PRIORITIES)[number]["value"][],
 ];
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-
 const formSchema = z.object({
   label: z
     .string({ message: "Veuillez renseigner un titre" })
@@ -76,10 +73,15 @@ const formSchema = z.object({
   km: z.coerce.number(),
   liters: z.coerce.number(),
   benef: z.coerce.number(),
+  // "minDate" est recalculé à chaque validation (et non figé au chargement
+  // du module) pour que le verrou ne devienne pas obsolète si l'onglet
+  // reste ouvert d'un jour sur l'autre.
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
       const d = new Date(val);
-      return !isNaN(d.getTime()) && d >= today;
+      const minDate = new Date();
+      minDate.setHours(0, 0, 0, 0);
+      return !isNaN(d.getTime()) && d >= minDate;
     },
     { message: "Date invalide" },
   ),
@@ -157,6 +159,8 @@ function EditGasRequest({ request, categories, open, onOpenChange }: Props) {
     mutate({ dueDate: new Date(dueDate), benef: [benef!], ...rest });
   };
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const dayStart = new Date();
   dayStart.setDate(dayStart.getDate() - 1);
   dayStart.setHours(0, 0, 0, 0);

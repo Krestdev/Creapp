@@ -58,9 +58,6 @@ interface Props {
 //   ...(typeof PRIORITIES)[number]["value"][],
 // ];
 
-const today = new Date();
-today.setHours(0, 0, 0, 0);
-
 const SingleFileSchema = z
   .array(
     z.union([
@@ -84,10 +81,15 @@ const formSchema = z.object({
     .number()
     .refine((val) => val > 0, "La quantité doit être supérieure à 0"),
   benef: z.coerce.number().optional(),
+  // "minDate" est recalculé à chaque validation (et non figé au chargement
+  // du module) pour que le verrou ne devienne pas obsolète si l'onglet
+  // reste ouvert d'un jour sur l'autre.
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
       const d = new Date(val);
-      return !isNaN(d.getTime()) && d >= today;
+      const minDate = new Date();
+      minDate.setHours(0, 0, 0, 0);
+      return !isNaN(d.getTime()) && d >= minDate;
     },
     { message: "Date invalide" },
   ),
@@ -145,6 +147,8 @@ function CreateTypeSettle({ users, categories, projects }: Props) {
     });
   };
 
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
   const dayStart = new Date();
   dayStart.setDate(dayStart.getDate() - 1);
   dayStart.setHours(0, 0, 0, 0);
