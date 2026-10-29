@@ -356,13 +356,17 @@ function EditTransportRequest({
                       onValueChange={(v) => field.onChange(v?.id ?? "")}
                     >
                       <ComboboxInput placeholder="Sélectionner" />
-                      <ComboboxContent>
+                      <ComboboxContent className="min-w-[min(32rem,var(--available-width))]">
                         <ComboboxEmpty>
                           {"Aucun projet enregistré"}
                         </ComboboxEmpty>
                         <ComboboxList>
                           {(item: ProjectT) => (
-                            <ComboboxItem key={item.id} value={item}>
+                            <ComboboxItem
+                              key={item.id}
+                              value={item}
+                              className="items-start leading-snug wrap-break-word"
+                            >
                               {item.label}
                             </ComboboxItem>
                           )}
@@ -370,6 +374,11 @@ function EditTransportRequest({
                       </ComboboxContent>
                     </Combobox>
                   </FormControl>
+                  {projects.find((p) => p.id === field.value) && (
+                    <p className="text-xs text-muted-foreground wrap-break-word">
+                      {projects.find((p) => p.id === field.value)?.label}
+                    </p>
+                  )}
                   <FormMessage />
                 </FormItem>
               )}

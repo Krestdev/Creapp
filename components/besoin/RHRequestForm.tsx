@@ -222,6 +222,7 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
                   value={field.value}
                   width="w-full"
                   allLabel=""
+                  wrapText
                   placeholder="Sélectionner un projet"
                 />
                 <FormMessage />

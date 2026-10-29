@@ -199,6 +199,7 @@ export default function FacilitationRequestForm({
                   value={field.value}
                   width="w-full"
                   allLabel=""
+                  wrapText
                   placeholder="Sélectionner un projet"
                 />
                 <FormMessage />

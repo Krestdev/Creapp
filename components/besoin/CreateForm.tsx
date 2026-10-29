@@ -202,6 +202,7 @@ export default function MyForm({ categories, users, projects }: Props) {
                   value={field.value ? String(field.value) : ""}
                   width="w-full"
                   allLabel=""
+                  wrapText
                   placeholder="Sélectionner un projet"
                 />
                 <FormMessage />

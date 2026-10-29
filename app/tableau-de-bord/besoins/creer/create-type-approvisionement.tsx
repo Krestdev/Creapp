@@ -225,6 +225,7 @@ function CreateTypeApprovisionement({ categories, projects }: Props) {
                 value={field.value?.toString() || ""}
                 width="w-full"
                 allLabel=""
+                wrapText
               />
               <FormMessage />
             </FormItem>

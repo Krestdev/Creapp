@@ -36,6 +36,7 @@ interface SearchableSelectProps {
   className?: string;
   width?: string;
   disabled?: boolean;
+  wrapText?: boolean;
 }
 
 export function SearchableSelect({
@@ -48,6 +49,7 @@ export function SearchableSelect({
   width = "w-full",
   className,
   disabled = false,
+  wrapText = false,
 }: SearchableSelectProps) {
   const [open, setOpen] = React.useState(false);
   const [search, setSearch] = React.useState("");
@@ -131,7 +133,11 @@ export function SearchableSelect({
       <PopoverContent
         className="p-0"
         align="start"
-        style={{ width: triggerWidth || "auto" }}
+        style={{
+          width: wrapText
+            ? `max(${triggerWidth}px, min(40rem, var(--radix-popover-content-available-width)))`
+            : triggerWidth || "auto",
+        }}
       >
         <Command shouldFilter={false} className="overflow-hidden">
           <CommandInput
@@ -190,7 +196,14 @@ export function SearchableSelect({
                         value === option.value ? "opacity-100" : "opacity-0",
                       )}
                     />
-                    <span className="flex-1 truncate">{option.label}</span>
+                    <span
+                      className={cn(
+                        "flex-1",
+                        wrapText ? "wrap-break-word" : "truncate",
+                      )}
+                    >
+                      {option.label}
+                    </span>
                     {option.tag && (
                       <span className="ml-2 shrink-0 rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
                         {option.tag}

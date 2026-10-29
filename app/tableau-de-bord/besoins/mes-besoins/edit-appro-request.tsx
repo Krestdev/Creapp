@@ -256,6 +256,7 @@ function EditApproRequest({
                     value={field.value?.toString() || ""}
                     width="w-full"
                     allLabel=""
+                    wrapText
                   />
                   <FormMessage />
                 </FormItem>
