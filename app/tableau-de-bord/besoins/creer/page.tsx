@@ -283,7 +283,6 @@ const Page = () => {
       <div className="content">
         <PageTitle
           title="Créer un besoin"
-          color="blue"
           subtitle="Renseignez les informations relatives à votre besoin."
         />
         {!requestType ? (

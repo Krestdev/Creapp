@@ -11,6 +11,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { findActiveHref } from "./nav-utils"
 
 export type ShellNavItem = {
   title: string
@@ -26,8 +27,6 @@ export type ShellNavGroup = {
   icon: LucideIcon
   items: ShellNavItem[]
 }
-
-const ROOT_HREF = "/tableau-de-bord"
 
 function formatBadge(badge: number) {
   return badge > 99 ? "99+" : badge
@@ -198,25 +197,6 @@ function NavGroup({
       )}
     </div>
   )
-}
-
-/**
- * Page active : l'entrée dont le chemin est le plus long préfixe de l'URL, de
- * sorte que `/besoins/mes-besoins/12` allume « Mes besoins ».
- */
-function findActiveHref(groups: ShellNavGroup[], pathname: string) {
-  let best: string | undefined
-  for (const group of groups) {
-    for (const item of group.items) {
-      // La racine du tableau de bord est un préfixe de toutes les pages : on
-      // ne l'allume que sur l'URL exacte.
-      const match =
-        pathname === item.href ||
-        (item.href !== ROOT_HREF && pathname.startsWith(`${item.href}/`))
-      if (match && (!best || item.href.length > best.length)) best = item.href
-    }
-  }
-  return best
 }
 
 /**

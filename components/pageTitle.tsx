@@ -13,36 +13,36 @@ const PageTitle = ({ title, subtitle, color, links = [] }: PageTitleProps) => {
     color: PageTitleProps["color"],
   ): HTMLDivElement["className"] => {
     switch (color) {
-      case "blue":
-        return "from-[#0F5499] to-[#002244]";
-      case "green":
-        return "from-[#15803D] to-[#0B411F]";
-      case "purple":
-        return "from-purple-800 to-purple-950";
-      case "none":
-        return "from-slate-600 to-slate-700";
+      case "aurora-lights":
+        return "from-[#023E8A]/10 via-[#00B4D8]/6 to-[#CAF0F8]/0";
+      case "aurora":
+        return "from-[#CB30E0]/10 via-[#0088FF]/6 to-white/0";
+      case "cyberpunk":
+        return "from-[#AA00FF]/15 via-25-[#FF00AA]/10 via-50-[#FF00FF]/6 to-[#00FFFF]/0";
       default:
-        return "from-primary-600 to-primary-700";
+        return "from-[#CB30E0]/10 via-[#0088FF]/6 to-white/0";
     }
   };
   return (
-    <div
-      className={cn(
-        "bg-linear-to-r rounded-[12px] px-6 py-5 gap-4 flex flex-col text-white",
-        getBackground(color),
-      )}
-    >
-      <div className="flex flex-col gap-8 @min-[640px]:flex-row @min-[640px]:gap-2 justify-between ">
-        <div>
-          <h1 className="font-bold">{title}</h1>
-          <h4 className="font-extralight tracking-wide">{subtitle}</h4>
+    <div className="relative bg-gray-50 rounded-2xl px-8 py-7 gap-4 flex flex-col border">
+      <div className="flex flex-col gap-8 @min-[640px]:flex-row @min-[640px]:gap-2 justify-between z-1">
+        <div className="min-w-0 @min-[640px]:flex-1">
+          <h1 className="font-bold [overflow-wrap:anywhere]">{title}</h1>
+          <h4 className="font-extralight tracking-wide [overflow-wrap:anywhere]">
+            {subtitle}
+          </h4>
         </div>
-        <Button variant={"outline"} size={"lg"} onClick={() => router.back()}>
+        <Button
+          variant={"outline"}
+          size={"lg"}
+          className="shrink-0 self-start"
+          onClick={() => router.back()}
+        >
           <ArrowBigLeft />
           {"Précédent"}
         </Button>
       </div>
-      <div className="flex gap-3 flex-wrap">
+      <div className="flex gap-3 flex-wrap z-1">
         {links
           .filter((x) => (!x.hide ? true : x.hide === true && false))
           .map((link, id) => {
@@ -59,8 +59,7 @@ const PageTitle = ({ title, subtitle, color, links = [] }: PageTitleProps) => {
                 className={cn(link.disabled && "cursor-not-allowed")}
               >
                 <Button
-                  size={"lg"}
-                  variant={isLast ? "accent" : "ghost"}
+                  variant={isLast ? "outline" : "primary"}
                   disabled={link.disabled}
                 >
                   {link.title}
@@ -80,6 +79,11 @@ const PageTitle = ({ title, subtitle, color, links = [] }: PageTitleProps) => {
               </Link>
             );
           })}
+      </div>
+      <div className="absolute inset-0 overflow-hidden rounded-[inherit] pointer-events-none">
+        <div
+          className={cn("absolute inset-0 bg-radial", getBackground(color))}
+        />
       </div>
     </div>
   );

@@ -2,9 +2,17 @@
 
 import * as React from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { ChevronDown, LockIcon, LogOutIcon, PanelLeft, UserRoundIcon } from "lucide-react"
-import NavigationBreadcrumb from "@/components/navigation/breadcrumb-main"
+import { usePathname, useRouter } from "next/navigation"
+import {
+  ChevronDown,
+  ChevronRight,
+  LockIcon,
+  LogOutIcon,
+  PanelLeft,
+  Search,
+  UserRoundIcon,
+} from "lucide-react"
+import { useNavGroups } from "@/components/navigation/use-nav-groups"
 import { UserAvatar } from "@/components/ds/user-avatar"
 import {
   DropdownMenu,
@@ -15,15 +23,37 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { useStore } from "@/providers/datastore"
+import { breadcrumbFor } from "./nav-utils"
+import { SearchPalette } from "./search-palette"
 
 /**
  * Barre supérieure 60 px (Figma · TopBar) : bascule de la sidebar, fil
- * d'Ariane et menu utilisateur (avatar + nom + poste).
+ * d'Ariane « Parent › Page », recherche globale ⌘K et menu utilisateur
+ * (avatar + nom + poste). La cloche de notifications du Figma n'est pas
+ * affichée tant que les notifications ne sont pas branchées.
  */
 export function TopBar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   const { user, logout } = useStore()
   const router = useRouter()
+  const pathname = usePathname()
+  const { groups } = useNavGroups()
+  const breadcrumb = breadcrumbFor(groups, pathname)
   const name = user ? `${user.lastName} ${user.firstName}`.trim() : "Utilisateur"
+
+  const [searchOpen, setSearchOpen] = React.useState(false)
+  const [shortcut, setShortcut] = React.useState("⌘K")
+
+  React.useEffect(() => {
+    if (!/Mac|iPhone|iPad/.test(navigator.platform)) setShortcut("Ctrl K")
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key.toLowerCase() === "k" && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault()
+        setSearchOpen((open) => !open)
+      }
+    }
+    document.addEventListener("keydown", onKeyDown)
+    return () => document.removeEventListener("keydown", onKeyDown)
+  }, [])
 
   const signOut = () => {
     logout()
@@ -33,7 +63,7 @@ export function TopBar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
   return (
     <header
       data-slot="top-bar"
-      className="sticky top-0 z-30 flex h-15 shrink-0 items-center gap-3 border-b border-border-default bg-surface px-4 sm:gap-4 sm:px-6"
+      className="sticky top-0 z-30 flex h-15 shrink-0 items-center gap-4 border-b border-border-default bg-surface px-4 sm:px-6"
     >
       <button
         type="button"
@@ -44,9 +74,50 @@ export function TopBar({ onToggleSidebar }: { onToggleSidebar: () => void }) {
         <PanelLeft className="size-5" />
       </button>
       <span aria-hidden className="h-5 w-px shrink-0 bg-border-strong" />
-      <div className="min-w-0 flex-1 overflow-hidden">
-        <NavigationBreadcrumb />
-      </div>
+      <nav aria-label="Fil d’Ariane" className="shrink-0">
+        <ol className="flex items-center gap-1.5 text-body">
+          {breadcrumb.parent && (
+            <>
+              <li className="hidden truncate text-text-tertiary sm:block">
+                {breadcrumb.parent}
+              </li>
+              <ChevronRight
+                aria-hidden
+                className="hidden size-3.5 shrink-0 text-text-tertiary sm:block"
+              />
+            </>
+          )}
+          <li
+            aria-current="page"
+            className="truncate text-body-medium text-text-primary"
+          >
+            {breadcrumb.page}
+          </li>
+        </ol>
+      </nav>
+
+      <span className="flex-1" />
+
+      <button
+        type="button"
+        onClick={() => setSearchOpen(true)}
+        className="hidden h-9 w-95 min-w-40 shrink-[4] cursor-pointer items-center gap-2 rounded-md bg-surface-muted pr-2 pl-3 text-left outline-none hover:bg-neutral-100 focus-visible:shadow-focus-ring md:flex"
+      >
+        <Search aria-hidden className="size-4 shrink-0 text-text-tertiary" />
+        <span className="min-w-0 flex-1 truncate text-body text-text-placeholder">
+          Rechercher une page…
+        </span>
+        <kbd className="rounded-sm border border-border-strong bg-surface px-1.5 py-0.5 font-sans text-caption text-text-tertiary">
+          {shortcut}
+        </kbd>
+      </button>
+      <SearchPalette
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        groups={groups}
+      />
+
+      <span aria-hidden className="hidden h-5 w-px shrink-0 bg-border-strong md:block" />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
