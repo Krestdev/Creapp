@@ -90,7 +90,6 @@ const Page = () => {
         <PageTitle
           title="Devis"
           subtitle="Consultez et gérez les cotations."
-          color="red"
           links={links}
         />
         <DevisTable

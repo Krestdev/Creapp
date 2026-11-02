@@ -1,5 +1,6 @@
 import { cn } from "@/lib/utils";
-import { cva, VariantProps } from "class-variance-authority";
+import { StatCard, type StatCardTone } from "@/components/ds/stat-card";
+import { LucideIcon } from "lucide-react";
 import React from "react";
 
 interface Props {
@@ -23,31 +24,39 @@ const TitleValueCard = ({ title, value, className, valColor }: Props) => {
 
 export default TitleValueCard;
 
-const statisticVariants = cva(
-  "w-full flex flex-col gap-1.5 p-4 shadow-[0px_8px_6px_-6px_rgba(0,0,0,0.1)] rounded-[8px] h-full min-h-fit", // Retirer h-full, ajouter box-border et min-h-0
-  {
-    variants: {
-      variant: {
-        default: "bg-white border border-input text-foreground",
-        primary: "bg-primary-600 border border-primary-200 text-white",
-        secondary: "bg-secondary-600 border border-secondary-200 text-white",
-        dark: "bg-gray-900 border border-input text-white",
-        destructive: "bg-[#9E1315] border border-red-200 text-white",
-        success: "bg-[#15803D] border border-green-200 text-white",
-        amber: "bg-amber-600 border border-amber-200 text-white",
-        blue: "bg-blue-600 border border-blue-200 text-white",
-      },
-    },
-    defaultVariants: {
-      variant: "default",
-    },
-  },
-);
+/**
+ * Anciennes variantes de couleur, toujours acceptées par les pages. Le design
+ * V2 (Figma · StatCard) n’a que trois tons sémantiques : `destructive` devient
+ * « alerte » (rouge), `success` devient « bon » (valeur verte), toutes les
+ * autres variantes s’affichent en carte standard.
+ */
+type StatisticVariant =
+  | "default"
+  | "primary"
+  | "secondary"
+  | "dark"
+  | "destructive"
+  | "success"
+  | "amber"
+  | "blue"
+  | null
+  | undefined;
+
+const toneByVariant: Record<NonNullable<StatisticVariant>, StatCardTone> = {
+  default: "default",
+  primary: "default",
+  secondary: "default",
+  dark: "default",
+  amber: "default",
+  blue: "default",
+  destructive: "alert",
+  success: "good",
+};
 
 export interface StatisticProps {
   title: string;
   value: string | number;
-  variant: VariantProps<typeof statisticVariants>["variant"];
+  variant: StatisticVariant;
   valueClassName?: string;
   className?: string;
   more?: {
@@ -55,36 +64,11 @@ export interface StatisticProps {
     value: string | number;
   };
   hideMore?: boolean;
-}
-
-function getMoreClassName(
-  variant: StatisticProps["variant"],
-): HTMLHRElement["className"] {
-  switch (variant) {
-    case "default":
-      return "text-gray-400";
-    default:
-      return "text-gray-200";
-  }
-}
-
-function getBorderClassName(
-  variant: StatisticProps["variant"],
-): HTMLHRElement["className"] {
-  switch (variant) {
-    case "dark":
-      return "border border-gray-600";
-    case "primary":
-      return "border border-primary-200";
-    case "secondary":
-      return "border border-secondary-200";
-    case "destructive":
-      return "border border-red-200";
-    case "success":
-      return "border border-green-200";
-    default:
-      return "border border-input";
-  }
+  /** Remplace l’icône du ton. */
+  Icon?: LucideIcon;
+  /** Rend la carte cliquable (ouvre la liste filtrée) : affiche le chevron. */
+  href?: string;
+  onClick?: () => void;
 }
 
 export const StatisticCard = ({
@@ -95,63 +79,22 @@ export const StatisticCard = ({
   variant,
   valueClassName = "",
   hideMore = false,
+  Icon,
+  href,
+  onClick,
 }: StatisticProps) => {
   return (
-    <div
-      className={cn(
-        statisticVariants({ variant: variant }),
-        className,
-        "overflow-hidden", // Ajouter overflow-hidden
-      )}
-    >
-      <h4
-        className={cn(
-          "text-xs font-medium line-clamp-1", // Ajouter line-clamp-1
-          variant === "default" ? "text-gray-600" : "text-gray-200",
-        )}
-      >
-        {title}
-      </h4>
-
-      <span
-        className={cn(
-          "font-mono font-medium text-[30px] leading-[1.2] tracking-tight", // Changer leading
-          valueClassName,
-        )}
-      >
-        {value}
-      </span>
-
-      {!!more && (
-        <>
-          <hr
-            className={cn(
-              getBorderClassName(variant),
-              hideMore && "hidden sm:block",
-            )}
-          />
-          <div
-            className={cn(
-              "flex items-center text-xs",
-              hideMore && "hidden sm:flex",
-            )}
-          >
-            {" "}
-            {/* Conteneur flex */}
-            <span className={cn("font-mono", getMoreClassName(variant))}>
-              {more.title}:
-            </span>
-            <span
-              className={cn(
-                "font-medium ml-1",
-                variant === "default" ? "text-foreground" : "text-white",
-              )}
-            >
-              {more.value}
-            </span>
-          </div>
-        </>
-      )}
-    </div>
+    <StatCard
+      label={title}
+      value={value}
+      tone={toneByVariant[variant ?? "default"]}
+      delta={more ? `${more.title} : ${more.value}` : undefined}
+      deltaClassName={hideMore ? "hidden sm:flex" : undefined}
+      icon={Icon}
+      href={href}
+      onClick={onClick}
+      valueClassName={valueClassName}
+      className={cn("h-full", className)}
+    />
   );
 };

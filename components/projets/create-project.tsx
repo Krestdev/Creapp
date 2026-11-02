@@ -18,6 +18,7 @@ import { toast } from "sonner";
 import * as z from "zod";
 import { SearchableSelect } from "../base/searchableSelect";
 import { Textarea } from "../ui/textarea";
+import { useStore } from "@/providers/datastore";
 
 export interface ActionResponse<T = any> {
   success: boolean;
@@ -50,14 +51,9 @@ export const formSchema = z.object({
 
 type Schema = z.infer<typeof formSchema>;
 
-export function ProjectCreateForm({
-  users,
-  userId,
-}: {
-  users: User[];
-  userId: number;
-}) {
+export function ProjectCreateForm({ users }: { users: User[] }) {
   const queryClient = useQueryClient();
+  const user = useStore((state) => state.user);
   const form = useForm<Schema>({
     resolver: zodResolver(formSchema as any),
     defaultValues: {
@@ -95,7 +91,7 @@ export function ProjectCreateForm({
       budget: values.budget ?? 0,
       chiefId: values.chiefId,
       status: "planning",
-      userId: userId,
+      userId: user?.id || -1,
     };
     projectApi.mutate(data);
   };
@@ -110,7 +106,7 @@ export function ProjectCreateForm({
           control={form.control}
           name="label"
           render={({ field }) => (
-            <FormItem>
+            <FormItem className="col-span-full">
               <FormLabel isRequired>{"Titre du Projet"}</FormLabel>
               <FormControl>
                 <Textarea {...field} placeholder="ex. Autoroute A5" />
@@ -130,7 +126,7 @@ export function ProjectCreateForm({
                 label: user.lastName + " " + user.firstName,
               }));
             return (
-              <FormItem>
+              <FormItem className="col-span-full">
                 <FormLabel isRequired>{"Chef du Projet"}</FormLabel>
                 <FormControl>
                   <SearchableSelect
@@ -165,7 +161,7 @@ export function ProjectCreateForm({
           control={form.control}
           name="budget"
           render={({ field: { value, ...props } }) => (
-            <FormItem className="col-span-2">
+            <FormItem className="col-span-full">
               <FormLabel>{"Budget prévisionnel"}</FormLabel>
               <FormControl>
                 <div className="relative">
@@ -175,9 +171,7 @@ export function ProjectCreateForm({
                     {...props}
                     placeholder="ex. 150 000 000"
                   />
-                  <div className="absolute right-0 top-[1%] bg-gray-100 p-2 ">
-                    {"FCFA"}
-                  </div>
+                  <div className="absolute right-0 top-[1%] p-2 ">{"FCFA"}</div>
                 </div>
               </FormControl>
               <FormMessage />

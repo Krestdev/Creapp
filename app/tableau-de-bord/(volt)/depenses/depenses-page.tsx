@@ -302,12 +302,7 @@ function DepensesPage({
 
     return (
       <div className="content">
-        <PageTitle
-          title={title}
-          subtitle={subtitle}
-          color="red"
-          links={links}
-        />
+        <PageTitle title={title} subtitle={subtitle} links={links} />
         <div className="grid grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">
           {Statistics.map((data, id) => (
             <StatisticCard key={id} {...data} className="h-full" hideMore />

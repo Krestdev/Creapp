@@ -1,13 +1,5 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { CancelDialog } from "@/components/modals/cancel-dialog";
 import { invoiceQ } from "@/queries/invoices";
 import { Invoice } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -33,40 +25,16 @@ function CancelInvoice({ open, openChange, invoice }: Props) {
       toast.error(error.message);
     },
   });
-  const onSubmit = (): void => {
-    toCancel.mutate();
-  };
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent>
-        <DialogHeader variant={"error"}>
-          <DialogTitle>{`Annuler ${invoice.title}`}</DialogTitle>
-          <DialogDescription>
-            {"Êtes-vous sûr de vouloir annuler cette Facture ?"}
-          </DialogDescription>
-        </DialogHeader>
-        <DialogFooter>
-          <Button
-            onClick={onSubmit}
-            variant={"destructive"}
-            disabled={toCancel.isPending}
-            isLoading={toCancel.isPending}
-          >
-            {"Annuler le paiement"}
-          </Button>
-          <Button
-            variant={"outline"}
-            onClick={(e) => {
-              e.preventDefault();
-              openChange(false);
-            }}
-            disabled={toCancel.isPending}
-          >
-            {"Fermer"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <CancelDialog
+      open={open}
+      onOpenChange={openChange}
+      title={`Annuler ${invoice.title} ?`}
+      description="Êtes-vous sûr de vouloir annuler cette facture ?"
+      confirmLabel="Annuler la facture"
+      isPending={toCancel.isPending}
+      onConfirm={() => toCancel.mutate()}
+    />
   );
 }
 

@@ -5,15 +5,16 @@ import { projectQ } from "@/queries/projectModule";
 import { useQuery } from "@tanstack/react-query";
 import ErrorPage from "../error-page";
 import LoadingPage from "../loading-page";
+import { queryKeys } from "@/lib/query-keys";
 
 const ProjectListPage = () => {
   const projectData = useQuery({
-    queryKey: ["projects"],
+    queryKey: queryKeys.projects,
     queryFn: projectQ.getAll,
   });
 
   const usersData = useQuery({
-    queryKey: ["users"],
+    queryKey: queryKeys.users,
     queryFn: userQ.getAll,
   });
 

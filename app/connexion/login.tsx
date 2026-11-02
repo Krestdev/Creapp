@@ -22,7 +22,7 @@ import { z } from "zod";
 
 const formSchema = z.object({
   email: z.string().email("Veuillez entrer un email valide"),
-  password: z.string(),
+  password: z.string().min(1, "Veuillez saisir votre mot de passe"),
 });
 
 function Login() {
@@ -55,17 +55,24 @@ function Login() {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className="w-full max-w-80 flex flex-col gap-4"
+        className="flex w-full flex-col gap-5"
       >
         <FormField
           control={form.control}
           name="email"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{"Adresse mail"}</FormLabel>
+              <FormLabel>
+                {"Adresse e-mail"}
+                <span aria-hidden className="text-status-danger-fg">
+                  {"*"}
+                </span>
+              </FormLabel>
               <FormControl>
                 <Input
                   {...field}
+                  inputMode="email"
+                  autoComplete="email"
                   placeholder="ex. jeanmichelatangana@betcreaconsult.com"
                 />
               </FormControl>
@@ -78,17 +85,28 @@ function Login() {
           name="password"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>{"Mot de passe"}</FormLabel>
+              <FormLabel>
+                {"Mot de passe"}
+                <span aria-hidden className="text-status-danger-fg">
+                  {"*"}
+                </span>
+              </FormLabel>
               <FormControl>
-                <Input type="password" {...field} placeholder="*******" />
+                <Input
+                  type="password"
+                  autoComplete="current-password"
+                  {...field}
+                  placeholder="*******"
+                />
               </FormControl>
+              <FormMessage />
             </FormItem>
           )}
         />
         <Button
           type="submit"
           variant={"primary"}
-          size={"lg"}
+          className="w-full"
           disabled={loginAPI.isPending}
         >
           Se connecter{" "}

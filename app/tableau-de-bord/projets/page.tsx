@@ -14,7 +14,6 @@ function Page() {
       <PageTitle
         title="Les Projets"
         subtitle="Consultez la liste des projets."
-        color="red"
         links={links}
       />
       <ProjectListPage />

@@ -3,7 +3,7 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ChevronDown, ChevronRight, type LucideIcon } from "lucide-react"
+import { ChevronRight, type LucideIcon } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   Tooltip,
@@ -128,7 +128,6 @@ function NavGroup({
   const Icon = group.icon
   const hasActive = group.items.some((c) => c.href === activeHref)
   const pending = group.items.reduce((sum, c) => sum + (c.badge ?? 0), 0)
-  const Chevron = open ? ChevronDown : ChevronRight
 
   if (collapsed) {
     const trigger = (
@@ -161,7 +160,7 @@ function NavGroup({
   }
 
   return (
-    <div className="flex flex-col gap-0.5">
+    <div className="flex flex-col">
       <button
         type="button"
         onClick={onToggle}
@@ -178,23 +177,42 @@ function NavGroup({
             {formatBadge(pending)}
           </span>
         )}
-        <Chevron aria-hidden className="size-4 shrink-0 text-text-tertiary" />
+        <ChevronRight
+          aria-hidden
+          className={cn(
+            "size-4 shrink-0 text-text-tertiary transition-transform duration-200 ease-out motion-reduce:transition-none",
+            open && "rotate-90"
+          )}
+        />
       </button>
-      {open && (
-        <div className="flex flex-col gap-0.5">
-          {group.items.map((item) => (
-            <NavItem
-              key={item.href}
-              label={item.title}
-              href={item.href}
-              badge={item.badge}
-              level="sub"
-              active={item.href === activeHref}
-              onClick={onNavigate}
-            />
-          ))}
+      {/*
+        Les pages restent montées : la hauteur passe de 0fr à 1fr (transition de
+        grille, sans connaître la hauteur du contenu). `inert` retire les liens
+        de l'ordre de tabulation et des lecteurs d'écran quand le groupe est fermé.
+      */}
+      <div
+        inert={!open}
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-200 ease-out motion-reduce:transition-none",
+          open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+        )}
+      >
+        <div className="-mx-1 min-h-0 overflow-hidden px-1">
+          <div className="flex flex-col gap-0.5 py-[3px]">
+            {group.items.map((item) => (
+              <NavItem
+                key={item.href}
+                label={item.title}
+                href={item.href}
+                badge={item.badge}
+                level="sub"
+                active={item.href === activeHref}
+                onClick={onNavigate}
+              />
+            ))}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   )
 }

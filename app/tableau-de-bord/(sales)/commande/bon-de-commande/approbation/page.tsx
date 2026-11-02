@@ -63,7 +63,6 @@ function Page() {
         <PageTitle
           title="Approbation BC"
           subtitle="Approbation des bons de commandes"
-          color="blue"
         />
         <PurchaseApprovalTable
           data={data.data}

@@ -1,29 +1,9 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
+import { CancelDialog } from "@/components/modals/cancel-dialog";
 import { transactionQ } from "@/queries/transaction";
 import { Transaction } from "@/types/types";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import z from "zod";
 
 interface CancelProps {
   open: boolean;
@@ -31,25 +11,12 @@ interface CancelProps {
   transfer: Transaction;
 }
 
-const formSchema = z.object({
-  reason: z.string().min(5, "La raison doit contenir au moins 5 caractere"),
-});
-
-type FormSchemaType = z.infer<typeof formSchema>;
-
 export function CancelTransfert({ open, onOpenChange, transfer }: CancelProps) {
   const queryClient = useQueryClient();
-  const form = useForm<FormSchemaType>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      reason: "",
-    },
-  });
 
-  // Mutation pour mettre à jour le transfert
   const cancelMutation = useMutation({
-    mutationFn: async (data: FormSchemaType) => {
-      return transactionQ.cancel(transfer.id, data.reason);
+    mutationFn: async (reason: string) => {
+      return transactionQ.cancel(transfer.id, reason);
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
@@ -61,57 +28,20 @@ export function CancelTransfert({ open, onOpenChange, transfer }: CancelProps) {
     },
   });
 
-  function onSubmit(data: FormSchemaType) {
-    cancelMutation.mutate(data);
-  }
-
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader variant={"error"}>
-          <DialogTitle>Annuler le transfert</DialogTitle>
-          <DialogDescription>
-            {`Vous êtes sur le point d'annuler le transfert @{transfer.label}. Voulez-vous continuer ?`}
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-3">
-            <FormField
-              control={form.control}
-              name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>Motif</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} placeholder="Motif de l'annulation" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button
-                type="submit"
-                variant="destructive"
-                disabled={cancelMutation.isPending}
-                isLoading={cancelMutation.isPending}
-              >
-                {cancelMutation.isPending ? "Annulation..." : "Oui, annuler"}
-              </Button>
-              <Button
-                variant="outline"
-                onClick={(e) => {
-                  e.preventDefault();
-                  onOpenChange(false);
-                }}
-                disabled={cancelMutation.isPending}
-              >
-                Non
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+    <CancelDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Annuler le transfert ?"
+      description={`Vous êtes sur le point d'annuler le transfert ${transfer.label}. Voulez-vous continuer ?`}
+      reason={{
+        label: "Motif de l’annulation",
+        placeholder: "Motif de l’annulation",
+        minLength: 5,
+      }}
+      confirmLabel="Annuler le transfert"
+      isPending={cancelMutation.isPending}
+      onConfirm={(reason) => cancelMutation.mutate(reason)}
+    />
   );
 }

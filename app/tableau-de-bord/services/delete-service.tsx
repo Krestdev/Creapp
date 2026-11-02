@@ -1,13 +1,5 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { DeleteDialog } from "@/components/modals/delete-dialog";
 import { serviceQ } from "@/queries/services";
 import { Service } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -36,38 +28,15 @@ function DeleteService({ open, openChange, service }: Props) {
   });
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent>
-        <DialogHeader variant={"error"}>
-          <DialogTitle>{"Supprimer le service"}</DialogTitle>
-        </DialogHeader>
-
-        <p className="text-foreground text-sm">
-          {"Êtes-vous sûr de vouloir supprimer le service "}
-          <span className="font-semibold">{`"${service.label}"`}</span>
-          {" ?"}
-        </p>
-        <p className="text-muted-foreground text-sm">
-          {
-            "Cette action est irréversible. Tous les membres rattachés à ce service seront dissociés."
-          }
-        </p>
-
-        <DialogFooter>
-          <Button
-            variant={"destructive"}
-            onClick={() => mutation.mutate(service.id)}
-            disabled={mutation.isPending}
-            isLoading={mutation.isPending}
-          >
-            {"Supprimer"}
-          </Button>
-          <DialogClose asChild>
-            <Button variant="outline">{"Annuler"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <DeleteDialog
+      open={open}
+      onOpenChange={openChange}
+      title={`Supprimer le service « ${service.label} » ?`}
+      description="Cette action est irréversible. Tous les membres rattachés à ce service seront dissociés."
+      confirmLabel="Supprimer le service"
+      isPending={mutation.isPending}
+      onConfirm={() => mutation.mutate(service.id)}
+    />
   );
 }
 

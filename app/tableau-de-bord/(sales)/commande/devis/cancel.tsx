@@ -1,15 +1,7 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-} from "@/components/ui/dialog";
+import { CancelDialog } from "@/components/modals/cancel-dialog";
 import { quotationQ } from "@/queries/quotation";
 import { Quotation } from "@/types/types";
-import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
 import { toast } from "sonner";
@@ -35,30 +27,15 @@ function CancelQuotation({ open, openChange, quotation }: Props) {
     },
   });
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent>
-        <DialogHeader variant={"error"}>
-          <DialogTitle>{"Annuler le devis"}</DialogTitle>
-          <DialogDescription>{`Devis - ${quotation.ref}`}</DialogDescription>
-        </DialogHeader>
-        <p className="italic">{`Êtes-vous sûr de vouloir annuler ce devis ?`}</p>
-        <DialogFooter>
-          <Button
-            onClick={() => mutate()}
-            variant={"destructive"}
-            disabled={isPending}
-            isLoading={isPending}
-          >
-            {"Annuler le Devis"}
-          </Button>
-          <DialogClose asChild>
-            <Button variant={"outline"} disabled={isPending}>
-              {"Fermer"}
-            </Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <CancelDialog
+      open={open}
+      onOpenChange={openChange}
+      title={`Annuler le devis ${quotation.ref} ?`}
+      description="Êtes-vous sûr de vouloir annuler ce devis ?"
+      confirmLabel="Annuler le devis"
+      isPending={isPending}
+      onConfirm={() => mutate()}
+    />
   );
 }
 
