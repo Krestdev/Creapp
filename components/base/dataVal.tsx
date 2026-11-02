@@ -1,5 +1,7 @@
 "use client";
 
+import { ActionDialog } from "@/components/ds/action-dialog";
+import { RejectDialog } from "@/components/modals/reject-dialog";
 import {
   type ColumnDef,
   flexRender,
@@ -342,6 +344,7 @@ export function DataVal({
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries();
       const selectedCount = Object.keys(rowSelection).length;
+
       const actionType = variables.validated ? "approuvé" : "rejeté";
 
       toast.success(
@@ -906,6 +909,13 @@ export function DataVal({
   });
 
   const selectedCount = Object.keys(rowSelection).length;
+
+  const groupSelectionSummary = (
+    <div className="flex items-center gap-2 rounded-md border border-status-info-border bg-status-info-bg px-3 py-2 text-body-medium text-status-info-fg">
+      <Circle aria-hidden className="size-4 shrink-0" />
+      {`${selectedCount} besoin(s) sélectionné(s)`}
+    </div>
+  );
   const canValidateSelected = selectedCount > 0 && isCheckable;
 
   return (
@@ -1083,94 +1093,45 @@ export function DataVal({
       {data.length > 0 && <Pagination table={table} />}
 
       {/* Dialog pour les actions de groupe */}
-      {isCheckable && (
-        <Dialog
-          open={isGroupActionDialogOpen}
-          onOpenChange={setIsGroupActionDialogOpen}
-        >
-          <DialogContent className="sm:max-w-[500px]">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                {groupActionType === "approve" ? (
-                  <CheckCheck className="h-5 w-5 text-green-600" />
-                ) : (
-                  <LucideBan className="h-5 w-5 text-red-600" />
-                )}
-                {groupActionType === "approve"
-                  ? "Approuver plusieurs besoins"
-                  : "Rejeter plusieurs besoins"}
-              </DialogTitle>
-              <DialogDescription>
-                {groupActionType === "approve"
-                  ? `Êtes-vous sûr de vouloir approuver ${selectedCount} besoin(s) ?`
-                  : `Êtes-vous sûr de vouloir rejeter ${selectedCount} besoin(s) ?`}
-              </DialogDescription>
-            </DialogHeader>
-            <div className="bg-blue-100 p-3 rounded-md">
-              <div className="flex items-center gap-2">
-                <Circle className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-800">
-                  {selectedCount} {"besoin(s) sélectionné(s)"}
-                </span>
-              </div>
-            </div>
-            {groupActionType === "reject" && (
-              <div className="space-y-2">
-                <Label
-                  htmlFor="rejectionReason"
-                  className="text-sm font-medium"
-                >
-                  {"Motif du rejet"} <span className="text-red-500">*</span>
-                </Label>
-                <Textarea
-                  id="rejectionReason"
-                  placeholder="Expliquez la raison du rejet pour tous les besoins sélectionnés..."
-                  value={rejectionReason}
-                  onChange={(e) => setRejectionReason(e.target.value)}
-                  className="min-h-[100px]"
-                />
-                <p className="text-xs text-gray-500">
-                  {"Ce motif sera appliqué à tous les besoins sélectionnés."}
-                </p>
-              </div>
-            )}
-            <DialogFooter>
-              <Button
-                onClick={() => {
-                  setRejectionReason("");
-                  setIsGroupActionDialogOpen(false);
-                }}
-                disabled={isProcessingGroupAction}
-              >
-                {"Annuler"}
-              </Button>
-              <Button
-                onClick={handleGroupAction}
-                disabled={
-                  isProcessingGroupAction ||
-                  (groupActionType === "reject" && !rejectionReason.trim())
-                }
-                className={
-                  groupActionType === "approve"
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-red-600 hover:bg-red-700"
-                }
-              >
-                {isProcessingGroupAction ? (
-                  <>
-                    <LoaderIcon className="mr-2 h-4 w-4 animate-spin" />
-                    {"Traitement..."}
-                  </>
-                ) : groupActionType === "approve" ? (
-                  "Approuver"
-                ) : (
-                  "Rejeter"
-                )}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      )}
+      {isCheckable &&
+        (groupActionType === "approve" ? (
+          <ActionDialog
+            open={isGroupActionDialogOpen}
+            onOpenChange={setIsGroupActionDialogOpen}
+            tone="success"
+            icon={CheckCheck}
+            title="Approuver plusieurs besoins ?"
+            description={`Êtes-vous sûr de vouloir approuver ${selectedCount} besoin(s) ?`}
+            confirmLabel="Approuver"
+            confirmVariant="default"
+            isPending={isProcessingGroupAction}
+            onConfirm={handleGroupAction}
+          >
+            {groupSelectionSummary}
+          </ActionDialog>
+        ) : (
+          <RejectDialog
+            open={isGroupActionDialogOpen}
+            onOpenChange={(open) => {
+              setIsGroupActionDialogOpen(open);
+              if (!open) setRejectionReason("");
+            }}
+            title="Rejeter plusieurs besoins ?"
+            description={`Le rejet est définitif : ${selectedCount} besoin(s) sortent du circuit. Les émetteurs sont notifiés avec votre motif.`}
+            reason={{
+              placeholder:
+                "Expliquez la raison du rejet pour tous les besoins sélectionnés...",
+              helper: "Ce motif sera appliqué à tous les besoins sélectionnés.",
+            }}
+            reasonValue={rejectionReason}
+            onReasonChange={setRejectionReason}
+            confirmLabel="Rejeter"
+            isPending={isProcessingGroupAction}
+            onConfirm={handleGroupAction}
+          >
+            {groupSelectionSummary}
+          </RejectDialog>
+        ))}
 
       {/* Modals */}
       {selectedItem && (

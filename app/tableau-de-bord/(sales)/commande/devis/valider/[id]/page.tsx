@@ -6,7 +6,7 @@ async function Page({params}:{params:Promise<{id:string}>}) {
   const id = (await params).id;
   return (
     <div className='content'>
-      <PageTitle title="Valider un devis" subtitle={"Sélectionnez les éléments valides pour chaque fournisseur"} color={"blue"}/>
+      <PageTitle title="Comparer les devis" subtitle={"Sélectionnez les éléments valides pour chaque fournisseur"} />
       <SelectQuotation id={id}/>
     </div>
   )

@@ -41,7 +41,6 @@ function Page() {
       <PageTitle
         title="Administration"
         subtitle="Gestion de la base de données"
-        color="purple"
       />
       <SettingsGroup links={links} />
     </div>

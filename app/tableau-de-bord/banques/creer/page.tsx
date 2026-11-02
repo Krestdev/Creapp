@@ -187,7 +187,6 @@ function Page() {
         <PageTitle
           title="Ajouter un compte"
           subtitle="Complétez le formulaire pour créer un compte"
-          color="blue"
         />
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">

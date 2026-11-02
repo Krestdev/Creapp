@@ -7,7 +7,6 @@ function Devis() {
       <PageTitle
         title="Modifier un Devis"
         subtitle="Corrigez les informations relatives à un Devis"
-        color="blue"
       />
     </div>
   );

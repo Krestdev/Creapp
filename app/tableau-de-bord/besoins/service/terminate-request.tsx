@@ -1,16 +1,10 @@
 "use client";
+import { ActionDialog } from "@/components/ds/action-dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { requestQ } from "@/queries/requestModule";
 import { RequestModelT } from "@/types/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { TriangleAlert } from "lucide-react";
 import React from "react";
 import { toast } from "sonner";
 
@@ -35,38 +29,33 @@ function TerminateRequest({ open, onOpenChange, data }: Props) {
     },
   });
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{"Traitement du besoin"}</DialogTitle>
-          <DialogDescription>{data.label}</DialogDescription>
-        </DialogHeader>
-        <p className="py-2 text-sm">
-          {
-            "Cette action est irréversible. Veuillez vous assurer d'avoir pris la"
-          }
-          {"décision correcte et que les informations à traiter sont exactes."}
-        </p>
-        <DialogFooter>
+    <ActionDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      tone="warning"
+      icon={TriangleAlert}
+      title={`Traiter le besoin « ${data.label} » ?`}
+      description="Cette action est irréversible. Veuillez vous assurer d'avoir pris la décision correcte et que les informations à traiter sont exactes."
+      isPending={process.isPending}
+      footer={
+        <>
           <Button
-            variant={"success"}
+            variant="destructive"
+            onClick={() => process.mutate("REJECTED")}
+            disabled={process.isPending}
+          >
+            {"Rejeter le besoin"}
+          </Button>
+          <Button
             onClick={() => process.mutate("APPROVED")}
             disabled={process.isPending}
             isLoading={process.isPending}
           >
             {"Approuver le besoin"}
           </Button>
-          <Button
-            variant={"destructive"}
-            onClick={() => process.mutate("REJECTED")}
-            disabled={process.isPending}
-            isLoading={process.isPending}
-          >
-            {"Rejeter le besoin"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+    />
   );
 }
 

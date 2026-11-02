@@ -151,7 +151,6 @@ function Page() {
       <PageTitle
         title="Signature"
         subtitle="Configurez votre signature électronique"
-        color="blue"
       />
 
       <div className="flex gap-2 bg-gray-100 p-1 rounded-lg w-max">

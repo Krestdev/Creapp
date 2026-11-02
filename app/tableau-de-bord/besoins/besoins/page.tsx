@@ -245,7 +245,6 @@ function Page() {
         <PageTitle
           title="Tous les besoins"
           subtitle="Accedez à l'ensemble des besoins emis sur l'application."
-          color="red"
         />
         <div className="grid-stats-4">
           {Statistics.map((statistic, id) => (

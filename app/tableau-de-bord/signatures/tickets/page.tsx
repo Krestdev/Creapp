@@ -193,7 +193,6 @@ function Page() {
         <PageTitle
           title="Signatures"
           subtitle="Consultez les demandes de signature liées aux retraits bancaires"
-          color="blue"
         />
 
         <Sheet>

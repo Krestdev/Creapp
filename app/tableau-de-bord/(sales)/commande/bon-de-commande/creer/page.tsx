@@ -73,7 +73,6 @@ function Page() {
         <PageTitle
           title="Créer un bon de Commande"
           subtitle="Complétez le formulaire pour créer un bon de Commande"
-          color="blue"
         />
         <CreateForm
           quotations={getQuotations.data.data}

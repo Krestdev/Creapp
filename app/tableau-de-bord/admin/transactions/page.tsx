@@ -7,7 +7,6 @@ function Page() {
       <PageTitle
         title="Transactions"
         subtitle="Modifier ou annuler une transaction"
-        color="blue"
       />
     </div>
   );

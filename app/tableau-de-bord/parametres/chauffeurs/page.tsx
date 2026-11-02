@@ -31,7 +31,6 @@ function Page() {
         <PageTitle
           title="Chauffeurs"
           subtitle="Consultez la liste des Chauffeurs."
-          color="red"
           links={links}
         />
         <DriverTable data={drivers.data} />

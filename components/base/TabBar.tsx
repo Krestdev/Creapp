@@ -1,3 +1,6 @@
+"use client";
+
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import React from "react";
 
@@ -8,6 +11,12 @@ export interface TabProps {
   className?: string;
 }
 
+/**
+ * Onglets de filtre / d'état (Figma · Tab) : rangée à bordure basse,
+ * espacement 24 px, soulignement de marque sur l'onglet actif et compteur en
+ * pastille (non affiché à 0). Les `id` peuvent être des nombres ou des chaînes.
+ * Sous la largeur des onglets, la rangée défile horizontalement.
+ */
 export const TabBar = ({
   tabs,
   setSelectedTab,
@@ -15,35 +24,28 @@ export const TabBar = ({
   className = "",
 }: TabProps) => {
   return (
-    <div
-      className={cn(
-        "min-w-fit w-fit flex flex-wrap border rounded overflow-hidden min-h-fit",
-        className,
-      )}
+    <Tabs
+      value={String(selectedTab)}
+      onValueChange={(value) => {
+        const tab = tabs.find((t) => String(t.id) === value);
+        if (tab) setSelectedTab(tab.id);
+      }}
+      className={cn("min-w-0 max-w-full gap-0", className)}
     >
-      {tabs.map((x) => {
-        return (
-          <div
-            onClick={() => setSelectedTab(x.id)}
-            className={`py-1 px-4 h-9 w-full @min-[760px]:w-fit 
-              flex items-center cursor-pointer gap-2 text-sm hover:bg-gray-100 
-              transition-all duration-300 ease-out ${x.id === selectedTab &&
-              "bg-accent text-default hover:bg-accent/80! font-semibold"}`}
-            key={x.id}
-          >
-            <p>{x.title}</p>
-            {x.badge
-              ? x.badge > 0 && (
-                <div
-                  className={`px-2 rounded ${x.id === selectedTab ? "bg-white text-black" : "bg-primary text-white"}`}
-                >
-                  <p>{x.badge}</p>
-                </div>
-              )
-              : null}
-          </div>
-        );
-      })}
-    </div>
+      {/* Marge négative : le défilement ne rogne pas l'anneau de focus. */}
+      <div className="no-scrollbar -m-[3px] overflow-x-auto p-[3px]">
+        <TabsList variant="line" className="w-max min-w-full">
+          {tabs.map((tab) => (
+            <TabsTrigger
+              key={String(tab.id)}
+              value={String(tab.id)}
+              count={tab.badge && tab.badge > 0 ? tab.badge : undefined}
+            >
+              {tab.title}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+      </div>
+    </Tabs>
   );
 };

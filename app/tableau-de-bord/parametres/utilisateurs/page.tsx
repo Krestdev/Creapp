@@ -24,7 +24,6 @@ function Page() {
       <PageTitle
         title="Utilisateurs"
         subtitle="Consultez et gérez les utilisateurs."
-        color="red"
         links={links}
       />
       <UtilisateursPage />

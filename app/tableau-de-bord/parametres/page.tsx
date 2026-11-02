@@ -58,7 +58,6 @@ export default function SettingsPage() {
       <PageTitle
         title="Paramètres"
         subtitle="Gérez votre compte et les paramètres de votre organisation"
-        color="blue"
       />
       <SettingsGroup links={links} />
     </div>

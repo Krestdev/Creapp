@@ -123,7 +123,6 @@ function Page() {
         <PageTitle
           title={"Factures"}
           subtitle={"Vérification de la conformité des factures"}
-          color={"red"}
           links={links}
         />
         <div className="grid-stats-4">

@@ -68,7 +68,6 @@ function Page() {
       <PageTitle
         title="Changer son mot de passe"
         subtitle="Mettez à jour votre mot de passe"
-        color="blue"
       />
       <Form {...form}>
         <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">

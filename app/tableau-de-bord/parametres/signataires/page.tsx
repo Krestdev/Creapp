@@ -18,7 +18,6 @@ function Page() {
       <PageTitle
         title="Signataires"
         subtitle="Consultez et gérez les Signataires."
-        color="red"
         links={links}
       />
       <SignatairPage />

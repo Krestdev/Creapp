@@ -44,7 +44,6 @@ function Page() {
       <PageTitle
         title="Catégories besoins"
         subtitle="Consultez la liste des catégories."
-        color="red"
         links={links}
       />
       <TableCategories data={data.data} users={getUsers.data.data} types={getRequestTypes.data.data} />

@@ -33,7 +33,6 @@ function Page() {
         <PageTitle
           title={"Créer un paiement"}
           subtitle={"Complétez le formulaire pour créer une paiement"}
-          color={"blue"}
         />
         <CreatePaiement
           invoices={getInvoices.data.data.filter(

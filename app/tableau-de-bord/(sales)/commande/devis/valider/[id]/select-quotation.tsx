@@ -3,16 +3,13 @@
 import { DetailBesoin } from "@/components/besoin/detail-besoin";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
+import { InfoCallout } from "@/components/ds/info-callout";
 import { ModalWarning } from "@/components/modals/modal-warning";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { queryKeys } from "@/lib/query-keys";
 import {
   groupQuotationsByCommandRequest,
   isBesoinFullyDiscarded,
 } from "@/lib/quotation-functions";
-import { cn, getUserName, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { userQ } from "@/queries/baseModule";
 import { commandRqstQ } from "@/queries/commandRqstModule";
@@ -23,10 +20,12 @@ import { quotationQ } from "@/queries/quotation";
 import { receptionQ } from "@/queries/reception";
 import type { Provider, QuotationGroup, RequestModelT } from "@/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Eye, LucideX, Trash } from "lucide-react";
 import { notFound, useRouter } from "next/navigation";
 import React from "react";
 import { toast } from "sonner";
+import { buildRows, summarizeRetained } from "./comparison";
+import { ComparisonTable } from "./comparison-table";
+import { DecisionBar } from "./decision-bar";
 
 type SubmitPayload = Array<{
   deviId: number;
@@ -259,210 +258,70 @@ function SelectQuotation({ id }: { id: string }) {
 
   if (!quotationGroup) return notFound();
 
+  const rows = buildRows(
+    quotationGroup.commandRequest.besoins,
+    quotationGroup.quotations,
+  );
+  const retained = summarizeRetained(rows, quotationGroup.quotations, selected);
+  // Rien à décider si toutes les lignes retenues sont déjà figées (en BC ou annulées).
+  const hasEditableSelection = rows.some(
+    (row) =>
+      selected[row.besoin.id] !== undefined &&
+      !lockedBesoinIds.has(row.besoin.id) &&
+      !isBesoinFullyDiscarded(row.besoin.id, quotationGroup.quotations),
+  );
+  const notRetainedQuotes =
+    quotationGroup.quotations.length - retained.retainedQuotes;
+
   return (
-    <div className="space-y-6 pb-20">
-      <div className="flex flex-col gap-1">
-        <h1 className="text-2xl font-bold">{quotationGroup.commandRequest.title}</h1>
-        <p className="text-muted-foreground">
-          Réf: {quotationGroup.commandRequest.reference}
-        </p>
-      </div>
+    <div className="flex flex-col gap-5">
+      <p className="text-body text-text-secondary">
+        {"Demande de cotation : "}
+        <span className="text-body-medium text-text-primary">
+          {quotationGroup.commandRequest.title}
+        </span>
+        {` · ${quotationGroup.commandRequest.reference}`}
+      </p>
 
-      {quotationGroup.commandRequest.besoins.map((besoin, index) => {
-        const isBesoinLocked = lockedBesoinIds.has(besoin.id);
-        const isBesoinDiscarded = isBesoinFullyDiscarded(
-          besoin.id,
-          quotationGroup.quotations,
-        );
+      <ComparisonTable
+        besoins={quotationGroup.commandRequest.besoins}
+        quotations={quotationGroup.quotations}
+        providerMap={providerMap}
+        users={users.data?.data ?? []}
+        selected={selected}
+        lockedBesoinIds={lockedBesoinIds}
+        usedQuotationIds={usedQuotationIds}
+        cancellingBesoinId={isRejectingBesoin ? besoinToCancel?.id : null}
+        onToggle={(besoinId, providerId) =>
+          toggleSelection(besoinId, providerId, false)
+        }
+        onView={(besoin) => {
+          setSelectedBesoin(besoin);
+          setIsDetailModalOpen(true);
+        }}
+        onCancel={(besoin) => {
+          setBesoinToCancel(besoin);
+          setIsCancelModalOpen(true);
+        }}
+      />
 
-        return (
-          <div
-            key={besoin.id}
-            className={cn(
-              "flex flex-col gap-4 rounded-xl border bg-white p-5 shadow-xl",
-              (isBesoinLocked || isBesoinDiscarded) && "bg-slate-50/50",
-              isBesoinDiscarded && "opacity-60",
-              index % 2 === 0 && "bg-primary/3",
-            )}
-          >
-            <div className="flex items-center justify-between flex-wrap gap-2">
-              <div className="flex items-center gap-3 flex-wrap">
-                <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                  {index + 1}
-                </span>
-                <h3 className="font-semibold text-lg">{besoin.label}</h3>
-                <div className="flex gap-2">
-                  <Button
-                    type="button"
-                    variant={"outline"}
-                    className="h-7 text-[10px]"
-                    onClick={() => {
-                      setSelectedBesoin(besoin);
-                      setIsDetailModalOpen(true);
-                    }}
-                  >
-                    {"Voir le besoin"}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={"outline"}
-                    className="text-red-600 bg-red-50 hover:bg-red-50/80 h-7 text-[10px] border-red-100"
-                    disabled={
-                      isBesoinDiscarded ||
-                      (isRejectingBesoin && besoinToCancel?.id === besoin.id)
-                    }
-                    onClick={() => {
-                      setBesoinToCancel(besoin);
-                      setIsCancelModalOpen(true);
-                    }}
-                  >
-                    {"Annuler le besoin"}
-                  </Button>
-                </div>
-              </div>
-              <div className="flex items-center gap-2">
-                {isBesoinDiscarded && (
-                  <Badge variant="outline">{"Annulé"}</Badge>
-                )}
-                {isBesoinLocked && (
-                  <Badge
-                    variant="secondary"
-                    className="bg-amber-100 text-amber-700 hover:bg-amber-100 border-amber-200"
-                  >
-                    {"Verrouillé"}
-                  </Badge>
-                )}
-              </div>
-            </div>
+      <InfoCallout tone="info">
+        {retained.retainedQuotes > 1
+          ? `Un même besoin peut être servi par plusieurs fournisseurs : les lignes retenues sont réparties entre ${retained.retainedQuotes} devis, un par fournisseur retenu.`
+          : "Retenez, pour chaque ligne, l’offre d’un seul fournisseur : les lignes d’une même demande peuvent être servies par des fournisseurs différents."}
+        {lockedBesoinIds.size > 0 &&
+          " Les lignes déjà en bon de commande sont verrouillées et ne peuvent plus être modifiées."}
+      </InfoCallout>
 
-            <div className="border-t" />
-
-            {isBesoinDiscarded ? (
-              <p className="text-gray-600 italic">
-                {
-                  "Ce besoin a été annulé. Les offres restent visibles mais ne peuvent plus être sélectionnées."
-                }
-              </p>
-            ) : (
-              !quotationGroup.quotations.some((q) =>
-                q.element?.some((el) => el.requestModelId === besoin.id),
-              ) && (
-                <p className="text-gray-600 italic">
-                  {"Aucun devis ne remplis ce besoin."}
-                </p>
-              )
-            )}
-
-            <div className="grid gap-4 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {quotationGroup.quotations.map((quote) => {
-                const elements = (quote.element || []).filter(
-                  (el) => el.requestModelId === besoin.id,
-                );
-                if (elements.length === 0) return null;
-
-                const provider = providerMap.get(quote.providerId);
-                const isSelected = selected[besoin.id] === quote.providerId;
-
-                // On bloque la carte si :
-                // 1. Le devis (quote) est déjà dans un BC.
-                // 2. OU si le besoin est déjà satisfait par une autre ligne dans un BC.
-                // 3. OU si le besoin a été annulé.
-                const isUsedInPO = usedQuotationIds.has(quote.id);
-                const isCardDisabled =
-                  isUsedInPO || isBesoinLocked || isBesoinDiscarded;
-
-                return (
-                  <div
-                    key={`${besoin.id}-${quote.providerId}`}
-                    className={cn(
-                      "relative rounded-lg p-4 flex flex-col gap-3 border transition-all select-none shadow-md",
-                      isSelected
-                        ? "border-primary bg-primary/5 ring-1 ring-primary"
-                        : "bg-white",
-                      isCardDisabled
-                        ? "opacity-60 cursor-not-allowed grayscale-[0.5]"
-                        : "cursor-pointer hover:shadow-md hover:border-primary/40",
-                    )}
-                    onClick={() =>
-                      toggleSelection(
-                        besoin.id,
-                        quote.providerId,
-                        isCardDisabled,
-                      )
-                    }
-                  >
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-3">
-                        <Checkbox
-                          checked={isSelected}
-                          disabled={isCardDisabled}
-                          className={cn(isCardDisabled && "opacity-50")}
-                        />
-                        <span className="font-bold text-sm uppercase truncate max-w-[150px]">
-                          {provider?.name ?? "Fournisseur inconnu"}
-                        </span>
-                      </div>
-                      {isUsedInPO && (
-                        <Badge
-                          variant="destructive"
-                          className="text-[10px] px-1 py-0 h-4"
-                        >
-                          BC Émis
-                        </Badge>
-                      )}
-                    </div>
-
-                    <div className="space-y-2 pt-2 border-t">
-                      {elements.map((element) => (
-                        <div key={element.id} className="flex flex-col gap-0.5">
-                          <span className="text-xs text-muted-foreground line-clamp-1">
-                            {element.title}
-                          </span>
-                          <span className="text-sm font-semibold text-primary">
-                            {XAF.format(element.priceProposed || 0)}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
-
-                    <p className="text-[10px] text-muted-foreground text-right">
-                      {`Devis initié par : ${getUserName(users.data?.data ?? [], quote.userId) ??
-                        "N/A"
-                        }`}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        );
-      })}
-
-      {/* Barre d'action flottante */}
-      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4 z-50">
-        <div className="bg-white/80 backdrop-blur-md border shadow-2xl rounded-2xl p-4 flex items-center justify-between">
-          <div className="flex flex-col">
-            <span className="text-sm font-medium">
-              {Object.keys(selected).length} besoin(s) sélectionné(s)
-            </span>
-            <span className="text-[10px] text-muted-foreground italic">
-              Les éléments déjà en Bon de Commande ne peuvent plus être
-              modifiés.
-            </span>
-          </div>
-          <Button
-            type="button"
-            variant="primary"
-            size="lg"
-            onClick={handleSubmit}
-            disabled={Object.keys(selected).length === 0 || isPending}
-            isLoading={isPending}
-            className="shadow-lg shadow-primary/20"
-          >
-            Enregistrer les décisions
-          </Button>
-        </div>
-      </div>
+      <DecisionBar
+        total={retained.total}
+        lines={retained.lines}
+        retainedQuotes={retained.retainedQuotes}
+        notRetainedQuotes={notRetainedQuotes}
+        disabled={!hasEditableSelection}
+        isPending={isPending}
+        onSubmit={handleSubmit}
+      />
 
       {selectedBesoin && (
         <DetailBesoin

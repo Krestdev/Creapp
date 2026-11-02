@@ -208,7 +208,6 @@ function Page() {
           subtitle={
             "Créez et gérez les paiements des factures relatives aux bons de commande"
           }
-          color={"red"}
           links={links}
         />
         <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">

@@ -1,11 +1,6 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { ActionDialog } from "@/components/ds/action-dialog";
+import { CircleCheck, CircleX } from "lucide-react";
 
 export type Justificatif = {
   type: "file" | "image";
@@ -44,11 +39,17 @@ interface ApproveTicketProps {
   description: string;
   action: () => void;
   buttonTexts: string;
+  /** Classe de couleur du bouton : un rouge (`bg-red-…`) signale un rejet. */
   buttonColor?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
+/**
+ * Confirmation d’approbation ou de rejet d’un document, même présentation
+ * que `ReasonDialog`. Un `buttonColor` rouge bascule en rejet (ton danger,
+ * bouton destructif) ; sinon c’est une approbation.
+ */
 export function ApproveTicket({
   title,
   subTitle,
@@ -59,34 +60,23 @@ export function ApproveTicket({
   open,
   onOpenChange,
 }: ApproveTicketProps) {
+  const isReject = /red/i.test(buttonColor);
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-[420px]! w-full overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
-        {/* Header with burgundy background */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
-          <DialogTitle className="text-xl font-semibold text-white">
-            {title}
-          </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">{subTitle}</p>
-        </DialogHeader>
-
-        {/* Content */}
-        <p className="text-[#2F2F2F] w-full px-4">{description}</p>
-
-        {/* Footer buttons */}
-        <div className="flex w-full justify-end gap-3 p-6 pt-0">
-          <Button onClick={action} className={`${buttonColor} text-white`}>
-            {buttonTexts}
-          </Button>
-          <Button
-            variant="outline"
-            className="bg-transparent"
-            onClick={() => onOpenChange(false)}
-          >
-            {"Fermer"}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+    <ActionDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      tone={isReject ? "danger" : "success"}
+      icon={isReject ? CircleX : CircleCheck}
+      title={title}
+      description={
+        <>
+          <span className="block font-medium text-text-primary">{subTitle}</span>
+          {description}
+        </>
+      }
+      confirmLabel={buttonTexts}
+      confirmVariant={isReject ? "destructive" : "default"}
+      onConfirm={action}
+    />
   );
 }

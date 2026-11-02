@@ -7,7 +7,6 @@ const Page = () => {
       <PageTitle
         title="Créer un fournisseur"
         subtitle="Formulaire de création d'un fournisseur"
-        color="blue"
       />
       <CreateProviderForm />
     </div>

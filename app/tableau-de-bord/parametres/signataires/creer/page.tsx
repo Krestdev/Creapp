@@ -155,7 +155,6 @@ const Page = () => {
         <PageTitle
           title="Configurer les signataires"
           subtitle="Formulaire de configuration"
-          color="blue"
         />
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">

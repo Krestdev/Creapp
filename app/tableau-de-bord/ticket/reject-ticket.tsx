@@ -1,30 +1,10 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
+import { RejectDialog } from "@/components/modals/reject-dialog";
 import { paymentQ } from "@/queries/payment";
 import { PaymentRequest } from "@/types/types";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import React from "react";
-import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import z from "zod";
 
 interface Props {
   open: boolean;
@@ -32,92 +12,36 @@ interface Props {
   payment: PaymentRequest;
 }
 
-const formSchema = z.object({
-  reason: z
-    .string()
-    .min(3, { message: "Motif trop court" })
-    .max(60, { message: "Trop long" }),
-});
-type FormValue = z.infer<typeof formSchema>;
-
 function RejectTicket({ open, openChange, payment }: Props) {
   const queryClient = useQueryClient();
-  const form = useForm<FormValue>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      reason: "",
-    },
-  });
   const toReject = useMutation({
     mutationFn: async (reason: string) =>
       paymentQ.rejectPayment({ id: payment.id, reason }),
     onSuccess: () => {
       queryClient.invalidateQueries();
       toast.success("Vous avez rejeté un ticket avec succès !");
-      form.reset({ reason: "" });
       openChange(false);
     },
     onError: (error: Error) => {
       toast.error(error.message);
     },
   });
-  const onSubmit = (value: FormValue): void => {
-    toReject.mutate(value.reason);
-  };
-  // const invoice = payment.facture;
+
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent>
-        <DialogHeader variant={"error"}>
-          <DialogTitle>{payment.title ?? `Rejeter un paiement`}</DialogTitle>
-          <DialogDescription>{"Rejeter le paiement"}</DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col gap-3"
-          >
-            <FormField
-              control={form.control}
-              name="reason"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Motif"}</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      placeholder="Ex. Le justificatif est illisible"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button
-                type="submit"
-                variant={"destructive"}
-                disabled={toReject.isPending}
-                isLoading={toReject.isPending}
-              >
-                {"Rejeter"}
-              </Button>
-              <Button
-                variant={"outline"}
-                onClick={(e) => {
-                  e.preventDefault();
-                  openChange(false);
-                  form.reset({ reason: "" });
-                }}
-                disabled={toReject.isPending}
-              >
-                {"Annuler"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+    <RejectDialog
+      open={open}
+      onOpenChange={openChange}
+      title={`Rejeter ${payment.title ? `« ${payment.title} »` : "ce paiement"} ?`}
+      description="Le rejet est définitif : le paiement sort du circuit. L’émetteur est notifié avec votre motif."
+      reason={{
+        placeholder: "Ex. Le justificatif est illisible",
+        minLength: 3,
+        maxLength: 60,
+      }}
+      confirmLabel="Rejeter le paiement"
+      isPending={toReject.isPending}
+      onConfirm={(reason) => toReject.mutate(reason)}
+    />
   );
 }
 

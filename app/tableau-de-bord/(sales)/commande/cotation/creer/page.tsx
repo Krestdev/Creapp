@@ -71,7 +71,6 @@ const CreerPage = () => {
           subtitle={
             "Complétez le formulaire pour créer une Demande de cotation"
           }
-          color={"blue"}
         />
         <CreateCotation
           users={getUsers.data.data}

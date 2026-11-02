@@ -7,7 +7,6 @@ const Page = () => {
       <PageTitle
         title="Créer un departement"
         subtitle="Formulaire de création d'un departement"
-        color="blue"
       />
       <DepartmentCreateForm />
     </div>

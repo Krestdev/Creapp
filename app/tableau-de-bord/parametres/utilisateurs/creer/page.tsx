@@ -7,7 +7,6 @@ const Page = () => {
       <PageTitle
         title="Créer un Utilisateur"
         subtitle="Formulaire de création d'utilisateur"
-        color="blue"
       />
       <CreateUserForm />
     </div>

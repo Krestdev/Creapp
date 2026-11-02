@@ -161,7 +161,6 @@ const Page = () => {
         <PageTitle
           title="Validation des besoins"
           subtitle="Approuvez ou rejetez les besoins."
-          color="green"
         />
         <div className="grid-stats-4">
           {Statistics.map((statistic, id) => (

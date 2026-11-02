@@ -1,5 +1,8 @@
 "use client";
 
+import { ActionDialog } from "@/components/ds/action-dialog";
+import { RejectDialog } from "@/components/modals/reject-dialog";
+import { CircleCheck } from "lucide-react";
 import {
   type ColumnDef,
   type ColumnFiltersState,
@@ -558,6 +561,14 @@ export function PurchaseApprovalTable({ data, users, invoices }: Props) {
   };
 
   const isDeciding = approveMutation.isPending || rejectMutation.isPending;
+  const decisionSummary = selectedValue ? (
+    <>
+      {`Référence : ${selectedValue.reference} — `}
+      <span className="font-medium text-text-primary">
+        {selectedValue.devi?.commandRequest?.title ?? "-"}
+      </span>
+    </>
+  ) : undefined;
 
   return (
     <div className="w-full space-y-4">
@@ -874,71 +885,49 @@ export function PurchaseApprovalTable({ data, users, invoices }: Props) {
       )}
 
       {/* CONFIRM DECISION */}
-      <Dialog open={decisionOpen} onOpenChange={setDecisionOpen}>
-        <DialogContent>
-          <DialogHeader
-            variant={decisionType === "approve" ? "success" : "error"}
-          >
-            <DialogTitle>
-              {decisionType === "approve"
-                ? "Approuver le bon de commande ?"
-                : "Rejeter le bon de commande ?"}
-            </DialogTitle>
-            <DialogDescription>
-              {selectedValue ? (
-                <>
-                  {`Référence: ${selectedValue.reference} — `}
-                  <span className="font-medium">
-                    {selectedValue.devi?.commandRequest?.title ?? "-"}
-                  </span>
-                </>
-              ) : null}
-            </DialogDescription>
-          </DialogHeader>
-          {decisionType === "approve" && (
-            <p className="mb-2">
-              {"Êtes-vous sûr de vouloir valider ce bon de commande ?"}
-              <br />
-              <span className="text-sm italic">
-                <u>{"NB:"}</u>
-                {" Cette action est irréversible"}
-              </span>
-            </p>
-          )}
-          {decisionType === "reject" && (
-            <div className="grid gap-2">
-              <Label>{"Motif (optionnel)"}</Label>
-              <Textarea
-                value={rejectReason}
-                onChange={(e) => setRejectReason(e.target.value)}
-                placeholder="Ex: montant incorrect, pièce manquante..."
-              />
-            </div>
-          )}
-
-          <DialogFooter>
-            <Button
-              variant={decisionType === "approve" ? "accent" : "destructive"}
-              onClick={confirmDecision}
-              isLoading={isDeciding}
-              disabled={
-                !selectedValue ||
-                !canDecide(selectedValue.status as Status) ||
-                isDeciding
-              }
-            >
-              {decisionType === "approve" ? "Approuver" : "Rejeter"}
-            </Button>
-            <Button
-              variant="outline"
-              onClick={() => setDecisionOpen(false)}
-              disabled={isDeciding}
-            >
-              {"Annuler"}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {decisionType === "approve" ? (
+        <ActionDialog
+          open={decisionOpen}
+          onOpenChange={setDecisionOpen}
+          tone="success"
+          icon={CircleCheck}
+          title="Approuver le bon de commande ?"
+          description={decisionSummary}
+          confirmLabel="Approuver"
+          confirmVariant="default"
+          confirmDisabled={
+            !selectedValue || !canDecide(selectedValue.status as Status)
+          }
+          isPending={isDeciding}
+          onConfirm={confirmDecision}
+        >
+          <p className="text-body text-text-primary">
+            {"Êtes-vous sûr de vouloir valider ce bon de commande ?"}
+            <br />
+            <span className="text-caption text-text-tertiary">
+              {"NB : cette action est irréversible."}
+            </span>
+          </p>
+        </ActionDialog>
+      ) : (
+        <RejectDialog
+          open={decisionOpen}
+          onOpenChange={setDecisionOpen}
+          title="Rejeter le bon de commande ?"
+          description={decisionSummary}
+          reason={{
+            placeholder: "Ex: montant incorrect, pièce manquante...",
+          }}
+          reasonValue={rejectReason}
+          onReasonChange={setRejectReason}
+          confirmLabel="Rejeter le bon de commande"
+          confirmDisabled={
+            !selectedValue || !canDecide(selectedValue.status as Status)
+          }
+          isPending={isDeciding}
+          onConfirm={confirmDecision}
+        />
+      )}
     </div>
   );
 }

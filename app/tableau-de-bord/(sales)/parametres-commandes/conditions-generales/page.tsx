@@ -36,7 +36,6 @@ const Page = () => {
         <PageTitle
           title="Conditions des Bons de commandes"
           subtitle="Consultez la liste des conditions des bons de commandes."
-          color="red"
           links={links}
         />
         <ConditionsTable data={conditions.data} />

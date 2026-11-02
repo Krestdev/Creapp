@@ -19,6 +19,7 @@ const tones = {
   danger: "bg-status-danger-bg text-status-danger-fg",
   warning: "bg-status-warning-bg text-status-warning-fg",
   review: "bg-status-review-bg text-status-review-fg",
+  success: "bg-status-success-bg text-status-success-fg",
 } as const
 
 export type ActionDialogTone = keyof typeof tones
@@ -26,7 +27,7 @@ export type ActionDialogTone = keyof typeof tones
 /** Typographie française : espace insécable avant « ? ! : ; » et dans les guillemets. */
 function frenchSpacing(node: React.ReactNode) {
   return typeof node === "string"
-    ? node.replace(/ ([?!:;»])/g, "\u00a0$1").replace(/« /g, "«\u00a0")
+    ? node.replace(/ ([?!:;»])/g, " $1").replace(/« /g, "« ")
     : node
 }
 
@@ -35,9 +36,15 @@ function frenchSpacing(node: React.ReactNode) {
  * ReasonDialog) : pastille d'icône, titre, description, corps libre, pied sur
  * bande `surface-muted` avec « Retour » et l'action confirmée.
  *
- * Sert de socle à `CancelDialog` et `DeleteDialog`. Libellé de confirmation =
- * verbe + objet (« Supprimer le service »), jamais « OK ». Pendant
- * `isPending`, la fermeture est bloquée et le bouton affiche un chargement.
+ * Sert de socle à `CancelDialog`, `RejectDialog`, `DeleteDialog` et
+ * `ModalWarning`. Libellé de confirmation = verbe + objet (« Supprimer le
+ * service »), jamais « OK ». Pendant `isPending`, la fermeture est bloquée et
+ * le bouton affiche un chargement.
+ *
+ * - Sans `confirmLabel`, seul le bouton de fermeture est affiché (résultat
+ *   d'une opération, information).
+ * - `footer` remplace les boutons par défaut quand l'action n'est pas unique
+ *   (ex. Approuver / Rejeter). Il est rendu après « Retour ».
  */
 export function ActionDialog({
   open,
@@ -53,6 +60,7 @@ export function ActionDialog({
   confirmDisabled,
   isPending,
   onConfirm,
+  footer,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -62,12 +70,14 @@ export function ActionDialog({
   description?: React.ReactNode
   /** Corps (champ de motif, récapitulatif…). Sans corps, le titre suffit. */
   children?: React.ReactNode
-  confirmLabel: string
+  confirmLabel?: string
   cancelLabel?: string
   confirmVariant?: React.ComponentProps<typeof Button>["variant"]
   confirmDisabled?: boolean
   isPending?: boolean
-  onConfirm: () => void
+  onConfirm?: () => void
+  /** Actions à la place du bouton de confirmation (après « Retour »). */
+  footer?: React.ReactNode
 }) {
   return (
     <Dialog
@@ -118,14 +128,17 @@ export function ActionDialog({
               {cancelLabel}
             </Button>
           </DialogClose>
-          <Button
-            variant={confirmVariant}
-            disabled={confirmDisabled || isPending}
-            isLoading={isPending}
-            onClick={onConfirm}
-          >
-            {confirmLabel}
-          </Button>
+          {footer}
+          {!footer && confirmLabel && (
+            <Button
+              variant={confirmVariant}
+              disabled={confirmDisabled || isPending}
+              isLoading={isPending}
+              onClick={onConfirm}
+            >
+              {confirmLabel}
+            </Button>
+          )}
         </DialogFooter>
       </DialogContent>
     </Dialog>

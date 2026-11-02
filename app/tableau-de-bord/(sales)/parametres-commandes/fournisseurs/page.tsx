@@ -29,7 +29,6 @@ function Page() {
         <PageTitle
           title="Fournisseurs"
           subtitle="Consultez la liste des fournisseurs."
-          color="red"
           links={links}
         />
         <ProviderTable data={providers.data} />

@@ -87,7 +87,6 @@ function Page() {
         <PageTitle
           title="Approbation des transferts"
           subtitle="Approuvez ou rejetez les demandes de transfert de fonds."
-          color="green"
         />
         <TransferTable
           data={data.data.transactions}

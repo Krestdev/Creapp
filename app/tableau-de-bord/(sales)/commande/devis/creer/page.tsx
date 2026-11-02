@@ -7,7 +7,6 @@ function Page() {
       <PageTitle
         title="Créer un devis"
         subtitle="Complétez ce formulaire pour créer un devis"
-        color="blue"
       />
       <CreateQuotation/>
     </div>

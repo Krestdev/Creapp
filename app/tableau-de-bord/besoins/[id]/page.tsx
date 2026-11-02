@@ -425,7 +425,6 @@ const Page = ({ params }: PageProps) => {
       <PageTitle
         title={`Derniers besoins - ${emitterName}`}
         subtitle="Consultez les 5 derniers besoins soumis par cet utilisateur."
-        color="red"
       />
 
       {/* Visibility toggle */}

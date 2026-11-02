@@ -7,7 +7,6 @@ const Page = () => {
       <PageTitle
         title="Ajouter un chauffeur"
         subtitle="Formulaire de création d'un chauffeur"
-        color="blue"
       />
       <CreateDriverForm />
     </div>

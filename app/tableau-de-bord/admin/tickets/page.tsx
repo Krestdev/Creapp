@@ -7,7 +7,6 @@ function Page() {
       <PageTitle
         title="Annuler un Ticket"
         subtitle="Annulation des tickets associés aux dépenses"
-        color="red"
       />
     </div>
   );

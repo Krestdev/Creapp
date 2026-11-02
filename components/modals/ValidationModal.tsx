@@ -1,13 +1,7 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Textarea } from "@/components/ui/textarea";
-import { Loader } from "lucide-react";
+import { ActionDialog } from "@/components/ds/action-dialog";
+import { TextareaField } from "@/components/ds/form-field";
+import { CircleCheck, CircleX, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 
 interface ValidationModalProps {
@@ -56,6 +50,11 @@ interface ValidationModalProps {
   onSubmit: (motif?: string) => Promise<boolean>;
 }
 
+/**
+ * Approbation ou rejet avec écran de résultat (succès / erreur avec
+ * « Réessayer »), même présentation que `ReasonDialog`. Le motif de rejet
+ * est demandé quand `isMotifRequired` est vrai.
+ */
 export function ValidationModal({
   open,
   onOpenChange,
@@ -70,11 +69,13 @@ export function ValidationModal({
   isMotifRequired = false,
 }: ValidationModalProps) {
   const [motif, setMotif] = useState("");
-  const [error, setError] = useState("");
+  const [touched, setTouched] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [result, setResult] = useState<"success" | "error" | null>(null);
 
   const isApprove = type === "approve";
+  const needsMotif = isMotifRequired && !isApprove && !result;
+  const motifMissing = needsMotif && !motif.trim();
 
   const [prevOpen, setPrevOpen] = useState(false);
 
@@ -82,20 +83,19 @@ export function ValidationModal({
     setPrevOpen(open);
     if (open) {
       setMotif("");
-      setError("");
+      setTouched(false);
       setIsPending(false);
       setResult(null);
     }
   }
 
   const handleSubmit = async () => {
-    if (isMotifRequired && !isApprove && !motif.trim()) {
-      setError(labels.rejectionError);
+    if (motifMissing) {
+      setTouched(true);
       return;
     }
 
     setIsPending(true);
-    setError("");
 
     try {
       const success = await onSubmit(motif);
@@ -107,123 +107,66 @@ export function ValidationModal({
     }
   };
 
-  // Affichage dynamique
-  const renderTitle = () => {
-    if (result === "success") return successConfirmation.title;
-    if (result === "error") return errorConfirmation.title;
-    return title;
-  };
-
-  const renderDescription = () => {
-    if (result === "success") return successConfirmation.description;
-    if (result === "error") return errorConfirmation.description;
-    return description;
-  };
-
-  const gradient =
+  const tone =
     result === "error"
-      ? "bg-gradient-to-r from-[#B91C1C] to-[#7F1D1D]"
-      : result === "success"
-        ? "bg-gradient-to-r from-[#15803D] to-[#0B411F]"
-        : isApprove
-          ? "bg-gradient-to-r from-[#15803D] to-[#0B411F]"
-          : "bg-gradient-to-r from-[#B91C1C] to-[#7F1D1D]";
+      ? "danger"
+      : result === "success" || isApprove
+        ? "success"
+        : "danger";
+  const Icon =
+    result === "error"
+      ? TriangleAlert
+      : result === "success" || isApprove
+        ? CircleCheck
+        : CircleX;
+  const heading =
+    result === "success"
+      ? successConfirmation
+      : result === "error"
+        ? errorConfirmation
+        : { title, description };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md max-h-screen overflow-y-auto p-0 gap-0 border-none">
-        {/* HEADER */}
-        <DialogHeader
-          className={`${gradient} text-white p-6 m-4 rounded-lg pb-8`}
-        >
-          <DialogTitle className="text-xl font-semibold text-white">
-            {renderTitle()}
-          </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">{renderDescription()}</p>
-        </DialogHeader>
-
-        {/* DESCRIPTION (uniquement pour approbation et avant résultat) */}
-        {isApprove && !result && (
-          <div className="px-6 pb-4">
-            <p className="text-sm text-[#2F2F2F]">{description}</p>
-          </div>
-        )}
-
-        {/* MOTIF uniquement pour rejet et avant résultat */}
-        {isMotifRequired && !isApprove && !result && (
-          <div className="px-6 pb-4">
-            <label className="text-sm font-medium text-gray-700">
-              {labels.rejectionReason}
-            </label>
-            <Textarea
-              value={motif}
-              onChange={(e) => setMotif(e.target.value)}
-              placeholder={labels.rejectionPlaceholder}
-              className="mt-2 resize-none"
-              disabled={isPending}
-            />
-            {error && <p className="mt-2 text-sm text-red-500">{error}</p>}
-          </div>
-        )}
-
-        {/* FOOTER */}
-        <div className="flex justify-end gap-3 p-6 pt-0">
-          {result ? (
-            <>
-              {result === "error" && (
-                <Button
-                  className="bg-yellow-600 hover:bg-yellow-700 text-white"
-                  onClick={handleSubmit}
-                  disabled={isPending}
-                >
-                  {buttonTexts.retry}
-                  {isPending && (
-                    <Loader className="ml-2 h-4 w-4 animate-spin" />
-                  )}
-                </Button>
-              )}
-              <Button
-                className="bg-gray-600 hover:bg-gray-700 text-white"
-                onClick={() => onOpenChange(false)}
-              >
-                {buttonTexts.close}
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                variant="outline"
-                className="bg-transparent"
-                onClick={() => onOpenChange(false)}
-                disabled={isPending}
-              >
-                {buttonTexts.cancel}
-                {isPending && <Loader className="ml-2 h-4 w-4 animate-spin" />}
-              </Button>
-              <Button
-                className={`text-white ${
-                  isApprove
-                    ? "bg-green-600 hover:bg-green-700"
-                    : "bg-red-600 hover:bg-red-700"
-                }`}
-                onClick={handleSubmit}
-                disabled={isPending}
-              >
-                {isPending ? (
-                  <>
-                    {buttonTexts.processing}
-                    <Loader className="ml-2 h-4 w-4 animate-spin" />
-                  </>
-                ) : isApprove ? (
-                  buttonTexts.approve
-                ) : (
-                  buttonTexts.reject
-                )}
-              </Button>
-            </>
-          )}
-        </div>
-      </DialogContent>
-    </Dialog>
+    <ActionDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      tone={tone}
+      icon={Icon}
+      title={heading.title}
+      description={heading.description}
+      cancelLabel={result ? buttonTexts.close : buttonTexts.cancel}
+      confirmLabel={
+        result === "success"
+          ? undefined
+          : result === "error"
+            ? buttonTexts.retry
+            : isApprove
+              ? buttonTexts.approve
+              : buttonTexts.reject
+      }
+      confirmVariant={
+        result === "error" || isApprove ? "default" : "destructive"
+      }
+      confirmDisabled={motifMissing}
+      isPending={isPending}
+      onConfirm={handleSubmit}
+    >
+      {needsMotif && (
+        <TextareaField
+          label={labels.rejectionReason}
+          required
+          value={motif}
+          maxLength={500}
+          placeholder={labels.rejectionPlaceholder}
+          onChange={(e) => setMotif(e.target.value)}
+          onBlur={() => setTouched(true)}
+          error={touched && motifMissing ? labels.rejectionError : undefined}
+          helper="Visible par l’émetteur et conservé dans l’historique."
+          counter={{ value: motif.length, max: 500 }}
+          className="[&_textarea]:h-26"
+          disabled={isPending}
+        />
+      )}
+    </ActionDialog>
   );
 }

@@ -49,7 +49,6 @@ function Page() {
         <PageTitle
           title="Approvisionnement"
           subtitle="Initier une demande de transfert de fonds vers la caisse"
-          color="blue"
         />
         <CashRequestForm
           banks={filteredBanks}

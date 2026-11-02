@@ -31,7 +31,6 @@ function Page() {
         <PageTitle
           title="Rôles"
           subtitle="Consultez la liste des rôles."
-          color="red"
         />
         <Roles data={roles.data.filter((x) => x.label !== "MANAGER")} />
       </div>

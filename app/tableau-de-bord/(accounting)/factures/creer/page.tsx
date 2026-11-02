@@ -195,7 +195,6 @@ function Page() {
         <PageTitle
           title="Enregistrer une facture"
           subtitle="Complétez le formulaire pour enregistrer une facture"
-          color="blue"
         />
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">

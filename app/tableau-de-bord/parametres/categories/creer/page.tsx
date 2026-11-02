@@ -226,7 +226,6 @@ const Page = () => {
         <PageTitle
           title="Créer une categorie"
           subtitle="Formulaire de création d'une categorie"
-          color="blue"
         />
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onsubmit)} className="form-3xl">

@@ -187,7 +187,6 @@ function Page() {
         <PageTitle
           title="Transfert"
           subtitle="Initier une demande de transfert de fonds"
-          color="blue"
         />
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">

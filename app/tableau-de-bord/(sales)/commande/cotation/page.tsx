@@ -116,7 +116,6 @@ const Page = () => {
         <PageTitle
           title="Demandes de cotation"
           subtitle="Consultez et gérez vos demandes de cotation."
-          color="red"
           links={links}
         />
         <TabBar

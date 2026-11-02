@@ -16,7 +16,6 @@ function Page() {
       <PageTitle
         title="Départements"
         subtitle="Consultez la liste des départements."
-        color="red"
         links={links}
       />
       <DepartementPage />

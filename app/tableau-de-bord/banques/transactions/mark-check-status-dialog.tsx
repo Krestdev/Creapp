@@ -1,30 +1,13 @@
 "use client";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Textarea } from "@/components/ui/textarea";
+import { ActionDialog } from "@/components/ds/action-dialog";
+import { RejectDialog } from "@/components/modals/reject-dialog";
 import { getClearingInstrument } from "@/lib/utils";
 import { transactionQ } from "@/queries/transaction";
 import { PayType, Transaction } from "@/types/types";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { CircleCheck } from "lucide-react";
 import React from "react";
-import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import z from "zod";
 
 interface Props {
   open: boolean;
@@ -34,12 +17,6 @@ interface Props {
   userId: number;
   status: "paid" | "rejected";
 }
-
-const formSchema = z.object({
-  reason: z.string().max(80, { message: "Le motif ne peut pas dépasser 80 caractères" }).optional(),
-});
-
-type FormValues = z.infer<typeof formSchema>;
 
 function MarkCheckStatusDialog({
   open,
@@ -79,73 +56,40 @@ function MarkCheckStatusDialog({
     },
   });
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      reason: "",
-    },
-  });
-
-  const onSubmit = (values: FormValues) => {
-    markStatus.mutate(values);
-  };
+  if (isRejection) {
+    return (
+      <RejectDialog
+        open={open}
+        onOpenChange={openChange}
+        title={`Marquer ${instrument.withArticle} comme rejeté ?`}
+        description={`${transaction.label} : ${instrument.withArticle} sera marqué comme rejeté par la banque. Le montant sera retiré du compte temporaire et recrédité sur le compte d'origine. Le ticket repassera au statut "Validé" pour être traité à nouveau.`}
+        reason={{
+          optional: true,
+          placeholder: "Ex. Provision insuffisante",
+          maxLength: 80,
+        }}
+        confirmLabel="Marquer comme rejeté"
+        isPending={markStatus.isPending}
+        onConfirm={(reason) =>
+          markStatus.mutate({ reason: reason || undefined })
+        }
+      />
+    );
+  }
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{transaction.label}</DialogTitle>
-          <DialogDescription>
-            {isRejection
-              ? `Marquer ${instrument.withArticle} comme rejeté par la banque. Le montant sera retiré du compte temporaire et recrédité sur le compte d'origine. Le ticket repassera au statut "Validé" pour être traité à nouveau.`
-              : `Marquer ${instrument.withArticle} comme ${instrument.cleared}. Le montant sera définitivement retiré du compte temporaire.`}
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-4">
-            {isRejection && (
-              <FormField
-                control={form.control}
-                name="reason"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>{"Motif du rejet (optionnel)"}</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        {...field}
-                        placeholder="Ex. Provision insuffisante"
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            <div className="w-full flex justify-end gap-2">
-              <Button
-                type="submit"
-                variant={isRejection ? "destructive" : "primary"}
-                disabled={markStatus.isPending}
-                isLoading={markStatus.isPending}
-              >
-                {isRejection
-                  ? "Marquer comme rejeté"
-                  : `Marquer comme ${instrument.cleared}`}
-              </Button>
-              <Button
-                variant={"outline"}
-                onClick={(e) => {
-                  e.preventDefault();
-                  openChange(false);
-                }}
-              >
-                {"Annuler"}
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
+    <ActionDialog
+      open={open}
+      onOpenChange={openChange}
+      tone="success"
+      icon={CircleCheck}
+      title={`Marquer ${instrument.withArticle} comme ${instrument.cleared} ?`}
+      description={`${transaction.label} : le montant sera définitivement retiré du compte temporaire.`}
+      confirmLabel={`Marquer comme ${instrument.cleared}`}
+      confirmVariant="default"
+      isPending={markStatus.isPending}
+      onConfirm={() => markStatus.mutate({})}
+    />
   );
 }
 

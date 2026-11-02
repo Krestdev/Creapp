@@ -116,7 +116,6 @@ function Page() {
         <PageTitle
           title="Signatures"
           subtitle="Consultez les demandes de signatures liées aux transferts bancaires"
-          color="blue"
         />
 
         <div className="h-fit grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1024px]:grid-cols-4 items-center gap-5">

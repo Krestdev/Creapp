@@ -5,7 +5,7 @@ import CreateCondition from './create-form'
 function Page() {
   return (
     <div className="content">
-        <PageTitle title="Créer une condition" color="blue" subtitle='Complétez le formulaire pour créer une nouvelle valeur' />
+        <PageTitle title="Créer une condition" subtitle='Complétez le formulaire pour créer une nouvelle valeur' />
         <CreateCondition/>
     </div>
   )

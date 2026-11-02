@@ -7,7 +7,6 @@ const Page = () => {
       <PageTitle
         title="Ajouter un véhicule"
         subtitle="Formulaire de création d'un véhicule"
-        color="blue"
       />
       <VehicleForm />
     </div>

@@ -29,7 +29,6 @@ export default function Page() {
       <PageTitle
         title="Paramètres des Commandes"
         subtitle="Configuration des paramètres relatifs aux commandes"
-        color="blue"
       />
       <SettingsGroup links={links} />
     </div>

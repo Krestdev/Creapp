@@ -8,7 +8,6 @@ function Page() {
       <PageTitle
         title="Organisation"
         subtitle="Consultez et gérez les Departements et Services."
-        color="red"
       />
       <UtilisateursPage />
     </div>

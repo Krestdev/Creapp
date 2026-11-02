@@ -22,7 +22,6 @@ function Page() {
         <PageTitle
           title="Créer un service"
           subtitle="Formulaire de création d'un nouveau service"
-          color="blue"
         />
         <NewServiceForm users={getUsers.data.data} />
       </div>

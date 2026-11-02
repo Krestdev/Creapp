@@ -320,7 +320,6 @@ export default function UpdateCategory({ id }: { id: number }) {
         <PageTitle
           title="Modifier une catégorie"
           subtitle="Mettez à jour les informations relatives à une catégorie"
-          color="blue"
         />
 
         <Form {...form}>

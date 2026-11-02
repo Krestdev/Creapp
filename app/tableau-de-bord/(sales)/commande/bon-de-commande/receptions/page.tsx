@@ -102,7 +102,6 @@ const ReceptionsPage = () => {
           subtitle={
             "Enregistrez les réceptions des livraisons relatives aux bons de commande."
           }
-          color={"red"}
         />
 
         <div className="grid-stats-4">

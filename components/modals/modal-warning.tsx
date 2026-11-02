@@ -1,14 +1,15 @@
 "use client";
-import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ActionDialog,
+  type ActionDialogTone,
+} from "@/components/ds/action-dialog";
+import {
+  CircleCheck,
+  Info,
+  Trash2,
+  TriangleAlert,
+  type LucideIcon,
+} from "lucide-react";
 
 interface ModalWarningProps {
   open: boolean;
@@ -19,10 +20,30 @@ interface ModalWarningProps {
   actionText?: string;
   onAction?: () => void;
   variant?: "warning" | "error" | "info" | "success";
+  /** Complète le titre (« Supprimer » + nom de l'objet). */
   name?: string;
-  warning?: string
+  /** Mise en garde affichée en gras à la suite du message. */
+  warning?: string;
+  /** Remplace l'icône du variant. */
+  icon?: LucideIcon;
 }
 
+const variants: Record<
+  NonNullable<ModalWarningProps["variant"]>,
+  { tone: ActionDialogTone; icon: LucideIcon; destructive: boolean }
+> = {
+  warning: { tone: "warning", icon: TriangleAlert, destructive: false },
+  error: { tone: "danger", icon: TriangleAlert, destructive: true },
+  info: { tone: "review", icon: Info, destructive: false },
+  success: { tone: "success", icon: CircleCheck, destructive: false },
+};
+
+/**
+ * Confirmation générique (suppression, annulation, suspension…), même
+ * présentation que `ReasonDialog`. `error` = action destructive (bouton rouge) ;
+ * une suppression reçoit l'icône corbeille. La boîte se referme après
+ * `onAction`.
+ */
 export function ModalWarning({
   open,
   onOpenChange,
@@ -34,65 +55,37 @@ export function ModalWarning({
   variant = "warning",
   name = "",
   warning = "",
+  icon,
 }: ModalWarningProps) {
-  const variantStyles = {
-    warning: {
-      header: "bg-gradient-to-r from-[#D97706] to-[#92400E]",
-      button: "bg-[#D97706] hover:bg-[#B45309]",
-    },
-    error: {
-      header: "bg-gradient-to-r from-[#DC2626] to-[#7F1D1D]",
-      button: "bg-[#DC2626] hover:bg-[#B91C1C]",
-    },
-    info: {
-      header: "bg-gradient-to-r from-[#2563EB] to-[#1E40AF]",
-      button: "bg-[#2563EB] hover:bg-[#1D4ED8]",
-    },
-    // avec le vert et l'autre vert plus foncé
-    success: {
-      header: "bg-gradient-to-r from-[#16A34A] to-[#052c14]",
-      button: "bg-[#16A34A] hover:bg-[#16A34A]",
-    },
-  };
+  const config = variants[variant];
+  const fullTitle = `${title} ${name}`.replace(/\s+/g, " ").trim();
+  const Icon =
+    icon ??
+    (variant === "error" && /supprim/i.test(title) ? Trash2 : config.icon);
 
   const handleAction = () => {
-    if (onAction) {
-      onAction();
-    }
+    onAction?.();
     onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        {/* Header with dynamic background based on variant */}
-        <DialogHeader className={variantStyles[variant].header}>
-          <DialogTitle className="text-xl font-semibold text-white">
-            {title + " " + name}
-          </DialogTitle>
-          {description ? (
-            <DialogDescription>{description}</DialogDescription>
-          ) : (
-            <DialogDescription />
-          )}
-        </DialogHeader>
-
-        {/* Message content */}
-        {message && <p className="text-foreground">{message} <span className="font-bold">{warning}</span></p>}
-
-        {/* Footer buttons */}
-        <DialogFooter>
-          <Button
-            className={`text-white ${variantStyles[variant].button}`}
-            onClick={handleAction}
-          >
-            {actionText}
-          </Button>
-          <DialogClose asChild>
-            <Button variant={"outline"}>{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+    <ActionDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      tone={config.tone}
+      icon={Icon}
+      title={fullTitle}
+      description={description || undefined}
+      confirmLabel={actionText}
+      confirmVariant={config.destructive ? "destructive" : "default"}
+      onConfirm={handleAction}
+    >
+      {message && (
+        <p className="text-body text-text-primary">
+          {message}
+          {warning && <span className="font-bold">{` ${warning}`}</span>}
+        </p>
+      )}
+    </ActionDialog>
   );
 }

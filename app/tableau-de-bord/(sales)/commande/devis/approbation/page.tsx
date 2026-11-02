@@ -58,7 +58,6 @@ function Page() {
         <PageTitle
           title="Approbation des devis"
           subtitle="Sélectionnez les éléments des devis à valider"
-          color="green"
         />
         <QuotationGroupTable
           providers={providers.data.data}

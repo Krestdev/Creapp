@@ -154,7 +154,6 @@ export default function Page() {
       <PageTitle
         title="Notifications"
         subtitle="Consulter et traiter les notifications."
-        color="red"
       />
 
       {/* Filtre ShadCN */}

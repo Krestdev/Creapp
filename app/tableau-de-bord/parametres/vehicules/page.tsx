@@ -18,7 +18,6 @@ function Page() {
       <PageTitle
         title="Véhicules"
         subtitle="Consultez et gérez les véhicules."
-        color="red"
         links={links}
       />
       <VehiclePage />
