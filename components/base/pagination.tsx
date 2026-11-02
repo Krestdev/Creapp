@@ -1,78 +1,35 @@
 // components/pagination.tsx
-import { Button } from "@/components/ui/button";
+import { TablePagination } from "@/components/ds/table-pagination";
 import { Table } from "@tanstack/react-table";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronsLeft,
-  ChevronsRight,
-} from "lucide-react";
 
 interface PaginationProps<TData> {
   table: Table<TData>;
+  /** Conservé pour compatibilité : la page courante est toujours indiquée. */
   showPageInfo?: boolean;
   className?: string;
+  /** Pluriel de l'objet listé (« factures », « comptes »…). */
+  noun?: string;
 }
 
+/**
+ * Pagination d'un tableau TanStack, au design du DS (Figma · Pagination) :
+ * « 1–10 sur 95 résultats », lignes par page et pages numérotées.
+ */
 export function Pagination<TData>({
   table,
-  showPageInfo = true,
   className = "",
+  noun = "résultats",
 }: PaginationProps<TData>) {
+  const { pageIndex, pageSize } = table.getState().pagination;
   return (
-    <div
-      className={`flex items-center justify-between px-2 py-4 gap-2 ${className}`}
-    >
-      {/* Info de page */}
-      <p className="text-sm">
-        <strong>{table.getRowModel().rows.length}</strong> résultats
-      </p>
-      <div className="flex items-center gap-2">
-        {showPageInfo && (
-          <div className="flex items-center justify-center text-sm font-medium">
-            {`Page ${
-              table.getState().pagination.pageIndex + 1
-            }/${table.getPageCount()}`}
-          </div>
-        )}
-        {/* Boutons de navigation */}
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.setPageIndex(0)}
-          disabled={!table.getCanPreviousPage()}
-          aria-label="Première page"
-        >
-          <ChevronsLeft />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-          aria-label="Page précédente"
-        >
-          <ChevronLeft />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-          aria-label="Page suivante"
-        >
-          <ChevronRight />
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-          disabled={!table.getCanNextPage()}
-          aria-label="Dernière page"
-        >
-          <ChevronsRight />
-        </Button>
-      </div>
-    </div>
+    <TablePagination
+      total={table.getFilteredRowModel().rows.length}
+      page={pageIndex + 1}
+      pageSize={pageSize}
+      onPageChange={(page) => table.setPageIndex(page - 1)}
+      onPageSizeChange={(size) => table.setPageSize(size)}
+      noun={noun}
+      className={className}
+    />
   );
 }

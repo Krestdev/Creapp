@@ -1,17 +1,15 @@
 "use client";
-import {
-  StatisticCard,
-  StatisticProps,
-} from "@/components/base/TitleValueCard";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
-import { isRole, XAF } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { isRole } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { bankQ } from "@/queries/bank";
-import { NavLink } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import BankTable from "./bank-table";
+import { PlusIcon, RotateCcwIcon, WalletIcon } from "lucide-react";
+import Link from "next/link";
+import BankAccounts from "./bank-accounts";
 
 function Page() {
   const { user } = useStore();
@@ -19,13 +17,6 @@ function Page() {
     isRole({ roleList: user?.role ?? [], role: "trésorier" }) ||
     isRole({ roleList: user?.role ?? [], role: "comptable" });
   const canEdit = isRole({ roleList: user?.role ?? [], role: "trésorier" });
-  const links: Array<NavLink> = [
-    {
-      title: "Ajouter un compte",
-      href: "./banques/creer",
-      hide: !auth,
-    },
-  ];
 
   const getBanks = useQuery({ queryKey: ["banks"], queryFn: bankQ.getAll });
 
@@ -36,66 +27,47 @@ function Page() {
     return <ErrorPage error={getBanks.error} />;
   }
   if (getBanks.isSuccess) {
-    const bankBalances: Array<StatisticProps> = [
-      {
-        title: "Solde Total",
-        value: XAF.format(
-          getBanks.data.data
-            .filter(
-              (b) =>
-                b.type === "BANK" ||
-                b.type === "CASH" ||
-                b.type === "CASH_REGISTER",
-            )
-            .reduce((sum, bank) => sum + bank.balance, 0),
-        ),
-        variant: "primary",
-        more: {
-          title: "Solde réservé",
-          value: XAF.format(
-            getBanks.data.data.reduce(
-              (sum, bank) => sum + (bank.tempAccount?.balance ?? 0),
-              0,
-            ),
-          ),
-        },
-      },
-      {
-        title: "Comptes Bancaires",
-        value: XAF.format(
-          getBanks.data.data
-            .filter((b) => b.type === "BANK")
-            .reduce((sum, bank) => sum + bank.balance, 0),
-        ),
-        variant: "secondary",
-        more: {
-          title: "Nombre de comptes",
-          value: getBanks.data.data.filter((b) => b.type === "BANK").length,
-        },
-      },
-      {
-        title: "Total caisses",
-        value: XAF.format(
-          getBanks.data.data
-            .filter((b) => b.type === "CASH" || b.type === "CASH_REGISTER")
-            .reduce((sum, bank) => sum + bank.balance, 0),
-        ),
-        variant: "dark",
-        more: {
-          title: "Nombre de comptes",
-          value: getBanks.data.data.filter((b) => b.type === "CASH").length + 1,
-        },
-      },
-    ];
     return (
       <div className="content">
-        <PageTitle title="Banques" subtitle="Liste des comptes" links={links} />
-        <div className="grid-stats-4">
-          {bankBalances.map((item, id) => (
-            <StatisticCard key={id} {...item} />
-          ))}
-        </div>
-        <BankTable
+        <PageTitle
+          title="Comptes & caisses"
+          subtitle="Liste des comptes"
+          actions={
+            <>
+              {auth && (
+                <Button asChild variant="outline">
+                  <Link href="/tableau-de-bord/banques/creer">
+                    <PlusIcon />
+                    {"Ajouter un compte"}
+                  </Link>
+                </Button>
+              )}
+              {canEdit && (
+                <>
+                  <Button asChild variant="outline">
+                    <Link href="/tableau-de-bord/banques/transactions/creer">
+                      <PlusIcon />
+                      {"Transaction manuelle"}
+                    </Link>
+                  </Button>
+                  <Button asChild variant="outline">
+                    <Link href="/tableau-de-bord/banques/transactions/transferts/creer">
+                      <RotateCcwIcon />
+                      {"Transfert entre comptes"}
+                    </Link>
+                  </Button>
+                  <Button asChild variant="primary">
+                    <Link href="/tableau-de-bord/banques/transactions/transferts/approvisionnement">
+                      <WalletIcon />
+                      {"Approvisionner une caisse"}
+                    </Link>
+                  </Button>
+                </>
+              )}
+            </>
+          }
+        />
+        <BankAccounts
           data={getBanks.data.data.filter((c) => !!c.type)}
           canEdit={canEdit}
         />

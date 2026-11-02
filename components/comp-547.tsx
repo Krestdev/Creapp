@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertCircleIcon, UploadIcon, XIcon } from "lucide-react";
+import { AlertCircleIcon, PaperclipIcon, UploadIcon, XIcon } from "lucide-react";
 import { useEffect, useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,12 @@ interface Props {
   multiple?: boolean;
   acceptTypes?: "images" | "documents" | "all";
   disabled?: boolean;
+  /** Intitulé de la zone de dépôt (défaut : « Glissez-déposez vos fichiers ici »). */
+  title?: string;
+  /** Mention sous l'intitulé (défaut : types et taille acceptés). */
+  hint?: string;
+  /** Libellé du bouton de parcours (défaut : « Parcourir les fichiers »). */
+  browseLabel?: string;
 }
 
 const getAcceptString = (
@@ -119,6 +125,9 @@ export default function FilesUpload({
   multiple = true,
   acceptTypes = "images",
   disabled = false,
+  title = "Glissez-déposez vos fichiers ici",
+  hint,
+  browseLabel = "Parcourir les fichiers",
 }: Props) {
   const maxSize = maxSizeMB * 1024 * 1024;
   const acceptString = accept || getAcceptString(acceptTypes);
@@ -194,7 +203,7 @@ export default function FilesUpload({
     <div className="w-full max-w-full flex flex-col gap-4">
       {/* Drop area */}
       <div
-        className="relative flex flex-col items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-input px-4 py-2 transition-colors data-[dragging=true]:border-primary data-[dragging=true]:bg-primary/5"
+        className="relative flex flex-col items-center justify-center gap-2 overflow-hidden rounded-[10px] border-[1.5px] border-dashed border-border-strong bg-surface-muted px-4 py-7 transition-colors data-[dragging=true]:border-brand data-[dragging=true]:bg-brand-subtle"
         data-dragging={isDragging || undefined}
         onDragEnter={handleDragEnter}
         onDragLeave={handleDragLeave}
@@ -209,40 +218,29 @@ export default function FilesUpload({
           disabled={disabled}
         />
 
-        <div className="flex flex-col items-center gap-1 text-center">
-          {/* <div className="rounded-full border border-gray-100 p-3">
-            <UploadIcon size={16} className="text-gray-400" />
-          </div> */}
-
-          {/* <div className="space-y-1 text-sm text-gray-900">
-            <p className="font-medium font-mono">
-              {"Glissez-déposez vos fichiers ici"}
-            </p>
-            <p>{"ou"}</p>
-          </div> */}
-          <p className="font-medium font-mono text-[14px]">
-            {"Glissez-déposez vos fichiers ici ou "}
-            <Button
-              onClick={(e) => {
-                e.preventDefault();
-                openFileDialog();
-              }}
-              variant="outline"
-              size={"sm"}
-              disabled={disabled}
-            >
-              {"Parcourir les fichiers"}
-            </Button>
-          </p>
-
-          <p className="text-xs text-gray-400">
-            {acceptTypes === "images" && `PNG, JPG, GIF jusqu'à ${maxSizeMB}MB`}
-            {acceptTypes === "documents" &&
-              `PDF, DOC, XLS jusqu'à ${maxSizeMB}MB`}
-            {acceptTypes === "all" && `Tous fichiers jusqu'à ${maxSizeMB}MB`}
-            {maxFiles > 1 && ` • Maximum ${maxFiles} fichiers`}
-          </p>
-        </div>
+        <PaperclipIcon aria-hidden className="size-7 text-text-secondary" />
+        <p className="text-body-medium text-text-primary text-center">{title}</p>
+        <p className="text-caption text-text-tertiary text-center">
+          {hint ??
+            (acceptTypes === "images"
+              ? `PNG, JPG, GIF jusqu'à ${maxSizeMB} Mo`
+              : acceptTypes === "documents"
+                ? `PDF, DOC, XLS jusqu'à ${maxSizeMB} Mo`
+                : `Tous fichiers jusqu'à ${maxSizeMB} Mo`)}
+          {maxFiles > 1 && ` • Maximum ${maxFiles} fichiers`}
+        </p>
+        <Button
+          type="button"
+          onClick={(e) => {
+            e.preventDefault();
+            openFileDialog();
+          }}
+          variant="outline"
+          size="sm"
+          disabled={disabled}
+        >
+          {browseLabel}
+        </Button>
       </div>
 
       {errors.length > 0 && (

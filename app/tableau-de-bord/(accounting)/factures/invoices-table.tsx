@@ -1,30 +1,17 @@
 "use client";
 
-import {
-  type ColumnDef,
-  type ColumnFiltersState,
-  type SortingState,
-  type VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  BanIcon,
-  ChevronDown,
-  Ellipsis,
-  Eye,
-  Settings2,
-  WalletCardsIcon,
-} from "lucide-react";
-import * as React from "react";
-
-import { Pagination } from "@/components//base/pagination";
 import { SearchableSelect } from "@/components/base/searchableSelect";
+import { TabBar } from "@/components/base/TabBar";
+import { InfoCallout } from "@/components/ds/info-callout";
+import {
+  FilterBar,
+  FilterButton,
+  FilterChip,
+  FilterSearch,
+  FilterSpacer,
+  FilterTag,
+} from "@/components/ds/filter-bar";
+import { TablePagination } from "@/components/ds/table-pagination";
 import { badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -35,20 +22,13 @@ import {
 } from "@/components/ui/collapsible";
 import {
   DropdownMenu,
-  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Progress,
-  ProgressLabel,
-  ProgressValue,
-} from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -72,7 +52,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { XAF, subText } from "@/lib/utils";
+import { formatNumber } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import {
   BonsCommande,
   DateFilter,
@@ -83,9 +64,29 @@ import {
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
+import {
+  BanIcon,
+  ChevronDown,
+  EllipsisVertical,
+  Eye,
+  PlusIcon,
+  WalletCardsIcon,
+} from "lucide-react";
 import Link from "next/link";
+import * as React from "react";
 import CancelInvoice from "./cancel-invoice";
 import EditInvoice from "./EditInvoice";
+import {
+  InvoiceQuickFilter,
+  QUICK_FILTER_LABELS,
+  isDueThisMonth,
+  isDueWithin,
+  isOverdue,
+  matchesQuickFilter,
+  paidAmount,
+  paymentSummary,
+  restAmount,
+} from "./invoice-utils";
 import ViewInvoice from "./view-invoice";
 import ViewInvoicePayment from "./view-invoice-payment";
 
@@ -94,6 +95,9 @@ interface Props {
   providers: Array<Provider>;
   users: Array<User>;
   purchases: Array<BonsCommande>;
+  /** Filtre issu d'un indicateur de la page. */
+  quickFilter?: InvoiceQuickFilter | null;
+  onQuickFilterChange?: (filter: InvoiceQuickFilter | null) => void;
 }
 
 export function getInvoiceStatusBadge(status: Invoice["status"]): {
@@ -113,37 +117,73 @@ export function getInvoiceStatusBadge(status: Invoice["status"]): {
   }
 }
 
-function getProgress(invoice: Invoice): { progress: number; value: number } {
-  if (invoice.payment.length === 0) return { progress: 0, value: 0 };
-  const values = invoice.payment.map((p) => {
-    if (p.status !== "paid") return 0;
-    return p.price;
-  });
-  const value = values.reduce((acc, i) => acc + i, 0);
-  return {
-    value,
-    progress: (value * 100) / invoice.amount,
-  };
+type StatusTab = "all" | Invoice["status"];
+type DueFilter = "all" | "overdue" | "week" | "month";
+
+const DUE_OPTIONS: Array<{ value: DueFilter; label: string }> = [
+  { value: "all", label: "Toutes" },
+  { value: "overdue", label: "En retard" },
+  { value: "week", label: "Sous 7 jours" },
+  { value: "month", label: "Ce mois-ci" },
+];
+
+const PERIOD_LABELS: Record<NonNullable<DateFilter>, string> = {
+  today: "Aujourd'hui",
+  week: "Cette semaine",
+  month: "Ce mois",
+  year: "Cette année",
+  custom: "Personnalisé",
+};
+
+/** Barre de progression du paiement : grise à 0 %, orange en cours, verte à 100 %. */
+function PaymentState({ invoice }: { invoice: Invoice }) {
+  const paid = paidAmount(invoice);
+  const pct =
+    invoice.amount > 0 ? Math.min(100, Math.round((paid * 100) / invoice.amount)) : 0;
+  return (
+    <div className="flex w-[150px] flex-col gap-1.5">
+      <div className="flex gap-1.5 text-caption text-text-tertiary">
+        <span className="flex-1">{`${formatNumber(paid)} XAF`}</span>
+        <span className="shrink-0 font-bold">{`${pct}%`}</span>
+      </div>
+      <div
+        role="progressbar"
+        aria-valuenow={pct}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label="État de paiement"
+        className="flex h-1.5 overflow-hidden rounded-[3px] bg-surface-muted"
+      >
+        <div
+          className={cn(
+            "h-full",
+            pct === 0
+              ? "w-1.5 bg-border-strong opacity-60"
+              : pct >= 100
+                ? "bg-accent-green"
+                : "bg-accent-orange",
+          )}
+          style={pct === 0 ? undefined : { width: `${pct}%` }}
+        />
+      </div>
+    </div>
+  );
 }
+
+const LEGEND = [
+  { color: "bg-border-strong", label: "Aucun paiement payé" },
+  { color: "bg-accent-orange", label: "Payée partiellement" },
+  { color: "bg-accent-green", label: "Payée" },
+];
 
 export function InvoicesTable({
   invoices,
   users,
   providers,
   purchases,
+  quickFilter = null,
+  onQuickFilterChange,
 }: Props) {
-  const [sorting, setSorting] = React.useState<SortingState>([
-    { id: "createdAt", desc: true },
-  ]);
-  const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>(
-    [],
-  );
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({
-      createdAt: false,
-    });
-  const [rowSelection, setRowSelection] = React.useState({});
-  const [globalFilter, setGlobalFilter] = React.useState("");
   const [selected, setSelected] = React.useState<Invoice | undefined>(
     undefined,
   );
@@ -152,12 +192,12 @@ export function InvoicesTable({
   const [cancel, setCancel] = React.useState<boolean>(false);
   const [edit, setEdit] = React.useState(false);
 
-  const [statusFilter, setStatusFilter] = React.useState<
-    "all" | Invoice["status"]
-  >("all");
+  const [search, setSearch] = React.useState("");
+  const [tab, setTab] = React.useState<StatusTab>("all");
   const [providerFilter, setProviderFilter] = React.useState<"all" | string>(
     "all",
   );
+  const [dueFilter, setDueFilter] = React.useState<DueFilter>("all");
   const [purchaseFilter, setPurchaseFilter] = React.useState<"all" | string>(
     "all",
   );
@@ -170,101 +210,160 @@ export function InvoicesTable({
     { from: Date; to: Date } | undefined
   >();
   const [customOpen, setCustomOpen] = React.useState<boolean>(false); //Custom Period Filter
+  const [page, setPage] = React.useState(1);
+  const [pageSize, setPageSize] = React.useState(10);
 
-  // Réinitialiser tous les filtres
-  const resetAllFilters = () => {
+  const advancedCount =
+    (purchaseFilter !== "all" ? 1 : 0) +
+    (amountTypeFilter !== "aucun" ? 1 : 0) +
+    (dateFilter ? 1 : 0);
+
+  // Réinitialiser les filtres avancés
+  const resetAdvanced = () => {
     setDateFilter(undefined);
     setCustomDateRange(undefined);
-    setGlobalFilter("");
-    setStatusFilter("all");
-    setProviderFilter("all");
     setPurchaseFilter("all");
     setAmountFilter(0);
     setAmountTypeFilter("aucun");
     setCustomOpen(false);
   };
 
+  // Un indicateur de la page porte sur toutes les factures : l'onglet est levé.
+  React.useEffect(() => {
+    if (quickFilter) setTab("all");
+  }, [quickFilter]);
+
+  // Tout filtre ramène à la première page.
+  React.useEffect(() => {
+    setPage(1);
+  }, [
+    search,
+    tab,
+    providerFilter,
+    dueFilter,
+    purchaseFilter,
+    amountTypeFilter,
+    amountFilter,
+    dateFilter,
+    customDateRange,
+    quickFilter,
+  ]);
+
   const data: Array<Invoice> = React.useMemo(() => {
-    return invoices.filter((invoice) => {
-      const now = new Date();
-      let startDate = new Date();
-      let endDate = now;
+    const text = search.trim().toLowerCase();
+    return invoices
+      .filter((invoice) => {
+        const now = new Date();
+        let startDate = new Date();
+        let endDate = now;
 
-      //Status Filter
-      const matchStatus =
-        statusFilter === "all" ? true : invoice.status === statusFilter;
+        const matchTab = tab === "all" ? true : invoice.status === tab;
 
-      // Filtre par date
-      let matchDate = true;
-      if (dateFilter) {
-        switch (dateFilter) {
-          case "today":
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "week":
-            startDate.setDate(
-              now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
-            );
-            startDate.setHours(0, 0, 0, 0);
-            break;
-          case "month":
-            startDate = new Date(now.getFullYear(), now.getMonth(), 1);
-            break;
-          case "year":
-            startDate = new Date(now.getFullYear(), 0, 1);
-            break;
-          case "custom":
-            if (customDateRange?.from && customDateRange?.to) {
-              startDate = customDateRange.from;
-              endDate = customDateRange.to;
-              endDate.setHours(23);
-            }
-            break;
+        const matchSearch =
+          text === ""
+            ? true
+            : [
+                invoice.reference,
+                invoice.title,
+                invoice.command?.provider?.name,
+                invoice.command?.reference,
+                invoice.command?.devi?.commandRequest?.title,
+              ].some((v) => v?.toLowerCase().includes(text));
+
+        const matchQuick = quickFilter
+          ? matchesQuickFilter(invoice, quickFilter)
+          : true;
+
+        const matchDue =
+          dueFilter === "all"
+            ? true
+            : dueFilter === "overdue"
+              ? isOverdue(invoice)
+              : dueFilter === "week"
+                ? isDueWithin(invoice, 7)
+                : isDueThisMonth(invoice);
+
+        // Filtre par date
+        let matchDate = true;
+        if (dateFilter) {
+          switch (dateFilter) {
+            case "today":
+              startDate.setHours(0, 0, 0, 0);
+              break;
+            case "week":
+              startDate.setDate(
+                now.getDate() - now.getDay() + (now.getDay() === 0 ? -6 : 1),
+              );
+              startDate.setHours(0, 0, 0, 0);
+              break;
+            case "month":
+              startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+              break;
+            case "year":
+              startDate = new Date(now.getFullYear(), 0, 1);
+              break;
+            case "custom":
+              if (customDateRange?.from && customDateRange?.to) {
+                startDate = customDateRange.from;
+                endDate = customDateRange.to;
+                endDate.setHours(23);
+              }
+              break;
+          }
+
+          if (
+            dateFilter !== "custom" ||
+            (customDateRange?.from && customDateRange?.to)
+          ) {
+            matchDate =
+              new Date(invoice.createdAt) >= startDate &&
+              new Date(invoice.createdAt) <= endDate;
+          }
         }
 
-        if (
-          dateFilter !== "custom" ||
-          (customDateRange?.from && customDateRange?.to)
-        ) {
-          matchDate =
-            new Date(invoice.createdAt) >= startDate &&
-            new Date(invoice.createdAt) <= endDate;
-        }
-      }
+        //Amount Filter
+        const matchAmount =
+          amountTypeFilter === "aucun"
+            ? true
+            : amountTypeFilter === "greater"
+              ? invoice.amount > amountFilter
+              : amountTypeFilter === "equal"
+                ? invoice.amount === amountFilter
+                : invoice.amount < amountFilter;
 
-      //Amount Filter
-      const matchAmount =
-        amountTypeFilter === "aucun"
-          ? true
-          : amountTypeFilter === "greater"
-            ? invoice.amount > amountFilter
-            : amountTypeFilter === "equal"
-              ? invoice.amount === amountFilter
-              : invoice.amount < amountFilter;
+        //Provider Filter
+        const matchProvider =
+          providerFilter === "all"
+            ? true
+            : Number(providerFilter) === invoice.command.providerId;
 
-      //Provider Filter
-      const matchProvider =
-        providerFilter === "all"
-          ? true
-          : Number(providerFilter) === invoice.command.providerId;
+        //Purchase Filter
+        const matchPurchaseOrder =
+          purchaseFilter === "all"
+            ? true
+            : Number(purchaseFilter) === invoice.commandId;
 
-      //Purchase Filter
-      const matchPurchaseOrder =
-        purchaseFilter === "all"
-          ? true
-          : Number(purchaseFilter) === invoice.commandId;
-
-      return (
-        matchDate &&
-        matchStatus &&
-        matchAmount &&
-        matchProvider &&
-        matchPurchaseOrder
+        return (
+          matchTab &&
+          matchSearch &&
+          matchQuick &&
+          matchDue &&
+          matchDate &&
+          matchAmount &&
+          matchProvider &&
+          matchPurchaseOrder
+        );
+      })
+      .sort(
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       );
-    });
   }, [
     invoices,
-    statusFilter,
+    search,
+    tab,
+    quickFilter,
+    dueFilter,
     customDateRange,
     dateFilter,
     amountFilter,
@@ -273,656 +372,405 @@ export function InvoicesTable({
     purchaseFilter,
   ]);
 
-  const columns: ColumnDef<Invoice>[] = [
-    {
-      accessorKey: "reference",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Référence"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => (
-        <p className="normal-case">{row.getValue("reference")}</p>
-      ),
-    },
-    {
-      accessorKey: "title",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Titre"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => row.getValue("title"),
-    },
-    {
-      id: "provider",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Fournisseur"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original;
-        return value.command.provider.name ?? "Inconnu";
-      },
-    },
-    {
-      id: "purchaseOrder",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Bon de commande"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original;
-        const purchase = value.command;
-        return subText({
-          text: purchase?.devi.commandRequest.title ?? "--",
-          length: 21,
-        });
-      },
-    },
-    {
-      accessorKey: "price",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Montant"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original.amount;
-        return <p className="normal-case">{XAF.format(Number(value))}</p>;
-      },
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"État de paiement"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original;
-        // const status = getInvoiceStatusBadge(value.status);
-        const i = getProgress(value);
-        return (
-          <Progress value={i.progress} className={"w-full"}>
-            <ProgressLabel>{XAF.format(i.value)}</ProgressLabel>
-            <ProgressValue />
-          </Progress>
-        );
-      },
-      filterFn: (row, id, value) => {
-        return value.includes(row.getValue(id));
-      },
-    },
-    {
-      accessorKey: "proof",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Documents"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const proofField = row.original.proof;
-        const elements =
-          typeof proofField === "string" && proofField.length > 0
-            ? proofField.split(";").filter(Boolean)
-            : Array.isArray(proofField)
-              ? proofField.map(String).filter(Boolean)
-              : [];
-        return (
-          <div className="flex flex-wrap gap-1.5">
-            {elements.map((proof, index) => (
-              <Link
-                key={index}
-                href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
-                target="_blank"
-                className="flex gap-0.5 items-center px-2 py-1 rounded border"
-              >
-                <img
-                  src="/images/pdf.png"
-                  alt="preuve"
-                  className="h-4 w-auto aspect-square"
-                />
-                <p className="text-foreground font-medium">{`Facture`}</p>
-              </Link>
-            ))}
-          </div>
-        );
-      },
-    },
-    {
-      accessorKey: "createdAt",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Date de création"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        return (
-          <p className="normal-case">
-            {format(row.getValue("createdAt"), "dd/MM/yyyy")}
-          </p>
-        );
-      },
-    },
-    {
-      id: "actions",
-      header: () => <span className="tablehead">{"Actions"}</span>,
-      enableHiding: false,
-      cell: ({ row }) => {
-        const item = row.original;
-
-        return (
-          <DropdownMenu>
-            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
-              <Ellipsis />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelected(item);
-                  setShowDetail(true);
-                }}
-              >
-                <Eye />
-                {"Voir"}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelected(item);
-                  setShowPayments(true);
-                }}
-              >
-                <WalletCardsIcon />
-                {"Voir les paiements"}
-              </DropdownMenuItem>
-              {item.payment &&
-                item.payment.filter((x) => x.status !== "rejected").length ===
-                  0 && (
-                  <DropdownMenuItem
-                    onClick={() => {
-                      setSelected(item);
-                      setEdit(true);
-                    }}
-                  >
-                    <WalletCardsIcon />
-                    {"Modifier la facture"}
-                  </DropdownMenuItem>
-                )}
-              <DropdownMenuSeparator />
-              <DropdownMenuItem
-                variant="destructive"
-                onClick={() => {
-                  setSelected(item);
-                  setCancel(true);
-                }}
-                disabled={
-                  item.payment.filter((p) => p.status === "paid").length > 0
-                }
-              >
-                <BanIcon />
-                {"Annuler"}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        );
-      },
-    },
+  const count = (status?: Invoice["status"]) =>
+    status ? invoices.filter((i) => i.status === status).length : invoices.length;
+  const tabs = [
+    { id: "all", title: "Toutes les factures", badge: count() },
+    { id: "UNPAID", title: "À payer", badge: count("UNPAID") },
+    { id: "PAID", title: "Payées", badge: count("PAID") },
+    { id: "CANCELLED", title: "Annulées", badge: count("CANCELLED") },
   ];
 
-  // eslint-disable-next-line react-hooks/incompatible-library
-  const table = useReactTable({
-    data: data,
-    columns,
-    onSortingChange: setSorting,
-    onColumnFiltersChange: setColumnFilters,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
-    onGlobalFilterChange: setGlobalFilter,
-    globalFilterFn: (row, columnId, filterValue) => {
-      const searchableColumns = ["reference", "provider", "title"];
-      const searchValue = filterValue.toLowerCase();
-
-      return searchableColumns.some((column) => {
-        const value = row.getValue(column) as string;
-        return value?.toLowerCase().includes(searchValue);
-      });
-    },
-    state: {
-      sorting,
-      columnFilters,
-      columnVisibility,
-      rowSelection,
-      globalFilter,
-    },
-  });
+  const pageCount = Math.max(1, Math.ceil(data.length / pageSize));
+  const rows = data.slice(
+    (Math.min(page, pageCount) - 1) * pageSize,
+    Math.min(page, pageCount) * pageSize,
+  );
 
   return (
-    <div className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <Input
-            placeholder="Référence"
-            value={globalFilter ?? ""}
-            onChange={(event) => setGlobalFilter(event.target.value)}
-            className="w-full sm:w-[250px] h-9"
-          />
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant={"outline"}>
-                <Settings2 />
-                {"Filtres"}
-              </Button>
-            </SheetTrigger>
-            <SheetContent>
-              <SheetHeader>
-                <SheetTitle>{"Filtres"}</SheetTitle>
-                <SheetDescription>
-                  {"Configurer les fitres pour affiner les données"}
-                </SheetDescription>
-              </SheetHeader>
-              <div className="px-5 grid gap-5 mt-4">
-                {/**Status Filter */}
-                <div className="grid gap-1.5">
-                  <Label>{"Statut"}</Label>
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(value) =>
-                      setStatusFilter(value as "all" | Invoice["status"])
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Filtrer par statut" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">{"Tous"}</SelectItem>
-                      {INVOICE_STATUS.map((status) => (
-                        <SelectItem key={status.value} value={status.value}>
-                          {status.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                {/**Provider Filter */}
-                <div className="grid gap-1.5">
-                  <Label>{"Fournisseur"}</Label>
-                  <SearchableSelect
-                    onChange={(v) => setProviderFilter(v)}
-                    options={providers.map((x) => ({
-                      label: x.name,
-                      value: x.id.toString(),
-                    }))}
-                    value={providerFilter}
-                    width="w-full"
-                    allLabel="Tous les fournisseurs"
+    <div className="flex flex-col gap-5">
+      <TabBar tabs={tabs} selectedTab={tab} setSelectedTab={setTab} />
+
+      <FilterBar>
+        <FilterSearch
+          value={search}
+          onChange={setSearch}
+          placeholder="Rechercher une facture, un fournisseur, un bon…"
+        />
+        <FilterChip
+          label="Fournisseur"
+          value={providerFilter}
+          onChange={setProviderFilter}
+          options={[
+            { value: "all", label: "Tous" },
+            ...providers
+              .map((p) => ({ value: String(p.id), label: p.name }))
+              .sort((a, b) => a.label.localeCompare(b.label, "fr")),
+          ]}
+        />
+        <FilterChip
+          label="Échéance"
+          value={dueFilter}
+          onChange={(v) => setDueFilter(v as DueFilter)}
+          options={DUE_OPTIONS}
+        />
+        {quickFilter && (
+          <FilterTag onRemove={() => onQuickFilterChange?.(null)}>
+            {`Indicateur : ${QUICK_FILTER_LABELS[quickFilter]}`}
+          </FilterTag>
+        )}
+        <FilterSpacer />
+        <Sheet>
+          <SheetTrigger asChild>
+            <FilterButton count={advancedCount} />
+          </SheetTrigger>
+          <SheetContent>
+            <SheetHeader>
+              <SheetTitle>{"Filtres avancés"}</SheetTitle>
+              <SheetDescription>
+                {"Configurer les fitres pour affiner les données"}
+              </SheetDescription>
+            </SheetHeader>
+            <div className="px-5 grid gap-5 mt-4">
+              {/**Purchase Order Filter */}
+              <div className="grid gap-1.5">
+                <Label>{"Bon de commande"}</Label>
+                <SearchableSelect
+                  onChange={(v) => setPurchaseFilter(v)}
+                  options={purchases?.map((x) => ({
+                    label: x.devi?.commandRequest?.title ?? "--",
+                    value: x.id.toString(),
+                  }))}
+                  value={purchaseFilter}
+                  width="w-full"
+                  allLabel="Tous les bons de commande"
+                />
+              </div>
+              {/* Filter by amount */}
+              <div className="grid gap-1.5">
+                <Label>{"Comparer le montant"}</Label>
+                <Select
+                  value={amountTypeFilter}
+                  onValueChange={(v) =>
+                    setAmountTypeFilter(
+                      v as "greater" | "inferior" | "equal" | "aucun",
+                    )
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Sélectionner" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="aucun">{"Aucun"}</SelectItem>
+                    <SelectItem value="greater">{"Supérieur"}</SelectItem>
+                    <SelectItem value="equal">{"Égal"}</SelectItem>
+                    <SelectItem value="inferior">{"Inférieur"}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="grid gap-1.5">
+                <Label>{"Montant"}</Label>
+                <div className="relative">
+                  <Input
+                    type="number"
+                    placeholder="Ex. 250 000"
+                    value={amountFilter ?? 0}
+                    onChange={(e) => setAmountFilter(Number(e.target.value))}
+                    className="w-full pr-12"
                   />
-                </div>
-                {/**Purchase Order Filter */}
-                <div className="grid gap-1.5">
-                  <Label>{"Bon de commande"}</Label>
-                  <SearchableSelect
-                    onChange={(v) => setPurchaseFilter(v)}
-                    options={purchases?.map((x) => ({
-                      label: x.devi?.commandRequest?.title ?? "--",
-                      value: x.id.toString(),
-                    }))}
-                    value={purchaseFilter}
-                    width="w-full"
-                    allLabel="Tous les bons de commande"
-                  />
-                </div>
-                {/* Filter by amount */}
-                <div className="grid gap-1.5">
-                  <Label>{"Comparer le montant"}</Label>
-                  <Select
-                    value={amountTypeFilter}
-                    onValueChange={(v) =>
-                      setAmountTypeFilter(
-                        v as "greater" | "inferior" | "equal" | "aucun",
-                      )
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Sélectionner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="aucun">{"Aucun"}</SelectItem>
-                      <SelectItem value="greater">{"Supérieur"}</SelectItem>
-                      <SelectItem value="equal">{"Égal"}</SelectItem>
-                      <SelectItem value="inferior">{"Inférieur"}</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="grid gap-1.5">
-                  <Label>{"Montant"}</Label>
-                  <div className="relative">
-                    <Input
-                      type="number"
-                      placeholder="Ex. 250 000"
-                      value={amountFilter ?? 0}
-                      onChange={(e) => setAmountFilter(Number(e.target.value))}
-                      className="w-full pr-12"
-                    />
-                    <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
-                      {"FCFA"}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Filtre par période */}
-                <div className="grid gap-1.5">
-                  <Label>{"Période"}</Label>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        <span className="truncate">
-                          {dateFilter === undefined
-                            ? "Toutes les périodes"
-                            : dateFilter === "today"
-                              ? "Aujourd'hui"
-                              : dateFilter === "week"
-                                ? "Cette semaine"
-                                : dateFilter === "month"
-                                  ? "Ce mois"
-                                  : dateFilter === "year"
-                                    ? "Cette année"
-                                    : dateFilter === "custom"
-                                      ? "Personnalisé"
-                                      : "Sélectionner une période"}
-                        </span>
-                        <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter(undefined);
-                          setCustomDateRange(undefined);
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === undefined ? "bg-accent" : ""}
-                      >
-                        <span>Toutes les périodes</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("today");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "today" ? "bg-accent" : ""}
-                      >
-                        <span>{"Aujourd'hui"}</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("week");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "week" ? "bg-accent" : ""}
-                      >
-                        <span>Cette semaine</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("month");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "month" ? "bg-accent" : ""}
-                      >
-                        <span>Ce mois</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("year");
-                          setCustomOpen(false);
-                        }}
-                        className={dateFilter === "year" ? "bg-accent" : ""}
-                      >
-                        <span>Cette année</span>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => {
-                          setDateFilter("custom");
-                          setCustomOpen(true);
-                        }}
-                        className={dateFilter === "custom" ? "bg-accent" : ""}
-                      >
-                        <span>Personnalisé</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-
-                  <Collapsible
-                    open={customOpen}
-                    onOpenChange={setCustomOpen}
-                    disabled={dateFilter !== "custom"}
-                  >
-                    <CollapsibleTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-full justify-between"
-                      >
-                        {"Plage personnalisée"}
-                        <span className="text-muted-foreground text-xs">
-                          {customDateRange?.from && customDateRange.to
-                            ? `${format(
-                                customDateRange.from,
-                                "dd/MM/yyyy",
-                              )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
-                            : "Choisir"}
-                        </span>
-                      </Button>
-                    </CollapsibleTrigger>
-
-                    <CollapsibleContent className="space-y-4 pt-4">
-                      <Calendar
-                        mode="range"
-                        selected={customDateRange}
-                        onSelect={(range) => {
-                          if (!range?.from || !range?.to) return;
-                          const from = new Date(range.from);
-                          const to = new Date(range.to);
-                          to.setHours(23, 59, 59, 999);
-                          setCustomDateRange({ from, to });
-                        }}
-                        numberOfMonths={1}
-                        className="rounded-md border w-full"
-                      />
-                      <div className="space-y-1">
-                        <Button
-                          className="w-full"
-                          onClick={() => {
-                            setCustomDateRange(undefined);
-                            setDateFilter(undefined);
-                            setCustomOpen(false);
-                          }}
-                        >
-                          {"Annuler"}
-                        </Button>
-                        <Button
-                          className="w-full"
-                          variant={"outline"}
-                          onClick={() => {
-                            setCustomOpen(false);
-                          }}
-                        >
-                          {"Réduire"}
-                        </Button>
-                      </div>
-                    </CollapsibleContent>
-                  </Collapsible>
-                </div>
-
-                {/* Bouton pour réinitialiser les filtres */}
-                <div className="flex items-end">
-                  <Button
-                    variant="outline"
-                    onClick={resetAllFilters}
-                    className="w-full"
-                  >
-                    {"Réinitialiser"}
-                  </Button>
+                  <span className="absolute right-2 text-primary-700 top-1/2 -translate-y-1/2 text-base uppercase">
+                    {"FCFA"}
+                  </span>
                 </div>
               </div>
-            </SheetContent>
-          </Sheet>
-        </div>
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="bg-transparent">
-              {"Colonnes"}
-              <ChevronDown className="ml-2 h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end">
-            {table
-              .getAllColumns()
-              .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id === "status"
-                      ? "État de paiement"
-                      : column.id === "price"
-                        ? "Montant"
-                        : column.id === "proof"
-                          ? "Documents"
-                          : column.id === "provider"
-                            ? "Fournisseur"
-                            : column.id === "reference"
-                              ? "Référence"
-                              : column.id === "createdAt"
-                                ? "Date de création"
-                                : column.id === "updatedAt"
-                                  ? "Date de modification"
-                                  : column.id === "title"
-                                    ? "Titre"
-                                    : column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
 
-      <div className="rounded-md border">
-        <Table>
+              {/* Filtre par période */}
+              <div className="grid gap-1.5">
+                <Label>{"Période de création"}</Label>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      <span className="truncate">
+                        {dateFilter === undefined
+                          ? "Toutes les périodes"
+                          : PERIOD_LABELS[dateFilter]}
+                      </span>
+                      <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent className="w-[--radix-dropdown-menu-trigger-width]">
+                    <DropdownMenuItem
+                      onClick={() => {
+                        setDateFilter(undefined);
+                        setCustomDateRange(undefined);
+                        setCustomOpen(false);
+                      }}
+                      className={dateFilter === undefined ? "bg-accent" : ""}
+                    >
+                      <span>{"Toutes les périodes"}</span>
+                    </DropdownMenuItem>
+                    {(Object.keys(PERIOD_LABELS) as Array<NonNullable<DateFilter>>).map(
+                      (key) => (
+                        <DropdownMenuItem
+                          key={key}
+                          onClick={() => {
+                            setDateFilter(key);
+                            setCustomOpen(key === "custom");
+                          }}
+                          className={dateFilter === key ? "bg-accent" : ""}
+                        >
+                          <span>{PERIOD_LABELS[key]}</span>
+                        </DropdownMenuItem>
+                      ),
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+
+                <Collapsible
+                  open={customOpen}
+                  onOpenChange={setCustomOpen}
+                  disabled={dateFilter !== "custom"}
+                >
+                  <CollapsibleTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-between"
+                    >
+                      {"Plage personnalisée"}
+                      <span className="text-muted-foreground text-xs">
+                        {customDateRange?.from && customDateRange.to
+                          ? `${format(
+                              customDateRange.from,
+                              "dd/MM/yyyy",
+                            )} → ${format(customDateRange.to, "dd/MM/yyyy")}`
+                          : "Choisir"}
+                      </span>
+                    </Button>
+                  </CollapsibleTrigger>
+
+                  <CollapsibleContent className="space-y-4 pt-4">
+                    <Calendar
+                      mode="range"
+                      selected={customDateRange}
+                      onSelect={(range) => {
+                        if (!range?.from || !range?.to) return;
+                        const from = new Date(range.from);
+                        const to = new Date(range.to);
+                        to.setHours(23, 59, 59, 999);
+                        setCustomDateRange({ from, to });
+                      }}
+                      numberOfMonths={1}
+                      className="rounded-md border w-full"
+                    />
+                    <div className="space-y-1">
+                      <Button
+                        className="w-full"
+                        onClick={() => {
+                          setCustomDateRange(undefined);
+                          setDateFilter(undefined);
+                          setCustomOpen(false);
+                        }}
+                      >
+                        {"Annuler"}
+                      </Button>
+                      <Button
+                        className="w-full"
+                        variant={"outline"}
+                        onClick={() => {
+                          setCustomOpen(false);
+                        }}
+                      >
+                        {"Réduire"}
+                      </Button>
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </div>
+
+              {/* Bouton pour réinitialiser les filtres */}
+              <div className="flex items-end">
+                <Button
+                  variant="outline"
+                  onClick={resetAdvanced}
+                  className="w-full"
+                >
+                  {"Réinitialiser"}
+                </Button>
+              </div>
+            </div>
+          </SheetContent>
+        </Sheet>
+      </FilterBar>
+
+      <div className="overflow-hidden rounded-xl border border-border-default bg-surface">
+        <Table className="min-w-[860px]">
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
-                    </TableHead>
-                  );
-                })}
-              </TableRow>
-            ))}
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="px-5">{"Facture"}</TableHead>
+              <TableHead className="text-right">{"Montant"}</TableHead>
+              <TableHead className="pl-8">{"État de paiement"}</TableHead>
+              <TableHead className="text-right">{"Reste à payer"}</TableHead>
+              <TableHead className="px-5 text-right">{"Actions"}</TableHead>
+            </TableRow>
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
+            {rows.length ? (
+              rows.map((item) => {
+                const rest = restAmount(item);
+                return (
+                  <TableRow key={item.id}>
+                    <TableCell className="px-5 py-3 whitespace-normal normal-case">
+                      <div className="flex flex-col gap-2">
+                        <p className="flex flex-wrap gap-x-2 text-caption text-text-tertiary">
+                          <span className="text-brand">{item.reference}</span>
+                          {item.command?.reference && (
+                            <span>{`· ${item.command.reference}`}</span>
+                          )}
+                          {item.deadline && (
+                            <span>{`· échéance ${format(new Date(item.deadline), "dd/MM/yyyy")}`}</span>
+                          )}
+                        </p>
+                        <p className="text-body-medium text-text-primary">
+                          {item.command?.provider?.name ?? "Inconnu"}
+                        </p>
+                        <p className="text-caption text-text-tertiary">
+                          {item.status === "CANCELLED"
+                            ? "Facture annulée"
+                            : paymentSummary(item)}
+                        </p>
+                      </div>
                     </TableCell>
-                  ))}
-                </TableRow>
-              ))
+                    <TableCell className="text-right text-body-strong whitespace-nowrap text-text-primary normal-case">
+                      {formatNumber(item.amount)}
+                    </TableCell>
+                    <TableCell className="pl-8 normal-case">
+                      <PaymentState invoice={item} />
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        "text-right whitespace-nowrap normal-case",
+                        rest > 0
+                          ? "text-body-strong text-text-primary"
+                          : "text-body text-text-tertiary",
+                      )}
+                    >
+                      {formatNumber(rest)}
+                    </TableCell>
+                    <TableCell className="px-5 text-right">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger
+                          aria-label={`Actions pour ${item.reference}`}
+                          className="size-7 h-7 w-7 gap-0 border-0 bg-transparent p-0 text-text-tertiary hover:bg-hover hover:text-text-primary [&_svg]:size-[18px] [&_svg]:text-current data-[state=open]:bg-hover cursor-pointer justify-center size-8 h-8 w-8 text-text-secondary"
+                        >
+                          <EllipsisVertical />
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelected(item);
+                              setShowDetail(true);
+                            }}
+                          >
+                            <Eye />
+                            {"Voir"}
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => {
+                              setSelected(item);
+                              setShowPayments(true);
+                            }}
+                          >
+                            <WalletCardsIcon />
+                            {"Voir les paiements"}
+                          </DropdownMenuItem>
+                          {item.status !== "CANCELLED" && rest > 0 && (
+                            <DropdownMenuItem asChild>
+                              <Link href="/tableau-de-bord/factures/paiements/creer">
+                                <PlusIcon />
+                                {"Créer un paiement"}
+                              </Link>
+                            </DropdownMenuItem>
+                          )}
+                          {item.payment &&
+                            item.payment.filter((x) => x.status !== "rejected")
+                              .length === 0 && (
+                              <DropdownMenuItem
+                                onClick={() => {
+                                  setSelected(item);
+                                  setEdit(true);
+                                }}
+                              >
+                                <WalletCardsIcon />
+                                {"Modifier la facture"}
+                              </DropdownMenuItem>
+                            )}
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem
+                            variant="destructive"
+                            onClick={() => {
+                              setSelected(item);
+                              setCancel(true);
+                            }}
+                            disabled={
+                              item.payment.filter((p) => p.status === "paid")
+                                .length > 0
+                            }
+                          >
+                            <BanIcon />
+                            {"Annuler"}
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={columns.length}
-                  className="h-24 text-center"
-                >
+                <TableCell colSpan={5} className="h-24 text-center">
                   {"Aucun résultat."}
                 </TableCell>
               </TableRow>
             )}
           </TableBody>
         </Table>
+        <TablePagination
+          className="border-t border-border-default"
+          total={data.length}
+          page={page}
+          pageSize={pageSize}
+          onPageChange={setPage}
+          onPageSizeChange={(size) => {
+            setPageSize(size);
+            setPage(1);
+          }}
+          noun="factures"
+          nounSingular="facture"
+        />
       </div>
 
-      <Pagination table={table} />
+      <div className="flex flex-wrap items-center gap-x-4 gap-y-2 pl-1 text-caption text-text-secondary">
+        <span>{"État de paiement :"}</span>
+        {LEGEND.map((item) => (
+          <span key={item.label} className="flex items-center gap-1.5">
+            <span
+              aria-hidden
+              className={cn("h-1.5 w-4 rounded-[3px]", item.color)}
+            />
+            {item.label}
+          </span>
+        ))}
+      </div>
+
+      <InfoCallout>
+        {
+          "Règles : « Modifier » et « Annuler » sont actifs tant que la facture n’a aucun paiement approuvé. « Créer un paiement » reste possible tant que le total des paiements est inférieur au montant de la facture."
+        }
+      </InfoCallout>
+
       {selected && (
         <>
           <ViewInvoice

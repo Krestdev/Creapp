@@ -7,7 +7,13 @@ import { useRouter } from "next/navigation";
 import { Button } from "./ui/button";
 import Link from "next/link";
 
-const PageTitle = ({ title, subtitle, color, links = [] }: PageTitleProps) => {
+const PageTitle = ({
+  title,
+  subtitle,
+  color,
+  links = [],
+  actions,
+}: PageTitleProps) => {
   const router = useRouter();
   const getBackground = (
     color: PageTitleProps["color"],
@@ -25,24 +31,43 @@ const PageTitle = ({ title, subtitle, color, links = [] }: PageTitleProps) => {
   };
   return (
     <div className="relative bg-gray-50 rounded-2xl px-8 py-7 gap-4 flex flex-col border">
-      <div className="flex flex-col gap-8 @min-[640px]:flex-row @min-[640px]:gap-2 justify-between z-1">
-        <div className="min-w-0 @min-[640px]:flex-1">
+      <div
+        className={cn(
+          "flex justify-between z-1",
+          actions
+            ? // Les actions passent sous le titre quand la largeur manque.
+              "flex-wrap items-end gap-x-6 gap-y-4"
+            : "flex-col gap-8 @min-[640px]:flex-row @min-[640px]:gap-2",
+        )}
+      >
+        <div
+          className={cn(
+            "min-w-0",
+            actions ? "max-w-full" : "@min-[640px]:flex-1",
+          )}
+        >
           <h1 className="font-bold [overflow-wrap:anywhere]">{title}</h1>
           <h4 className="font-extralight tracking-wide [overflow-wrap:anywhere]">
             {subtitle}
           </h4>
         </div>
-        <Button
-          variant={"outline"}
-          size={"lg"}
-          className="shrink-0 self-start"
-          onClick={() => router.back()}
-        >
-          <ArrowBigLeft />
-          {"Précédent"}
-        </Button>
+        {actions ? (
+          <div className="flex flex-wrap items-center gap-2.5">
+            {actions}
+          </div>
+        ) : (
+          <Button
+            variant={"outline"}
+            size={"lg"}
+            className="shrink-0 self-start"
+            onClick={() => router.back()}
+          >
+            <ArrowBigLeft />
+            {"Précédent"}
+          </Button>
+        )}
       </div>
-      <div className="flex gap-3 flex-wrap z-1">
+      <div className={cn("flex gap-3 flex-wrap z-1", links.length === 0 && "hidden")}>
         {links
           .filter((x) => (!x.hide ? true : x.hide === true && false))
           .map((link, id) => {

@@ -1,75 +1,105 @@
-import { cva, VariantProps } from "class-variance-authority";
+import { StatusBadge } from "@/components/ds/status-badge";
+import { cn } from "@/lib/utils";
+import { ChevronRight, LucideIcon } from "lucide-react";
 import Link from "next/link";
 import React from "react";
-import { Button } from "./ui/button";
-import { cn } from "@/lib/utils";
-import { LucideIcon } from "lucide-react";
 
-const iconVariants = cva("h-16 w-full bg-linear-to-b", {
-  variants: {
-    color: {
-      primary: "from-primary-100 to-primary-200 text-primary-600",
-      secondary: "from-secondary-100 to-secondary-200 text-secondary-600",
-      red: "from-red-100 to-red-200 text-red-600",
-      blue: "from-blue-100 to-blue-200 text-blue-600",
-      yellow: "from-yellow-100 to-yellow-200 text-yellow-600",
-      purple: "from-purple-100 to-purple-200 text-purple-600",
-      green: "from-green-100 to-green-200 text-green-600",
-      emerald: "from-emerald-100 to-emerald-200 text-emerald-600",
-      indigo: "from-indigo-100 to-indigo-200 text-indigo-600",
-      orange: "from-orange-100 to-orange-200 text-orange-600",
-    },
-  },
-  defaultVariants: {
-    color: "purple",
-  },
-});
-
-export interface SettingGroupProps {
-  links: Array<{
-    title: string;
-    description: string;
-    icon: LucideIcon;
-    href: string;
-    color: VariantProps<typeof iconVariants>["color"];
-    auth: Array<string>;
-  }>;
+export interface SettingLink {
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  href: string;
+  /** Anciennes teintes de carte : sans effet depuis le nouveau design. */
+  color?: string;
+  auth?: Array<string>;
+  /** Résumé de l'état du réglage (« 24 utilisateurs · 7 rôles »). */
+  badge?: React.ReactNode;
 }
 
-function SettingsGroup({ links }: SettingGroupProps) {
+export interface SettingGroupProps {
+  links: Array<SettingLink>;
+  /** Réglages secondaires, en cartes compactes sous « Tous les paramètres ». */
+  more?: Array<SettingLink>;
+  moreTitle?: string;
+}
+
+/**
+ * Accueil d'un groupe de réglages (Figma · Paramètres) : les réglages
+ * principaux en lignes (icône, titre, description, état), puis les autres en
+ * cartes compactes.
+ */
+function SettingsGroup({
+  links,
+  more,
+  moreTitle = "Tous les paramètres",
+}: SettingGroupProps) {
   //To-Do: Add auth guards
 
   return (
-    <div className="grid grid-cols-1 @min-[640px]:grid-cols-2 @min-[1400px]:grid-cols-3 items-stretch gap-4 @min-[640px]:gap-5">
-      {links.map((item, id) => (
-        <Link
-          key={id}
-          href={item.href}
-          className="grid rounded-lg border border-gray-200 shadow-sm shadow-gray-100 group"
-        >
-          <span
-            className={cn(
-              "relative overflow-hidden",
-              iconVariants({ color: item.color }),
-            )}
+    <>
+      <div className="flex flex-col gap-3">
+        {links.map((item) => (
+          <Link
+            key={item.href}
+            href={item.href}
+            className="group flex items-center gap-4 rounded-xl border border-border-default bg-surface py-4 pr-4 pl-5 outline-none transition-shadow hover:shadow-md focus-visible:shadow-focus-ring"
           >
-            <item.icon
-              size={120}
-              className="absolute bottom-0 translate-y-1/3 right-1/5 -translate-x-1/2 -rotate-30 group-hover:scale-110 group-hover:rotate-0 transition-transform duration-300"
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-md border border-border-default bg-surface text-brand">
+              <item.icon aria-hidden className="size-5" />
+            </span>
+            <span className="flex min-w-0 flex-1 flex-col gap-0.5">
+              <span className="text-title text-text-primary">{item.title}</span>
+              <span className="text-body text-text-tertiary">
+                {item.description}
+              </span>
+            </span>
+            {item.badge && (
+              <StatusBadge tone="success" className="hidden sm:inline-flex">
+                {item.badge}
+              </StatusBadge>
+            )}
+            <ChevronRight
+              aria-hidden
+              className="size-5 shrink-0 text-text-tertiary transition-transform group-hover:translate-x-0.5"
             />
-          </span>
-          <div className="p-4 flex flex-col gap-1">
-            <h2 className="text-xl font-semibold text-foreground leading-1.2">
-              {item.title}
-            </h2>
-            <p className="text-sm text-muted-foreground">{item.description}</p>
-            <Button className="w-fit mt-auto ml-auto" variant={"outline"}>
-              {"Continuer"}
-            </Button>
+          </Link>
+        ))}
+      </div>
+
+      {more && more.length > 0 && (
+        <>
+          <h2 className="text-heading-3 text-text-primary">{moreTitle}</h2>
+          <div className="grid grid-cols-1 gap-3 @min-[640px]:grid-cols-2 @min-[1200px]:grid-cols-4">
+            {more.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "group flex min-w-0 items-center gap-3 rounded-lg border border-border-default bg-surface py-3 pr-3 pl-3.5 outline-none transition-shadow hover:shadow-md focus-visible:shadow-focus-ring",
+                )}
+              >
+                <item.icon
+                  aria-hidden
+                  className="size-5 shrink-0 text-text-secondary"
+                />
+                <span className="flex min-w-0 flex-1 flex-col">
+                  <span className="truncate text-body-medium text-text-primary">
+                    {item.title}
+                  </span>
+                  <span className="truncate text-caption text-text-tertiary">
+                    {item.description}
+                  </span>
+                </span>
+                <ChevronRight
+                  aria-hidden
+                  className="size-4 shrink-0 text-text-tertiary"
+                />
+              </Link>
+            ))}
           </div>
-        </Link>
-      ))}
-    </div>
+        </>
+      )}
+    </>
   );
 }
 

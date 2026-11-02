@@ -21,6 +21,8 @@ export interface PageTitleProps {
   subtitle: string;
   color?: "aurora" | "aurora-lights" | "cyberpunk";
   links?: Array<NavLink>;
+  /** Actions alignées à droite du titre, à la place de « Précédent » (liste de comptes). */
+  actions?: React.ReactNode;
 }
 
 export type UserRole = "admin" | "user";

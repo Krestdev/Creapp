@@ -99,11 +99,18 @@ function SelectLabel({
   )
 }
 
+/**
+ * `hint` : mention en petit au-dessus du libellé (ex. une référence). Elle
+ * reste hors de `ItemText` : seul le libellé s’affiche dans le champ fermé.
+ */
 function SelectItem({
   className,
   children,
+  hint,
   ...props
-}: React.ComponentProps<typeof SelectPrimitive.Item>) {
+}: React.ComponentProps<typeof SelectPrimitive.Item> & {
+  hint?: React.ReactNode
+}) {
   return (
     <SelectPrimitive.Item
       data-slot="select-item"
@@ -118,7 +125,14 @@ function SelectItem({
           <CheckIcon className="size-4" />
         </SelectPrimitive.ItemIndicator>
       </span>
-      <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      {hint ? (
+        <span className="min-w-0 flex-col items-start! gap-0!">
+          <span className="text-caption text-text-tertiary">{hint}</span>
+          <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+        </span>
+      ) : (
+        <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
+      )}
     </SelectPrimitive.Item>
   )
 }
