@@ -2,14 +2,16 @@
 import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -210,17 +212,19 @@ function EditBank({ open, openChange, bank }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader variant={"secondary"}>
-          <DialogTitle>{bank.label}</DialogTitle>
-          <DialogDescription>{`Modifier les informations du compte`}</DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Banques"}</DrawerEyebrow>
+          <DrawerTitle>{bank.label}</DrawerTitle>
+          <DrawerDescription>{`Modifier les informations du compte`}</DrawerDescription>
+        </DrawerHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="grid gap-4 @min-[540px]/dialog:grid-cols-2"
+            className="flex min-h-0 flex-1 flex-col"
           >
+            <DrawerBody className="grid gap-4 @min-[540px]/dialog:grid-cols-2">
             {/* Intitulé */}
             <FormField
               control={form.control}
@@ -460,7 +464,11 @@ function EditBank({ open, openChange, bank }: Props) {
             />
 
             {/* Submit */}
-            <DialogFooter className="@min-[540px]/dialog:col-span-2">
+            </DrawerBody>
+            <DrawerFooter pinned>
+              <DrawerClose asChild>
+                <Button variant="outline">{"Fermer"}</Button>
+              </DrawerClose>
               <Button
                 type="submit"
                 variant="primary"
@@ -469,14 +477,11 @@ function EditBank({ open, openChange, bank }: Props) {
               >
                 {"Enregistrer"}
               </Button>
-              <DialogClose asChild>
-                <Button variant="outline">{"Fermer"}</Button>
-              </DialogClose>
-            </DialogFooter>
+            </DrawerFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

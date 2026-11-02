@@ -3,7 +3,16 @@ import LoadingPage from "@/components/loading-page";
 import { ProviderDialog } from "@/components/modals/ProviderDialog";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
-import { Dialog, DialogContent, DialogHeader } from "@/components/ui/dialog";
+import {
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -31,7 +40,6 @@ import { providerQ } from "@/queries/providers";
 import { quotationQ } from "@/queries/quotation";
 import { Quotation } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { DialogDescription, DialogTitle } from "@radix-ui/react-dialog";
 import { SelectValue } from "@radix-ui/react-select";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -272,21 +280,26 @@ function EditQuotation({ open, openChange, quotation }: Props) {
   const isError = providersData.isError || quotationsData.isError;
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader variant="secondary">
-          <DialogTitle className="uppercase">
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Commandes"}</DrawerEyebrow>
+          <DrawerTitle>
             {`Devis - ${providerName ?? ""}`}
-          </DialogTitle>
-          <DialogDescription>
+          </DrawerTitle>
+          <DrawerDescription>
             Modifiez les informations du devis
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
-        {isLoading && <LoadingPage />}
+        {isLoading && (
+          <DrawerBody>
+            <LoadingPage />
+          </DrawerBody>
+        )}
 
         {isError && (
-          <div className="flex flex-col items-center justify-center p-8 text-center">
+          <DrawerBody className="flex flex-col items-center justify-center p-8 text-center">
             <p className="text-destructive">
               Erreur lors du chargement des données
             </p>
@@ -300,15 +313,16 @@ function EditQuotation({ open, openChange, quotation }: Props) {
             >
               Réessayer
             </Button>
-          </div>
+          </DrawerBody>
         )}
 
         {!isLoading && !isError && (
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
-              className="max-w-3xl grid grid-cols-1 gap-4 @min-[640px]:grid-cols-2"
+              className="flex min-h-0 flex-1 flex-col"
             >
+              <DrawerBody className="grid grid-cols-1 content-start gap-4 @min-[640px]:grid-cols-2">
               {/* Demande de cotation — locked in edit mode */}
               <FormField
                 control={form.control}
@@ -602,8 +616,9 @@ function EditQuotation({ open, openChange, quotation }: Props) {
                 )}
               />
 
+              </DrawerBody>
               {/* Actions */}
-              <div className="flex justify-end col-span-2 w-full gap-2">
+              <DrawerFooter pinned>
                 <Button
                   type="button"
                   variant="outline"
@@ -621,7 +636,7 @@ function EditQuotation({ open, openChange, quotation }: Props) {
                 >
                   Modifier le devis
                 </Button>
-              </div>
+              </DrawerFooter>
             </form>
             <ProviderDialog
               open={openProviderDialog}
@@ -629,8 +644,8 @@ function EditQuotation({ open, openChange, quotation }: Props) {
             />
           </Form>
         )}
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

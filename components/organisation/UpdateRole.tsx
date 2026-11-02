@@ -15,11 +15,15 @@ import {
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
 import { Role } from "@/types/types";
@@ -82,22 +86,24 @@ export default function UpdateRole({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[90vh] p-0 gap-0 flex flex-col">
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerContent>
         {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white">
+        <DrawerHeader>
+          <DrawerEyebrow>{"Réglages"}</DrawerEyebrow>
+          <DrawerTitle>
             Modifier le besoin
-          </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          </DrawerTitle>
+          <DrawerDescription>
             Modifiez les informations du besoin existant
-          </p>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-6 p-6"
+            className="flex min-h-0 flex-1 flex-col"
           >
+            <DrawerBody className="space-y-6">
             {/* LABEL */}
             <FormField
               control={form.control}
@@ -113,13 +119,15 @@ export default function UpdateRole({
               )}
             />
 
-            {/* SUBMIT */}
-            <Button type="submit" className="w-full">
-              Submit
-            </Button>
+            </DrawerBody>
+            <DrawerFooter pinned>
+              <Button type="submit" variant="primary">
+                Submit
+              </Button>
+            </DrawerFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }

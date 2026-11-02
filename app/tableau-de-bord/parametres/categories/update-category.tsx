@@ -11,13 +11,15 @@ import {
   ComboboxList,
 } from "@/components/ui/combobox";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -275,19 +277,21 @@ export function UpdateCategory({
   }, [fields.length, form]);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[760px]">
-        <DialogHeader variant={"secondary"}>
-          <DialogTitle>{`Catégorie - ${category.label}`}</DialogTitle>
-          <DialogDescription>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Réglages"}</DrawerEyebrow>
+          <DrawerTitle>{`Catégorie - ${category.label}`}</DrawerTitle>
+          <DrawerDescription>
             {"Modifiez les informations de la catégorie"}
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
+          <DrawerBody>
           <form
             onSubmit={form.handleSubmit(onsubmit)}
-            className="flex-1 overflow-y-auto px-6 pb-6 space-y-6"
+            className="space-y-6"
           >
             {/* Informations de base */}
             <div className="flex flex-col gap-4">
@@ -574,10 +578,20 @@ export function UpdateCategory({
           </form>
 
           {/* Footer avec boutons */}
-          <DialogFooter>
+          </DrawerBody>
+          <DrawerFooter pinned>
+            <Button
+              type="button"
+              className="w-fit"
+              onClick={() => onOpenChange(false)}
+              variant={"outline"}
+              disabled={isLoading}
+            >
+              {"Annuler"}
+            </Button>
             <Button
               type="submit"
-              variant={"secondary"}
+              variant="primary"
               className="w-fit"
               onClick={form.handleSubmit(onsubmit)}
               disabled={
@@ -589,18 +603,9 @@ export function UpdateCategory({
             >
               {"Enregistrer"}
             </Button>
-            <Button
-              type="button"
-              className="w-fit"
-              onClick={() => onOpenChange(false)}
-              variant={"outline"}
-              disabled={isLoading}
-            >
-              {"Annuler"}
-            </Button>
-          </DialogFooter>
+          </DrawerFooter>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }

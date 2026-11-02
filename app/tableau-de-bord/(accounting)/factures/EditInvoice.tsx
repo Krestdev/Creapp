@@ -1,13 +1,15 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -72,18 +74,20 @@ function EditInvoice({ open, openChange, invoice }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Modifier le titre de la facture</DialogTitle>
-          <DialogDescription>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Factures"}</DrawerEyebrow>
+          <DrawerTitle>Modifier le titre de la facture</DrawerTitle>
+          <DrawerDescription>
             Modifiez uniquement le titre de la facture. Les autres champs ne
             peuvent pas être modifiés.
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+            <DrawerBody className="space-y-4">
             {/* Titre de la facture - Seul champ modifiable */}
             <FormField
               control={form.control}
@@ -142,18 +146,8 @@ function EditInvoice({ open, openChange, invoice }: Props) {
                 </div>
               </div>
             </div>
-
-            <DialogFooter>
-              <Button
-                type="submit"
-                variant={"primary"}
-                disabled={updateInvoice.isPending}
-                isLoading={updateInvoice.isPending}
-              >
-                {updateInvoice.isPending
-                  ? "Modification..."
-                  : "Modifier le titre"}
-              </Button>
+            </DrawerBody>
+            <DrawerFooter pinned>
               <Button
                 type="button"
                 variant={"outline"}
@@ -165,11 +159,21 @@ function EditInvoice({ open, openChange, invoice }: Props) {
               >
                 Annuler
               </Button>
-            </DialogFooter>
+              <Button
+                type="submit"
+                variant={"primary"}
+                disabled={updateInvoice.isPending}
+                isLoading={updateInvoice.isPending}
+              >
+                {updateInvoice.isPending
+                  ? "Modification..."
+                  : "Modifier le titre"}
+              </Button>
+            </DrawerFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

@@ -2,14 +2,16 @@
 import MultiSelectConditions from "@/components/base/multiSelectConditions";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -91,16 +93,18 @@ function EditTerms({ open, openChange, purchaseOrder, conditions }: Props) {
   });
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader variant={"secondary"}>
-          <DialogTitle>{`Bon de commande - ${
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Commandes"}</DrawerEyebrow>
+          <DrawerTitle>{`Bon de commande - ${
             purchaseOrder?.provider?.name || "Non défini"
-          }`}</DialogTitle>
-          <DialogDescription>
+          }`}</DrawerTitle>
+          <DrawerDescription>
             {"Modifier uniquement les conditions du bon de commande"}
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody>
         <div className="grid gap-4">
           <div className="grid gap-1.5">
             <Label>{"Conditions du bon de commande"}</Label>
@@ -161,28 +165,27 @@ function EditTerms({ open, openChange, purchaseOrder, conditions }: Props) {
             />
           </div>
         </div>
-        <DialogFooter>
-          <div className="flex gap-3 w-full justify-end">
-            <Button
-              type="button"
-              variant={"primary"}
-              disabled={
-                isPending ||
-                selectedConditions.length === 0 ||
-                !isPayDelayValid
-              }
-              isLoading={isPending}
-              onClick={() => mutate()}
-            >
-              {"Modifier"}
-            </Button>
-            <DialogClose asChild>
-              <Button variant={"outline"}>{"Annuler"}</Button>
-            </DialogClose>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
+            <Button variant={"outline"}>{"Annuler"}</Button>
+          </DrawerClose>
+          <Button
+            type="button"
+            variant={"primary"}
+            disabled={
+              isPending ||
+              selectedConditions.length === 0 ||
+              !isPayDelayValid
+            }
+            isLoading={isPending}
+            onClick={() => mutate()}
+          >
+            {"Modifier"}
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

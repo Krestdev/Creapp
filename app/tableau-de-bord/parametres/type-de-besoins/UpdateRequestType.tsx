@@ -2,11 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -117,23 +121,25 @@ export function UpdateRequestType({
   }, [open]); // ✅ seulement open
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[520px] w-full overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
         {/* Header avec fond bordeaux */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8">
-          <DialogTitle className="text-xl font-semibold text-white">
+        <DrawerHeader>
+          <DrawerEyebrow>{"Réglages"}</DrawerEyebrow>
+          <DrawerTitle>
             Modifier le type de besoin
-          </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          </DrawerTitle>
+          <DrawerDescription>
             Mettez à jour les informations du type de besoin
-          </p>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-4 px-6 pb-4"
+            className="flex min-h-0 flex-1 flex-col"
           >
+            <DrawerBody className="space-y-4">
             {/* Titre */}
             <FormField
               control={form.control}
@@ -181,11 +187,19 @@ export function UpdateRequestType({
               )}
             />
 
-            {/* Boutons d'action */}
-            <div className="flex justify-end gap-3 pt-4">
+            </DrawerBody>
+            <DrawerFooter pinned>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                disabled={updateMutation.isPending}
+              >
+                {"Annuler"}
+              </Button>
               <Button
                 type="submit"
-                className="bg-[#8B1538] hover:bg-[#8B1538]/90 text-white"
+                variant="primary"
                 disabled={updateMutation.isPending}
               >
                 {updateMutation.isPending ? (
@@ -197,19 +211,10 @@ export function UpdateRequestType({
                   "Enregistrer"
                 )}
               </Button>
-
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => onOpenChange(false)}
-                disabled={updateMutation.isPending}
-              >
-                Annuler
-              </Button>
-            </div>
+            </DrawerFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }

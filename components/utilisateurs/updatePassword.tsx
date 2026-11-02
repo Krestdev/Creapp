@@ -15,11 +15,15 @@ import {
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
 import { User as UserT } from "@/types/types";
@@ -98,21 +102,25 @@ export default function UpdatePassword({
        RENDER
     ========================= */
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[540px]! p-0 flex flex-col">
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg">
-          <DialogTitle className="text-xl font-semibold">
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Réglages"}</DrawerEyebrow>
+          <DrawerTitle>
             {userData?.firstName + " " + userData?.lastName}
-          </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          </DrawerTitle>
+          <DrawerDescription>
             {
               "Modifier le mot de passe en indiquant les nouvelles informations."
             }
-          </p>
-        </DialogHeader>
-        <div className="px-6 pb-6">
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
+          </DrawerDescription>
+        </DrawerHeader>
+        <Form {...form}>
+          <form
+            onSubmit={form.handleSubmit(onSubmit)}
+            className="flex min-h-0 flex-1 flex-col"
+          >
+            <DrawerBody className="grid grid-cols-1 content-start gap-4 @min-[640px]:grid-cols-2">
               <FormField
                 control={form.control}
                 name="password"
@@ -141,19 +149,27 @@ export default function UpdatePassword({
                   </FormItem>
                 )}
               />
-              <div className="@min-[640px]:col-span-2 w-full inline-flex justify-end">
-                <Button
-                  variant={"primary"}
-                  disabled={update.isPending}
-                  isLoading={update.isPending}
-                >
-                  {"Enregistrer les modifications"}
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </div>
-      </DialogContent>
-    </Dialog>
+            </DrawerBody>
+            <DrawerFooter pinned>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                {"Annuler"}
+              </Button>
+              <Button
+                type="submit"
+                variant={"primary"}
+                disabled={update.isPending}
+                isLoading={update.isPending}
+              >
+                {"Enregistrer les modifications"}
+              </Button>
+            </DrawerFooter>
+          </form>
+        </Form>
+      </DrawerContent>
+    </Drawer>
   );
 }

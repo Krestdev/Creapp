@@ -3,14 +3,16 @@ import MultiSelectConditions from "@/components/base/multiSelectConditions";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -348,17 +350,19 @@ function EditPurchase({
   console.log(form.formState.errors);
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
         {/* En-tête fixe */}
-        <DialogHeader variant={"secondary"}>
-          <DialogTitle>{`Bon de commande - ${
+        <DrawerHeader>
+          <DrawerEyebrow>{"Commandes"}</DrawerEyebrow>
+          <DrawerTitle>{`Bon de commande - ${
             purchaseOrder?.provider?.name || "Non défini"
-          }`}</DialogTitle>
-          <DialogDescription>
+          }`}</DrawerTitle>
+          <DrawerDescription>
             {"Mettre à jour les informations liées au bon de commande"}
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody>
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
@@ -943,24 +947,23 @@ function EditPurchase({
           </form>
         </Form>
         {/* Pied de page fixe avec boutons */}
-        <DialogFooter>
-          <div className="flex gap-3 w-full justify-end">
-            <Button
-              type="submit"
-              form="edit-purchase-form"
-              variant={"primary"}
-              disabled={isPending}
-              isLoading={isPending}
-            >
-              {"Modifier"}
-            </Button>
-            <DialogClose asChild>
-              <Button variant={"outline"}>{"Annuler"}</Button>
-            </DialogClose>
-          </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
+            <Button variant={"outline"}>{"Annuler"}</Button>
+          </DrawerClose>
+          <Button
+            type="submit"
+            form="edit-purchase-form"
+            variant={"primary"}
+            disabled={isPending}
+            isLoading={isPending}
+          >
+            {"Modifier"}
+          </Button>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

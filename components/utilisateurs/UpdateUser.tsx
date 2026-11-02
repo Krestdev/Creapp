@@ -15,11 +15,15 @@ import {
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { userQ } from "@/queries/baseModule";
 import { Role, User as UserT } from "@/types/types";
@@ -164,18 +168,20 @@ export default function UpdateUser({
   console.log(form.formState.errors);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-2xl">
-        <DialogHeader variant={"secondary"}>
-          <DialogTitle>
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Réglages"}</DrawerEyebrow>
+          <DrawerTitle>
             {"Utilisateur - " + userData?.firstName + " " + userData?.lastName}
-          </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          </DrawerTitle>
+          <DrawerDescription>
             {"Modifier l'utilisateur en indiquant les nouvelles informations."}
-          </p>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
+          <DrawerBody>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="grid grid-cols-1 gap-3 @min-[540px]/dialog:grid-cols-2"
@@ -283,9 +289,14 @@ export default function UpdateUser({
               />
             </div>
           </form>
+          </DrawerBody>
 
-          <div className="flex justify-end gap-3 p-6 pt-0">
-            <Button variant="outline" onClick={() => setOpen(false)}>
+          <DrawerFooter pinned>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setOpen(false)}
+            >
               {"Annuler"}
             </Button>
             <Button
@@ -297,9 +308,9 @@ export default function UpdateUser({
             >
               {"Enregistrer"}
             </Button>
-          </div>
+          </DrawerFooter>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }

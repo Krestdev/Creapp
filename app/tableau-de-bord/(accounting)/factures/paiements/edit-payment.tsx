@@ -3,13 +3,15 @@ import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -177,14 +179,16 @@ function EditPayment({ open, openChange, payment }: Props) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader variant={"secondary"}>
-          <DialogTitle>{`Modifier ${payment.title}`}</DialogTitle>
-          <DialogDescription>{`Modifiez les informations du paiement`}</DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Paiements"}</DrawerEyebrow>
+          <DrawerTitle>{`Modifier ${payment.title}`}</DrawerTitle>
+          <DrawerDescription>{`Modifiez les informations du paiement`}</DrawerDescription>
+        </DrawerHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="form-3xl">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+            <DrawerBody className="form-3xl">
             {/* Date limite de soumission */}
             <FormField
               control={form.control}
@@ -397,15 +401,8 @@ function EditPayment({ open, openChange, payment }: Props) {
                 </FormItem>
               )}
             />
-            <DialogFooter className="w-full @min-[640px]:col-span-2">
-              <Button
-                type="submit"
-                variant={"secondary"}
-                disabled={updatePayment.isPending}
-                isLoading={updatePayment.isPending}
-              >
-                {"Mettre à jour la demande"}
-              </Button>
+            </DrawerBody>
+            <DrawerFooter pinned>
               <Button
                 variant={"outline"}
                 onClick={(e) => {
@@ -423,11 +420,19 @@ function EditPayment({ open, openChange, payment }: Props) {
               >
                 {"Annuler"}
               </Button>
-            </DialogFooter>
+              <Button
+                type="submit"
+                variant="primary"
+                disabled={updatePayment.isPending}
+                isLoading={updatePayment.isPending}
+              >
+                {"Mettre à jour la demande"}
+              </Button>
+            </DrawerFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

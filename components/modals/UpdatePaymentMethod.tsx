@@ -2,13 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -133,19 +135,21 @@ export default function UpdatePaymentMethod({
   // RENDER
   // ----------------------------------------------------------------------
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] p-0 gap-0 flex flex-col">
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerContent>
         {/* Header - FIXE EN HAUT */}
-        <DialogHeader className="px-6 pt-6 pb-4 border-b shrink-0">
-          <DialogTitle>{"Modifier le moyen de paiement"}</DialogTitle>
-          <DialogDescription>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Paiements"}</DrawerEyebrow>
+          <DrawerTitle>{"Modifier le moyen de paiement"}</DrawerTitle>
+          <DrawerDescription>
             {"Sélectionnez le moyen de paiement pour ce besoin"}
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
+          <DrawerBody>
           {/* Contenu scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div>
             <div className="space-y-6">
               {/* Informations du besoin */}
               <div className="bg-gray-50 p-4 rounded-lg space-y-2">
@@ -200,7 +204,8 @@ export default function UpdatePaymentMethod({
           </div>
 
           {/* Boutons - FIXE EN BAS */}
-          <DialogFooter className="px-6 py-4 border-t shrink-0">
+          </DrawerBody>
+          <DrawerFooter pinned>
             <Button
               type="button"
               variant="outline"
@@ -224,9 +229,9 @@ export default function UpdatePaymentMethod({
                 "Appliquer"
               )}
             </Button>
-          </DialogFooter>
+          </DrawerFooter>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }

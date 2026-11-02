@@ -3,13 +3,15 @@ import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -227,19 +229,21 @@ export function EditTransferDialog({
   if (banksError || !banks?.data) return <ErrorPage />;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-3xl">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Banques"}</DrawerEyebrow>
+          <DrawerTitle>
             Modifier le transfert
-          </DialogTitle>
-          <DialogDescription>
+          </DrawerTitle>
+          <DrawerDescription>
             Modifiez les informations du transfert existant
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+            <DrawerBody className="space-y-6">
             {/* Libellé - Même layout que le create */}
             <FormField
               control={form.control}
@@ -371,7 +375,8 @@ export function EditTransferDialog({
             />
 
             {/* Footer avec boutons - Style cohérent */}
-            <DialogFooter className="pt-4 border-t">
+            </DrawerBody>
+            <DrawerFooter pinned>
               <Button
                 type="button"
                 variant="outline"
@@ -390,10 +395,10 @@ export function EditTransferDialog({
                   ? "Modification..."
                   : "Enregistrer les modifications"}
               </Button>
-            </DialogFooter>
+            </DrawerFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }

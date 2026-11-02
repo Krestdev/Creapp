@@ -1,14 +1,16 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -78,14 +80,16 @@ function EditPaymentMethodDepenses({
   };
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>{"Modifier le mode de paiment"}</DialogTitle>
-          <DialogDescription>{`Vous allez modifier le mode de paiment de`}</DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Dépenses"}</DrawerEyebrow>
+          <DrawerTitle>{"Modifier le mode de paiment"}</DrawerTitle>
+          <DrawerDescription>{`Vous allez modifier le mode de paiment de`}</DrawerDescription>
+        </DrawerHeader>
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="grid gap-3">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="flex min-h-0 flex-1 flex-col">
+            <DrawerBody className="grid gap-3">
             <FormField
               control={form.control}
               name="methodId"
@@ -116,12 +120,13 @@ function EditPaymentMethodDepenses({
                 </FormItem>
               )}
             />
-            <DialogFooter>
-              <DialogClose asChild>
+            </DrawerBody>
+            <DrawerFooter pinned>
+              <DrawerClose asChild>
                 <Button variant="outline" disabled={updatePayment.isPending}>
                   {"Annuler"}
                 </Button>
-              </DialogClose>
+              </DrawerClose>
               <Button
                 type="submit"
                 disabled={updatePayment.isPending}
@@ -129,11 +134,11 @@ function EditPaymentMethodDepenses({
               >
                 {"Modifier"}
               </Button>
-            </DialogFooter>
+            </DrawerFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

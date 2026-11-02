@@ -29,11 +29,15 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { departmentQ } from "@/queries/departmentModule";
 import { toast } from "sonner";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { useEffect } from "react";
 import { Textarea } from "../ui/textarea";
 import { Plus } from "lucide-react";
@@ -131,22 +135,21 @@ export default function UpdateDepartment({
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[760px] w-full max-h-[90vh] p-0 gap-0 flex flex-col">
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerContent>
         {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 shrink-0">
-          <DialogTitle className="text-xl font-semibold text-white">
+        <DrawerHeader>
+          <DrawerEyebrow>{"Réglages"}</DrawerEyebrow>
+          <DrawerTitle>
             {`Modifier le département ${departmentData?.label}`}
-          </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          </DrawerTitle>
+          <DrawerDescription>
             {"Modifiez les informations du département"}
-          </p>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="flex-1 overflow-y-auto px-6 pb-6"
-          >
+          <DrawerBody>
+          <form onSubmit={form.handleSubmit(onSubmit)}>
             {/* LABEL */}
             <FormField
               control={form.control}
@@ -344,26 +347,25 @@ export default function UpdateDepartment({
               ))}
             </div>
           </form>
-          <div className="flex gap-3 p-6 pt-0 shrink-0 ml-auto">
-            {/* SUBMIT */}
-            <Button
-              type="submit"
-              className="w-fit"
-              onClick={form.handleSubmit(onSubmit)}
-            >
-              {"Enregistrer"}
-            </Button>
+          </DrawerBody>
+          <DrawerFooter pinned>
             <Button
               type="button"
-              className="w-fit"
               onClick={() => setOpen(false)}
               variant={"outline"}
             >
               {"Annuler"}
             </Button>
-          </div>
+            <Button
+              type="submit"
+              variant="primary"
+              onClick={form.handleSubmit(onSubmit)}
+            >
+              {"Enregistrer"}
+            </Button>
+          </DrawerFooter>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }

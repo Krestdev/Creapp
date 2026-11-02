@@ -2,12 +2,14 @@
 import ErrorDialog from "@/components/error-dialog";
 import LoadingDialog from "@/components/loading-dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { queryKeys } from "@/lib/query-keys";
 import { requestQ } from "@/queries/requestModule";
 import { RequestType, User } from "@/types/types";
@@ -62,22 +64,25 @@ function EditRequestAdmin({
 
   if (request.isSuccess)
     return (
-      <Dialog open={open} onOpenChange={openChange}>
-        <DialogContent className="sm:max-w-3xl">
-          <DialogHeader variant={"secondary"}>
-            <DialogTitle>{request.data.data.label}</DialogTitle>
-            <DialogDescription>{"Modification du besoin"}</DialogDescription>
-          </DialogHeader>
-          <div className="flex flex-col gap-1.5 p-3 rounded bg-blue-100">
-            <InfoIcon size={20} className="text-blue-600" />
-            <p className="text-sm">
-              {
-                "Notez que ces modifications seront prises en compte uniquement après validation par un administrateur"
-              }
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <Drawer open={open} onOpenChange={openChange}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerEyebrow>{"Besoins"}</DrawerEyebrow>
+            <DrawerTitle>{request.data.data.label}</DrawerTitle>
+            <DrawerDescription>{"Modification du besoin"}</DrawerDescription>
+          </DrawerHeader>
+          <DrawerBody>
+            <div className="flex flex-col gap-1.5 p-3 rounded bg-blue-100">
+              <InfoIcon size={20} className="text-blue-600" />
+              <p className="text-sm">
+                {
+                  "Notez que ces modifications seront prises en compte uniquement après validation par un administrateur"
+                }
+              </p>
+            </div>
+          </DrawerBody>
+        </DrawerContent>
+      </Drawer>
     );
 }
 

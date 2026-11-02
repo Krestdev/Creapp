@@ -3,11 +3,15 @@ import { SearchableSelect } from "@/components/base/searchableSelect";
 import MultiSelectUsers from "@/components/base/multiSelectUsers";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -135,20 +139,22 @@ function EditService({ open, openChange, service, users }: Props) {
   }));
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader variant="secondary">
-          <DialogTitle>{"Modifier le service"}</DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Services"}</DrawerEyebrow>
+          <DrawerTitle>{"Modifier le service"}</DrawerTitle>
+          <DrawerDescription>
             {"Mettez à jour les informations du service."}
-          </p>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="flex flex-col gap-4"
+            className="flex min-h-0 flex-1 flex-col"
           >
+            <DrawerBody className="flex flex-col gap-4">
             <FormField
               control={form.control}
               name="label"
@@ -226,7 +232,8 @@ function EditService({ open, openChange, service, users }: Props) {
               )}
             />
 
-            <div className="flex justify-end gap-3 pt-2">
+            </DrawerBody>
+            <DrawerFooter pinned>
               <Button
                 type="button"
                 variant="outline"
@@ -242,11 +249,11 @@ function EditService({ open, openChange, service, users }: Props) {
               >
                 {"Enregistrer"}
               </Button>
-            </div>
+            </DrawerFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

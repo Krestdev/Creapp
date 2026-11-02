@@ -1,4 +1,5 @@
 "use client";
+import { ViewGrid, ViewGroup } from "@/components/ds/view-dialog";
 import { Button } from "@/components/ui/button";
 import { cn, getQuotationAmount, XAF } from "@/lib/utils";
 import { Provider, Quotation, User } from "@/types/types";
@@ -18,8 +19,11 @@ import {
 import Link from "next/link";
 import {
   Drawer,
+  DrawerBody,
+  DrawerClose,
   DrawerContent,
   DrawerDescription,
+  DrawerEyebrow,
   DrawerFooter,
   DrawerHeader,
   DrawerTitle,
@@ -51,13 +55,6 @@ export function DevisModal({
   providers,
 }: DetailModalProps) {
   const totalAmount = getQuotationAmount(data, providers);
-
-  // Récupérer les informations de l'utilisateur (à adapter selon votre structure)
-  // const getUserName = (userId: string | number | undefined) => {
-  //   // Ici, vous devriez récupérer le nom de l'utilisateur depuis votre store ou API
-  //   // Pour l'instant, on retourne l'ID ou une valeur par défaut
-  //   return userId ? `Utilisateur ${userId}` : "Non spécifié";
-  // };
 
   // Récupérer le nom du fournisseur (à adapter selon votre structure)
   const getProviderName = (providerId?: number) => {
@@ -112,145 +109,74 @@ export function DevisModal({
   );
 
   return (
-    <Drawer swipeDirection="right" open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className={"w-full sm:max-w-2/3 sm:w-full"}>
-        {/* Header */}
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="sm:max-w-3xl">
         <DrawerHeader>
+          <DrawerEyebrow>{"Commandes"}</DrawerEyebrow>
           <DrawerTitle>{`Devis - ${title || "Sans titre"}`}</DrawerTitle>
           <DrawerDescription>{"Détail du devis"}</DrawerDescription>
         </DrawerHeader>
 
-        <div className="flex-1 overflow-y-auto gap-3 p-4">
-          <div className="w-full flex flex-col gap-3 @min-[640px]/drawer:grid @min-[640px]/drawer:grid-cols-3">
-            {/* Référence */}
-            <div className="view-group">
-              <span className="view-icon">
-                <LucideHash />
-              </span>
-              <div className="flex flex-col">
-                <p className="text-gray-600">{"Référence"}</p>
-                <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
-                  <p className="text-primary text-sm">{data.ref ?? "N/A"}</p>
-                </div>
+        <DrawerBody>
+          <ViewGrid>
+            <ViewGroup icon={LucideHash} label="Référence">
+              <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
+                <p className="text-primary text-sm">{data.ref ?? "N/A"}</p>
               </div>
-            </div>
+            </ViewGroup>
+            <ViewGroup icon={DollarSign} label="Montant total">
+              <p className="font-semibold">{XAF.format(totalAmount)}</p>
+            </ViewGroup>
+            <ViewGroup icon={LucideUserCircle2} label="Fournisseur">
+              <p className="font-semibold">
+                {getProviderName(data.providerId)}
+              </p>
+            </ViewGroup>
+            <ViewGroup icon={LucideUserRound} label="Initié par">
+              <p className="font-semibold uppercase">
+                {getUserName(data.userId)}
+              </p>
+            </ViewGroup>
+            <ViewGroup icon={LucideCalendar} label="Créé le">
+              <p className="font-semibold">{formatDate(data.createdAt)}</p>
+            </ViewGroup>
+            <ViewGroup icon={LucideCalendarFold} label="Date limite">
+              <p className="font-semibold">{formatDate(data.dueDate)}</p>
+            </ViewGroup>
+            <ViewGroup icon={FileIcon} label="Justificatif">
+              <div className="space-y-1">
+                {data.proof && typeof data.proof === "string" ? (
+                  data.proof
+                    .split(";")
+                    .filter((x) => !!x)
+                    .map((proof, index) => (
+                      <Link
+                        key={index}
+                        href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
+                        target="_blank"
+                        className="flex gap-0.5 items-center"
+                      >
+                        <img
+                          src="/images/pdf.png"
+                          alt="preuve"
+                          className="h-7 w-auto aspect-square"
+                        />
+                        <p className="text-foreground font-medium">
+                          {"Devis"}
+                        </p>
+                      </Link>
+                    ))
+                ) : (
+                  <p className="italic">{"Aucune preuve jointe"}</p>
+                )}
+              </div>
+            </ViewGroup>
+            <ViewGroup icon={LucideCalendar} label="Modifié le">
+              <p className="font-semibold">{formatDate(data?.updatedAt)}</p>
+            </ViewGroup>
 
-            {/* Montant */}
-            <div className="view-group">
-              <span className="view-icon">
-                <DollarSign />
-              </span>
-              <div className="flex flex-col">
-                <p className="text-gray-600">{"Montant total"}</p>
-                <p className="text-sm font-semibold">
-                  {XAF.format(totalAmount)}
-                </p>
-              </div>
-            </div>
-
-            {/* Fournisseur */}
-            <div className="view-group">
-              <span className="view-icon">
-                <LucideUserCircle2 />
-              </span>
-              <div className="flex flex-col">
-                <p className="text-gray-600">{"Fournisseur"}</p>
-                <p className="text-sm font-semibold">
-                  {getProviderName(data.providerId)}
-                </p>
-              </div>
-            </div>
-
-            {/* Initié par */}
-            <div className="view-group">
-              <span className="view-icon">
-                <LucideUserRound />
-              </span>
-              <div className="flex flex-col">
-                <p className="text-gray-600">{"Initié par"}</p>
-                <p className="text-sm font-semibold uppercase">
-                  {getUserName(data.userId)}
-                </p>
-              </div>
-            </div>
-
-            {/* Créé le */}
-            <div className="view-group">
-              <span className="view-icon">
-                <LucideCalendar />
-              </span>
-              <div className="flex flex-col">
-                <p className="text-gray-600">{"Créé le"}</p>
-                <p className="text-sm font-semibold">
-                  {formatDate(data.createdAt)}
-                </p>
-              </div>
-            </div>
-
-            {/* Date limite */}
-            <div className="view-group">
-              <span className="view-icon">
-                <LucideCalendarFold />
-              </span>
-              <div className="flex flex-col">
-                <p className="text-gray-600">{"Date limite"}</p>
-                <p className="text-sm font-semibold">
-                  {formatDate(data.dueDate)}
-                </p>
-              </div>
-            </div>
-            {/**Justificatif */}
-            <div className="view-group">
-              <span className="view-icon">
-                <FileIcon />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Justificatif"}</p>
-                <div className="space-y-1">
-                  {data.proof && typeof data.proof === "string" ? (
-                    data.proof
-                      .split(";")
-                      .filter((x) => !!x)
-                      .map((proof, index) => (
-                        <Link
-                          key={index}
-                          href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
-                          target="_blank"
-                          className="flex gap-0.5 items-center"
-                        >
-                          <img
-                            src="/images/pdf.png"
-                            alt="preuve"
-                            className="h-7 w-auto aspect-square"
-                          />
-                          <p className="text-foreground font-medium">
-                            {"Devis"}
-                          </p>
-                        </Link>
-                      ))
-                  ) : (
-                    <p className="italic">{"Aucune preuve jointe"}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Modifié le */}
-            <div className="view-group">
-              <span className="view-icon">
-                <LucideCalendar />
-              </span>
-              <div className="flex flex-col">
-                <p className="text-gray-600">{"Modifié le"}</p>
-                <p className="text-sm font-semibold">
-                  {formatDate(data?.updatedAt)}
-                </p>
-              </div>
-            </div>
-
-            {/* TABLEAU QUI PREND 2 COLONNES */}
-            <div className="col-span-3 w-full overflow-x-auto">
-              <Table className="w-full border rounded-lg bg-white">
+            <div className="col-span-full w-full overflow-x-auto rounded-lg border border-border-default">
+              <Table className="w-full">
                 <TableHeader>
                   <TableRow>
                     <TableHead>{"Besoin"}</TableHead>
@@ -282,7 +208,6 @@ export function DevisModal({
                       <TableRow
                         key={index}
                         className={cn(
-                          index % 2 === 0 ? "bg-white" : "bg-gray-50",
                           el.status === "SELECTED" && "bg-green-50!",
                           el.status === "REJECTED" && "bg-red-50!",
                         )}
@@ -315,53 +240,50 @@ export function DevisModal({
                 </TableBody>
               </Table>
             </div>
-            <div className="col-span-full flex justify-end items-center gap-2">
-              <span className="text-gray-600">{"Total Réduction"}</span>
-              <span className="font-semibold text-gray-900">
-                {XAF.format(totals.totalReduction)}
-              </span>
+            <div className="col-span-full flex flex-col items-end gap-1.5">
+              <div className="flex items-center gap-2">
+                <span className="text-text-secondary">{"Total Réduction"}</span>
+                <span className="font-semibold">
+                  {XAF.format(totals.totalReduction)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-text-secondary">{"Total HT"}</span>
+                <span className="font-semibold">
+                  {XAF.format(totals.totalBase - totals.totalReduction)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-text-secondary">{"Total TVA"}</span>
+                <span className="font-semibold">
+                  {XAF.format(totals.totalTVA)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-text-secondary">{"Total Is/Ir"}</span>
+                <span className="font-semibold">
+                  {XAF.format(totals.totalIsIR)}
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-text-secondary">{"Total TTC"}</span>
+                <span className="rounded-md bg-primary-100 px-3 py-1.5 font-semibold text-primary-700">
+                  {XAF.format(
+                    totals.totalBase -
+                      totals.totalReduction +
+                      totals.totalTVA -
+                      totals.totalIsIR,
+                  )}
+                </span>
+              </div>
             </div>
-            <div className="col-span-full flex justify-end items-center gap-2">
-              <span className="text-gray-600">{"Total HT"}</span>
-              <span className="font-semibold text-gray-900">
-                {XAF.format(totals.totalBase - totals.totalReduction)}
-              </span>
-            </div>
-            <div className="col-span-full flex justify-end items-center gap-2">
-              <span className="text-gray-600">{"Total TVA"}</span>
-              <span className="font-semibold text-gray-900">
-                {XAF.format(totals.totalTVA)}
-              </span>
-            </div>
-            <div className="col-span-full flex justify-end items-center gap-2">
-              <span className="text-gray-600">{"Total Is/Ir"}</span>
-              <span className="font-semibold text-gray-900">
-                {XAF.format(totals.totalIsIR)}
-              </span>
-            </div>
-            <div className="col-span-full flex justify-end items-center gap-2">
-              <span className="text-gray-600">{"Total TTC"}</span>
-              <span className="font-semibold bg-primary-100 py-1.5 px-3 text-primary-700">
-                {XAF.format(
-                  totals.totalBase -
-                    totals.totalReduction +
-                    totals.totalTVA -
-                    totals.totalIsIR,
-                )}
-              </span>
-            </div>
-          </div>
-        </div>
+          </ViewGrid>
+        </DrawerBody>
 
-        {/* Footer */}
-        <DrawerFooter>
-          <Button
-            variant="outline"
-            className="w-fit"
-            onClick={() => onOpenChange(false)}
-          >
-            {"Fermer"}
-          </Button>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
+            <Button variant="outline">{"Fermer"}</Button>
+          </DrawerClose>
         </DrawerFooter>
       </DrawerContent>
     </Drawer>

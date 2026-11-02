@@ -9,13 +9,15 @@
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Label } from "@/components/ui/label";
 import {
   Popover,
@@ -71,16 +73,18 @@ function EditDueDateTemp({ request, open, onOpenChange }: Props) {
   });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>{"Modifier la date limite (temporaire)"}</DialogTitle>
-          <DialogDescription>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Besoins"}</DrawerEyebrow>
+          <DrawerTitle>{"Modifier la date limite (temporaire)"}</DrawerTitle>
+          <DrawerDescription>
             {request?.label
               ? `Besoin : ${request.label}`
               : "Sélectionnez la nouvelle date limite."}
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody>
 
         <div className="grid gap-2">
           <Label>{"Date limite"}</Label>
@@ -112,8 +116,8 @@ function EditDueDateTemp({ request, open, onOpenChange }: Props) {
             </PopoverContent>
           </Popover>
         </div>
-
-        <DialogFooter>
+        </DrawerBody>
+        <DrawerFooter pinned>
           <Button
             variant="outline"
             type="button"
@@ -129,9 +133,9 @@ function EditDueDateTemp({ request, open, onOpenChange }: Props) {
           >
             {isPending ? "Enregistrement..." : "Enregistrer"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

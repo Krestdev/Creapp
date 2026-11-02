@@ -4,12 +4,15 @@ import { SuccessModal } from "@/components/modals/success-modal";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -183,22 +186,24 @@ export function UpdateCotationModal({
 
   return (
     <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-3xl">
-          <DialogHeader variant={"secondary"}>
-            <DialogTitle>{"Modifier la demande de cotation"}</DialogTitle>
-            <DialogDescription>
+      <Drawer open={open} onOpenChange={onOpenChange}>
+        <DrawerContent>
+          <DrawerHeader>
+            <DrawerEyebrow>{"Commandes"}</DrawerEyebrow>
+            <DrawerTitle>{"Modifier la demande de cotation"}</DrawerTitle>
+            <DrawerDescription>
               {"Modifiez les informations de la demande de cotation"}
-            </DialogDescription>
-          </DialogHeader>
+            </DrawerDescription>
+          </DrawerHeader>
 
-          <div className="flex flex-row flex-1 gap-4 p-6">
+          <DrawerBody className="flex flex-col gap-6">
             {/* Formulaire */}
-            <div className="w-1/3">
+            <div>
               <Form {...form}>
                 <form
+                  id="update-cotation-form"
                   onSubmit={form.handleSubmit(handleSubmit)}
-                  className="space-y-8"
+                  className="space-y-6"
                 >
                   <FormField
                     control={form.control}
@@ -290,7 +295,7 @@ export function UpdateCotationModal({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Nom</FormLabel>
-                          <FormControl className="w-[320px]">
+                          <FormControl className="w-full">
                             <Input placeholder="ex. Cédric" {...field} />
                           </FormControl>
                           <FormMessage />
@@ -304,7 +309,7 @@ export function UpdateCotationModal({
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Numéro de téléphone</FormLabel>
-                          <FormControl className="w-[320px]">
+                          <FormControl className="w-full">
                             <Input
                               placeholder="ex. 06 12 34 56 78"
                               {...field}
@@ -315,34 +320,13 @@ export function UpdateCotationModal({
                       )}
                     />
                   </div>
-
-                  {/* Boutons d'action */}
-                  <div className="flex justify-end gap-4 pt-4 border-t shrink-0">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={handleCancel}
-                      disabled={updateCommand.isPending}
-                    >
-                      Annuler
-                    </Button>
-                    <Button
-                      variant={"primary"}
-                      type="submit"
-                      disabled={updateCommand.isPending}
-                    >
-                      {updateCommand.isPending
-                        ? "Mise à jour..."
-                        : "Mettre à jour"}
-                    </Button>
-                  </div>
                 </form>
               </Form>
             </div>
 
             {/* Liste des besoins sélectionnés */}
-            <div className="w-2/3">
-              <div className="flex flex-col gap-4 w-full border border-gray-200 rounded-md p-4 max-h-[calc(90vh-200px)] overflow-y-auto">
+            <div>
+              <div className="flex flex-col gap-4 w-full border border-border-default rounded-md p-4">
                 <div className="flex justify-between items-center">
                   <p className="text-[18px] font-semibold">
                     {`Besoins sélectionnés (${selected.length})`}
@@ -362,9 +346,27 @@ export function UpdateCotationModal({
                 />
               </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DrawerBody>
+          <DrawerFooter pinned>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handleCancel}
+              disabled={updateCommand.isPending}
+            >
+              {"Annuler"}
+            </Button>
+            <Button
+              variant={"primary"}
+              type="submit"
+              form="update-cotation-form"
+              disabled={updateCommand.isPending}
+            >
+              {updateCommand.isPending ? "Mise à jour..." : "Mettre à jour"}
+            </Button>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
 
       {/* Modal de succès */}
       <SuccessModal

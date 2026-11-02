@@ -15,11 +15,15 @@ import {
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { vehicleQ } from "@/queries/vehicule";
 import { Vehicle } from "@/types/types";
@@ -122,22 +126,24 @@ export default function UpdateVehicle({
      RENDER
   ========================= */
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[540px] p-0 flex flex-col">
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg">
-          <DialogTitle className="text-xl font-semibold uppercase">
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Véhicules"}</DrawerEyebrow>
+          <DrawerTitle>
             {`Véhicule - ${vehicleData?.label} ${vehicleData?.mark}`}
-          </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          </DrawerTitle>
+          <DrawerDescription>
             {"Modifier le vehicule en indiquant les nouvelles informations."}
-          </p>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="w-full px-6 flex flex-col gap-6"
+            className="flex min-h-0 flex-1 flex-col"
           >
+            <DrawerBody className="flex flex-col gap-6">
             <FormField
               control={form.control}
               name="label"
@@ -201,9 +207,14 @@ export default function UpdateVehicle({
               )}
             />
 
-            <div className="flex justify-end gap-3 p-6 pt-0">
-              <Button variant="outline" onClick={() => setOpen(false)}>
-                Annuler
+            </DrawerBody>
+            <DrawerFooter pinned>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setOpen(false)}
+              >
+                {"Annuler"}
               </Button>
               <Button
                 variant={"primary"}
@@ -215,10 +226,10 @@ export default function UpdateVehicle({
                   ? "Enregistrement..."
                   : "Enregistrer"}
               </Button>
-            </div>
+            </DrawerFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }

@@ -2,14 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -238,22 +240,21 @@ export default function UpdateRHRequest({
   // RENDER
   // ----------------------------------------------------------------------
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] p-0 gap-0 flex flex-col">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
         {/* Header - FIXE EN HAUT */}
-        <DialogHeader
-          variant={"secondary"}
-          className="px-6 pt-6 pb-4 border-b shrink-0"
-        >
-          <DialogTitle>{`Modifier - ${requestData.label}`}</DialogTitle>
-          <DialogDescription>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Besoins"}</DrawerEyebrow>
+          <DrawerTitle>{`Modifier - ${requestData.label}`}</DrawerTitle>
+          <DrawerDescription>
             {"Modifiez les informations du besoin en ressources humaines"}
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
+          <DrawerBody>
           {/* Contenu scrollable */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div>
             <div className="space-y-4">
               {/* PROJET */}
               <FormField
@@ -481,8 +482,9 @@ export default function UpdateRHRequest({
           </div>
 
           {/* Boutons - FIXE EN BAS */}
-          <DialogFooter className="px-6 py-4 border-t shrink-0">
-            <DialogClose asChild>
+          </DrawerBody>
+          <DrawerFooter pinned>
+            <DrawerClose asChild>
               <Button
                 type="button"
                 variant="outline"
@@ -490,19 +492,19 @@ export default function UpdateRHRequest({
               >
                 {"Annuler"}
               </Button>
-            </DialogClose>
+            </DrawerClose>
             <Button
               type="submit"
               disabled={updateMutation.isPending || !requestData}
               isLoading={updateMutation.isPending}
-              variant={"secondary"}
+              variant="primary"
               onClick={form.handleSubmit(onSubmit)}
             >
               {"Enregistrer les modifications"}
             </Button>
-          </DialogFooter>
+          </DrawerFooter>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }

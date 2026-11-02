@@ -10,14 +10,16 @@ import {
   ComboboxList,
 } from "@/components/ui/combobox";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -189,24 +191,26 @@ function EditTypeOthers({
   );
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader variant={"secondary"}>
-          <DialogTitle>
+    <Drawer open={open} onOpenChange={handleOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Besoins"}</DrawerEyebrow>
+          <DrawerTitle>
             {request?.label
               ? `Modifier - ${request.label}`
               : "Modifier le besoin"}
-          </DialogTitle>
-          <DialogDescription>
+          </DrawerTitle>
+          <DrawerDescription>
             {"Modifiez les informations du besoin"}
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="grid grid-cols-1 gap-4 @min-[520px]/dialog:grid-cols-2"
+            className="flex min-h-0 flex-1 flex-col"
           >
+            <DrawerBody className="grid grid-cols-1 gap-4 @min-[520px]/dialog:grid-cols-2">
             <FormField
               control={form.control}
               name="label"
@@ -456,25 +460,26 @@ function EditTypeOthers({
             />
 
             {/* Boutons */}
-            <DialogFooter className="w-full col-span-full mt-4">
-              <DialogClose asChild>
+            </DrawerBody>
+            <DrawerFooter pinned>
+              <DrawerClose asChild>
                 <Button type="button" variant="outline" disabled={isPending}>
                   {"Annuler"}
                 </Button>
-              </DialogClose>
+              </DrawerClose>
               <Button
                 type="submit"
                 disabled={isPending}
                 isLoading={isPending}
-                variant={"secondary"}
+                variant="primary"
               >
                 {"Enregistrer les modifications"}
               </Button>
-            </DialogFooter>
+            </DrawerFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

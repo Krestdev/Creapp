@@ -6,14 +6,16 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 
 import FilesUpload from "@/components/comp-547";
@@ -142,13 +144,14 @@ export default function UpdateReception({
   const cmdReqs = cmdReqst.find((c) => c.id === (devi as any)?.commandRequestId); // adapte si besoin
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Commandes"}</DrawerEyebrow>
+          <DrawerTitle>
             {cmdReqs?.title ?? "Non défini"}
-          </DialogTitle>
-          <DialogDescription>
+          </DrawerTitle>
+          <DrawerDescription>
             {`Compléter la réception — Statut: ${
               receptionStatus === "PENDING"
                 ? "En attente"
@@ -156,10 +159,9 @@ export default function UpdateReception({
                   ? "Partielle"
                   : "Complète"
             }`}
-          </DialogDescription>
-        </DialogHeader>
-
-        <div className="grid gap-4">
+          </DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="grid content-start gap-4">
           {/* actions rapides */}
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="text-sm text-muted-foreground">
@@ -253,8 +255,13 @@ export default function UpdateReception({
             <Textarea value={note} onChange={(e)=>{setNote(e.target.value)}} placeholder="Commentaires sur la réception" />
           </div>
 
-          {/* footer actions */}
-          <DialogFooter>
+        </DrawerBody>
+        <DrawerFooter pinned>
+            <DrawerClose asChild>
+              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                {"Annuler"}
+              </Button>
+            </DrawerClose>
             <Button
               type="button"
               variant="primary"
@@ -264,14 +271,8 @@ export default function UpdateReception({
             >
               {"Enregistrer"}
             </Button>
-            <DialogClose asChild>
-              <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-                {"Annuler"}
-              </Button>
-            </DialogClose>
-          </DialogFooter>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

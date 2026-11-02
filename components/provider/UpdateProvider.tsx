@@ -13,11 +13,15 @@ import {
 } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Input } from "@/components/ui/input";
 import { providerQ } from "@/queries/providers";
 import { Provider } from "@/types/types";
@@ -243,16 +247,18 @@ export default function UpdateProvider({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-3xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader variant={"secondary"}>
-          <DialogTitle>{`Fournisseur - ${providerData?.name || ""}`}</DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Réglages"}</DrawerEyebrow>
+          <DrawerTitle>{`Fournisseur - ${providerData?.name || ""}`}</DrawerTitle>
+          <DrawerDescription>
             {"Modifiez les informations du fournisseur existant"}
-          </p>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
+          <DrawerBody>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="grid gap-4 @min-[540px]/dialog:grid-cols-2"
@@ -751,15 +757,16 @@ export default function UpdateProvider({
               )}
             />
           </form>
+          </DrawerBody>
 
-          <div className="flex gap-3 p-6 pt-0 shrink-0 ml-auto">
+          <DrawerFooter pinned>
             <Button
               type="button"
               variant="outline"
               onClick={() => setOpen(false)}
               disabled={providerMutation.isPending}
             >
-              Annuler
+              {"Annuler"}
             </Button>
             <Button
               type="submit"
@@ -770,9 +777,9 @@ export default function UpdateProvider({
             >
               {"Enregistrer"}
             </Button>
-          </div>
+          </DrawerFooter>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }

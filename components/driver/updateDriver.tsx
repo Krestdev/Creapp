@@ -2,13 +2,15 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -141,18 +143,20 @@ export default function UpdateDriver({
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader variant={"secondary"}>
-          <DialogTitle>
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Véhicules"}</DrawerEyebrow>
+          <DrawerTitle>
             {`Chauffeur - ${driverData?.firstName} ${driverData?.lastName}`}
-          </DialogTitle>
-          <DialogDescription>
+          </DrawerTitle>
+          <DrawerDescription>
             {"Modifiez les informations du chauffeur existant"}
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
+          <DrawerBody>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
             className="max-w-3xl w-full grid grid-cols-1 gap-3 @min-[540px]/dialog:grid-cols-2"
@@ -239,8 +243,8 @@ export default function UpdateDriver({
               )}
             />
           </form>
-
-          <DialogFooter>
+          </DrawerBody>
+          <DrawerFooter pinned>
             <Button
               type="button"
               variant="outline"
@@ -258,9 +262,9 @@ export default function UpdateDriver({
             >
               {"Enregistrer"}
             </Button>
-          </DialogFooter>
+          </DrawerFooter>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }

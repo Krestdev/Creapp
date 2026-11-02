@@ -1,13 +1,15 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
     Form,
     FormControl,
@@ -81,19 +83,21 @@ function UpdateCondition({ open, openChange, data }: Props) {
     };
 
     return (
-        <Dialog open={open} onOpenChange={openChange}>
-            <DialogContent>
-                <DialogHeader variant={"secondary"}>
-                    <DialogTitle>
+        <Drawer open={open} onOpenChange={openChange}>
+            <DrawerContent>
+                <DrawerHeader>
+                  <DrawerEyebrow>{"Réglages"}</DrawerEyebrow>
+                    <DrawerTitle>
                         {`Modifier ${data.title}`}
-                    </DialogTitle>
-                    <DialogDescription>{"Mettre à jour les informations relatives à cette condition"}</DialogDescription>
-                </DialogHeader>
+                    </DrawerTitle>
+                    <DrawerDescription>{"Mettre à jour les informations relatives à cette condition"}</DrawerDescription>
+                </DrawerHeader>
                 <Form {...form}>
                     <form
                         onSubmit={form.handleSubmit(onSubmit)}
-                        className="flex flex-col gap-3"
+                        className="flex min-h-0 flex-1 flex-col"
                     >
+                      <DrawerBody className="flex flex-col gap-3">
                         <FormField
                             control={form.control}
                             name="title"
@@ -126,16 +130,9 @@ function UpdateCondition({ open, openChange, data }: Props) {
                                 </FormItem>
                             )}
                         />
-                        <DialogFooter>
-                            <Button
-                                type="submit"
-                                variant={"accent"}
-                                disabled={update.isPending}
-                                isLoading={update.isPending}
-                            >
-                                {"Enregistrer les modifications"}
-                            </Button>
-                            <Button
+                      </DrawerBody>
+                      <DrawerFooter pinned>
+                        <Button
                                 variant={"outline"}
                                 onClick={(e) => {
                                     e.preventDefault();
@@ -145,11 +142,19 @@ function UpdateCondition({ open, openChange, data }: Props) {
                             >
                                 {"Annuler"}
                             </Button>
-                        </DialogFooter>
+                        <Button
+                                type="submit"
+                                variant="primary"
+                                disabled={update.isPending}
+                                isLoading={update.isPending}
+                            >
+                                {"Enregistrer les modifications"}
+                            </Button>
+                      </DrawerFooter>
                     </form>
                 </Form>
-            </DialogContent>
-        </Dialog>
+            </DrawerContent>
+        </Drawer>
     );
 }
 

@@ -2,14 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -225,17 +227,19 @@ export default function UpdateRequestFac({
   // RENDER
   // ----------------------------------------------------------------------
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
         {/* Header - FIXE EN HAUT */}
-        <DialogHeader variant={"secondary"}>
-          <DialogTitle>{requestData.label}</DialogTitle>
-          <DialogDescription>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Besoins"}</DrawerEyebrow>
+          <DrawerTitle>{requestData.label}</DrawerTitle>
+          <DrawerDescription>
             {"Modifiez les informations du besoin"}
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
+          <DrawerBody>
           {/* Contenu scrollable */}
           <div className="flex flex-col @min-[640px]/dialog:grid @min-[640px]/dialog:grid-cols-2 gap-4">
             {/* PROJET */}
@@ -397,8 +401,9 @@ export default function UpdateRequestFac({
             />
           </div>
           {/* Boutons - FIXE EN BAS */}
-          <DialogFooter className="w-full">
-            <DialogClose asChild>
+          </DrawerBody>
+          <DrawerFooter pinned>
+            <DrawerClose asChild>
               <Button
                 type="button"
                 variant="outline"
@@ -406,19 +411,19 @@ export default function UpdateRequestFac({
               >
                 {"Annuler"}
               </Button>
-            </DialogClose>
+            </DrawerClose>
             <Button
               type="submit"
-              variant={"secondary"}
+              variant="primary"
               disabled={updateMutation.isPending || !requestData}
               isLoading={updateMutation.isPending}
               onClick={form.handleSubmit(onSubmit)}
             >
               {"Modifier la demande"}
             </Button>
-          </DialogFooter>
+          </DrawerFooter>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }

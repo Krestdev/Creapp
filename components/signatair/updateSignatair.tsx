@@ -7,11 +7,15 @@ import { z } from "zod";
 import { Form, FormLabel } from "@/components/ui/form";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { userQ } from "@/queries/baseModule";
 import { Signatair, User } from "@/types/types";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -220,18 +224,19 @@ export default function EditSignatairForm({
      RENDER
   ========================= */
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-[840px] p-0 flex flex-col max-h-[90vh]">
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-t-lg">
-          <DialogTitle className="text-xl font-semibold uppercase">
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Signatures"}</DrawerEyebrow>
+          <DrawerTitle>
             {`Modifier le signataire - ${signatair?.Bank?.label} - ${signatair?.payTypes?.label}`}
-          </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
+          </DrawerTitle>
+          <DrawerDescription>
             Modifier les informations du signataire
-          </p>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
-        <div className="flex-1 overflow-y-auto p-6">
+        <DrawerBody>
           <Form {...form}>
             <form
               onSubmit={form.handleSubmit(onSubmit)}
@@ -396,11 +401,12 @@ export default function EditSignatairForm({
               </div>
             </form>
           </Form>
-        </div>
+        </DrawerBody>
 
         {/* Actions */}
-        <div className="flex gap-3 p-6 pt-0 border-t ml-auto">
+        <DrawerFooter pinned>
           <Button
+            type="button"
             variant="outline"
             onClick={() => setOpen(false)}
             disabled={signatairMutation.isPending}
@@ -416,8 +422,8 @@ export default function EditSignatairForm({
           >
             {signatairMutation.isPending ? "Enregistrement..." : "Enregistrer"}
           </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

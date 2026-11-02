@@ -2,14 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -128,21 +130,23 @@ export default function UpdateProject({
   // RENDER
   // ----------------------------------------------------------------------
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent>
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerContent>
         {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader>
-          <DialogTitle>{`Projet - ${projectData?.label}`}</DialogTitle>
-          <DialogDescription>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Projets"}</DrawerEyebrow>
+          <DrawerTitle>{`Projet - ${projectData?.label}`}</DrawerTitle>
+          <DrawerDescription>
             {"Modifiez les informations du projet existant"}
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
 
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onsubmit)}
-            className="w-full grid gap-2"
+            className="flex min-h-0 flex-1 flex-col"
           >
+            <DrawerBody className="w-full grid gap-2">
             <FormField
               control={form.control}
               name="label"
@@ -207,7 +211,13 @@ export default function UpdateProject({
                 </FormItem>
               )}
             />
-            <DialogFooter className="sticky bottom-0">
+            </DrawerBody>
+            <DrawerFooter pinned>
+              <DrawerClose asChild>
+                <Button variant={"outline"} disabled={projectApi.isPending}>
+                  {"Annuler"}
+                </Button>
+              </DrawerClose>
               <Button
                 disabled={projectApi.isPending}
                 type="submit"
@@ -216,16 +226,11 @@ export default function UpdateProject({
               >
                 {"Enregistrer"}
               </Button>
-              <DialogClose asChild>
-                <Button variant={"outline"} disabled={projectApi.isPending}>
-                  {"Annuler"}
-                </Button>
-              </DialogClose>
-            </DialogFooter>
+            </DrawerFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }
 {

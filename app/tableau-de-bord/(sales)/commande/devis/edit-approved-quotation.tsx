@@ -10,14 +10,16 @@ import {
   ComboboxList,
 } from "@/components/ui/combobox";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Form,
   FormControl,
@@ -221,16 +223,17 @@ function EditApprovedQuotation({ open, openChange, quotation }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader variant={"secondary"}>
-          <DialogTitle>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Commandes"}</DrawerEyebrow>
+          <DrawerTitle>
             {quotation.commandRequest.title ?? "Modification du Devis"}
-          </DialogTitle>
-          <DialogDescription>
+          </DrawerTitle>
+          <DrawerDescription>
             {"Demande de modification de devis"}
-          </DialogDescription>
-        </DialogHeader>
+          </DrawerDescription>
+        </DrawerHeader>
         <div className="flex flex-col gap-1.5 p-3 rounded bg-blue-100">
           <InfoIcon size={20} className="text-blue-600" />
           <p className="text-sm">
@@ -242,8 +245,9 @@ function EditApprovedQuotation({ open, openChange, quotation }: Props) {
         <Form {...form}>
           <form
             onSubmit={form.handleSubmit(onSubmit)}
-            className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3"
+            className="flex min-h-0 flex-1 flex-col"
           >
+            <DrawerBody className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3">
             <FormField
               control={form.control}
               name="action"
@@ -533,7 +537,17 @@ function EditApprovedQuotation({ open, openChange, quotation }: Props) {
                 </>
               )
             }
-            <DialogFooter className="col-span-full">
+            </DrawerBody>
+            <DrawerFooter pinned>
+              <DrawerClose asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  disabled={submitModification.isPending}
+                >
+                  {"Annuler"}
+                </Button>
+              </DrawerClose>
               <Button
                 type="submit"
                 isLoading={submitModification.isPending}
@@ -543,20 +557,11 @@ function EditApprovedQuotation({ open, openChange, quotation }: Props) {
               >
                 {"Soumettre"}
               </Button>
-              <DialogClose asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  disabled={submitModification.isPending}
-                >
-                  {"Annuler"}
-                </Button>
-              </DialogClose>
-            </DialogFooter>
+            </DrawerFooter>
           </form>
         </Form>
-      </DialogContent>
-    </Dialog>
+      </DrawerContent>
+    </Drawer>
   );
 }
 
