@@ -1,12 +1,23 @@
 "use client";
-import { Button } from "@/components/ui/button";
+import { ViewDialog, ViewGrid, ViewGroup } from "@/components/ds/view-dialog";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { CommandRequestT } from "@/types/types";
+import {
+  CalendarFoldIcon,
+  CalendarIcon,
+  LucideHash,
+  PhoneIcon,
+  ScrollTextIcon,
+  SquareAsteriskIcon,
+  UserRoundIcon,
+} from "lucide-react";
 import { DownloadButton } from "../bdcommande/TéléchargeButton";
 
 interface DetailOrderProps {
@@ -15,154 +26,78 @@ interface DetailOrderProps {
   data: CommandRequestT | null;
 }
 
+const longDate = (value: Date | string) =>
+  new Date(value).toLocaleDateString("fr-FR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+
 export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
   if (!data) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[750px] overflow-y-auto p-0 gap-0 overflow-x-hidden border-none flex flex-col">
-        {/* Header with burgundy background */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
-          <DialogTitle className="text-xl font-semibold text-white">
-            {data.title}
-          </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">
-            {"Informations relatives à la commande"}
+    <ViewDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`Demande de cotation - ${data.title}`}
+      description="Informations relatives à la demande de cotation"
+      footer={<DownloadButton data={data} />}
+    >
+      <ViewGrid>
+        <ViewGroup icon={SquareAsteriskIcon} label="Objet">
+          <p className="font-semibold">{data.title || "N/A"}</p>
+        </ViewGroup>
+        <ViewGroup icon={LucideHash} label="Référence">
+          <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
+            <p className="text-primary-600 text-sm">
+              {data.reference || "N/A"}
+            </p>
+          </div>
+        </ViewGroup>
+        <ViewGroup icon={CalendarFoldIcon} label="Date limite">
+          <p className="font-semibold">
+            {data.dueDate ? longDate(data.dueDate) : "-"}
           </p>
-        </DialogHeader>
-        {/* <div className="m-4">
-          <CotationPDF data={data} />
-        </div> */}
-        <div className="w-full p-6 text-sm leading-relaxed">
-          {/* TITRE */}
-          <div className="mb-3">
-            <h2 className="text-[16px] font-bold uppercase tracking-wide text-[#8A0035]">
-              {"Demande de Cotation"}
-            </h2>
+        </ViewGroup>
+        <ViewGroup icon={UserRoundIcon} label="Contact principal">
+          <p className="font-semibold">{data.name || "N/A"}</p>
+        </ViewGroup>
+        <ViewGroup icon={PhoneIcon} label="Téléphone">
+          <p className="font-semibold">{data.phone || "N/A"}</p>
+        </ViewGroup>
+        <ViewGroup icon={CalendarIcon} label="Créé le">
+          <p className="font-semibold">{longDate(data.createdAt)}</p>
+        </ViewGroup>
+        <ViewGroup icon={ScrollTextIcon} label="Liste des éléments" wide>
+          <div className="mt-1 w-full overflow-x-auto rounded-lg border border-border-default">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{"Titre du besoin"}</TableHead>
+                  <TableHead>{"Description et spécifications"}</TableHead>
+                  <TableHead>{"Unité"}</TableHead>
+                  <TableHead>{"Quantité"}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(data.besoins ?? []).map((item, i) => (
+                  <TableRow key={item.id ?? i}>
+                    <TableCell className="whitespace-normal normal-case">
+                      {item.label || "-"}
+                    </TableCell>
+                    <TableCell className="whitespace-normal normal-case">
+                      {item.description || "-"}
+                    </TableCell>
+                    <TableCell className="normal-case">{item.unit || "-"}</TableCell>
+                    <TableCell className="normal-case">{item.quantity || "-"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
-
-          {/* INFORMATIONS */}
-          <div className="flex flex-col mb-6 space-y-2">
-            <div className="flex gap-2">
-              <p className="w-fit font-semibold underline text-[10px]">
-                {"Objet :"}
-              </p>
-              <p className="flex-1 text-[10px]">{data.title}</p>
-            </div>
-
-            <div className="flex gap-2">
-              <p className="w-fit font-semibold underline text-[10px]">
-                {"Référence :"}
-              </p>
-              <p className="flex-1 text-[10px]">{data.reference}</p>
-            </div>
-
-            <div className="flex gap-2">
-              <p className="w-fit font-semibold underline text-[10px]">
-                {"Date limite :"}
-              </p>
-              <p className="flex-1 text-[10px]">
-                {data.dueDate
-                  ? new Date(data.dueDate).toLocaleDateString("fr-FR", {
-                      day: "numeric",
-                      month: "long",
-                      year: "numeric",
-                    })
-                  : "-"}
-              </p>
-            </div>
-
-            {/* CONTACT */}
-            <div className="flex flex-col mt-4 space-y-1">
-              <div className="flex gap-2">
-                <p className="w-fit font-semibold underline text-[10px]">
-                  {"Contact principal :"}
-                </p>
-                <p className="flex-1 text-[10px]">{data.name}</p>
-              </div>
-
-              <div className="flex gap-2">
-                <p className="w-fit font-semibold underline text-[10px]">
-                  {"Téléphone :"}
-                </p>
-                <p className="flex-1 text-[10px]">{data.phone}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* TITRE SECTION */}
-          <div className="mb-3">
-            <h3 className="text-[14px] font-semibold uppercase tracking-wide">
-              {"Liste des éléments"}
-            </h3>
-          </div>
-
-          {/* TABLEAU */}
-          {/* TABLEAU */}
-          <div className="border border-blacK mb-6">
-            {/* HEADER */}
-            <div className="flex bg-gray-100 border-b border-black text-[12px] leading-tight font-bold uppercase">
-              <div className="border-black p-2 w-[31%]">
-                {"TITRE DU BESOIN"}
-              </div>
-
-              <div className="border-black p-2 w-[39%]">
-                {"DESCRIPTION DÉTAILLÉE & SPÉCIFICATIONS"}
-              </div>
-
-              <div className="border-black p-2 w-[13%]">{"UNITE"}</div>
-
-              <div className="p-2 w-[13%]">{"QUANTITÉ"}</div>
-            </div>
-
-            {/* ROWS */}
-            {data.besoins?.map((item, i) => (
-              <div
-                key={i}
-                className="flex border-b border-gray-300 text-[12px] leading-snug"
-              >
-                <div className="border-black p-2 w-[31%]">
-                  {item.label || "-"}
-                </div>
-
-                <div className="border-black p-2 w-[39%]">
-                  {item.description || "-"}
-                </div>
-
-                <div className="border-black p-2 w-[13%]">
-                  {item.unit || "-"}
-                </div>
-
-                <div className="border-black p-2 w-[13%]">
-                  {item.quantity || "-"}
-                </div>
-              </div>
-            ))}
-          </div>
-
-          {/* FOOTER */}
-          <div className="pt-4 text-left text-xs italic text-gray-600">
-            Créé le{" "}
-            {new Date(data.createdAt).toLocaleDateString("fr-FR", {
-              day: "numeric",
-              month: "long",
-              year: "numeric",
-            })}
-            .
-          </div>
-        </div>
-        {/* Footer buttons */}
-        <div className="flex w-full justify-end gap-3 p-6 pt-0">
-          <DownloadButton data={data} />
-          <Button
-            variant="outline"
-            className="bg-transparent"
-            onClick={() => onOpenChange(false)}
-          >
-            {"Fermer"}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </ViewGroup>
+      </ViewGrid>
+    </ViewDialog>
   );
 }

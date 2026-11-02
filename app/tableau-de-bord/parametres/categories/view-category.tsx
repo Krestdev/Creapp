@@ -34,7 +34,7 @@ export function ViewCategory({
 }: ShowCategoryProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle>{`Catégorie - ${category.label}`}</DialogTitle>
           <DialogDescription>

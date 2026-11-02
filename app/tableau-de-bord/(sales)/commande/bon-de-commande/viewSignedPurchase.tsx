@@ -50,8 +50,8 @@ function viewSignedPurchase({
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
-        <DialogHeader variant={"secondary"}>
-          <DialogTitle>{`[Bon de Commande] ${
+        <DialogHeader>
+          <DialogTitle>{`Bon de commande signé - ${
             purchaseOrder.devi.commandRequest.title
           }`}</DialogTitle>
           <DialogDescription>

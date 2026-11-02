@@ -74,9 +74,9 @@ function ViewInvoicePayment({ invoice, open, openChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent>
-        <DialogHeader variant={"secondary"}>
-          <DialogTitle>{`facture - ${invoice.title}`}</DialogTitle>
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{`Facture - ${invoice.title}`}</DialogTitle>
           <DialogDescription>{`Paiements de la facture de ${purchase?.devi.commandRequest.title ?? invoice.commandId}`}</DialogDescription>
         </DialogHeader>
         <div className="grid gap-2.5">

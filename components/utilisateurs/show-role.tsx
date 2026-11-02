@@ -8,6 +8,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { TranslateRole } from "@/lib/utils";
 import { Role } from "@/types/types";
@@ -168,12 +169,10 @@ export function ShowRole({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="uppercase">
-            {`role - ${TranslateRole(role.label)}`}
-          </DialogTitle>
-          {"Description du rôle"}
+          <DialogTitle>{`Rôle - ${TranslateRole(role.label)}`}</DialogTitle>
+          <DialogDescription>{"Description du rôle"}</DialogDescription>
         </DialogHeader>
 
         {/* Content */}

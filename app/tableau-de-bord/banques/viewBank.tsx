@@ -36,13 +36,13 @@ function ViewBank({ open, openChange, bank }: Props) {
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
-        <DialogHeader variant={"default"}>
+        <DialogHeader>
           <DialogTitle className="uppercase">
             {"Compte - " + bank.label}
           </DialogTitle>
           <DialogDescription>{`Informations du compte`}</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 @min-[540px]/dialog:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
           {/**Reference */}
           <div className="view-group">
             <span className="view-icon">

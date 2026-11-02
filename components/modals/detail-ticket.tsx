@@ -196,7 +196,7 @@ export function DetailTicket({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-3xl">
         {/* Header avec fond bordeaux - FIXE */}
         <DialogHeader>
           <DialogTitle>{"Ticket" + " - " + data?.title}</DialogTitle>

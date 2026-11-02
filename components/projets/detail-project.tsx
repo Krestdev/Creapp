@@ -1,13 +1,7 @@
 "use client";
 
+import { ViewDialog, ViewGrid, ViewGroup } from "@/components/ds/view-dialog";
 import { Badge, badgeVariants } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
 import { XAF } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
 import { ProjectT } from "@/types/types";
@@ -79,171 +73,63 @@ export function DetailProject({
 
   const getUserName = (id: number) => {
     const user = usersData.data?.data.find((user) => user.id === id);
-    return user?.lastName + " " + user?.firstName || "";
+    return user ? `${user.lastName} ${user.firstName}` : "N/A";
   };
 
   const statusBadge = getStatusBadge(data.status);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[760px] w-full overflow-y-auto p-0 gap-0 overflow-x-hidden border-none">
-        {/* Header with burgundy background */}
-        <DialogHeader className="bg-[#8B1538] text-white p-6 m-4 rounded-lg pb-8 relative">
-          <DialogTitle className="text-xl font-semibold text-white uppercase">
-            {"Projet" + " - " + data.label}
-          </DialogTitle>
-          <p className="text-sm text-white/80 mt-1">{"Detail du projet"}</p>
-        </DialogHeader>
-
-        {/* Content */}
-        <div className="p-6 space-y-6">
-          {/* Informations générales - Première ligne */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {/* Colonne gauche */}
-            <div className="space-y-4">
-              {/* Référence */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <Hash className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">{"Référence"}</p>
-                  <Badge
-                    variant="secondary"
-                    className="bg-pink-100 text-pink-900 hover:bg-pink-100 dark:bg-pink-900 dark:text-pink-100"
-                  >
-                    {data.reference}
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Budget */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <DollarSign className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">
-                    {"Budget prévisionnel"}
-                  </p>
-                  <p className="font-semibold text-lg">
-                    {XAF.format(data.budget)}
-                  </p>
-                </div>
-              </div>
-
-              {/* Chef de projet */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <LucideSquareUserRound className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">
-                    {"Chef de projet"}
-                  </p>
-                  <p className="font-semibold">
-                    {data.chief
-                      ? data.chief.firstName.concat(" ", data.chief.lastName)
-                      : "Non assigné"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Crée par */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <UserRound className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">{"Crée par"}</p>
-                  <p className="font-semibold">{getUserName(data.userId)}</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Colonne droite */}
-            <div className="space-y-4">
-              {/* Statut */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <FileText className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">{"Statut"}</p>
-                  <Badge variant={statusBadge.variant}>
-                    {statusBadge.icon && (
-                      <statusBadge.icon className="h-4 w-4 mr-1" />
-                    )}
-                    {statusBadge.label}
-                  </Badge>
-                </div>
-              </div>
-
-              {/* Créé le */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <LucideCalendar className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">{"Créé le"}</p>
-                  <p className="font-semibold">
-                    {data.createdAt
-                      ? format(new Date(data.createdAt), "PPP", { locale: fr })
-                      : "Non spécifié"}
-                  </p>
-                </div>
-              </div>
-
-              {/* Modifié le */}
-              <div className="flex items-start gap-3">
-                <div className="mt-1">
-                  <LucideCalendarFold className="h-5 w-5 text-muted-foreground" />
-                </div>
-                <div className="flex-1">
-                  <p className="text-sm text-muted-foreground">
-                    {"Modifié le"}
-                  </p>
-                  <p className="font-semibold">
-                    {data.updatedAt
-                      ? format(new Date(data.updatedAt), "PPP", { locale: fr })
-                      : "Non spécifié"}
-                  </p>
-                </div>
-              </div>
-            </div>
+    <ViewDialog
+      open={open}
+      onOpenChange={onOpenChange}
+      title={`Projet - ${data.label}`}
+      description="Détail du projet"
+    >
+      <ViewGrid>
+        <ViewGroup icon={Hash} label="Référence">
+          <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
+            <p className="text-primary-600 text-sm">{data.reference}</p>
           </div>
-
-          {/* Description - Pleine largeur */}
-          <div className="border-t pt-6">
-            <div className="flex items-start gap-3">
-              <div className="mt-1">
-                <Clipboard className="h-5 w-5 text-muted-foreground" />
-              </div>
-              <div className="flex-1">
-                <p className="text-sm text-muted-foreground mb-2">
-                  {"Description"}
-                </p>
-                <div className="bg-gray-50 dark:bg-gray-900 rounded-lg p-4">
-                  <p className="text-sm">
-                    {data.description || "Aucune description fournie"}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Footer buttons */}
-        <div className="flex w-full justify-end gap-3 p-6 pt-0">
-          <Button
-            variant="outline"
-            className="border-[#8B1538] text-[#8B1538] hover:bg-[#8B1538]/10"
-            onClick={() => onOpenChange(false)}
-          >
-            {"Fermer"}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </ViewGroup>
+        <ViewGroup icon={FileText} label="Statut">
+          <Badge variant={statusBadge.variant}>
+            {statusBadge.icon && <statusBadge.icon />}
+            {statusBadge.label}
+          </Badge>
+        </ViewGroup>
+        <ViewGroup icon={DollarSign} label="Budget prévisionnel">
+          <p className="font-semibold">{XAF.format(data.budget)}</p>
+        </ViewGroup>
+        <ViewGroup icon={LucideSquareUserRound} label="Chef de projet">
+          <p className="font-semibold">
+            {data.chief
+              ? data.chief.firstName.concat(" ", data.chief.lastName)
+              : "Non assigné"}
+          </p>
+        </ViewGroup>
+        <ViewGroup icon={UserRound} label="Créé par">
+          <p className="font-semibold">{getUserName(data.userId)}</p>
+        </ViewGroup>
+        <ViewGroup icon={LucideCalendar} label="Créé le">
+          <p className="font-semibold">
+            {data.createdAt
+              ? format(new Date(data.createdAt), "PPP", { locale: fr })
+              : "Non spécifié"}
+          </p>
+        </ViewGroup>
+        <ViewGroup icon={LucideCalendarFold} label="Modifié le">
+          <p className="font-semibold">
+            {data.updatedAt
+              ? format(new Date(data.updatedAt), "PPP", { locale: fr })
+              : "Non spécifié"}
+          </p>
+        </ViewGroup>
+        <ViewGroup icon={Clipboard} label="Description" wide>
+          <p className={data.description ? undefined : "italic text-gray-600"}>
+            {data.description || "Aucune description fournie"}
+          </p>
+        </ViewGroup>
+      </ViewGrid>
+    </ViewDialog>
   );
 }

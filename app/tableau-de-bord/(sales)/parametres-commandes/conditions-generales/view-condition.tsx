@@ -25,14 +25,12 @@ interface Props {
 function ViewCondition({ open, openChange, condition }: Props) {
   return (
     <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent>
-        <DialogHeader variant={"default"}>
-          <DialogTitle className="uppercase">
-            {condition.title}
-          </DialogTitle>
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{`Condition - ${condition.title}`}</DialogTitle>
           <DialogDescription>{`Informations relatives à la condition`}</DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 @min-[540px]/dialog:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
           {/**Reference */}
           <div className="view-group">
             <span className="view-icon">

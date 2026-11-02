@@ -80,9 +80,9 @@ function ViewInvoice({ invoice, open, openChange, purchases, users }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>{`facture - ${invoice.title}`}</DialogTitle>
+          <DialogTitle>{`Facture - ${invoice.title}`}</DialogTitle>
           <DialogDescription>{`Informations sur la facture de ${purchase?.devi.commandRequest.title ?? invoice.commandId}`}</DialogDescription>
         </DialogHeader>
         {/**Reference */}

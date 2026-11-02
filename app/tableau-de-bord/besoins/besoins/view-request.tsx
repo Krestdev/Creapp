@@ -129,11 +129,11 @@ function ViewRequest({
   ) : (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
-        <DialogHeader variant={"default"}>
+        <DialogHeader>
           <DialogTitle className="uppercase">{`Besoin - ${request.data?.data.label}`}</DialogTitle>
           <DialogDescription>{"Description du besoin"}</DialogDescription>
         </DialogHeader>
-        <div className="grid grid-cols-1 @min-[540px]/dialog:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
           {/**Reference */}
           <div className="view-group">
             <span className="view-icon">

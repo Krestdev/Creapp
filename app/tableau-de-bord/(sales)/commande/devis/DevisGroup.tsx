@@ -126,13 +126,12 @@ export function DevisGroup({ open, onOpenChange, devis }: DetailModalProps) {
         }
       }}
     >
-      <DialogContent className="sm:max-w-[90vw] lg:max-w-[720px] max-h-screen overflow-y-auto overflow-x-hidden p-0 gap-0">
-        {/* Header modernisé */}
-        <DialogHeader className="px-6 py-4 border-b sticky top-0 bg-background z-10">
-          <DialogTitle className="text-xl font-semibold tracking-tight uppercase">
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>
             {`Devis - ${devis?.commandRequest.title || "Sans titre"}`}
           </DialogTitle>
-          <DialogDescription className="text-sm mt-1">
+          <DialogDescription>
             {page === 1
               ? "Détail du devis"
               : `Justificatif - ${selectedProvider}`}
@@ -140,7 +139,7 @@ export function DevisGroup({ open, onOpenChange, devis }: DetailModalProps) {
         </DialogHeader>
 
         {/* Content */}
-        <div className="px-6 py-4">
+        <div>
           <div className="flex gap-3">
             <div className="w-full flex flex-col gap-4 py-3">
               {/* Référence / Statut */}
@@ -277,7 +276,7 @@ export function DevisGroup({ open, onOpenChange, devis }: DetailModalProps) {
         </div>
 
         {/* Footer modernisé */}
-        <DialogFooter className="px-6 py-4 border-t mt-auto">
+        <DialogFooter>
           <div className="flex items-center gap-3 w-full justify-end">
             {page === 2 && file && <DownloadFile file={file} />}
             <Button onClick={() => onOpenChange(false)} variant="outline">

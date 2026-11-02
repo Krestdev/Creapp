@@ -34,14 +34,14 @@ interface DetailBCProps {
 export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-2xl">
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
           <DialogTitle className="uppercase">{`Fournisseur - ${data?.name}`}</DialogTitle>
           <DialogDescription>
             {"Informations relatives au fournisseur"}
           </DialogDescription>
         </DialogHeader>
-        <div className="grid gap-4 @min-[540px]/dialog:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
           {/**Provider Name */}
           <div className="view-group">
             <span className="view-icon">

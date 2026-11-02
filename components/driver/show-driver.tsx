@@ -35,7 +35,7 @@ export function ShowDriver({ open, onOpenChange, data }: DetailBCProps) {
         }
       }}
     >
-      <DialogContent>
+      <DialogContent className="sm:max-w-3xl">
         {/* Header with burgundy background */}
         <DialogHeader>
           <DialogTitle>

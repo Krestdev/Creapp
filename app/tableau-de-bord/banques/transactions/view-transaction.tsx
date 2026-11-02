@@ -127,12 +127,12 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
-        <DialogHeader variant={"default"}>
-          <DialogTitle className="uppercase">{`transfert - ${transaction.label}`}</DialogTitle>
+        <DialogHeader>
+          <DialogTitle className="uppercase">{`Transfert - ${transaction.label}`}</DialogTitle>
           <DialogDescription>{"Détails de la transaction"}</DialogDescription>
         </DialogHeader>
 
-        <div className="grid gap-4 @min-[540px]/dialog:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
           {/** Référence */}
           <div className="view-group">
             <span className="view-icon">

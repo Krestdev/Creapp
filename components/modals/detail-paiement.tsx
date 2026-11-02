@@ -69,14 +69,13 @@ function DetailPaiement({ payment, open, openChange }: Props) {
 
   return (
     <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent>
+      <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle className="uppercase">
+          <DialogTitle>
             {`${payment.title} [${XAF.format(payment.price)}]`}
           </DialogTitle>
           <DialogDescription>{`Paiement de la facture ${payment.reference}`}</DialogDescription>
         </DialogHeader>
-        <div className="w-full grid grid-cols-3 gap-3"></div>
         {/**Reference */}
         <div className="view-group">
           <span className="view-icon">

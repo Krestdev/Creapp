@@ -30,15 +30,15 @@ interface Props {
 function ViewService({ open, openChange, service }: Props) {
   return (
     <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl w-full">
-        <DialogHeader variant={"default"}>
-          <DialogTitle>{service.label}</DialogTitle>
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>{`Service - ${service.label}`}</DialogTitle>
           <DialogDescription>
             {service.description ?? "Service sans description"}
           </DialogDescription>
         </DialogHeader>
         {/**Name */}
-        <div className="grid grid-cols-1 @min-[520px]/dialog:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
           <div className="view-group">
             <span className="view-icon">
               <WarehouseIcon />
@@ -71,7 +71,7 @@ function ViewService({ open, openChange, service }: Props) {
               <p className="view-group-title">
                 {`Membres du service (${service.users.length})`}
               </p>
-              <div className="grid grid-cols-1 @min-[520px]/dialog:grid-cols-2 gap-x-4">
+              <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
                 {service.users.length === 0 ? (
                   <p className="text-sm italic text-muted-foreground">
                     {"Aucun membre"}
