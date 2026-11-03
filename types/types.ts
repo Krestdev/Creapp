@@ -23,6 +23,8 @@ export interface PageTitleProps {
   links?: Array<NavLink>;
   /** Actions alignées à droite du titre, à la place de « Précédent » (liste de comptes). */
   actions?: React.ReactNode;
+  /** Sans bouton « Précédent » (liste de premier niveau). */
+  hideBack?: boolean;
 }
 
 export type UserRole = "admin" | "user";

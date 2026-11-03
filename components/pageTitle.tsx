@@ -13,6 +13,7 @@ const PageTitle = ({
   color,
   links = [],
   actions,
+  hideBack,
 }: PageTitleProps) => {
   const router = useRouter();
   const getBackground = (
@@ -55,7 +56,7 @@ const PageTitle = ({
           <div className="flex flex-wrap items-center gap-2.5">
             {actions}
           </div>
-        ) : (
+        ) : hideBack ? null : (
           <Button
             variant={"outline"}
             size={"lg"}

@@ -1,4 +1,5 @@
 "use client";
+import { useRouter } from "next/navigation";
 
 import {
   type ColumnDef,
@@ -24,7 +25,6 @@ import {
 import * as React from "react";
 
 import CancelQuotation from "@/app/tableau-de-bord/(sales)/commande/devis/cancel";
-import EditQuotation from "@/app/tableau-de-bord/(sales)/commande/devis/edit";
 import {
   StatisticCard,
   StatisticProps,
@@ -83,6 +83,10 @@ import {
 } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
+import { FilterButton, FilterSearch } from "@/components/ds/filter-bar";
+import { formatNumber } from "@/lib/format";
+import { cn } from "@/lib/utils";
+import { EllipsisVertical } from "lucide-react";
 import { Pagination } from "../base/pagination";
 import { DevisModal } from "../modals/DevisModal";
 import { Badge, badgeVariants } from "../ui/badge";
@@ -96,6 +100,16 @@ interface DevisTableProps {
   users: Array<User>;
 }
 
+type DevisTab = "attente" | "approuve" | "rejete";
+
+/** Un devis rejeté ou annulé ne sert plus : ils partagent l'onglet « Rejetés ». */
+const inTab = (item: Quotation, tab: DevisTab) =>
+  tab === "attente"
+    ? item.status === "PENDING" || item.status === "SUBMITTED"
+    : tab === "approuve"
+      ? item.status === "APPROVED"
+      : item.status === "REJECTED" || item.status === "CANCELLED";
+
 export function DevisTable({
   data,
   providers,
@@ -106,9 +120,9 @@ export function DevisTable({
   const [globalFilter, setGlobalFilter] = React.useState<string>("");
 
   // ─── Tab (drives the status filter) ──────────────────────────────────────
-  const [selectedTab, setSelectedTab] = React.useState<"attente" | "traité">(
-    "attente",
-  );
+  const [selectedTab, setSelectedTab] = React.useState<
+    "attente" | "approuve" | "rejete"
+  >("attente");
 
   // ─── Filters ──────────────────────────────────────────────────────────────
   const [providerFilter, setProviderFilter] = React.useState<string>("all");
@@ -141,10 +155,10 @@ export function DevisTable({
     [],
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({ element: false });
+    React.useState<VisibilityState>({ status: false });
   const [rowSelection, setRowSelection] = React.useState({});
 
-  const [isUpdateModalOpen, setIsUpdateModalOpen] = React.useState(false);
+  const router = useRouter();
   const [toCancel, setToCancel] = React.useState(false);
   const [modifyDialog, setModifyDialog] = React.useState(false);
   const [isDevisModalOpen, setIsDevisModalOpen] = React.useState(false);
@@ -328,171 +342,116 @@ export function DevisTable({
     providers,
   ]);
 
-  // ─── Tab-filtered data (table only — statistics ignore the tab) ───────────
+  // ─── Tab-filtered data ────────────────────────────────────────────────────
   const tabFilteredData = React.useMemo(() => {
-    return filteredData.filter((item) =>
-      selectedTab === "attente"
-        ? item.status === "PENDING" || item.status === "SUBMITTED"
-        : item.status === "APPROVED" ||
-        item.status === "REJECTED" ||
-        item.status === "CANCELLED",
-    );
+    return filteredData.filter((item) => inTab(item, selectedTab));
   }, [filteredData, selectedTab]);
 
-  // ─── Statistics ───────────────────────────────────────────────────────────
-  const validated = filteredData.filter((d) => d.status === "APPROVED").length;
-  const pending = filteredData.filter((d) => d.status === "PENDING").length;
-  const rejected = filteredData.filter((d) => d.status === "REJECTED").length;
-
-  const statistics: Array<StatisticProps> = [
-    {
-      title: "Devis validés",
-      value: validated,
-      variant: "success",
-      more: { title: "Devis rejetés", value: rejected },
-    },
-    {
-      title: "En attente de validation",
-      value: pending,
-      variant: "default",
-      more: { title: "Total de devis", value: filteredData.length },
-    },
-  ];
-
-  // ─── Columns ──────────────────────────────────────────────────────────────
+  // ─── Columns (Figma · Devis) ──────────────────────────────────────────────
   const columns: ColumnDef<Quotation>[] = [
     {
       accessorKey: "ref",
-      header: ({ column }) => (
-        <span
-          className="tablehead"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {"Référence"}
-          <ArrowUpDown />
-        </span>
-      ),
-      cell: ({ row }) => <p className="normal-case">{row.getValue("ref")}</p>,
-    },
-    {
-      accessorKey: "commandRequestId",
-      header: ({ column }) => (
-        <span
-          className="tablehead"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {"Demande de cotation"}
-          <ArrowUpDown />
-        </span>
-      ),
+      header: () => "Devis",
       cell: ({ row }) => (
-        <div>
-          {`${subText({ text: getQuotationTitle(row.getValue("commandRequestId")), length: 21 })} - `}
-          <span className="text-destructive text-[12px]">{`${getQuotationRef(
-            row.getValue("commandRequestId"),
-          )}`}</span>
+        <div className="flex flex-col gap-0.5">
+          <span className="text-body-medium text-text-link">
+            {row.original.ref}
+          </span>
+          <span className="text-caption text-text-secondary">
+            {getProviderName(row.original.providerId)}
+          </span>
         </div>
       ),
     },
     {
-      accessorKey: "providerId",
-      header: ({ column }) => (
-        <span
-          className="tablehead"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {"Fournisseur"}
-          <ArrowUpDown />
-        </span>
+      accessorKey: "commandRequestId",
+      header: () => "Demande de cotation",
+      cell: ({ row }) => (
+        <div className="flex flex-col gap-0.5">
+          <span className="text-body-medium text-text-primary">
+            {getQuotationRef(row.original.commandRequestId)}
+          </span>
+          <span className="text-caption text-text-tertiary">
+            {getQuotationTitle(row.original.commandRequestId)}
+          </span>
+        </div>
       ),
-      cell: ({ row }) => getProviderName(row.getValue("providerId")),
     },
     {
       accessorKey: "userId",
-      header: ({ column }) => (
-        <span
-          className="tablehead"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {"Initié par"}
-          <ArrowUpDown />
-        </span>
-      ),
+      header: () => "Saisi par",
       cell: ({ row }) => (
-        <p className="normal-case">
-          {getUserName(users, row.getValue("userId")) ?? "N/A"}
-        </p>
-      ),
-    },
-    {
-      accessorKey: "montant",
-      header: ({ column }) => (
-        <span
-          className="tablehead"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {"Montant"}
-          <ArrowUpDown />
+        <span className="text-body text-text-primary">
+          {getUserName(users, row.original.userId) ?? "N/A"}
         </span>
       ),
-      cell: ({ row }) => {
-        const value = row.original;
-        const total = getQuotationAmount(value, providers);
-        return <p className="normal-case">{XAF.format(total)}</p>;
-      },
     },
     {
-      accessorKey: "element",
-      header: () => <span className="tablehead">{"Éléments"}</span>,
+      id: "montant",
+      header: () => <span className="block text-right">{"Montant (XAF)"}</span>,
       cell: ({ row }) => {
-        const value = row.getValue("element") as QuotationElement[];
-        return value.length;
-      },
-    },
-    {
-      accessorKey: "status",
-      header: ({ column }) => (
-        <span
-          className="tablehead"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {"Statut"}
-          <ArrowUpDown />
-        </span>
-      ),
-      cell: ({ row }) => {
-        const value = row.getValue("status") as QuotationStatus;
-        const { label, variant } = getStatusLabel(value);
-        return <Badge variant={variant}>{label}</Badge>;
+        const quotation = row.original;
+        const total = getQuotationAmount(quotation, providers);
+        const lines = quotation.element ?? [];
+        const priced = lines.filter((el) => el.priceProposed > 0).length;
+        return (
+          <div className="flex flex-col items-end gap-0.5 text-right">
+            <span className="text-body-medium whitespace-nowrap text-text-primary">
+              {total > 0 ? formatNumber(total) : "—"}
+            </span>
+            <span className="text-caption whitespace-nowrap text-text-tertiary">
+              {`${priced}/${lines.length} ligne${lines.length > 1 ? "s" : ""}${
+                priced < lines.length ? " · prix manquants" : ""
+              }`}
+            </span>
+          </div>
+        );
       },
     },
     {
       accessorKey: "createdAt",
-      header: ({ column }) => (
-        <span
-          className="tablehead"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {"Date de création"}
-          <ArrowUpDown />
-        </span>
-      ),
-      cell: ({ row }) => (
-        <p className="normal-case">
-          {format(new Date(row.getValue("createdAt")), "dd/MM/yyyy HH:mm")}
-        </p>
-      ),
+      header: () => "Créé le",
+      cell: ({ row }) => {
+        const { createdAt, updatedAt } = row.original;
+        const created = format(new Date(createdAt), "dd/MM/yyyy");
+        const updated = updatedAt
+          ? format(new Date(updatedAt), "dd/MM/yyyy")
+          : created;
+        return (
+          <div className="flex flex-col gap-0.5">
+            <span className="text-body whitespace-nowrap text-text-primary">
+              {created}
+            </span>
+            {updated !== created && (
+              <span className="text-caption whitespace-nowrap text-text-tertiary">
+                {`modifié le ${format(new Date(updatedAt as string), "dd/MM")}`}
+              </span>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      accessorKey: "status",
+      header: () => "Statut",
+      cell: ({ row }) => {
+        const { label, variant } = getStatusLabel(row.original.status);
+        return <Badge variant={variant}>{label}</Badge>;
+      },
     },
     {
       id: "actions",
-      header: () => <span className="tablehead">{"Actions"}</span>,
+      header: () => <span className="block text-right">{"Actions"}</span>,
       enableHiding: false,
       cell: ({ row }) => {
         const item = row.original;
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
-              <Ellipsis />
+            <DropdownMenuTrigger
+              aria-label={`Actions pour ${item.ref}`}
+              className="size-8 h-8 w-8 cursor-pointer justify-center gap-0 border-0 bg-transparent p-0 text-text-secondary hover:bg-hover hover:text-text-primary data-[state=open]:bg-hover [&_svg]:size-[18px] [&_svg]:text-current"
+            >
+              <EllipsisVertical />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
@@ -510,10 +469,11 @@ export function DevisTable({
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
-                onClick={() => {
-                  setSelectedDevis(item);
-                  setIsUpdateModalOpen(true);
-                }}
+                onClick={() =>
+                  router.push(
+                    `/tableau-de-bord/commande/devis/modifier/${item.id}`,
+                  )
+                }
                 disabled={
                   item.status === "APPROVED" || item.status === "REJECTED"
                 }
@@ -572,29 +532,29 @@ export function DevisTable({
     },
   });
 
-  const tabs = [
-    {
-      id: "attente",
-      title: "Devis en attente",
-      badge: data.filter(
-        (d) => d.status === "PENDING" || d.status === "SUBMITTED",
-      ).length,
-    },
-    {
-      id: "traité",
-      title: "Devis traités",
-    },
-  ];
+  const tabCount = (tab: DevisTab) =>
+    data.filter((d) => inTab(d, tab)).length;
+  // Le compteur n'est affiché que sur l'onglet actif (Figma · Tab).
+  const tabs = (
+    [
+      { id: "attente", title: "En attente" },
+      { id: "approuve", title: "Approuvés" },
+      { id: "rejete", title: "Rejetés" },
+    ] as const
+  ).map((t) => ({
+    ...t,
+    badge: t.id === selectedTab ? tabCount(t.id) : undefined,
+  }));
+
+  const advancedCount =
+    (providerFilter !== "all" ? 1 : 0) +
+    (quotationFilter !== "all" ? 1 : 0) +
+    (statusFilter !== "all" ? 1 : 0) +
+    (amountFilter !== 0 ? 1 : 0) +
+    (dateFilter ? 1 : 0);
 
   return (
     <div className="flex flex-col gap-5">
-      {/* Statistics */}
-      <div className="grid-stats-4">
-        {statistics.map((stat, index) => (
-          <StatisticCard key={index} {...stat} />
-        ))}
-      </div>
-
       {/* Toolbar */}
       <TabBar
         tabs={tabs}
@@ -604,20 +564,15 @@ export function DevisTable({
       <div className="flex flex-wrap justify-between items-center gap-3">
         {/* Search + Filters */}
         <div className="flex flex-wrap items-center gap-2">
-          <Input
-            type="search"
+          <FilterSearch
             value={globalFilter}
-            onChange={(e) => setGlobalFilter(e.target.value)}
-            placeholder="Référence, titre, fournisseur..."
-            className="w-64 h-9"
+            onChange={setGlobalFilter}
+            placeholder="Rechercher un devis, un fournisseur, une demande…"
           />
 
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline">
-                <Settings2 />
-                {"Filtres"}
-              </Button>
+              <FilterButton count={advancedCount} />
             </SheetTrigger>
             <SheetContent>
               <SheetHeader>
@@ -1055,10 +1010,7 @@ export function DevisTable({
         {/* Column visibility */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline">
-              {"Colonnes"}
-              <ChevronDown />
-            </Button>
+            <Button variant="outline">{"Colonnes"}</Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {table
@@ -1066,15 +1018,15 @@ export function DevisTable({
               .filter((column) => column.getCanHide())
               .map((column) => {
                 let columnName = column.id;
-                if (column.id === "ref") columnName = "Référence";
+                if (column.id === "ref") columnName = "Devis";
                 else if (column.id === "commandRequestId")
                   columnName = "Demande de cotation";
                 else if (column.id === "providerId") columnName = "Fournisseur";
-                else if (column.id === "userId") columnName = "Initié par";
-                else if (column.id === "montant") columnName = "Montant";
+                else if (column.id === "userId") columnName = "Saisi par";
+                else if (column.id === "montant") columnName = "Montant (XAF)";
                 else if (column.id === "status") columnName = "Statut";
                 else if (column.id === "createdAt")
-                  columnName = "Date de création";
+                  columnName = "Créé le";
 
                 return (
                   <DropdownMenuCheckboxItem
@@ -1094,19 +1046,25 @@ export function DevisTable({
       </div>
 
       {/* Table */}
-      <div className="rounded-md border">
-        <Table>
+      <div className="overflow-hidden rounded-xl border border-border-default bg-surface">
+        <Table className="min-w-[860px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className={cn(
+                      header.column.id === "ref" && "pl-5",
+                      header.column.id === "actions" && "pr-5",
+                    )}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -1120,7 +1078,14 @@ export function DevisTable({
                   data-state={row.getIsSelected() && "selected"}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        "py-3.5 whitespace-normal normal-case",
+                        cell.column.id === "ref" && "pl-5",
+                        cell.column.id === "actions" && "pr-5 text-right",
+                      )}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -1141,14 +1106,12 @@ export function DevisTable({
             )}
           </TableBody>
         </Table>
+        <Pagination
+          table={table}
+          noun="devis"
+          className="border-t border-border-default"
+        />
       </div>
-
-      {/* Pagination */}
-      {table.getRowModel().rows?.length > 0 && (
-        <div className="mt-4">
-          <Pagination table={table} />
-        </div>
-      )}
 
       {/* Modals */}
       {selectedDevis && (
@@ -1159,13 +1122,6 @@ export function DevisTable({
           title={selectedQuotation}
           users={users}
           providers={providers}
-        />
-      )}
-      {selectedDevis && (
-        <EditQuotation
-          open={isUpdateModalOpen}
-          openChange={setIsUpdateModalOpen}
-          quotation={selectedDevis}
         />
       )}
       {selectedDevis && (

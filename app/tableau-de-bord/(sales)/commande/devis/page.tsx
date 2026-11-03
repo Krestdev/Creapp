@@ -78,6 +78,10 @@ const Page = () => {
     );
   }
 
+  const pendingCount =
+    data?.data.filter((q) => q.status === "PENDING" || q.status === "SUBMITTED")
+      .length ?? 0;
+
   if (
     isSuccess &&
     getProviders.isSuccess &&
@@ -89,8 +93,13 @@ const Page = () => {
       <div className="content">
         <PageTitle
           title="Devis"
-          subtitle="Consultez et gérez les cotations."
+          subtitle={
+            pendingCount === 0
+              ? "Aucun devis en cours de saisie."
+              : `${pendingCount} devis en cours de saisie, pas encore rattachés à la comparaison.`
+          }
           links={links}
+          hideBack
         />
         <DevisTable
           data={data.data}

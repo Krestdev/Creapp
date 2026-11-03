@@ -269,7 +269,10 @@ function CreateQuotation({ quotation, openChange }: Props) {
         openChange(false);
       }
 
-      if (intent === "save") {
+      if (variables?.id) {
+        // Modification : retour à la liste des devis.
+        router.push("/tableau-de-bord/commande/devis");
+      } else if (intent === "save") {
         // Réinitialisation pour un nouvel ajout
         form.reset({
           commandRequestId: undefined,
@@ -300,9 +303,13 @@ function CreateQuotation({ quotation, openChange }: Props) {
   const getCommandBesoins = useCallback(
     (commandId: number) => {
       const command = cmdRqstData.data?.data.find((c) => c.id === commandId);
-      return command?.besoins ?? [];
+      if (command) return command.besoins ?? [];
+      // Demande absente de la liste (modification) : besoins déjà chargés avec le devis.
+      return quotation?.commandRequestId === commandId
+        ? (quotation.commandRequest?.besoins ?? [])
+        : [];
     },
-    [cmdRqstData.data],
+    [cmdRqstData.data, quotation],
   );
 
   /**
@@ -658,8 +665,10 @@ function CreateQuotation({ quotation, openChange }: Props) {
                           allLabel=""
                           options={
                             cmdRqstData.data?.data
-                              .filter((request) =>
-                                hasAvailableNeeds(request.id),
+                              .filter(
+                                (request) =>
+                                  hasAvailableNeeds(request.id) ||
+                                  request.id === quotation?.commandRequestId,
                               )
                               .map((request) => ({
                                 label: `${request.title} - ${request.reference}`,
