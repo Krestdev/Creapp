@@ -25,9 +25,16 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { requestQ } from "@/queries/requestModule";
-import { ProjectT, RequestModelT, User } from "@/types/types";
+import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -52,7 +59,8 @@ const SingleFileSchema = z
       z.string(),
     ]),
   )
-  .max(1, "Pas plus d'un document");
+  .min(1, { message: "Le justificatif est requis" })
+  .default([]);
 
 const formSchema = z.object({
   projet: z.string().min(1, "Le projet est requis"),
@@ -84,7 +92,16 @@ const formSchema = z.object({
   }, "La date limite ne peut pas être antérieure à aujourd'hui"),
   beneficiaire: z.array(z.number()).min(1, "Le bénéficiaire est requis"),
   justificatif: SingleFileSchema,
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
+  paytype: z.enum(["cash", "chq", "ov"], {
+    required_error: "Sélectionner le moyen de payement",
+    invalid_type_error: "Sélectionner le moyen de payement",
+  }),
 });
+
+type FormInput = z.input<typeof formSchema>;
 
 interface UpdateRHRequestProps {
   open: boolean;
@@ -92,6 +109,7 @@ interface UpdateRHRequestProps {
   requestData: RequestModelT;
   projects: Array<ProjectT>;
   users: Array<User>;
+  categories: Array<Category>;
 }
 
 export default function UpdateRHRequest({
@@ -100,6 +118,7 @@ export default function UpdateRHRequest({
   requestData,
   projects,
   users,
+  categories,
 }: UpdateRHRequestProps) {
   const queryClient = useQueryClient();
 
@@ -113,7 +132,7 @@ export default function UpdateRHRequest({
   // ----------------------------------------------------------------------
   // FORM INITIALISATION
   // ----------------------------------------------------------------------
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormInput>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       projet: "",
@@ -127,6 +146,8 @@ export default function UpdateRHRequest({
       date_limite: undefined,
       beneficiaire: [],
       justificatif: [],
+      categoryId: undefined,
+      paytype: undefined,
     },
   });
 
@@ -175,7 +196,9 @@ export default function UpdateRHRequest({
             ? new Date(requestData.dueDate)
             : new Date(),
           beneficiaire: beneficiaireIds,
-          justificatif: requestData.proof,
+          justificatif: requestData.proof ?? [],
+          categoryId: requestData.categoryId,
+          paytype: requestData.paytype,
         });
       } catch (error) {
         console.error(
@@ -208,7 +231,7 @@ export default function UpdateRHRequest({
     },
   });
 
-  function onSubmit(values: z.infer<typeof formSchema>) {
+  function onSubmit(values: FormInput) {
     if (!requestData?.id) {
       toast.error("ID de la demande manquant");
       return;
@@ -224,8 +247,9 @@ export default function UpdateRHRequest({
       period: { from: values.periode.from, to: values.periode.to },
       benef: values.beneficiaire,
       proof: values.justificatif,
+      categoryId: values.categoryId,
+      paytype: values.paytype,
       // Champs fixes
-      categoryId: requestData.categoryId,
       quantity: 1,
       unit: "unit",
       userId: Number(requestData.userId),
@@ -260,14 +284,14 @@ export default function UpdateRHRequest({
         <Form {...form}>
           {/* Contenu scrollable */}
           <div className="flex-1 overflow-y-auto px-6 py-4">
-            <div className="space-y-4">
+            <div className="flex flex-col @min-[640px]/dialog:grid @min-[640px]/dialog:grid-cols-2 gap-4 [&>*]:min-w-0">
               {/* PROJET */}
               <FormField
                 control={form.control}
                 name="projet"
                 render={({ field }) => (
-                  <FormItem>
-                    <FormLabel isRequired>{"Projet"}</FormLabel>
+                  <FormItem className="col-span-full">
+                    <FormLabel isRequired>{"Projet concerné"}</FormLabel>
                     <SearchableSelect
                       onChange={field.onChange}
                       options={
@@ -300,13 +324,56 @@ export default function UpdateRHRequest({
                 name="titre"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel isRequired>{"Titre"}</FormLabel>
+                    <FormLabel isRequired>{"Titre du besoin"}</FormLabel>
                     <FormControl>
-                      <Input placeholder="Ex. Salaires Octobre" {...field} />
+                      <Input placeholder="Titre du besoin" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
+              />
+
+              {/* Category */}
+              <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => {
+                  const hrCategories = categories.filter(
+                    (c) => c.type.type === "ressource_humaine",
+                  );
+
+                  const selectedCategory = hrCategories.find(
+                    (c) => String(c.id) === String(field.value),
+                  );
+
+                  return (
+                    <FormItem className="col-span-full">
+                      <FormLabel isRequired>{"Categorie"}</FormLabel>
+                      <FormControl>
+                        <SearchableSelect
+                          onChange={field.onChange}
+                          options={hrCategories.map((c) => ({
+                            value: c.id!.toString(),
+                            label: c.label,
+                          }))}
+                          value={field.value ? String(field.value) : ""}
+                          width="w-full"
+                          allLabel=""
+                          placeholder="Sélectionner une catégorie"
+                        />
+                      </FormControl>
+
+                      {/* ✅ Affichage de la description sous le SearchableSelect */}
+                      {selectedCategory?.description && (
+                        <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
+                          {selectedCategory.description}
+                        </div>
+                      )}
+
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               {/* PERIODE - RANGE */}
@@ -412,11 +479,34 @@ export default function UpdateRHRequest({
                   <FormItem>
                     <FormLabel isRequired>{"Montant"}</FormLabel>
                     <FormControl>
-                      <Input
-                        type="number"
-                        placeholder="ex. 500 000"
-                        {...field}
-                      />
+                      <Input placeholder="Montant" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* Moyen de paiement */}
+              <FormField
+                control={form.control}
+                name="paytype"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
+                    <FormControl>
+                      <Select
+                        value={field.value ? String(field.value) : ""}
+                        onValueChange={field.onChange}
+                      >
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="cash">Espèces</SelectItem>
+                          <SelectItem value="chq">Chèque</SelectItem>
+                          <SelectItem value="ov">Virement</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -428,8 +518,8 @@ export default function UpdateRHRequest({
                 control={form.control}
                 name="beneficiaire"
                 render={({ field }) => (
-                  <FormItem className="@min-[640px]:col-span-2">
-                    <FormLabel isRequired>{"Bénéficiaire(s)"}</FormLabel>
+                  <FormItem className="@min-[640px]/dialog:col-span-2">
+                    <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
                     <FormControl>
                       <MultiSelectUsers
                         users={USERS}
@@ -452,8 +542,8 @@ export default function UpdateRHRequest({
                 control={form.control}
                 name="justificatif"
                 render={({ field }) => (
-                  <FormItem className="@min-[640px]:col-span-2">
-                    <FormLabel>{"Justificatif"}</FormLabel>
+                  <FormItem className="@min-[640px]/dialog:col-span-2">
+                    <FormLabel isRequired>{"Justificatif"}</FormLabel>
                     <FormControl>
                       <FilesUpload
                         value={field.value || []}
@@ -474,13 +564,14 @@ export default function UpdateRHRequest({
                 control={form.control}
                 name="description"
                 render={({ field }) => (
-                  <FormItem className="@min-[640px]:col-span-2">
+                  <FormItem className="@min-[640px]/dialog:col-span-2">
                     <FormLabel isRequired>
                       {"Description détaillée du besoin"}
                     </FormLabel>
                     <FormControl>
                       <Textarea
                         placeholder="Description détaillée du besoin RH"
+                        className="resize-none min-h-[120px]"
                         {...field}
                       />
                     </FormControl>

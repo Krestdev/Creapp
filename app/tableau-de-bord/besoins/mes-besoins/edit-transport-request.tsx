@@ -185,7 +185,12 @@ function EditTransportRequest({
 
   const onSubmit = (values: FormValues) => {
     const { dueDate, list, ...rest } = values;
-    mutate({ dueDate: toDeadlineDate(dueDate), benFac: { list }, ...rest });
+    mutate({
+      dueDate: toDeadlineDate(dueDate),
+      amount: list.reduce((a, b) => a + b.amount, 0),
+      benFac: { list },
+      ...rest,
+    });
   };
 
   return (
@@ -234,7 +239,7 @@ function EditTransportRequest({
                 );
 
                 return (
-                  <FormItem>
+                  <FormItem className="col-span-full">
                     <FormLabel isRequired>{"Categorie"}</FormLabel>
                     <FormControl>
                       <SearchableSelect
@@ -352,7 +357,7 @@ function EditTransportRequest({
               control={form.control}
               name="projectId"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-full">
                   <FormLabel isRequired>{"Projet"}</FormLabel>
                   <FormControl>
                     <Combobox
@@ -402,7 +407,7 @@ function EditTransportRequest({
                       }
                       onValueChange={field.onChange}
                     >
-                      <SelectTrigger className="min-w-60 w-full">
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
                       <SelectContent>

@@ -26,7 +26,6 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { Textarea } from "@/components/ui/textarea";
 import { newRequestApprovisionement, requestQ } from "@/queries/requestModule";
 import { Category, PRIORITIES, ProjectT, RequestModelT } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -99,8 +98,7 @@ function EditApproRequest({
       amount: request.amount,
       dueDate: format(request.dueDate, "yyyy-MM-dd"),
       priority: request.priority,
-      categoryId:
-        categories.find((c) => c.type.type === "appro")?.id || undefined,
+      categoryId: request.categoryId,
       projectId: request.projectId,
     },
   });
@@ -195,7 +193,7 @@ function EditApproRequest({
                 );
 
                 return (
-                  <FormItem>
+                  <FormItem className="col-span-full">
                     <FormLabel isRequired>{"Categorie"}</FormLabel>
                     <FormControl>
                       <SearchableSelect
@@ -230,7 +228,7 @@ function EditApproRequest({
                 <FormItem className="col-span-full">
                   <FormLabel isRequired>{"Motif"}</FormLabel>
                   <FormControl>
-                    <Textarea placeholder="Ex. Carburant" {...field} />
+                    <Input placeholder="Ex. Carburant" {...field} disabled />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -241,7 +239,7 @@ function EditApproRequest({
               control={form.control}
               name="projectId"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-full">
                   <FormLabel isRequired>{"Projet concerné"}</FormLabel>
                   <SearchableSelect
                     onChange={field.onChange}

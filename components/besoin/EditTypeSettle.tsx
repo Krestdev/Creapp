@@ -1,4 +1,5 @@
 "use client";
+import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
 import { toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
@@ -44,13 +45,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
 import { useStore } from "@/providers/datastore";
 import { newRequestSettle, requestQ } from "@/queries/requestModule";
-import {
-  Category,
-  PRIORITIES,
-  ProjectT,
-  RequestModelT,
-  User,
-} from "@/types/types";
+import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -71,11 +66,6 @@ interface Props {
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
-  (typeof PRIORITIES)[number]["value"],
-  ...(typeof PRIORITIES)[number]["value"][],
-];
-
 const SingleFileSchema = z
   .array(
     z.union([
@@ -91,21 +81,27 @@ const formSchema = z.object({
     .min(5, { message: "Trop court" })
     .max(50, { message: "Trop long" }),
   projectId: z.coerce.number({ message: "Veuillez définir un projet" }),
-  description: z.string({ message: "Veuillez renseigner une description" }),
-  // amount: z.coerce.number({ message: "Veuillez renseigner un montant" }),
+  description: z.string().optional(),
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
   quantity: z.coerce
     .number({ message: "Veuillez définir une quantité" })
     .refine((val) => val > 0, "La quantité doit être supérieure à 0"),
   benef: z.coerce.number().optional(),
+  // "minDate" est recalculé à chaque validation (et non figé au chargement
+  // du module) pour que le verrou ne devienne pas obsolète si l'onglet
+  // reste ouvert d'un jour sur l'autre.
   dueDate: z.string({ message: "Veuillez définir une date" }).refine(
     (val) => {
       const d = new Date(val);
-      return !isNaN(d.getTime());
+      const minDate = new Date();
+      minDate.setHours(0, 0, 0, 0);
+      return !isNaN(d.getTime()) && d >= minDate;
     },
     { message: "Date invalide" },
   ),
-  unit: z.string(),
-  priority: z.enum(REQUEST_PRIORITIES),
+  unit: z.string().min(1, "Veuillez sélectionner une unité"),
   proof: SingleFileSchema,
 });
 
@@ -114,7 +110,7 @@ type FormValues = z.infer<typeof formSchema>;
 function EditTypeSettle({
   request,
   users,
-  // categories,
+  categories,
   projects,
   open,
   onOpenChange,
@@ -129,6 +125,9 @@ function EditTypeSettle({
   // reste ouvert d'un jour sur l'autre.
   const today = new Date();
   today.setHours(0, 0, 0, 0);
+  const dayStart = new Date();
+  dayStart.setDate(dayStart.getDate() - 1);
+  dayStart.setHours(0, 0, 0, 0);
 
   // Filtrer les catégories de type "settle" une seule fois
   // const filteredCategories = useMemo(() => {
@@ -143,8 +142,8 @@ function EditTypeSettle({
       // amount: 100,
       quantity: 1,
       benef: undefined,
-      priority: "low",
       unit: "",
+      categoryId: undefined,
       projectId: undefined,
       dueDate: "",
       proof: [],
@@ -166,7 +165,7 @@ function EditTypeSettle({
         dueDate: request.dueDate
           ? format(new Date(request.dueDate), "yyyy-MM-dd")
           : format(new Date(), "yyyy-MM-dd"),
-        priority: request.priority || "low",
+        categoryId: request.categoryId,
         projectId: request.projectId,
         proof: request.proof,
       });
@@ -180,7 +179,7 @@ function EditTypeSettle({
     onSuccess: () => {
       toast.success("Votre besoin a été modifié avec succès !");
       // Invalider les requêtes pour rafraîchir les données
-      queryClient.invalidateQueries({ queryKey: ["requests"] });
+      queryClient.invalidateQueries();
       onOpenChange(false);
       router.refresh();
     },
@@ -200,13 +199,13 @@ function EditTypeSettle({
       }
       const payload: newRequestSettle = {
         label: values.label,
-        description: values.description,
-        // amount: values.amount,
+        description: values.description ?? "",
         quantity: values.quantity,
         unit: values.unit,
         benef: values.benef ? [values.benef] : [],
         dueDate: toDeadlineDate(values.dueDate),
-        priority: values.priority,
+        priority: "low",
+        categoryId: values.categoryId,
         projectId: values.projectId,
         proof: values.proof,
         userId: Number(user?.id),
@@ -252,27 +251,72 @@ function EditTypeSettle({
               control={form.control}
               name="label"
               render={({ field }) => (
-                <FormItem className="@min-[640px]:col-span-2">
-                  <FormLabel isRequired>Titre</FormLabel>
+                <FormItem>
+                  <FormLabel isRequired>{"Titre"}</FormLabel>
                   <FormControl>
-                    <Input placeholder="Ex. Thé" {...field} />
+                    <Input
+                      placeholder="Ex. Expédition de marchandises"
+                      {...field}
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
+            />
+            {/* Category */}
+            <FormField
+              control={form.control}
+              name="categoryId"
+              render={({ field }) => {
+                // 1. On filtre les catégories "settle"
+                const settleCategories = categories.filter(
+                  (c) => c.type.type === "settle",
+                );
+
+                // 2. On trouve la catégorie sélectionnée en convertissant les IDs en String
+                // pour garantir que la comparaison fonctionne (Nombre vs Texte)
+                const selectedCategory = settleCategories.find(
+                  (c) => String(c.id) === String(field.value),
+                );
+
+                return (
+                  <FormItem className="col-span-full">
+                    <FormLabel isRequired>{"Catégorie"}</FormLabel>
+
+                    <FormControl>
+                      <SearchableSelect
+                        onChange={field.onChange}
+                        options={settleCategories.map((c) => ({
+                          value: c.id!.toString(),
+                          label: c.label,
+                        }))}
+                        value={field.value ? String(field.value) : ""}
+                        width="w-full"
+                        allLabel=""
+                        placeholder="Sélectionner une catégorie"
+                      />
+                    </FormControl>
+
+                    {/* La description s'affiche maintenant correctement */}
+                    {selectedCategory?.description && (
+                      <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in duration-300">
+                        {selectedCategory.description}
+                      </div>
+                    )}
+
+                    <FormMessage />
+                  </FormItem>
+                );
+              }}
             />
             <FormField
               control={form.control}
               name="description"
               render={({ field }) => (
                 <FormItem className="@min-[640px]:col-span-2">
-                  <FormLabel isRequired>Description</FormLabel>
+                  <FormLabel>{"Description"}</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Décrivez votre besoin"
-                      {...field}
-                      rows={3}
-                    />
+                    <Textarea placeholder="Décrivez votre besoin" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -284,11 +328,11 @@ function EditTypeSettle({
               control={form.control}
               name="projectId"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>Projet</FormLabel>
+                <FormItem className="col-span-full">
+                  <FormLabel isRequired>{"Projet"}</FormLabel>
                   <FormControl>
                     <Combobox
-                      items={projects}
+                      items={projects.filter((x) => x.status !== "cancelled")}
                       value={projects.find((p) => p.id === field.value) ?? null}
                       onValueChange={(v) => field.onChange(v?.id ?? "")}
                     >
@@ -330,7 +374,7 @@ function EditTypeSettle({
 
                 return (
                   <FormItem>
-                    <FormLabel isRequired>Date limite</FormLabel>
+                    <FormLabel isRequired>{"Date limite"}</FormLabel>
                     <FormControl>
                       <div className="relative flex gap-2">
                         <Input
@@ -379,7 +423,7 @@ function EditTypeSettle({
                                 field.onChange(value);
                                 setDueDate(false);
                               }}
-                              disabled={(date) => date < today}
+                              disabled={(date) => date <= dayStart}
                             />
                           </PopoverContent>
                         </Popover>
@@ -420,9 +464,14 @@ function EditTypeSettle({
               name="quantity"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>Quantité</FormLabel>
+                  <FormLabel isRequired>{"Quantité"}</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="Ex. 3" {...field} />
+                    <Input
+                      type="number"
+                      placeholder="Ex. 3"
+                      {...field}
+                      className="pr-12"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -435,7 +484,7 @@ function EditTypeSettle({
               name="unit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>Unité</FormLabel>
+                  <FormLabel isRequired>{"Unité"}</FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
                       <SelectTrigger className="w-full">
@@ -455,41 +504,12 @@ function EditTypeSettle({
               )}
             />
 
-            {/* Priorité */}
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>Priorité</FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PRIORITIES.map((priority) => (
-                          <SelectItem
-                            key={priority.value}
-                            value={priority.value}
-                          >
-                            {priority.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
             <FormField
               control={form.control}
               name="benef"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel isRequired>Bénéficiaire</FormLabel>
+                  <FormLabel>{"Bénéficiaire"}</FormLabel>
                   <FormControl>
                     <Combobox
                       items={users}

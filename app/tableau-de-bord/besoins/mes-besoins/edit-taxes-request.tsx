@@ -30,7 +30,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import {
   Popover,
   PopoverContent,
@@ -45,7 +44,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
-import { requestQ } from "@/queries/requestModule";
+import { requestQ, RequestTaxes } from "@/queries/requestModule";
 import {
   Category,
   PRIORITIES,
@@ -112,6 +111,14 @@ const formSchema = z.object({
   unit: z.string().min(1, "Veuillez sélectionner une unité"),
   priority: z.enum(REQUEST_PRIORITIES),
   payType: z.enum(["cash", "chq", "ov"]),
+  proof: z
+    .array(
+      z.union([
+        z.instanceof(File, { message: "Doit être un fichier valide" }),
+        z.string(),
+      ]),
+    )
+    .max(1, "Pas plus d'un document"),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -143,6 +150,7 @@ function EditTaxesRequest({
       categoryId: request.categoryId,
       projectId: request.projectId,
       payType: request.paytype,
+      proof: request.proof ?? [],
     },
   });
 
@@ -163,13 +171,14 @@ function EditTaxesRequest({
         categoryId: request.categoryId,
         projectId: request.projectId,
         payType: request.paytype,
+        proof: request.proof ?? [],
       });
     }
   }, [request, form, open]);
 
   const { mutate, isPending } = useMutation({
-    mutationFn: async (payload: any) => {
-      return requestQ.update(request.id, payload);
+    mutationFn: async (payload: RequestTaxes) => {
+      return requestQ.editTaxesRequest(request.id, payload);
     },
     onSuccess: () => {
       queryClient.invalidateQueries();
@@ -184,11 +193,20 @@ function EditTaxesRequest({
   });
 
   const onSubmit = (values: FormValues) => {
-    const { dueDate, benef, ...rest } = values;
     mutate({
-      ...rest,
-      benef: [benef],
-      dueDate: toDeadlineDate(dueDate),
+      label: values.label,
+      description: values.description,
+      amount: values.amount,
+      quantity: values.quantity,
+      unit: values.unit,
+      benef: [values.benef],
+      dueDate: toDeadlineDate(values.dueDate),
+      priority: values.priority,
+      categoryId: values.categoryId,
+      projectId: values.projectId,
+      paytype: values.payType,
+      proof: values.proof,
+      userId: request.userId,
     });
   };
 
@@ -247,7 +265,7 @@ function EditTaxesRequest({
                 );
 
                 return (
-                  <FormItem>
+                  <FormItem className="col-span-full">
                     <FormLabel isRequired>{"Categorie"}</FormLabel>
                     <FormControl>
                       <SearchableSelect
@@ -293,7 +311,7 @@ function EditTaxesRequest({
               control={form.control}
               name="projectId"
               render={({ field }) => (
-                <FormItem>
+                <FormItem className="col-span-full">
                   <FormLabel isRequired>{"Projet"}</FormLabel>
                   <FormControl>
                     <Combobox
@@ -408,7 +426,7 @@ function EditTaxesRequest({
                   <FormLabel isRequired>{"Moyen de paiement"}</FormLabel>
                   <FormControl>
                     <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="min-w-60 w-full">
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
                       <SelectContent>
@@ -504,7 +522,7 @@ function EditTaxesRequest({
                       }
                       onValueChange={field.onChange}
                     >
-                      <SelectTrigger className="min-w-60 w-full">
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
                       <SelectContent>
@@ -560,18 +578,26 @@ function EditTaxesRequest({
               )}
             />
             {/* JUSTIFICATIF */}
-            <div className="grid gap-1.5">
-              <Label>{"Justificatif"}</Label>
-              <FilesUpload
-                value={request.proof}
-                onChange={() => {}}
-                name={"justificatif"}
-                acceptTypes="all"
-                multiple={false}
-                maxFiles={1}
-                disabled
-              />
-            </div>
+            <FormField
+              control={form.control}
+              name="proof"
+              render={({ field }) => (
+                <FormItem className="col-span-full">
+                  <FormLabel>{"Justificatif"}</FormLabel>
+                  <FormControl>
+                    <FilesUpload
+                      value={field.value || []}
+                      onChange={field.onChange}
+                      name={field.name}
+                      acceptTypes="all"
+                      multiple={false}
+                      maxFiles={1}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             {/* Boutons */}
             <DialogFooter className="w-full col-span-full mt-4">

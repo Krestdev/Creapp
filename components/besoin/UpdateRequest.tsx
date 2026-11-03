@@ -1,15 +1,7 @@
 "use client";
+
 import { Button } from "@/components/ui/button";
-import { toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
-import {
-  Combobox,
-  ComboboxContent,
-  ComboboxEmpty,
-  ComboboxInput,
-  ComboboxItem,
-  ComboboxList,
-} from "@/components/ui/combobox";
 import {
   Dialog,
   DialogClose,
@@ -42,103 +34,113 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
+import { cn, toDeadlineDate } from "@/lib/utils";
+import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
-import { PRIORITIES, ProjectT, RequestModelT, User } from "@/types/types";
+import { Category, ProjectT, RequestModelT, User } from "@/types/types";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { fr } from "date-fns/locale";
 import { CalendarIcon } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import z from "zod";
+import { z } from "zod";
+import { SearchableSelect } from "../base/searchableSelect";
 
 interface Props {
   request: RequestModelT;
   users: Array<User>;
   projects: Array<ProjectT>;
+  categories: Array<Category>;
   open: boolean;
   onOpenChange: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
-const REQUEST_PRIORITIES = PRIORITIES.map((m) => m.value) as [
-  (typeof PRIORITIES)[number]["value"],
-  ...(typeof PRIORITIES)[number]["value"][],
-];
-
+// ----------------------------------------------------------------------
+// VALIDATION (identique au formulaire de création : CreateForm)
+// ----------------------------------------------------------------------
 const formSchema = z.object({
-  label: z
-    .string({ message: "Veuillez renseigner un titre" })
-    .min(5, { message: "Trop court" })
-    .max(50, { message: "Trop long" }),
-  projectId: z.coerce.number({ message: "Veuillez définir un projet" }),
-  description: z.string({ message: "Veuillez renseigner une description" }),
-  quantity: z.coerce.number({ message: "Veuillez définir une quantité" }),
-  benef: z.coerce.number().optional(),
-  dueDate: z.string({ message: "Veuillez définir une date" }).refine(
-    (val) => {
-      const d = new Date(val);
-      return !isNaN(d.getTime());
-    },
-    { message: "Date invalide" },
-  ),
-  unit: z.string(),
-  priority: z.enum(REQUEST_PRIORITIES),
+  projet: z.string().min(1, "Le projet est requis"),
+  categoryId: z.coerce.number({
+    message: "Veuillez sélectionner une catégorie",
+  }),
+  titre: z.string().min(1, "Le titre est requis"),
+  description: z.string(),
+  quantity: z.coerce
+    .number()
+    .refine((val) => val > 0, "La quantité doit être supérieure à 0"),
+  unite: z.string().min(1, "L'unité est requise"),
+  datelimite: z.date().refine((d) => {
+    const minDate = new Date();
+    minDate.setHours(0, 0, 0, 0);
+    return d >= minDate;
+  }, "La date limite ne peut pas être antérieure à aujourd'hui"),
+  beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
+  beneficiaireId: z.string().optional(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
 
-function EditTypeOthers({
+const valuesOf = (request: RequestModelT): FormValues => ({
+  projet: request.projectId ? String(request.projectId) : "",
+  categoryId: request.categoryId as number,
+  titre: request.label || "",
+  description: request.description || "",
+  quantity: request.quantity || 1,
+  unite: request.unit || "",
+  datelimite: request.dueDate ? new Date(request.dueDate) : (undefined as never),
+  // « me » ou « autre », comme à la création.
+  beneficiaire: request.beneficiary === "autre" ? "autre" : "me",
+  beneficiaireId:
+    request.beneficiary === "autre" && request.benef?.[0]
+      ? String(request.benef[0])
+      : "",
+});
+
+function UpdateRequest({
   request,
   users,
   projects,
+  categories,
   open,
   onOpenChange,
 }: Props) {
-  // const { user } = useStore();
-  const [dueDate, setDueDate] = useState<boolean>(false);
+  const { user } = useStore();
   const queryClient = useQueryClient();
-
-  // Calculé à chaque rendu (et non au chargement du module) pour que le
-  // verrou sur les dates passées ne devienne pas obsolète si l'onglet
-  // reste ouvert d'un jour sur l'autre.
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      label: request.label,
-      description: request.description,
-      quantity: request.quantity,
-      benef: request.benef?.[0],
-      priority: request.priority,
-      unit: request.unit,
-      projectId: request.projectId,
-      dueDate: format(new Date(request.dueDate || ""), "yyyy-MM-dd"),
-    },
+    defaultValues: valuesOf(request),
   });
 
   // Remplir le formulaire avec les données existantes
   useEffect(() => {
     if (open && request) {
-      form.reset({
-        label: request.label || "",
-        description: request.description || "",
-        quantity: request.quantity || 1,
-        unit: request.unit || "",
-        benef: request.benef?.[0] || undefined,
-        dueDate: request.dueDate
-          ? format(new Date(request.dueDate), "yyyy-MM-dd")
-          : format(new Date(), "yyyy-MM-dd"),
-        priority: request.priority || "low",
-        projectId: request.projectId,
-      });
+      form.reset(valuesOf(request));
     }
   }, [request, form, open]);
 
+  // eslint-disable-next-line react-hooks/incompatible-library
+  const beneficiaire = form.watch("beneficiaire");
+
+  // Si on change le bénéficiaire, on réinitialise le champ bénéficiaireId
+  useEffect(() => {
+    if (beneficiaire !== "autre") {
+      form.setValue("beneficiaireId", "");
+    }
+  }, [beneficiaire, form]);
+
+  const USERS = users
+    .filter((u) => u.verified)
+    .map((u) => ({
+      id: u.id!,
+      name: u.firstName + " " + u.lastName,
+    }));
+
   const { mutate, isPending } = useMutation({
-    mutationFn: async (payload: any) => {
+    mutationFn: async (payload: Partial<RequestModelT>) => {
       return requestQ.update(request.id, payload);
     },
     onSuccess: () => {
@@ -153,44 +155,25 @@ function EditTypeOthers({
     },
   });
 
-  const onSubmit = useCallback(
-    (values: FormValues) => {
-      // Validation supplémentaire
-      if (!values.projectId) {
-        toast.error("Veuillez sélectionner un projet");
-        return;
-      }
-
-      const payload = {
-        label: values.label,
-        description: values.description,
-        quantity: values.quantity,
-        unit: values.unit,
-        benef: values.benef ? [values.benef] : [],
-        dueDate: toDeadlineDate(values.dueDate),
-        priority: values.priority,
-        projectId: values.projectId,
-      };
-
-      mutate(payload);
-    },
-    [mutate],
-  );
-
-  // Gérer la fermeture du modal
-  const handleOpenChange = useCallback(
-    (newOpen: boolean) => {
-      if (!newOpen) {
-        // Réinitialiser le formulaire lors de la fermeture
-        form.reset();
-      }
-      onOpenChange(newOpen);
-    },
-    [form, onOpenChange],
-  );
+  const onSubmit = (values: FormValues) => {
+    mutate({
+      label: values.titre,
+      description: values.description,
+      categoryId: values.categoryId,
+      quantity: Number(values.quantity),
+      unit: values.unite,
+      beneficiary: values.beneficiaire,
+      benef:
+        values.beneficiaire === "autre" && values.beneficiaireId
+          ? [Number(values.beneficiaireId)]
+          : [],
+      dueDate: toDeadlineDate(values.datelimite),
+      projectId: Number(values.projet),
+    });
+  };
 
   return (
-    <Dialog open={open} onOpenChange={handleOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader variant={"secondary"}>
           <DialogTitle>
@@ -208,174 +191,126 @@ function EditTypeOthers({
             onSubmit={form.handleSubmit(onSubmit)}
             className="grid grid-cols-1 gap-4 @min-[520px]/dialog:grid-cols-2"
           >
-            <FormField
-              control={form.control}
-              name="label"
-              render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <FormLabel isRequired>Titre</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Ex. Thé" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* PROJET */}
+              <FormField
+                control={form.control}
+                name="projet"
+                render={({ field }) => (
+                  <FormItem className="col-span-full">
+                    <FormLabel isRequired>{"Projet concerné"}</FormLabel>
+                    <SearchableSelect
+                      onChange={field.onChange}
+                      options={projects
+                        .filter(
+                          (p) =>
+                            p.status !== "cancelled" &&
+                            p.status !== "Completed" &&
+                            p.status !== "on-hold",
+                        )
+                        .map((p) => ({
+                          value: p.id!.toString(),
+                          label: p.label,
+                        }))}
+                      value={field.value ? String(field.value) : ""}
+                      width="w-full"
+                      allLabel=""
+                      wrapText
+                      placeholder="Sélectionner un projet"
+                    />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem className="col-span-full">
-                  <FormLabel isRequired>{"Description"}</FormLabel>
-                  <FormControl>
-                    <Textarea placeholder="Décrivez votre besoin" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* Category */}
+              <FormField
+                control={form.control}
+                name="categoryId"
+                render={({ field }) => {
+                  const achatCategories = categories.filter(
+                    (c) => c.type.type === "achat",
+                  );
 
-            {/* Project */}
-            <FormField
-              control={form.control}
-              name="projectId"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Projet"}</FormLabel>
-                  <FormControl>
-                    <Combobox
-                      items={projects}
-                      value={projects.find((p) => p.id === field.value) ?? null}
-                      onValueChange={(v) => field.onChange(v?.id ?? "")}
-                    >
-                      <ComboboxInput placeholder="Sélectionner" />
-                      <ComboboxContent className="min-w-[min(32rem,var(--available-width))]">
-                        <ComboboxEmpty>
-                          {"Aucun projet enregistré"}
-                        </ComboboxEmpty>
-                        <ComboboxList>
-                          {(item: ProjectT) => (
-                            <ComboboxItem
-                              key={item.id}
-                              value={item}
-                              className="items-start leading-snug wrap-break-word"
-                            >
-                              {item.label}
-                            </ComboboxItem>
-                          )}
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
-                  </FormControl>
-                  {projects.find((p) => p.id === field.value) && (
-                    <p className="text-xs text-muted-foreground wrap-break-word">
-                      {projects.find((p) => p.id === field.value)?.label}
-                    </p>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                  const selectedCategory = achatCategories.find(
+                    (c) => String(c.id) === String(field.value),
+                  );
 
-            {/* Date limite de soumission */}
-            <FormField
-              control={form.control}
-              name="dueDate"
-              render={({ field }) => {
-                const selectedDate = field.value
-                  ? new Date(field.value)
-                  : undefined;
-
-                return (
-                  <FormItem>
-                    <FormLabel isRequired>{"Date limite"}</FormLabel>
-                    <FormControl>
-                      <div className="relative flex gap-2">
-                        <Input
-                          id={field.name}
-                          value={field.value || ""}
-                          placeholder="Sélectionner une date"
-                          className="bg-background pr-10"
-                          onChange={(e) => {
-                            field.onChange(e.target.value);
-                          }}
-                          onKeyDown={(e) => {
-                            if (e.key === "ArrowDown") {
-                              e.preventDefault();
-                              setDueDate(true);
-                            }
-                          }}
+                  return (
+                    <FormItem className="col-span-full">
+                      <FormLabel isRequired>{"Categorie"}</FormLabel>
+                      <FormControl>
+                        <SearchableSelect
+                          onChange={field.onChange}
+                          options={achatCategories.map((c) => ({
+                            value: c.id!.toString(),
+                            label: c.label,
+                          }))}
+                          value={field.value ? String(field.value) : ""}
+                          width="w-full"
+                          allLabel=""
+                          placeholder="Sélectionner une catégorie"
                         />
-                        <Popover open={dueDate} onOpenChange={setDueDate}>
-                          <PopoverTrigger asChild>
-                            <Button
-                              id="date-picker"
-                              type="button"
-                              variant="ghost"
-                              className="absolute top-1/2 right-2 size-6 -translate-y-1/2"
-                            >
-                              <CalendarIcon className="size-3.5" />
-                              <span className="sr-only">
-                                Sélectionner une date
-                              </span>
-                            </Button>
-                          </PopoverTrigger>
-                          <PopoverContent
-                            className="w-auto overflow-hidden p-0"
-                            align="end"
-                            alignOffset={-8}
-                            sideOffset={10}
-                          >
-                            <Calendar
-                              mode="single"
-                              selected={selectedDate}
-                              defaultMonth={selectedDate || today}
-                              captionLayout="dropdown"
-                              onSelect={(date) => {
-                                if (!date) return;
-                                const value = format(date, "yyyy-MM-dd");
-                                field.onChange(value);
-                                setDueDate(false);
-                              }}
-                              disabled={(date) => date < today}
-                            />
-                          </PopoverContent>
-                        </Popover>
-                      </div>
+                      </FormControl>
+
+                      {/* ✅ Affichage de la description sous le SearchableSelect */}
+                      {selectedCategory?.description && (
+                        <div className="first-letter:uppercase text-sm text-muted-foreground animate-in fade-in slide-in-from-top-1 duration-300">
+                          {selectedCategory.description}
+                        </div>
+                      )}
+
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
+
+              {/* TITRE */}
+              <FormField
+                control={form.control}
+                name="titre"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Titre"}</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Titre du besoin" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
-                );
-              }}
-            />
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Quantité"}</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="Ex. 3" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+              {/* QUANTITE */}
+              <FormField
+                control={form.control}
+                name="quantity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Quantité"}</FormLabel>
+                    <FormControl>
+                      <Input type="number" placeholder="ex. 10" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* Unité */}
-            <FormField
-              control={form.control}
-              name="unit"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Unité"}</FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
+              {/* UNITE */}
+              <FormField
+                control={form.control}
+                name="unite"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"Unité"}</FormLabel>
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner l'unité" />
+                        </SelectTrigger>
+                      </FormControl>
                       <SelectContent>
                         {units.map((unit) => (
                           <SelectItem key={unit.value} value={unit.value}>
@@ -384,79 +319,130 @@ function EditTypeOthers({
                         ))}
                       </SelectContent>
                     </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            {/* Priorité */}
-            <FormField
-              control={form.control}
-              name="priority"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Priorité"}</FormLabel>
-                  <FormControl>
-                    <Select value={field.value} onValueChange={field.onChange}>
-                      <SelectTrigger className="w-full">
-                        <SelectValue placeholder="Sélectionner" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {PRIORITIES.map((priority) => (
-                          <SelectItem
-                            key={priority.value}
-                            value={priority.value}
+              {/* DATE LIMITE */}
+              <FormField
+                control={form.control}
+                name="datelimite"
+                render={({ field }) => (
+                  <FormItem className="flex flex-col">
+                    <FormLabel isRequired>{"Date limite"}</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild className="h-10 w-full!">
+                        <FormControl className="w-full">
+                          <Button
+                            type="button"
+                            variant={"outline"}
+                            className={cn(
+                              "w-full pl-3 text-left font-normal",
+                              !field.value && "text-muted-foreground",
+                            )}
                           >
-                            {priority.name}
-                          </SelectItem>
-                        ))}
+                            {field.value ? (
+                              format(field.value, "PPP", { locale: fr })
+                            ) : (
+                              <span>{"Choisir une date"}</span>
+                            )}
+                            <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                          </Button>
+                        </FormControl>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={field.value}
+                          onSelect={field.onChange}
+                          disabled={(date) => {
+                            const dayStart = new Date();
+                            dayStart.setDate(dayStart.getDate() - 1);
+                            dayStart.setHours(0, 0, 0, 0);
+                            return date <= dayStart;
+                          }}
+                        />
+                      </PopoverContent>
+                    </Popover>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {/* BENEFICIAIRE */}
+              <FormField
+                control={form.control}
+                name="beneficiaire"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel isRequired>{"À Réceptionner par"}</FormLabel>
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    >
+                      <FormControl>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Sélectionner" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="me">{"Moi-même"}</SelectItem>
+                        <SelectItem value="autre">{"Autre"}</SelectItem>
                       </SelectContent>
                     </Select>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="benef"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel isRequired>{"Bénéficiaire"}</FormLabel>
-                  <FormControl>
-                    <Combobox
-                      items={users}
-                      value={
-                        users.find((user) => user.id === field.value) ?? null
-                      }
-                      onValueChange={(v) => field.onChange(v?.id ?? "")}
-                      itemToStringLabel={(v) =>
-                        v.firstName.concat(" ", v.lastName)
-                      }
-                    >
-                      <ComboboxInput placeholder="Sélectionner" />
-                      <ComboboxContent>
-                        <ComboboxEmpty>
-                          {"Aucun utilisateur enregistré"}
-                        </ComboboxEmpty>
-                        <ComboboxList>
-                          {(item: User) => (
-                            <ComboboxItem key={item.id} value={item}>
-                              {item.firstName.concat(" ", item.lastName)}
-                            </ComboboxItem>
-                          )}
-                        </ComboboxList>
-                      </ComboboxContent>
-                    </Combobox>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
+              {/* SELECTION DU BENEFICIAIRE SI "AUTRE" */}
+              {beneficiaire === "autre" && (
+                <FormField
+                  control={form.control}
+                  name="beneficiaireId"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel isRequired>
+                        {"Sélectionner le bénéficiaire"}
+                      </FormLabel>
+                      <SearchableSelect
+                        width="w-full"
+                        allLabel=""
+                        options={USERS.filter((u) => u.id !== user?.id).map(
+                          (u) => ({
+                            value: u.id.toString(),
+                            label: u.name,
+                          }),
+                        )}
+                        value={field.value?.toString() || ""}
+                        onChange={(value) => field.onChange(value)}
+                        placeholder="Sélectionner"
+                      />
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
               )}
-            />
 
-            {/* Boutons */}
+              {/* DESCRIPTION */}
+              <FormField
+                control={form.control}
+                name="description"
+                render={({ field }) => (
+                  <FormItem className="col-span-full">
+                    <FormLabel>{"Description"}</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="Description"
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             <DialogFooter className="w-full col-span-full mt-4">
               <DialogClose asChild>
                 <Button type="button" variant="outline" disabled={isPending}>
@@ -479,4 +465,4 @@ function EditTypeOthers({
   );
 }
 
-export default EditTypeOthers;
+export default UpdateRequest;
