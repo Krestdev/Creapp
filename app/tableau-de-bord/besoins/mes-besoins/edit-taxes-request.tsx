@@ -2,7 +2,7 @@
 import { SearchableSelect } from "@/components/base/searchableSelect";
 import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
-import { toDeadlineDate } from "@/lib/utils";
+import { receiverIdOf, toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Combobox,
@@ -141,7 +141,7 @@ function EditTaxesRequest({
       description: request.description,
       amount: request.amount,
       quantity: request.quantity,
-      benef: request.benef?.[0],
+      benef: receiverIdOf(request),
       dueDate: request.dueDate
         ? format(new Date(request.dueDate), "yyyy-MM-dd")
         : format(new Date(), "yyyy-MM-dd"),
@@ -162,7 +162,7 @@ function EditTaxesRequest({
         description: request.description,
         amount: request.amount,
         quantity: request.quantity,
-        benef: request.benef?.[0],
+        benef: receiverIdOf(request),
         dueDate: request.dueDate
           ? format(new Date(request.dueDate), "yyyy-MM-dd")
           : format(new Date(), "yyyy-MM-dd"),

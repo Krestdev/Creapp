@@ -1,7 +1,7 @@
 "use client";
 import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
-import { toDeadlineDate } from "@/lib/utils";
+import { receiverIdOf, toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Combobox,
@@ -131,7 +131,7 @@ function EditGasRequest({ request, categories, open, onOpenChange }: Props) {
       ...parseMotif(request.description),
       amount: request.amount || 100,
       liters: request.liters || 1,
-      benef: request.benef?.[0] || undefined,
+      benef: receiverIdOf(request) ?? request.userId,
       dueDate: format(request.dueDate || new Date(), "yyyy-MM-dd"),
       priority: request.priority || "low",
       vehiclesId: request.vehiclesId || undefined,
@@ -149,7 +149,7 @@ function EditGasRequest({ request, categories, open, onOpenChange }: Props) {
         ...parseMotif(request.description),
         amount: request.amount || 100,
         liters: request.liters || 1,
-        benef: request.benef?.[0] || undefined,
+        benef: receiverIdOf(request) ?? request.userId,
         dueDate: format(request.dueDate || new Date(), "yyyy-MM-dd"),
         priority: request.priority || "low",
         vehiclesId: request.vehiclesId || undefined,

@@ -1,6 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
-import { toDeadlineDate } from "@/lib/utils";
+import { receiverIdOf, toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Combobox,
@@ -159,7 +159,7 @@ function EditTypeOthers({
         amount: request.amount || 100,
         quantity: request.quantity || 1,
         unit: request.unit || "",
-        benef: request.benef?.[0] || undefined,
+        benef: receiverIdOf(request),
         dueDate: request.dueDate
           ? format(new Date(request.dueDate), "yyyy-MM-dd")
           : format(new Date(), "yyyy-MM-dd"),

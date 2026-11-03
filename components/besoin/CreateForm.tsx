@@ -78,6 +78,9 @@ const formSchema = z.object({
   }, "La date limite ne peut pas être antérieure à aujourd'hui"),
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
   beneficiaireId: z.string().optional(), // Nouveau champ pour sélectionner un seul utilisateur
+}).refine((v) => v.beneficiaire !== "autre" || !!v.beneficiaireId, {
+  message: "Veuillez sélectionner le bénéficiaire",
+  path: ["beneficiaireId"],
 });
 
 export default function MyForm({ categories, users, projects }: Props) {

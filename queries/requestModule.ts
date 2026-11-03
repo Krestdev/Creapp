@@ -562,7 +562,7 @@ class RequestQueries {
     formData.append("type", "settle");
     formData.append("quantity", payload.quantity.toString());
     formData.append("userId", payload.userId.toString());
-    if (payload.benef) {
+    if (payload.benef && payload.benef.length > 0) {
       formData.append("beneficiary", payload.benef[0].toString());
     }
     formData.append("benef", JSON.stringify(payload.benef));
@@ -599,7 +599,7 @@ class RequestQueries {
     formData.append("priority", "medium");
     formData.append("type", "settle");
     formData.append("userId", payload.userId.toString());
-    if (payload.benef) {
+    if (payload.benef && payload.benef.length > 0) {
       formData.append("beneficiary", payload.benef[0].toString());
     }
     formData.append("benef", JSON.stringify(payload.benef));

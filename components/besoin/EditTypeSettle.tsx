@@ -1,7 +1,7 @@
 "use client";
 import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
-import { toDeadlineDate } from "@/lib/utils";
+import { receiverIdOf, toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Combobox,
@@ -161,7 +161,7 @@ function EditTypeSettle({
         // amount: request.amount || 100,
         quantity: request.quantity || 1,
         unit: request.unit || "",
-        benef: Number(request.beneficiary) || undefined,
+        benef: receiverIdOf(request),
         dueDate: request.dueDate
           ? format(new Date(request.dueDate), "yyyy-MM-dd")
           : format(new Date(), "yyyy-MM-dd"),
