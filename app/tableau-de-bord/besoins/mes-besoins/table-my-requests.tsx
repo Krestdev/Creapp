@@ -254,10 +254,10 @@ export function TableMyRequests({
         const modified = !modifier
           ? false
           : modifier.priority !== original.priority ||
-          modifier.amount !== original.amount ||
-          modifier.dueDate !== original.dueDate ||
-          modifier.quantity !== original.quantity ||
-          modifier.unit !== original.unit;
+            modifier.amount !== original.amount ||
+            modifier.dueDate !== original.dueDate ||
+            modifier.quantity !== original.quantity ||
+            modifier.unit !== original.unit;
         return (
           <div className="flex items-center gap-1.5">
             {!!modified && <ModifiedLegend />}
@@ -433,6 +433,7 @@ export function TableMyRequests({
                         setIsUpdateTaxesModalOpen(true);
                         break;
                       default:
+                        setIsUpdateModalOpen(true);
                         break;
                     }
                     // item.type === "facilitation"
@@ -604,9 +605,9 @@ export function TableMyRequests({
                         {header.isPlaceholder
                           ? null
                           : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext(),
-                          )}
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
                       </TableHead>
                     );
                   })}
