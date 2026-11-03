@@ -2,6 +2,7 @@
 import { SearchableSelect } from "@/components/base/searchableSelect";
 import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
+import { toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Combobox,
@@ -187,7 +188,7 @@ function EditTaxesRequest({
     mutate({
       ...rest,
       benef: [benef],
-      dueDate: new Date(dueDate),
+      dueDate: toDeadlineDate(dueDate),
     });
   };
 

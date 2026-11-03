@@ -1,6 +1,7 @@
 "use client";
 import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
+import { toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Combobox,
@@ -156,7 +157,7 @@ function EditGasRequest({ request, categories, open, onOpenChange }: Props) {
 
   const onSubmit = (values: FormValues) => {
     const { dueDate, benef, ...rest } = values;
-    mutate({ dueDate: new Date(dueDate), benef: [benef!], ...rest });
+    mutate({ dueDate: toDeadlineDate(dueDate), benef: [benef!], ...rest });
   };
 
   const today = new Date();

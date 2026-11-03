@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Combobox,
@@ -128,7 +129,7 @@ function CreateTypeOthers({ users, categories, projects }: Props) {
       quantity: values.quantity,
       unit: values.unit,
       benef: [values.benef],
-      dueDate: new Date(values.dueDate),
+      dueDate: toDeadlineDate(values.dueDate),
       priority: values.priority,
       categoryId: values.categoryId,
       projectId: values.projectId,

@@ -1,6 +1,7 @@
 "use client";
 import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
+import { toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Combobox,
@@ -184,7 +185,7 @@ function EditTransportRequest({
 
   const onSubmit = (values: FormValues) => {
     const { dueDate, list, ...rest } = values;
-    mutate({ dueDate: new Date(dueDate), benFac: { list }, ...rest });
+    mutate({ dueDate: toDeadlineDate(dueDate), benFac: { list }, ...rest });
   };
 
   return (

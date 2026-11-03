@@ -1,6 +1,7 @@
 "use client";
 import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
+import { toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Dialog,
@@ -137,7 +138,7 @@ function EditApproRequest({
 
   const onSubmit = (values: FormValues) => {
     const { dueDate, ...rest } = values;
-    mutate({ ...rest, dueDate: new Date(dueDate) });
+    mutate({ ...rest, dueDate: toDeadlineDate(dueDate) });
   };
 
   const today = new Date();

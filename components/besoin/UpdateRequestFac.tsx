@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { toDeadlineDate } from "@/lib/utils";
 import {
   Dialog,
   DialogClose,
@@ -59,15 +60,16 @@ const SingleFileSchema = z.array(
   ]),
 );
 
-const startOfToday = new Date();
-startOfToday.setHours(0, 0, 0, 0);
-
 const formSchema = z.object({
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
   projet: z.string().min(1, "Le projet est requis"),
-  delai: z
-    .date()
-    .min(startOfToday, "Le delai d'exécution doit être dans le futur"),
+  // "minDate" est recalculé à chaque validation (et non figé au chargement
+  // du module) pour que la date du jour reste une date limite valide.
+  delai: z.date().refine((d) => {
+    const minDate = new Date();
+    minDate.setHours(0, 0, 0, 0);
+    return d >= minDate;
+  }, "Le delai d'exécution ne peut pas être antérieur à aujourd'hui"),
   title: z.string().min(1, "Le titre est requis"),
   description: z.string().min(1, "La description est requise"),
   justificatif: SingleFileSchema,
@@ -201,7 +203,7 @@ export default function UpdateRequestFac({
       beneficiary: values.beneficiaire,
       benef: Array(user?.id),
       userId: requestData.userId, // Garder l'utilisateur original
-      dueDate: values.delai,
+      dueDate: toDeadlineDate(values.delai),
       projectId: Number(values.projet),
       proof: values.justificatif,
       amount: beneficiairesList.reduce((total, b) => total + b.montant, 0),

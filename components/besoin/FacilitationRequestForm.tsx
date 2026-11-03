@@ -2,6 +2,7 @@
 
 import { SuccessModal } from "@/components/modals/success-modal";
 import { Button } from "@/components/ui/button";
+import { toDeadlineDate } from "@/lib/utils";
 import {
   Form,
   FormControl,
@@ -68,7 +69,7 @@ const formSchema = z.object({
     const minDate = new Date();
     minDate.setHours(0, 0, 0, 0);
     return d >= minDate;
-  }, "Le delai d'exécution doit être dans le futur"),
+  }, "Le delai d'exécution ne peut pas être antérieur à aujourd'hui"),
   categoryId: z.coerce.number({
     message: "Veuillez sélectionner une catégorie",
   }),
@@ -149,7 +150,7 @@ export default function FacilitationRequestForm({
       beneficiary: values.beneficiaire,
       benef: Array(user?.id),
       userId: Number(user?.id),
-      dueDate: values.delai,
+      dueDate: toDeadlineDate(values.delai),
       projectId: Number(values.projet),
       proof: values.justificatif,
       amount: beneficiairesList.reduce((total, b) => total + b.montant, 0),
