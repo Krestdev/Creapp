@@ -2,6 +2,7 @@
 
 import { SuccessModal } from "@/components/modals/success-modal";
 import { Button } from "@/components/ui/button";
+import { toDeadlineDate } from "@/lib/utils";
 import {
   Form,
   FormControl,
@@ -60,7 +61,7 @@ const formSchema = z.object({
     const minDate = new Date();
     minDate.setHours(0, 0, 0, 0);
     return d >= minDate;
-  }, "Le delai d'exécution doit être dans le futur"),
+  }, "Le delai d'exécution ne peut pas être antérieur à aujourd'hui"),
   categoryId: z.coerce.number({
     message: "Veuillez sélectionner une catégorie",
   }),
@@ -139,7 +140,7 @@ export default function SpecialRequestForm({ categories }: Props) {
     > = {
       label: values.titre,
       amount: Number(values.montant),
-      dueDate: values.delai,
+      dueDate: toDeadlineDate(values.delai),
       description: values.raison ?? "",
       quantity: 1,
       unit: "unit",

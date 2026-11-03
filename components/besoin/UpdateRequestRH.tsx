@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { toDeadlineDate } from "@/lib/utils";
 import {
   Dialog,
   DialogClose,
@@ -73,9 +74,14 @@ const formSchema = z.object({
     .refine((val) => !isNaN(Number(val)) && Number(val) > 0, {
       message: "Le montant doit être un nombre positif",
     }),
-  date_limite: z
-    .date()
-    .min(new Date(), "La date limite doit être dans le futur"),
+  // "minDate" est recalculé à chaque validation (et non figé au chargement
+  // du module, ni comparé à l'instant exact via `new Date()`) pour que la
+  // date du jour reste une date limite valide.
+  date_limite: z.date().refine((d) => {
+    const minDate = new Date();
+    minDate.setHours(0, 0, 0, 0);
+    return d >= minDate;
+  }, "La date limite ne peut pas être antérieure à aujourd'hui"),
   beneficiaire: z.array(z.number()).min(1, "Le bénéficiaire est requis"),
   justificatif: SingleFileSchema,
 });
@@ -214,7 +220,7 @@ export default function UpdateRHRequest({
       description: values.description,
       amount: Number(values.montant),
       projectId: Number(values.projet),
-      dueDate: values.date_limite,
+      dueDate: toDeadlineDate(values.date_limite),
       period: { from: values.periode.from, to: values.periode.to },
       benef: values.beneficiaire,
       proof: values.justificatif,
@@ -383,7 +389,12 @@ export default function UpdateRHRequest({
                           mode="single"
                           selected={field.value}
                           onSelect={field.onChange}
-                          disabled={(date) => date <= new Date()}
+                          disabled={(date) => {
+                            const dayStart = new Date();
+                            dayStart.setDate(dayStart.getDate() - 1);
+                            dayStart.setHours(0, 0, 0, 0);
+                            return date <= dayStart;
+                          }}
                           locale={fr}
                         />
                       </PopoverContent>

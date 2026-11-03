@@ -1,5 +1,6 @@
 "use client";
 import { Button } from "@/components/ui/button";
+import { toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Combobox,
@@ -166,7 +167,7 @@ function EditTypeOthers({
         quantity: values.quantity,
         unit: values.unit,
         benef: values.benef ? [values.benef] : [],
-        dueDate: new Date(values.dueDate),
+        dueDate: toDeadlineDate(values.dueDate),
         priority: values.priority,
         projectId: values.projectId,
       };

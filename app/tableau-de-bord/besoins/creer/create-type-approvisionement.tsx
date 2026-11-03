@@ -1,6 +1,7 @@
 "use client";
 import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
+import { toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
@@ -114,7 +115,7 @@ function CreateTypeApprovisionement({ categories, projects }: Props) {
       label: values.label,
       description,
       unit: "FCFA",
-      dueDate: new Date(values.dueDate),
+      dueDate: toDeadlineDate(values.dueDate),
       priority: "medium",
       amount: values.amount,
       categoryId: values.categoryId,

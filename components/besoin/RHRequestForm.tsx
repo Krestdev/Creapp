@@ -3,6 +3,7 @@
 import { SuccessModal } from "@/components/modals/success-modal";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import { toDeadlineDate } from "@/lib/utils";
 import {
   Form,
   FormControl,
@@ -88,7 +89,7 @@ const formSchema = z.object({
     const minDate = new Date();
     minDate.setHours(0, 0, 0, 0);
     return d >= minDate;
-  }, "La date limite doit être dans le futur"),
+  }, "La date limite ne peut pas être antérieure à aujourd'hui"),
   beneficiaire: z.array(z.number()).min(1, "Le bénéficiaire est requis"),
   justificatif: SingleFileSchema,
   categoryId: z.coerce.number({
@@ -170,7 +171,7 @@ export default function RHRequestForm({ categories, projects, users }: Props) {
       "id" | "createdAt" | "updatedAt" | "ref" | "validators" | "user"
     > = {
       label: values.titre,
-      dueDate: values.date_limite,
+      dueDate: toDeadlineDate(values.date_limite),
       beneficiary: "",
       benef: values.beneficiaire,
       proof: values.justificatif,

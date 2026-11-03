@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
-import { cn } from "@/lib/utils";
+import { cn, toDeadlineDate } from "@/lib/utils";
 
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
@@ -75,7 +75,7 @@ const formSchema = z.object({
     const minDate = new Date();
     minDate.setHours(0, 0, 0, 0);
     return d >= minDate;
-  }, "La date limite doit être dans le futur"),
+  }, "La date limite ne peut pas être antérieure à aujourd'hui"),
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
   beneficiaireId: z.string().optional(), // Nouveau champ pour sélectionner un seul utilisateur
 });
@@ -165,7 +165,7 @@ export default function MyForm({ categories, users, projects }: Props) {
           ? [Number(values.beneficiaireId)]
           : undefined,
       userId: Number(user?.id),
-      dueDate: values.datelimite,
+      dueDate: toDeadlineDate(values.datelimite),
       projectId: Number(values.projet),
       state: "pending",
       priority: "medium",

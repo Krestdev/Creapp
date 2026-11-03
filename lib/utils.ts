@@ -187,6 +187,42 @@ export function isPastDeadline(deadline: Date | string): boolean {
   return deadlineDay < today;
 }
 
+// Normalise une date limite choisie par l'utilisateur sur la fin de la
+// journée LOCALE (23:59:59.999) plutôt que son tout début. Sans ça, une
+// date limite "aujourd'hui" valait minuit (00:00:00) et se retrouvait
+// quasi systématiquement antérieure à l'horodatage exact de création du
+// besoin (qui inclut l'heure), ce qui faisait échouer la création côté
+// backend ("la date limite ne peut être antérieure à la date de création
+// du besoin") alors que l'utilisateur choisissait bien le jour même.
+//
+// Pour une chaîne "yyyy-MM-dd" (valeur d'un <input type="date"> ou du
+// calendrier), on reconstruit la date à partir de ses composantes locales
+// plutôt que de passer par `new Date(val)`, qui interprète ce format comme
+// un minuit UTC et peut faire glisser la date d'un jour selon le fuseau.
+export function toDeadlineDate(value: Date | string): Date {
+  if (typeof value === "string") {
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    if (match) {
+      const [, y, m, d] = match;
+      return new Date(
+        Number(y),
+        Number(m) - 1,
+        Number(d),
+        23,
+        59,
+        59,
+        999,
+      );
+    }
+    const parsed = new Date(value);
+    parsed.setHours(23, 59, 59, 999);
+    return parsed;
+  }
+  const result = new Date(value);
+  result.setHours(23, 59, 59, 999);
+  return result;
+}
+
 export function totalAmountPurchase(payload: BonsCommande): number {
   if (!payload.devi?.element) return 0;
   return payload.devi.element

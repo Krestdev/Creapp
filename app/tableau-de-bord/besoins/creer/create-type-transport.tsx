@@ -1,6 +1,7 @@
 "use client";
 import { SearchableSelect } from "@/components/base/searchableSelect";
 import { Button } from "@/components/ui/button";
+import { toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Combobox,
@@ -137,7 +138,7 @@ function CreateTypeTransport({ users, categories, projects }: Props) {
       amount: values.list.reduce((a, b) => a + b.amount, 0),
       projectId: values.projectId,
       benFac: { list: values.list },
-      dueDate: new Date(values.dueDate),
+      dueDate: toDeadlineDate(values.dueDate),
       priority: values.priority,
       categoryId: values.categoryId,
       quantity: 1,

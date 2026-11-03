@@ -2,6 +2,7 @@
 import { SearchableSelect } from "@/components/base/searchableSelect";
 import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
+import { toDeadlineDate } from "@/lib/utils";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Combobox,
@@ -138,7 +139,7 @@ function CreateTypeSettle({ users, categories, projects }: Props) {
       quantity: values.quantity,
       unit: values.unit,
       benef: values.benef ? [values.benef] : [],
-      dueDate: new Date(values.dueDate),
+      dueDate: toDeadlineDate(values.dueDate),
       priority: "low",
       categoryId: values.categoryId,
       projectId: values.projectId,
