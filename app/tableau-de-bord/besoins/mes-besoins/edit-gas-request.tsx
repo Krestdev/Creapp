@@ -35,6 +35,13 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { queryKeys } from "@/lib/query-keys";
 import { newRequestGas, requestQ } from "@/queries/requestModule";
@@ -67,6 +74,7 @@ const formSchema = z.object({
     .min(5, { message: "Trop court" })
     .max(50, { message: "Trop long" }),
   description: z.string({ message: "Veuillez renseigner une description" }),
+  more: z.string().optional(),
   categoryId: z.coerce.number({
     message: "Veuillez sélectionner une catégorie",
   }),
@@ -93,6 +101,19 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+/**
+ * Le motif est enregistré en une seule chaîne : « Panne » ou
+ * « Mission - <description> ». On le redécoupe comme dans le formulaire de création.
+ */
+const parseMotif = (raw?: string): Pick<FormValues, "description" | "more"> => {
+  const value = raw ?? "";
+  if (value === "Panne") return { description: "Panne", more: "" };
+  if (value.startsWith("Mission")) {
+    return { description: "Mission", more: value.replace(/^Mission( - )?/, "") };
+  }
+  return { description: value ? "Mission" : "", more: value };
+};
+
 function EditGasRequest({ request, categories, open, onOpenChange }: Props) {
   const [dueDate, setDueDate] = useState<boolean>(false);
   const queryClient = useQueryClient();
@@ -108,7 +129,7 @@ function EditGasRequest({ request, categories, open, onOpenChange }: Props) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       label: request.label || "Recharge de carburant",
-      description: request.description || "",
+      ...parseMotif(request.description),
       amount: request.amount || 100,
       liters: request.liters || 1,
       benef: request.benef?.[0] || undefined,
@@ -126,7 +147,7 @@ function EditGasRequest({ request, categories, open, onOpenChange }: Props) {
     if (open && request) {
       form.reset({
         label: request.label || "Recharge de carburant",
-        description: request.description || "",
+        ...parseMotif(request.description),
         amount: request.amount || 100,
         liters: request.liters || 1,
         benef: request.benef?.[0] || undefined,
@@ -157,8 +178,17 @@ function EditGasRequest({ request, categories, open, onOpenChange }: Props) {
   });
 
   const onSubmit = (values: FormValues) => {
-    const { dueDate, benef, ...rest } = values;
-    mutate({ dueDate: new Date(dueDate), benef: [benef!], ...rest });
+    const { dueDate, benef, more, ...rest } = values;
+    const description =
+      values.description === "Mission"
+        ? values.description.concat(" - ", more ?? "")
+        : values.description;
+    mutate({
+      dueDate: new Date(dueDate),
+      benef: [benef!],
+      ...rest,
+      description,
+    });
   };
 
   const today = new Date();
@@ -216,7 +246,7 @@ function EditGasRequest({ request, categories, open, onOpenChange }: Props) {
                 );
 
                 return (
-                  <FormItem>
+                  <FormItem className="col-span-full">
                     <FormLabel isRequired>{"Categorie"}</FormLabel>
                     <FormControl>
                       <SearchableSelect
@@ -251,12 +281,46 @@ function EditGasRequest({ request, categories, open, onOpenChange }: Props) {
                 <FormItem className="col-span-full">
                   <FormLabel isRequired>{"Motif"}</FormLabel>
                   <FormControl>
-                    <Textarea {...field} placeholder="Description" />
+                    <Select
+                      value={field.value || ""}
+                      onValueChange={field.onChange}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Sélectionner le motif" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Panne">{"Panne"}</SelectItem>
+                        <SelectItem value="Mission">{"Mission"}</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            {
+              // eslint-disable-next-line react-hooks/incompatible-library
+              form.watch("description") === "Mission" && (
+                <FormField
+                  control={form.control}
+                  name="more"
+                  render={({ field }) => (
+                    <FormItem className="col-span-full">
+                      <FormLabel isRequired>
+                        {"Description de la mission"}
+                      </FormLabel>
+                      <FormControl>
+                        <Textarea
+                          {...field}
+                          placeholder="Renseigner une description"
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )
+            }
             {/* DATE LIMITE */}
             <FormField
               control={form.control}

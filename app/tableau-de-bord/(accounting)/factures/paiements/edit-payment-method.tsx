@@ -228,7 +228,7 @@ function EditPaymentMethod({ open, openChange, payment }: Props) {
                       }
                       onValueChange={field.onChange}
                     >
-                      <SelectTrigger className="min-w-60 w-full">
+                      <SelectTrigger className="w-full">
                         <SelectValue placeholder="Sélectionner" />
                       </SelectTrigger>
                       <SelectContent>

@@ -31,6 +31,7 @@ import { Pagination } from "@/components/base/pagination";
 import { DetailBesoin } from "@/components/besoin/detail-besoin";
 import EditTypeOthers from "@/components/besoin/EditTypeOthers";
 import EditTypeSettle from "@/components/besoin/EditTypeSettle";
+import EditTypeSpecial from "@/components/besoin/EditTypeSpecial";
 import UpdateRequest from "@/components/besoin/UpdateRequest";
 import UpdateRequestFac from "@/components/besoin/UpdateRequestFac";
 import UpdateRHRequest from "@/components/besoin/UpdateRequestRH";
@@ -160,6 +161,8 @@ export function TableMyRequests({
   const [isUpdateTransportModalOpen, setIsUpdateTransportModalOpen] =
     React.useState(false);
   const [isUpdateTaxesModalOpen, setIsUpdateTaxesModalOpen] =
+    React.useState(false);
+  const [isUpdateSpecialModalOpen, setIsUpdateSpecialModalOpen] =
     React.useState(false);
   const [isModalOpen, setIsModalOpen] = React.useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = React.useState(false);
@@ -432,6 +435,9 @@ export function TableMyRequests({
                       case "taxes":
                         setIsUpdateTaxesModalOpen(true);
                         break;
+                      case "speciaux":
+                        setIsUpdateSpecialModalOpen(true);
+                        break;
                       default:
                         setIsUpdateModalOpen(true);
                         break;
@@ -664,6 +670,7 @@ export function TableMyRequests({
             request={selectedItem}
             users={users}
             projects={projects}
+            categories={categories}
           />
           <UpdateRequestFac
             open={isUpdateFacModalOpen}
@@ -671,6 +678,7 @@ export function TableMyRequests({
             requestData={selectedItem}
             users={users.filter((u) => !!u.verified && u.verified === true)}
             projects={projects}
+            categories={categories}
           />
           <UpdateRHRequest
             open={isUpdateRHModalOpen}
@@ -678,6 +686,14 @@ export function TableMyRequests({
             requestData={selectedItem}
             users={users}
             projects={projects}
+            categories={categories}
+          />
+          <EditTypeSpecial
+            request={selectedItem}
+            users={users}
+            categories={categories}
+            open={isUpdateSpecialModalOpen}
+            onOpenChange={setIsUpdateSpecialModalOpen}
           />
 
           <EditTypeOthers

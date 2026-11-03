@@ -117,13 +117,13 @@ export function SearchableSelect({
           role="combobox"
           aria-expanded={open}
           className={cn(
-            `${width} h-10 justify-between font-normal text-sm font-sans`,
+            `${width} h-10 min-w-0 max-w-full justify-between font-normal text-sm font-sans`,
             !selected && "text-muted-foreground",
             className,
           )}
           disabled={disabled}
         >
-          <span className="max-w-[280px] truncate flex-1 text-left">
+          <span className="min-w-0 max-w-[280px] truncate flex-1 text-left">
             {selected ? selected.label : placeholder}
           </span>
           <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />

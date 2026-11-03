@@ -162,7 +162,7 @@ function DrawerBody({ className, ...props }: React.ComponentProps<"div">) {
       className={cn(
         // `content-start` : une grille posée sur le corps ne répartit pas ses
         // rangées sur toute la hauteur du tiroir.
-        "min-h-0 flex-1 content-start overflow-y-auto px-7 py-5",
+        "min-h-0 flex-1 content-start overflow-y-auto px-7 py-5 [&>*]:min-w-0",
         className
       )}
       {...props}
