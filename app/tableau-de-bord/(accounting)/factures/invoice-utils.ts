@@ -22,7 +22,14 @@ export const activePayments = (invoice: Invoice) =>
 
 export const paidAmount = (invoice: Invoice) =>
   (invoice.payment ?? [])
-    .filter((p) => p.status === "paid")
+    .filter(
+      (p) =>
+        p.status === "paid" ||
+        p.status === "simple_signed" ||
+        p.status === "signed" ||
+        p.status === "validated" ||
+        p.status === "unsigned",
+    )
     .reduce((sum, p) => sum + p.price, 0);
 
 export const restAmount = (invoice: Invoice) =>
