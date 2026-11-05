@@ -16,7 +16,6 @@ import {
 import {
   ArrowUpDown,
   ChevronDown,
-  Ellipsis,
   Eye,
   LucidePen,
   Settings2,

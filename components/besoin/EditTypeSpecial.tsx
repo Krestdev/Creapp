@@ -1,4 +1,5 @@
 "use client";
+import { receiverIdOf } from "@/lib/utils";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -95,7 +96,9 @@ const valuesOf = (request: RequestModelT): FormValues => ({
   raison: request.description || undefined,
   delai: request.dueDate ? new Date(request.dueDate) : (undefined as never),
   categoryId: request.categoryId as number,
-  beneficiaireId: request.benef?.[0] ? String(request.benef[0]) : undefined,
+  beneficiaireId: receiverIdOf({ ...request, beneficiary: undefined })
+    ? String(receiverIdOf({ ...request, beneficiary: undefined }))
+    : undefined,
   paytype: request.paytype as FormValues["paytype"],
 });
 
@@ -153,7 +156,7 @@ export default function EditTypeSpecial({
       userId: request.userId, // Garder l'utilisateur original
       type: "speciaux",
       categoryId: values.categoryId,
-      benef: Array(Number(values.beneficiaireId)),
+      benef: [Number(values.beneficiaireId)],
       paytype: values.paytype,
     });
   }

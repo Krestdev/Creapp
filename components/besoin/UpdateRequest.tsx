@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { units } from "@/data/unit";
-import { cn } from "@/lib/utils";
+import { cn, receiverIdOf } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import { Category, ProjectT, RequestModelT, User } from "@/types/types";
@@ -81,9 +81,15 @@ const formSchema = z.object({
   }, "La date limite doit être dans le futur"),
   beneficiaire: z.string().min(1, "Le bénéficiaire est requis"),
   beneficiaireId: z.string().optional(),
+}).refine((v) => v.beneficiaire !== "autre" || !!v.beneficiaireId, {
+  message: "Veuillez sélectionner le bénéficiaire",
+  path: ["beneficiaireId"],
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+// Qui réceptionne le besoin : voir `receiverIdOf` (me, id en chaîne, ou liste).
+const receiverOf = receiverIdOf;
 
 const valuesOf = (request: RequestModelT): FormValues => ({
   projet: request.projectId ? String(request.projectId) : "",
@@ -93,12 +99,8 @@ const valuesOf = (request: RequestModelT): FormValues => ({
   quantity: request.quantity || 1,
   unite: request.unit || "",
   datelimite: request.dueDate ? new Date(request.dueDate) : (undefined as never),
-  // « me » ou « autre », comme à la création.
-  beneficiaire: request.beneficiary === "autre" ? "autre" : "me",
-  beneficiaireId:
-    request.beneficiary === "autre" && request.benef?.[0]
-      ? String(request.benef[0])
-      : "",
+  beneficiaire: receiverOf(request) ? "autre" : "me",
+  beneficiaireId: receiverOf(request) ? String(receiverOf(request)) : "",
 });
 
 function UpdateRequest({
@@ -158,17 +160,20 @@ function UpdateRequest({
   });
 
   const onSubmit = (values: FormValues) => {
+    // Un seul réceptionnaire : « me », ou l'utilisateur choisi (son id en chaîne,
+    // seule forme que les vues du besoin savent relire).
+    const receiver =
+      values.beneficiaire === "autre" && values.beneficiaireId
+        ? Number(values.beneficiaireId)
+        : undefined;
     mutate({
       label: values.titre,
       description: values.description,
       categoryId: values.categoryId,
       quantity: Number(values.quantity),
       unit: values.unite,
-      beneficiary: values.beneficiaire,
-      benef:
-        values.beneficiaire === "autre" && values.beneficiaireId
-          ? [Number(values.beneficiaireId)]
-          : [],
+      beneficiary: receiver ? String(receiver) : "me",
+      benef: receiver ? [receiver] : [],
       dueDate: values.datelimite,
       projectId: Number(values.projet),
     });

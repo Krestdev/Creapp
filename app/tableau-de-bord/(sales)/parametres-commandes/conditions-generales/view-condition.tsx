@@ -1,13 +1,15 @@
 import { Button } from "@/components/ui/button";
 import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { CommandCondition } from "@/types/types";
 import {
     LucideHash,
@@ -24,12 +26,14 @@ interface Props {
 
 function ViewCondition({ open, openChange, condition }: Props) {
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{`Condition - ${condition.title}`}</DialogTitle>
-          <DialogDescription>{`Informations relatives à la condition`}</DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Condition"}</DrawerEyebrow>
+          <DrawerTitle>{condition.title}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées à la condition"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
         <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
           {/**Reference */}
           <div className="view-group">
@@ -66,13 +70,15 @@ function ViewCondition({ open, openChange, condition }: Props) {
             </div>
           </div>
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
             <Button variant="outline">{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

@@ -39,11 +39,13 @@ export function FilterSearch({
   onChange,
   placeholder = "Rechercher…",
   className,
+  onKeyDown,
 }: {
   value: string
   onChange: (value: string) => void
   placeholder?: string
   className?: string
+  onKeyDown?: React.KeyboardEventHandler<HTMLInputElement>
 }) {
   return (
     <label
@@ -57,6 +59,7 @@ export function FilterSearch({
         type="search"
         value={value}
         onChange={(e) => onChange(e.target.value)}
+        onKeyDown={onKeyDown}
         placeholder={placeholder}
         aria-label={placeholder}
         className="min-w-0 flex-1 bg-transparent text-body text-text-primary outline-none placeholder:text-text-placeholder [&::-webkit-search-cancel-button]:hidden"

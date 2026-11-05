@@ -1,4 +1,5 @@
 "use client";
+import { receiverIdOf } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -160,7 +161,7 @@ function EditTypeOthers({
         amount: request.amount || 100,
         quantity: request.quantity || 1,
         unit: request.unit || "",
-        benef: request.benef?.[0] || undefined,
+        benef: receiverIdOf(request),
         dueDate: request.dueDate
           ? format(new Date(request.dueDate), "yyyy-MM-dd")
           : format(new Date(), "yyyy-MM-dd"),

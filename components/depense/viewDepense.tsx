@@ -4,13 +4,16 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import React, { Dispatch, SetStateAction } from "react";
 import { Button } from "../ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import DepenseDocument from "./depenseDoc";
 import { useQuery } from "@tanstack/react-query";
 import { queryKeys } from "@/lib/query-keys";
@@ -40,15 +43,15 @@ const PaymentReceipt: React.FC<Props> = ({
   });
   return (
     <div>
-      <Dialog open={open} onOpenChange={openChange}>
-        <DialogContent className="sm:max-w-3xl">
+      <Drawer open={open} onOpenChange={openChange}>
+        <DrawerContent className="sm:max-w-3xl">
           {/* Header with burgundy background */}
-          <DialogHeader>
-            <DialogTitle>{`Reçu ${paymentRequest.title}`}</DialogTitle>
-            <DialogDescription>
-              {"Reçu de la dépense"}
-            </DialogDescription>
-          </DialogHeader>
+          <DrawerHeader>
+            <DrawerEyebrow>{"Reçu"}</DrawerEyebrow>
+            <DrawerTitle>{paymentRequest.title}</DrawerTitle>
+            <DrawerDescription>{"Consultez le reçu de la dépense"}</DrawerDescription>
+          </DrawerHeader>
+          <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
 
           {/* Option 1: PDF Viewer (for preview) */}
           {getTransaction.isSuccess && (
@@ -70,7 +73,9 @@ const PaymentReceipt: React.FC<Props> = ({
           )}
 
           {/* Option 2: PDF Download Link */}
-          <DialogFooter className="shrink-0 sticky z-10 w-full bottom-0">
+          
+          </DrawerBody>
+          <DrawerFooter pinned>
             <PDFDownloadLink
               document={
                 <DepenseDocument
@@ -93,9 +98,9 @@ const PaymentReceipt: React.FC<Props> = ({
                 </Button>
               )}
             </PDFDownloadLink>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </DrawerFooter>
+        </DrawerContent>
+      </Drawer>
     </div>
   );
 };

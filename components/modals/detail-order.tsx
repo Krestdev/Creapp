@@ -2,14 +2,16 @@
 import { CrossPlatformPDFViewer } from "@/components/cross-view-pdf";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { CommandRequestT } from "@/types/types";
 import CotationPDF from "../bdcommande/DétailCotation";
 import { DownloadButton } from "../bdcommande/TéléchargeButton";
@@ -30,14 +32,14 @@ export function DetailOrder({
   if (!data) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{`Demande - ${data.title}`}</DialogTitle>
-          <DialogDescription>
-            {message || "Détails de la commande"}
-          </DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Demande de cotation"}</DrawerEyebrow>
+          <DrawerTitle>{data.title}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées à la demande"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
         <div style={{ height: "500px", marginBottom: "20px" }}>
           <CrossPlatformPDFViewer
             document={<CotationPDF data={data} />}
@@ -47,13 +49,15 @@ export function DetailOrder({
         </div>
 
         {/* Footer buttons */}
-        <DialogFooter>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
           <DownloadButton data={data} />
-          <DialogClose asChild>
+          <DrawerClose asChild>
             <Button variant="outline">{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

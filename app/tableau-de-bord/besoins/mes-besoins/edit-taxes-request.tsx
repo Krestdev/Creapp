@@ -1,4 +1,5 @@
 "use client";
+import { receiverIdOf } from "@/lib/utils";
 import { SearchableSelect } from "@/components/base/searchableSelect";
 import FilesUpload from "@/components/comp-547";
 import { Button } from "@/components/ui/button";
@@ -142,7 +143,7 @@ function EditTaxesRequest({
       description: request.description,
       amount: request.amount,
       quantity: request.quantity,
-      benef: request.benef?.[0],
+      benef: receiverIdOf(request),
       dueDate: request.dueDate
         ? format(new Date(request.dueDate), "yyyy-MM-dd")
         : format(new Date(), "yyyy-MM-dd"),
@@ -163,7 +164,7 @@ function EditTaxesRequest({
         description: request.description,
         amount: request.amount,
         quantity: request.quantity,
-        benef: request.benef?.[0],
+        benef: receiverIdOf(request),
         dueDate: request.dueDate
           ? format(new Date(request.dueDate), "yyyy-MM-dd")
           : format(new Date(), "yyyy-MM-dd"),

@@ -3,13 +3,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { TranslateRole } from "@/lib/utils";
 import { Role } from "@/types/types";
 import {
@@ -168,12 +171,14 @@ export function ShowRole({
   const permissions = getPermissions(role.label);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{`Rôle - ${TranslateRole(role.label)}`}</DialogTitle>
-          <DialogDescription>{"Description du rôle"}</DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Rôle"}</DrawerEyebrow>
+          <DrawerTitle>{TranslateRole(role.label)}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées au rôle"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
 
         {/* Content */}
         <div className="grid gap-3">
@@ -271,12 +276,14 @@ export function ShowRole({
             {"Tout utilisateur a accès à l'émission des besoins."}
           </p>
         </div>
-        <DialogFooter>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             {"Fermer"}
           </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

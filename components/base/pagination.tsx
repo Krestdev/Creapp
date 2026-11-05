@@ -23,7 +23,12 @@ export function Pagination<TData>({
   const { pageIndex, pageSize } = table.getState().pagination;
   return (
     <TablePagination
-      total={table.getFilteredRowModel().rows.length}
+      // Pagination serveur : le total vient de `rowCount`, pas de la page chargée.
+      total={
+        table.options.manualPagination
+          ? table.getRowCount()
+          : table.getFilteredRowModel().rows.length
+      }
       page={pageIndex + 1}
       pageSize={pageSize}
       onPageChange={(page) => table.setPageIndex(page - 1)}

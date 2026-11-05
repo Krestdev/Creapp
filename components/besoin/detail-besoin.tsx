@@ -1,16 +1,13 @@
 "use client";
 
-import { Badge, badgeVariants } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
+import { StatusBadge, type StatusTone } from "@/components/ds/status-badge";
+import { UserAvatar } from "@/components/ds/user-avatar";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  ViewDrawer,
+  ViewField,
+  ViewFile,
+  ViewGrid,
+} from "@/components/ds/view-drawer";
 import { queryKeys } from "@/lib/query-keys";
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
@@ -24,33 +21,9 @@ import {
   User,
 } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
-import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import {
-  ArrowBigUpIcon,
-  BriefcaseBusinessIcon,
-  Calendar,
-  CalendarClock,
-  Check,
-  Clock,
-  DollarSignIcon,
-  Edit,
-  FileIcon,
-  FolderIcon,
-  InfoIcon,
-  LucideHash,
-  LucidePieChart,
-  MessageSquareXIcon,
-  SquareStackIcon,
-  TextQuoteIcon,
-  User2,
-  UserIcon,
-  Users,
-  X,
-} from "lucide-react";
-import Link from "next/link";
-import { RequestStepper } from "../stepper";
+import { RequestCircuit, ValidationCircuit } from "./request-circuit";
 
 interface DetailModalProps {
   open: boolean;
@@ -61,6 +34,25 @@ interface DetailModalProps {
   receptions: Array<Reception>;
   purchaseOrders: Array<BonsCommande>;
 }
+
+const PRIORITY_LABELS: Record<string, string> = {
+  urgent: "Urgent",
+  high: "Élevé",
+  medium: "Moyen",
+  low: "Faible",
+};
+
+const STATUS: Record<string, { label: string; tone: StatusTone }> = {
+  pending: { label: "En attente", tone: "warning" },
+  validated: { label: "Validé", tone: "success" },
+  rejected: { label: "Rejeté", tone: "danger" },
+  cancel: { label: "Annulé", tone: "danger" },
+  DISCARDED: { label: "Annulé", tone: "danger" },
+  store: { label: "Déstocké", tone: "info" },
+};
+
+const dateTime = (value: Date | string) =>
+  format(new Date(value), "dd MMMM yyyy à HH:mm", { locale: fr });
 
 export function DetailBesoin({
   open,
@@ -81,85 +73,23 @@ export function DetailBesoin({
   //Get old values
   const initialValues = data.requestOlds?.find((r) => r.userId !== user?.id);
 
-  // Fonctions pour récupérer les noms
-  const getProjectName = (projectId: string) => {
-    const project = projects.find((proj) => proj.id === Number(projectId));
-    return project?.label || projectId;
-  };
-
   const getCategory = useQuery({
     queryKey: ["category", data.categoryId],
     queryFn: () => categoryQ.getCategory(data.categoryId!),
     enabled: !!data.categoryId,
   });
 
-  const getUserName = (userId: string) => {
-    const user = users.find((u) => u.id === Number(userId));
-    return user?.lastName + " " + user?.firstName || userId;
+  const userName = (id?: number | string) => {
+    const u = users.find((x) => x.id === Number(id));
+    return u ? `${u.lastName} ${u.firstName}` : String(id ?? "");
   };
 
-  const getStatusBadge = (
-    status: RequestModelT["state"],
-  ): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-  } => {
-    switch (status) {
-      case "pending":
-        return { label: "En attente", variant: "amber" };
-      case "cancel":
-        return { label: "Annulé", variant: "dark" };
-      case "validated":
-        return { label: "Approuvé", variant: "success" };
-      case "rejected":
-        return { label: "Rejeté", variant: "destructive" };
-      case "store":
-        return { label: "Déstocké", variant: "blue" };
-      case "DISCARDED":
-        return { label: "Annulé", variant: "destructive" };
-      default:
-        return { label: status, variant: "default" };
-    }
+  const status = STATUS[data.state] ?? {
+    label: String(data.state),
+    tone: "neutral" as StatusTone,
   };
 
-  // const statusConfig = {
-  //   pending: {
-  //     label: "En attente",
-  //     color:
-  //       "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
-  //   },
-  //   validated: {
-  //     label: "Approuvé",
-  //     color:
-  //       "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
-  //   },
-  //   rejected: {
-  //     label: "Rejeté",
-  //     color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
-  //   },
-  //   cancel: {
-  //     label: "Annulé",
-  //     color: "bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-200",
-  //   },
-  //   store: {
-  //     label: "Déstocké",
-  //     color: "bg-blue-200 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
-  //   },
-  // };
-
-  // type StatusKey = keyof typeof statusConfig;
-  // const currentStatus =
-  //   statusConfig[data.state as StatusKey] ?? statusConfig.pending;
-  const curentPriority =
-    data.priority === "urgent"
-      ? "Urgent"
-      : data.priority === "medium"
-        ? "Moyen"
-        : data.priority === "low"
-          ? "Faible"
-          : "Elevé";
-
-  // Récupérer l'ancienne valeur pour l'affichage
+  // Valeurs précédentes (besoin modifié par un autre utilisateur)
   const oldestRequest = initialValues;
   const hasAmountChanged =
     !!data.amount && !!initialValues && initialValues.amount !== data.amount;
@@ -172,551 +102,247 @@ export function DetailBesoin({
     !!initialValues &&
     initialValues.quantity !== data.quantity;
   const modifier = users.find((u) => u.id === oldestRequest?.id);
+  const author = users.find((u) => u.id === data.userId);
+  const authorName = author
+    ? `${author.firstName} ${author.lastName}`
+    : "Non spécifié";
+
+  const previous = (text: string) => (
+    <p className="mt-1 text-caption text-text-tertiary">{text}</p>
+  );
+
+  const receiverLabel =
+    data.type === "facilitation"
+      ? "Récepteur pour compte"
+      : data.type === "achat"
+        ? "À réceptionner par"
+        : "Bénéficiaire";
+
+  const receivers = () => {
+    if (data.beneficiary && data.beneficiary.length > 0) {
+      return (
+        <p className="font-semibold capitalize">
+          {data.beneficiary === "me"
+            ? userName(data.userId)
+            : userName(data.beneficiary)}
+        </p>
+      );
+    }
+    if (data.beficiaryList && data.beficiaryList.length > 0) {
+      return data.beficiaryList.map((ben) => (
+        <p key={ben.id} className="font-semibold capitalize">
+          {`${ben.firstName} ${ben.lastName}`}
+        </p>
+      ));
+    }
+    if (data.benFac) {
+      return data.benFac.list.map((ben) => (
+        <p key={ben.id} className="font-semibold capitalize">
+          {`${ben?.name} - ${XAF.format(ben?.amount)}`}
+        </p>
+      ));
+    }
+    return <p className="italic">{"Non renseigné"}</p>;
+  };
+
+  const categoryLabel = (() => {
+    if (!getCategory.isSuccess) return null;
+    const label = getCategory.data.data.label;
+    if (!label.includes("facilita")) return label;
+    return data.type === "facilitation"
+      ? "Facilitation"
+      : data.type === "ressource_humaine"
+        ? "Ressources humaines"
+        : data.type === "speciaux"
+          ? "Besoins spéciaux"
+          : label;
+  })();
+
+  const proof = paiements.isSuccess
+    ? (paiements.data.data?.proof as string | undefined)
+    : undefined;
+  const showCircuit = data.type !== "speciaux";
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{`Besoin - ${data.label}`}</DialogTitle>
-          <DialogDescription>{"Détails du besoin"}</DialogDescription>
-        </DialogHeader>
+    <ViewDrawer
+      open={open}
+      onOpenChange={onOpenChange}
+      eyebrow="Besoin"
+      title={data.label}
+      description="Consultez les informations associées au besoin"
+    >
+      <ViewGrid>
+        <ViewField label="Référence">
+          <p className="text-body-medium text-text-link">{data.ref}</p>
+        </ViewField>
+        <ViewField label="Statut">
+          <StatusBadge tone={status.tone}>{status.label}</StatusBadge>
+        </ViewField>
 
-        {/* Contenu scrollable */}
-        <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
-          {/**Reference */}
-          <div className="view-group">
-            <span className="view-icon">
-              <LucideHash />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Référence"}</p>
-              <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
-                <p className="text-primary-600 text-sm">{data.ref}</p>
-              </div>
-            </div>
-          </div>
+        <ViewField label="Type de besoin">
+          <p className="font-semibold">
+            {getCategory.isSuccess
+              ? (getCategory.data.data.type?.label ?? "—")
+              : getCategory.isLoading
+                ? "Chargement…"
+                : "—"}
+          </p>
+        </ViewField>
+        <ViewField label="Catégorie">
+          <p className="font-semibold">
+            {getCategory.isLoading ? "Chargement…" : (categoryLabel ?? "—")}
+          </p>
+        </ViewField>
 
-          {/**Amount */}
-          {!!data.amount && (
-            <div className="view-group">
-              <span className="view-icon">
-                <DollarSignIcon />
-              </span>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <p className="view-group-title">{"Montant"}</p>
-                  {hasAmountChanged && (
-                    <Badge
-                      variant="outline"
-                      className="h-5 text-xs flex items-center gap-1"
-                    >
-                      <Edit />
-                      {"Modifié"}
-                    </Badge>
-                  )}
-                </div>
-                <p className="font-semibold">{XAF.format(data.amount)}</p>
-                {hasAmountChanged && oldestRequest?.amount && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {`Ancienne valeur: ${XAF.format(oldestRequest.amount)}`}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Project */}
-          {!!data.projectId && (
-            <div className="view-group">
-              <span className="view-icon">
-                <BriefcaseBusinessIcon />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Projet associé"}</p>
-                <p className="font-semibold">
-                  {getProjectName(String(data.projectId))}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/* Description */}
-          <div className="view-group">
-            <span className="view-icon">
-              <TextQuoteIcon />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Description"}</p>
-              <p className={cn(!data.description && "italic text-gray-600")}>
-                {data.description ?? "Non renseigné"}
-              </p>
-            </div>
-          </div>
-
-          {/* Catégorie */}
-          <div className="view-group">
-            <span className="view-icon">
-              <FolderIcon />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Catégorie"}</p>
-              {getCategory.isLoading ? (
-                <p className="animate-pulse">{"Chargement..."}</p>
-              ) : (
-                getCategory.isSuccess && (
-                  <p className="font-semibold">
-                    {!getCategory.data.data.label.includes("facilita")
-                      ? getCategory.data.data.label
-                      : data.type === "facilitation"
-                        ? "Facilitation"
-                        : data.type === "ressource_humaine"
-                          ? "Ressources Humaines"
-                          : data.type === "speciaux" && "Besoins Spéciaux"}
-                  </p>
-                )
-              )}
-            </div>
-          </div>
-
-          {/* Priorité */}
-          <div className="view-group">
-            <span className="view-icon">
-              <ArrowBigUpIcon />
-            </span>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <p className="view-group-title">{"Priorité"}</p>
-                {hasPriorityChanged && (
-                  <Badge
-                    variant="outline"
-                    className="h-5 text-xs flex items-center gap-1"
-                  >
-                    <Edit />
-                    {"Modifié"}
-                  </Badge>
-                )}
-              </div>
-              <Badge
-                variant={
-                  data.priority === "urgent"
-                    ? "destructive"
-                    : data.priority === "medium"
-                      ? "amber"
-                      : data.priority === "low"
-                        ? "outline"
-                        : "sky"
-                }
-              >
-                {data.priority === "urgent" ? (
-                  <X />
-                ) : data.priority === "medium" ? (
-                  <Clock />
-                ) : (
-                  <Check />
-                )}
-                {curentPriority}
-              </Badge>
-              {hasPriorityChanged && oldestRequest?.priority && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  Ancienne valeur:{" "}
-                  {oldestRequest.priority === "urgent"
-                    ? "Urgent"
-                    : oldestRequest.priority === "medium"
-                      ? "Moyen"
-                      : oldestRequest.priority === "low"
-                        ? "Faible"
-                        : "Élevé"}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Statut */}
-          <div className="view-group">
-            <span className="view-icon">
-              <InfoIcon />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Statut"}</p>
-              <Badge variant={getStatusBadge(data.state).variant}>
-                {getStatusBadge(data.state).label}
-              </Badge>
-            </div>
-          </div>
-
-          {/* Motif de rejet */}
-          {data.state === "rejected" && (
-            <div className="view-group">
-              <span className="view-icon">
-                <MessageSquareXIcon />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Motif du rejet"}</p>
-                <p className="text-destructive">
-                  {data.validators.find(
-                    x => x.decision === "rejected"
-                  )?.comment}
-                </p>
-              </div>
-            </div>
-          )}
-
-          {/**Commentary */}
-
-          {/* Justificatif */}
-          {data.type !== "speciaux" && data.type !== "achat" && (
-            <div className="view-group">
-              <span className="view-icon">
-                <FileIcon />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Justificatif"}</p>
-                <div className="space-y-1">
-                  {paiements.isSuccess && !!paiements.data.data?.proof ? (
-                    <Link
-                      href={`${process.env.NEXT_PUBLIC_API
-                        }/${paiements.data.data?.proof as string}`}
-                      target="_blank"
-                      className="flex gap-0.5 items-center"
-                    >
-                      <img
-                        src="/images/pdf.png"
-                        alt="justificatif"
-                        className="h-7 w-auto aspect-square"
-                      />
-                    </Link>
-                  ) : (
-                    <p className="italic">{"Aucun justificatif"}</p>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Quantité pour achat */}
-          {(data.type === "achat" || data.type === "settle") && (
-            <div className="view-group">
-              <span className="view-icon">
-                <LucidePieChart />
-              </span>
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <p className="view-group-title">{"Quantité"}</p>
-                  {hasQuantityChanged && (
-                    <Badge
-                      variant="outline"
-                      className="h-5 text-xs flex items-center gap-1"
-                    >
-                      <Edit />
-                      {"Modifié"}
-                    </Badge>
-                  )}
-                </div>
-                <p className="font-semibold">
-                  {data.quantity + " " + data.unit}
-                </p>
-                {hasQuantityChanged && oldestRequest?.quantity && (
-                  <p className="text-xs text-muted-foreground mt-1">
-                    {`Ancienne valeur: ${oldestRequest.quantity} ${oldestRequest.unit}`}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Période pour ressources humaines */}
-          {data.type === "ressource_humaine" && (
-            <div className="view-group">
-              <span className="view-icon">
-                <CalendarClock />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Période"}</p>
-                {data.period ? (
-                  <p className="font-semibold">{`Du ${format(
-                    data.period.from!,
-                    "PPP",
-                    { locale: fr },
-                  )} au ${format(data.period.to!, "PPP", {
-                    locale: fr,
-                  })}`}</p>
-                ) : (
-                  <p>{"Non renseigné"}</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Pour le compte de (facilitation) */}
-          {data.type === "facilitation" && (
-            <div className="view-group">
-              <span className="view-icon">
-                <Users />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Pour le compte de"}</p>
-                <div className="flex flex-col">
-                  {data.benFac?.list?.map((ben) => {
-                    return (
-                      <p
-                        key={ben.id}
-                        className="font-semibold capitalize"
-                      >{`${ben?.name} - ${XAF.format(ben?.amount)}`}</p>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Initié par */}
-          <div className="view-group">
-            <span className="view-icon">
-              <UserIcon />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Initié par"}</p>
-              <p className="font-semibold capitalize">
-                {getUserName(String(data.userId))}
-              </p>
-              {!!oldestRequest && !!modifier && (
-                <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-                  <Edit className="h-3 w-3" />
-                  {`Modifié par: ${modifier.firstName.concat(" ", modifier.lastName)}`}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Récepteur pour compte */}
-          {modifier && (
-            <div className="view-group">
-              <span className="view-icon">
-                <User2 />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">{"Récepteur pour compte"}</p>
-                <p className="font-semibold capitalize">
-                  {getUserName(String(data.beneficiary))}
-                </p>
-                {!!oldestRequest && !!modifier && (
-                  <p className="text-xs text-amber-600 mt-1 flex items-center gap-1">
-                    <Edit className="h-3 w-3" />
-                    {`Modifié par: ${modifier.firstName.concat(" ", modifier.lastName)}`}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* Date de création */}
-          <div className="view-group">
-            <span className="view-icon">
-              <Calendar />
-            </span>
-            <div className="flex flex-col">
-              <p className="view-group-title">{"Créé le"}</p>
-              <p className="font-semibold">
-                {format(data.createdAt, "dd MMMM yyyy à kk:mm", {
-                  locale: fr,
-                })}
-              </p>
-            </div>
-          </div>
-
-          {/* Date de modification */}
-          <div className="view-group">
-            <span className="view-icon">
-              <Calendar />
-            </span>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <p className="view-group-title">{"Modifié le"}</p>
-              </div>
-              <p className="font-semibold">
-                {format(data.updatedAt, "dd MMMM yyyy à kk:mm", {
-                  locale: fr,
-                })}
-              </p>
-            </div>
-          </div>
-
-          {/* Date limite */}
-          <div className="view-group">
-            <span className="view-icon">
-              <Calendar />
-            </span>
-            <div className="flex flex-col">
-              <div className="flex items-center gap-2">
-                <p className="view-group-title">{"Date limite"}</p>
-                {hasDueDateChanged && (
-                  <Badge
-                    variant="outline"
-                    className="h-5 text-xs flex items-center gap-1"
-                  >
-                    <Edit />
-                    {"Modifié"}
-                  </Badge>
-                )}
-              </div>
-              <p className="font-semibold">
-                {format(data.dueDate!, "PPP", { locale: fr })}
-              </p>
-              {hasDueDateChanged && oldestRequest?.dueDate && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  {` Ancienne date: ${format(oldestRequest.dueDate, "PPP", { locale: fr })}`}
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Bénéficiaires */}
-          {data.type !== "speciaux" && data.beneficiary !== undefined && (
-            <div className="view-group">
-              <span className="view-icon">
-                <Users />
-              </span>
-              <div className="flex flex-col">
-                <p className="view-group-title">
-                  {data.type === "facilitation"
-                    ? "Recepteur pour compte"
-                    : data.type === "achat"
-                      ? "À Réceptionner par"
-                      : "Bénéficiaires"}
-                </p>
-                <div className="flex flex-col">
-                  {data.beneficiary.length > 0 ? (
-                    data.beneficiary === "me" ? (
-                      <p className="font-semibold capitalize">
-                        {users.find((x) => x.id === data.userId)?.lastName + " " + users.find((x) => x.id === data.userId)?.firstName}
-                      </p>
-                    ) : (
-                      <p className="font-semibold capitalize">
-                        {users.find((u) => u.id === Number(data.beneficiary))
-                          ?.firstName +
-                          " " +
-                          users.find((u) => u.id === Number(data.beneficiary))
-                            ?.lastName}
-                      </p>
-                    )
-                  ) : data.beficiaryList && data.beficiaryList.length > 0 ? (
-                    data.beficiaryList.map((ben) => {
-                      const beneficiary = users.find((x) => x.id === ben.id);
-                      return (
-                        <p
-                          key={ben.id}
-                          className="font-semibold capitalize"
-                        >{`${beneficiary?.firstName +
-                          " " +
-                          beneficiary?.lastName || ben.id
-                          }`}</p>
-                      );
-                    })
-                  ) : data.benFac ? (
-                    data.benFac.list.map((ben) => {
-                      return (
-                        <p
-                          key={ben.id}
-                          className="font-semibold capitalize"
-                        >{`${ben?.name} - ${XAF.format(ben?.amount)}`}</p>
-                      );
-                    })
-                  ) : null}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Validation History */}
-          {data.type === "speciaux"
-            ? null
-            : data.validators && (
-              <div className="view-group">
-                <span className="view-icon">
-                  <SquareStackIcon />
-                </span>
-                <div className="w-full flex flex-col">
-                  <p className="view-group-title">
-                    {"Historique de validation"}
-                  </p>
-                  <div className="grid gap-2">
-                    {data.validators
-                      .sort((a, b) => a.rank - b.rank)
-                      .map((v) => {
-                        return (
-                          <div
-                            key={v.id}
-                            className={cn(
-                              "px-3 py-2 flex flex-col gap-1 border",
-                              !v.decision
-                                ? "bg-gray-50 border-gray-200"
-                                : v.decision.includes("reject")
-                                  ? "bg-red-50 border-red-200"
-                                  : "bg-green-50 border-green-200",
-                            )}
-                          >
-                            <p
-                              className={cn(
-                                "text-sm font-medium",
-                                !v.decision
-                                  ? "text-gray-600"
-                                  : v.decision.includes("reject")
-                                    ? "text-red-600"
-                                    : "text-green-600",
-                              )}
-                            >
-                              {!v.decision
-                                ? "En attente"
-                                : v.decision.includes("reject")
-                                  ? "Rejeté"
-                                  : "Approuvé"}
-                            </p>
-                            <div className="flex flex-col">
-                              <span>
-                                {users.find((u) => u.id === v.userId)
-                                  ?.firstName +
-                                  " " +
-                                  users.find((u) => u.id === v.userId)
-                                    ?.lastName}
-                              </span>
-                              {v.decision && (
-                                <span className="font-medium tracking-tighter">
-                                  {format(
-                                    new Date(v.updatedAt),
-                                    "dd MMMM yyyy à kk:mm",
-                                    {
-                                      locale: fr,
-                                    },
-                                  )}
-                                </span>
-                              )}
-                            </div>
-                          </div>
-                        );
-                      })}
-                  </div>
-                </div>
-              </div>
+        <ViewField label="Priorité">
+          <p
+            className={cn(
+              "font-semibold",
+              data.priority === "urgent" && "text-status-danger-fg",
             )}
-        </div>
-        {/* Request parours */}
-        <div className="col-span-full w-full mt-4">
-          {paiements.isSuccess && (
-            <RequestStepper
-              request={data}
-              bonCommandes={purchaseOrders}
-              ticket={paiements.data.data}
-              receptions={receptions}
+          >
+            {PRIORITY_LABELS[data.priority] ?? data.priority}
+          </p>
+          {hasPriorityChanged &&
+            oldestRequest?.priority &&
+            previous(
+              `Ancienne valeur : ${PRIORITY_LABELS[oldestRequest.priority] ?? oldestRequest.priority}`,
+            )}
+        </ViewField>
+        {!!data.amount && (
+          <ViewField label="Montant">
+            <p className="font-semibold">{XAF.format(data.amount)}</p>
+            {hasAmountChanged &&
+              oldestRequest?.amount &&
+              previous(`Ancienne valeur : ${XAF.format(oldestRequest.amount)}`)}
+          </ViewField>
+        )}
+
+        {!!data.projectId && (
+          <ViewField label="Projet" wide>
+            <p className="font-semibold">
+              {projects.find((p) => p.id === data.projectId)?.label ??
+                data.projectId}
+            </p>
+          </ViewField>
+        )}
+
+        <ViewField label="Description" wide>
+          <p className={cn(!data.description && "italic text-text-tertiary")}>
+            {data.description || "Non renseigné"}
+          </p>
+        </ViewField>
+
+        {data.state === "rejected" && (
+          <ViewField label="Motif du rejet" wide>
+            <p className="text-status-danger-fg">
+              {data.validators?.find((x) => x.decision === "rejected")
+                ?.comment ?? "Non renseigné"}
+            </p>
+          </ViewField>
+        )}
+
+        {(data.type === "achat" || data.type === "settle") && (
+          <ViewField label="Quantité">
+            <p className="font-semibold">{`${data.quantity} ${data.unit}`}</p>
+            {hasQuantityChanged &&
+              oldestRequest?.quantity &&
+              previous(
+                `Ancienne valeur : ${oldestRequest.quantity} ${oldestRequest.unit}`,
+              )}
+          </ViewField>
+        )}
+
+        {data.type === "ressource_humaine" && (
+          <ViewField label="Période">
+            {data.period ? (
+              <p className="font-semibold">{`Du ${format(data.period.from!, "PPP", { locale: fr })} au ${format(data.period.to!, "PPP", { locale: fr })}`}</p>
+            ) : (
+              <p>{"Non renseigné"}</p>
+            )}
+          </ViewField>
+        )}
+
+        {data.type !== "speciaux" && data.beneficiary !== undefined && (
+          <ViewField label={receiverLabel}>
+            <div className="flex flex-col">{receivers()}</div>
+          </ViewField>
+        )}
+
+        {data.type === "facilitation" && !!data.benFac?.list?.length && (
+          <ViewField label="Pour le compte de" wide>
+            <div className="flex flex-col">
+              {data.benFac.list.map((ben) => (
+                <p key={ben.id} className="font-semibold capitalize">
+                  {`${ben?.name} - ${XAF.format(ben?.amount)}`}
+                </p>
+              ))}
+            </div>
+          </ViewField>
+        )}
+
+        <ViewField label="Date limite">
+          <p className="font-semibold">
+            {format(data.dueDate!, "dd MMMM yyyy", { locale: fr })}
+          </p>
+          {hasDueDateChanged &&
+            oldestRequest?.dueDate &&
+            previous(
+              `Ancienne date : ${format(oldestRequest.dueDate, "dd MMMM yyyy", { locale: fr })}`,
+            )}
+        </ViewField>
+        <ViewField label="Créé le">
+          <p className="font-semibold">{dateTime(data.createdAt)}</p>
+        </ViewField>
+        <ViewField label="Modifié le">
+          <p className="font-semibold">{dateTime(data.updatedAt)}</p>
+          {!!oldestRequest &&
+            !!modifier &&
+            previous(
+              `Modifié par ${modifier.firstName} ${modifier.lastName}`,
+            )}
+        </ViewField>
+        <ViewField label="Initié par">
+          <div className="flex items-center gap-1.5">
+            <UserAvatar name={authorName} size="sm" />
+            <p className="font-semibold">{authorName}</p>
+          </div>
+        </ViewField>
+      </ViewGrid>
+
+      {/* Pièce jointe */}
+      {data.type !== "speciaux" && data.type !== "achat" && (
+        <ViewField label="Pièce jointe" wide>
+          {proof ? (
+            <ViewFile
+              name={proof.split("/").pop() ?? proof}
+              meta={proof.includes(".") ? proof.split(".").pop()?.toUpperCase() : undefined}
+              href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
             />
+          ) : (
+            <p className="italic">{"Aucun justificatif"}</p>
           )}
-        </div>
-        {/* Boutons du footer - fixe en bas */}
-        <DialogFooter className="px-6 py-4 border-t shrink-0">
-          <DialogClose asChild>
-            <Button variant="outline">{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        </ViewField>
+      )}
+
+      {/* Circuit de validation */}
+      {showCircuit && !!data.validators?.length && (
+        <ViewField label="Circuit de validation" wide>
+          <ValidationCircuit validators={data.validators} users={users} />
+        </ViewField>
+      )}
+
+      {/* Circuit du besoin */}
+      {paiements.isSuccess && (
+        <ViewField label="Circuit du besoin" wide>
+          <RequestCircuit
+            request={data}
+            bonCommandes={purchaseOrders}
+            ticket={paiements.data.data}
+            receptions={receptions}
+          />
+        </ViewField>
+      )}
+    </ViewDrawer>
   );
 }

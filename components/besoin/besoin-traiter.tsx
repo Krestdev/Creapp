@@ -12,7 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import { ArrowUpDown, CheckCheckIcon, Ellipsis, EyeIcon } from "lucide-react";
+import { ArrowUpDown, CheckCheckIcon, EyeIcon, EllipsisVertical } from "lucide-react";
 import * as React from "react";
 
 import { Button } from "@/components/ui/button";
@@ -413,8 +413,8 @@ export function BesoinsTraiter({
         const item = row.original;
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
-              <Ellipsis />
+            <DropdownMenuTrigger aria-label="Actions" className="flex size-8 h-8 w-8 cursor-pointer items-center justify-center gap-0 border-0 bg-transparent p-0 text-text-secondary shadow-none hover:bg-hover hover:text-text-primary data-[state=open]:bg-hover [&_svg]:size-[18px] [&_svg]:text-current">
+              <EllipsisVertical />
             </DropdownMenuTrigger>
             <DropdownMenuContent>
               <DropdownMenuItem

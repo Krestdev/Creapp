@@ -1,6 +1,6 @@
 "use client";
 
-import { ViewDialog, ViewGrid, ViewGroup } from "@/components/ds/view-dialog";
+import { ViewDrawer, ViewGrid, ViewGroup } from "@/components/ds/view-drawer";
 import { RequestType } from "@/types/types";
 import { LucideScrollText, TextQuoteIcon } from "lucide-react";
 
@@ -22,11 +22,12 @@ export function ShowRequestType({
   data,
 }: ShowRequestTypeProps) {
   return (
-    <ViewDialog
+    <ViewDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title={`Type de besoin - ${data?.label ?? ""}`}
-      description="Informations relatives au type de besoin"
+      eyebrow="Type de besoin"
+      title={data?.label ?? ""}
+      description="Consultez les informations associées au type de besoin"
     >
       <ViewGrid>
         <ViewGroup icon={LucideScrollText} label="Nom">
@@ -40,6 +41,6 @@ export function ShowRequestType({
           </p>
         </ViewGroup>
       </ViewGrid>
-    </ViewDialog>
+    </ViewDrawer>
   );
 }

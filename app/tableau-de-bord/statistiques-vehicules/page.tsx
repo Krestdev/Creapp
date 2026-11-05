@@ -431,7 +431,7 @@ const Page = () => {
             </div>
 
 
-            <div className="rounded-md border overflow-hidden">
+            <div className="overflow-hidden rounded-xl border border-border-default bg-surface">
                 <Table>
                     <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (

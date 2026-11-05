@@ -4,6 +4,7 @@ import {
   StatisticCard,
   StatisticProps,
 } from "@/components/base/TitleValueCard";
+import { FilterButton, FilterSearch } from "@/components/ds/filter-bar";
 import ErrorPage from "@/components/error-page";
 import { ModifiedLegend } from "@/components/legends";
 import LoadingPage from "@/components/loading-page";
@@ -44,7 +45,7 @@ import { requestTypeQ } from "@/queries/requestType";
 import { DateFilter, REQUEST_STATUS } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { ChevronDown, Settings2 } from "lucide-react";
+import { ChevronDown, ClipboardList, Clock, ShoppingCart } from "lucide-react";
 import React from "react";
 import { TableMyRequests } from "./table-my-requests";
 
@@ -289,24 +290,27 @@ const Page = () => {
         title: "En attente de validation",
         value: awaiting,
         variant: "secondary",
+        Icon: ClipboardList,
         more: {
           title: "Besoins rejetés",
           value: rejected,
         },
       },
       {
-        title: "Besoins émis",
+        title: "Soumis",
         value: sent,
         variant: "primary",
+        Icon: Clock,
         more: {
           title: "Besoins approuvés",
           value: validated,
         },
       },
       {
-        title: "Besoins Déstockés",
+        title: "Déstockés",
         value: fromStore,
         variant: "default",
+        Icon: ShoppingCart,
         more: {
           title: "Besoins annulés",
           value: cancelled,
@@ -319,7 +323,7 @@ const Page = () => {
           title="Mes Besoins"
           subtitle="Consulter et gérez les besoins"
         />
-        <div className="grid-stats-4">
+        <div className="grid grid-cols-1 gap-4 @min-[640px]:grid-cols-3">
           {Statistics.map((statistic, id) => (
             <StatisticCard key={id} {...statistic} />
           ))}
@@ -334,20 +338,21 @@ const Page = () => {
           purchaseOrders={getPurchases.data.data}
           filters={
             <div className="flex flex-wrap items-center gap-2">
-              <Input
-                placeholder="Titre ou référence"
-                name="search"
-                type="search"
+              <FilterSearch
                 value={searchFilter ?? ""}
-                onChange={(event) => setSearchFilter(event.target.value)}
-                className="w-full sm:w-[250px] h-9"
+                onChange={setSearchFilter}
+                placeholder="Rechercher un besoin…"
               />
               <Sheet>
-                <SheetTrigger asChild className="w-fit">
-                  <Button variant={"outline"}>
-                    <Settings2 />
-                    {"Filtres"}
-                  </Button>
+                <SheetTrigger asChild>
+                  <FilterButton
+                    count={
+                      (categoryFilter !== "all" ? 1 : 0) +
+                      (projectFilter !== "all" ? 1 : 0) +
+                      (statusFilter !== "all" ? 1 : 0) +
+                      (dateFilter ? 1 : 0)
+                    }
+                  />
                 </SheetTrigger>
                 <SheetContent>
                   <SheetHeader>

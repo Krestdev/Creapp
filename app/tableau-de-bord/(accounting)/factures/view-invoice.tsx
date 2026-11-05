@@ -2,14 +2,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { XAF } from "@/lib/utils";
 import { BonsCommande, Invoice, User } from "@/types/types";
 import { format } from "date-fns";
@@ -79,12 +81,14 @@ function ViewInvoice({ invoice, open, openChange, purchases, users }: Props) {
   const statusBadge = getInvoiceStatusBadge(actualStatus);
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{`Facture - ${invoice.title}`}</DialogTitle>
-          <DialogDescription>{`Informations sur la facture de ${purchase?.devi.commandRequest.title ?? invoice.commandId}`}</DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Facture"}</DrawerEyebrow>
+          <DrawerTitle>{invoice.title}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées à la facture"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
         {/**Reference */}
         <div className="view-group">
           <span className="view-icon">
@@ -226,13 +230,15 @@ function ViewInvoice({ invoice, open, openChange, purchases, users }: Props) {
             </p>
           </div>
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
             <Button variant={"outline"}>{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

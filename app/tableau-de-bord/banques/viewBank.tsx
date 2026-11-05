@@ -1,14 +1,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { XAF } from "@/lib/utils";
 import { Bank, BANK_TYPES } from "@/types/types";
 import { format } from "date-fns";
@@ -34,14 +36,14 @@ interface Props {
 
 function ViewBank({ open, openChange, bank }: Props) {
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle className="uppercase">
-            {"Compte - " + bank.label}
-          </DialogTitle>
-          <DialogDescription>{`Informations du compte`}</DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Compte"}</DrawerEyebrow>
+          <DrawerTitle>{bank.label}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées au compte"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
         <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
           {/**Reference */}
           <div className="view-group">
@@ -230,13 +232,15 @@ function ViewBank({ open, openChange, bank }: Props) {
             </div>
           </div>
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
             <Button variant="outline">{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

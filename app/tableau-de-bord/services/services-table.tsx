@@ -32,10 +32,10 @@ import { format } from "date-fns";
 import { fr } from "date-fns/locale";
 import {
   ArrowUpDown,
-  Ellipsis,
   EyeIcon,
   PencilIcon,
   Trash2Icon,
+  EllipsisVertical,
 } from "lucide-react";
 import React from "react";
 import DeleteService from "./delete-service";
@@ -189,8 +189,8 @@ function ServicesTable({ services, users }: Props) {
         const item = row.original;
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
-              <Ellipsis />
+            <DropdownMenuTrigger aria-label="Actions" className="flex size-8 h-8 w-8 cursor-pointer items-center justify-center gap-0 border-0 bg-transparent p-0 text-text-secondary shadow-none hover:bg-hover hover:text-text-primary data-[state=open]:bg-hover [&_svg]:size-[18px] [&_svg]:text-current">
+              <EllipsisVertical />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem
@@ -261,7 +261,7 @@ function ServicesTable({ services, users }: Props) {
 
   return (
     <div className="flex flex-col gap-4">
-      <div className="rounded-md border">
+      <div className="overflow-hidden rounded-xl border border-border-default bg-surface">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

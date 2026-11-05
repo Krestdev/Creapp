@@ -1,41 +1,16 @@
 "use client";
-import { ViewGrid, ViewGroup } from "@/components/ds/view-dialog";
-import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/ds/user-avatar";
+import {
+  ViewDrawer,
+  ViewField,
+  ViewFile,
+  ViewGrid,
+} from "@/components/ds/view-drawer";
+import { formatNumber } from "@/lib/format";
 import { cn, getQuotationAmount, XAF } from "@/lib/utils";
 import { Provider, Quotation, User } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
-import {
-  CheckCircle,
-  DollarSign,
-  FileIcon,
-  LucideCalendar,
-  LucideCalendarFold,
-  LucideHash,
-  LucideUserCircle2,
-  LucideUserRound,
-  XCircle,
-} from "lucide-react";
-import Link from "next/link";
-import {
-  Drawer,
-  DrawerBody,
-  DrawerClose,
-  DrawerContent,
-  DrawerDescription,
-  DrawerEyebrow,
-  DrawerFooter,
-  DrawerHeader,
-  DrawerTitle,
-} from "../ui/drawer";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../ui/table";
 
 interface DetailModalProps {
   open: boolean;
@@ -46,6 +21,17 @@ interface DetailModalProps {
   providers: Array<Provider>;
 }
 
+/** Colonnes de la table des éléments (Figma · Devis (voir)). */
+const COLS = {
+  qty: "w-8 text-right",
+  price: "w-[84px] text-right",
+  reduction: "w-12 text-right",
+  tva: "w-[60px] text-right",
+  total: "w-24 text-right",
+};
+
+const rate = (value: number) => `${String(value).replace(".", ",")} %`;
+
 export function DevisModal({
   open,
   onOpenChange,
@@ -55,237 +41,200 @@ export function DevisModal({
   providers,
 }: DetailModalProps) {
   const totalAmount = getQuotationAmount(data, providers);
-
-  // Récupérer le nom du fournisseur (à adapter selon votre structure)
-  const getProviderName = (providerId?: number) => {
-    return providers.find((p) => p.id === providerId)?.name || "Non spécifié";
-  };
   const provider = providers.find((p) => p.id === data.providerId);
+  const author = users.find((u) => u.id === data.userId);
+  const authorName = author
+    ? `${author.firstName} ${author.lastName}`
+    : "Non spécifié";
 
-  const getUserName = (userId?: number) => {
-    return (
-      users.find((u) => u.id === userId)?.firstName +
-        " " +
-        users.find((u) => u.id === userId)?.lastName || "Non spécifique"
-    );
-  };
-
-  // Formater les dates
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return "Non spécifié";
+  const formatDate = (value?: string | Date, withTime = true) => {
+    if (!value) return "Non spécifié";
     try {
-      return format(new Date(dateString), "dd MMMM yyyy à kk:mm", {
-        locale: fr,
-      });
+      return format(
+        new Date(value),
+        withTime ? "dd MMMM yyyy à HH:mm" : "dd MMMM yyyy",
+        { locale: fr },
+      );
     } catch {
       return "Date invalide";
     }
   };
 
-  const totals = data.element.reduce(
-    (acc, el) => {
-      // 1. Determine the IS/IR rate
-      const isIrRate =
-        !el.hasIs || !provider ? 0 : provider.regem === "Réel" ? 2.2 : 5.5;
+  // IS/IR : 2,2 % pour un fournisseur au réel, 5,5 % sinon.
+  const isIrRate = provider ? (provider.regem === "Réel" ? 2.2 : 5.5) : 0;
 
-      // 2. Calculate values for the current line
-      const lineBase = el.priceProposed * el.quantity;
-      const lineReduction = (lineBase * el.reduction) / 100;
-      const lineNet = lineBase - lineReduction; // Net amount after discount
-
-      const lineTVA = (lineNet * el.tva) / 100;
-      const lineIsIr = (lineNet * isIrRate) / 100;
-
-      // 3. Return the updated accumulator object
-      return {
-        totalBase: acc.totalBase + lineBase,
-        totalReduction: acc.totalReduction + lineReduction,
-        totalTVA: acc.totalTVA + lineTVA,
-        totalIsIR: acc.totalIsIR + lineIsIr,
-      };
-    },
-    // 4. Correct Initial Value (must match the shape of the output)
-    { totalTVA: 0, totalBase: 0, totalReduction: 0, totalIsIR: 0 },
+  const lines = (data.element ?? []).map((el) => {
+    const base = el.priceProposed * el.quantity;
+    const reduction = (base * (el.reduction ?? 0)) / 100;
+    const ht = base - reduction;
+    return {
+      el,
+      base,
+      reduction,
+      ht,
+      tva: (ht * (el.tva ?? 0)) / 100,
+      isIr: el.hasIs ? (ht * isIrRate) / 100 : 0,
+    };
+  });
+  const totals = lines.reduce(
+    (acc, l) => ({
+      reduction: acc.reduction + l.reduction,
+      ht: acc.ht + l.ht,
+      tva: acc.tva + l.tva,
+      isIr: acc.isIr + l.isIr,
+    }),
+    { reduction: 0, ht: 0, tva: 0, isIr: 0 },
   );
+  const ttc = totals.ht + totals.tva;
+  const net = ttc - totals.isIr;
+  const needs = new Set(lines.map((l) => l.el.requestModelId)).size;
+
+  const proofs =
+    data.proof && typeof data.proof === "string"
+      ? data.proof.split(";").filter((x) => !!x)
+      : [];
 
   return (
-    <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerContent className="sm:max-w-3xl">
-        <DrawerHeader>
-          <DrawerEyebrow>{"Commandes"}</DrawerEyebrow>
-          <DrawerTitle>{`Devis - ${title || "Sans titre"}`}</DrawerTitle>
-          <DrawerDescription>{"Détail du devis"}</DrawerDescription>
-        </DrawerHeader>
+    <ViewDrawer
+      open={open}
+      onOpenChange={onOpenChange}
+      eyebrow="Devis"
+      title={title || "Sans titre"}
+      description="Consultez les informations associées au devis"
+      footerInfo={`${needs} besoin${needs > 1 ? "s" : ""} · ${lines.length} élément${lines.length > 1 ? "s" : ""}`}
+    >
+      <ViewGrid>
+        <ViewField label="Référence">
+          <p className="text-body-medium text-text-link">{data.ref ?? "N/A"}</p>
+        </ViewField>
+        <ViewField label="Montant total">
+          <p className="font-semibold">{XAF.format(totalAmount)}</p>
+        </ViewField>
+        <ViewField label="Fournisseur">
+          <p className="font-semibold">{provider?.name ?? "Non spécifié"}</p>
+        </ViewField>
+        <ViewField label="Date limite de validité">
+          <p className="font-semibold">{formatDate(data.dueDate, false)}</p>
+        </ViewField>
+        <ViewField label="Créé le">
+          <p className="font-semibold">{formatDate(data.createdAt)}</p>
+        </ViewField>
+        <ViewField label="Modifié le">
+          <p className="font-semibold">{formatDate(data.updatedAt)}</p>
+        </ViewField>
+        <ViewField label="Initié par">
+          <div className="flex items-center gap-1.5">
+            <UserAvatar name={authorName} size="sm" />
+            <p className="font-semibold">{authorName}</p>
+          </div>
+        </ViewField>
+      </ViewGrid>
 
-        <DrawerBody>
-          <ViewGrid>
-            <ViewGroup icon={LucideHash} label="Référence">
-              <div className="w-fit bg-primary-100 flex items-center justify-center px-1.5 rounded">
-                <p className="text-primary text-sm">{data.ref ?? "N/A"}</p>
-              </div>
-            </ViewGroup>
-            <ViewGroup icon={DollarSign} label="Montant total">
-              <p className="font-semibold">{XAF.format(totalAmount)}</p>
-            </ViewGroup>
-            <ViewGroup icon={LucideUserCircle2} label="Fournisseur">
-              <p className="font-semibold">
-                {getProviderName(data.providerId)}
+      {/* Éléments */}
+      <div className="overflow-hidden rounded-[10px] border border-border-default">
+        <div className="flex items-center gap-2 bg-surface-muted px-3 py-2 text-overline text-text-tertiary uppercase">
+          <span className="min-w-0 flex-1">{"Élément"}</span>
+          <span className={COLS.qty}>{"Qté"}</span>
+          <span className={COLS.price}>{"PU HT"}</span>
+          <span className={COLS.reduction}>{"Réduc."}</span>
+          <span className={COLS.tva}>{"TVA"}</span>
+          <span className={COLS.total}>{"Total HT"}</span>
+        </div>
+        {lines.length === 0 && (
+          <p className="border-t border-border-default px-3 py-4 text-body text-text-secondary">
+            {"Aucun élément"}
+          </p>
+        )}
+        {lines.map(({ el, ht }, index) => (
+          <div
+            key={el.id ?? index}
+            className={cn(
+              "flex items-center gap-2 border-t border-border-default px-3 py-[11px]",
+              el.status === "SELECTED" && "bg-status-success-bg",
+              (el.status === "REJECTED" || el.status === "DISCARDED") &&
+                "bg-status-danger-bg",
+            )}
+          >
+            <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
+              <p className="truncate text-caption text-text-secondary">
+                {data.commandRequest?.besoins?.find((b) => b.id === el.requestModelId)
+                  ?.ref ?? "—"}
               </p>
-            </ViewGroup>
-            <ViewGroup icon={LucideUserRound} label="Initié par">
-              <p className="font-semibold uppercase">
-                {getUserName(data.userId)}
+              <p className="text-body-medium text-text-primary">
+                {el.title ?? el.request?.label ?? "N/A"}
               </p>
-            </ViewGroup>
-            <ViewGroup icon={LucideCalendar} label="Créé le">
-              <p className="font-semibold">{formatDate(data.createdAt)}</p>
-            </ViewGroup>
-            <ViewGroup icon={LucideCalendarFold} label="Date limite">
-              <p className="font-semibold">{formatDate(data.dueDate)}</p>
-            </ViewGroup>
-            <ViewGroup icon={FileIcon} label="Justificatif">
-              <div className="space-y-1">
-                {data.proof && typeof data.proof === "string" ? (
-                  data.proof
-                    .split(";")
-                    .filter((x) => !!x)
-                    .map((proof, index) => (
-                      <Link
-                        key={index}
-                        href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
-                        target="_blank"
-                        className="flex gap-0.5 items-center"
-                      >
-                        <img
-                          src="/images/pdf.png"
-                          alt="preuve"
-                          className="h-7 w-auto aspect-square"
-                        />
-                        <p className="text-foreground font-medium">
-                          {"Devis"}
-                        </p>
-                      </Link>
-                    ))
-                ) : (
-                  <p className="italic">{"Aucune preuve jointe"}</p>
-                )}
-              </div>
-            </ViewGroup>
-            <ViewGroup icon={LucideCalendar} label="Modifié le">
-              <p className="font-semibold">{formatDate(data?.updatedAt)}</p>
-            </ViewGroup>
-
-            <div className="col-span-full w-full overflow-x-auto rounded-lg border border-border-default">
-              <Table className="w-full">
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{"Besoin"}</TableHead>
-                    <TableHead>{"Élément"}</TableHead>
-                    <TableHead>{"Prix HT"}</TableHead>
-                    <TableHead>{"Réduction"}</TableHead>
-                    <TableHead>{"TVA"}</TableHead>
-                    <TableHead>{"IS/IR"}</TableHead>
-                    <TableHead>{"Total"}</TableHead>
-                  </TableRow>
-                </TableHeader>
-
-                <TableBody>
-                  {data.element?.map((el, index) => {
-                    //IS/IR
-                    const isIr = !el.hasIs
-                      ? 0
-                      : !provider
-                        ? 0
-                        : provider.regem === "Réel"
-                          ? 2.2
-                          : 5.5;
-                    //Lines
-                    const lineBase = el.priceProposed * el.quantity;
-                    const lineReduction = (lineBase * el.reduction) / 100;
-                    const lineTVA = ((lineBase - lineReduction) * el.tva) / 100;
-                    const lineIsIr = ((lineBase - lineReduction) * isIr) / 100;
-                    return (
-                      <TableRow
-                        key={index}
-                        className={cn(
-                          el.status === "SELECTED" && "bg-green-50!",
-                          el.status === "REJECTED" && "bg-red-50!",
-                        )}
-                      >
-                        <TableCell className="font-medium inline-flex gap-1 items-center">
-                          {el?.request?.label || "N/A"}
-                          {el.status === "SELECTED" && (
-                            <CheckCircle size={12} className="text-green-600" />
-                          )}
-                          {(el.status === "REJECTED" ||
-                            el.status === "DISCARDED") && (
-                            <XCircle size={12} className="text-destructive" />
-                          )}
-                        </TableCell>
-                        <TableCell className="sm:whitespace-normal">
-                          {el.title ?? "N/A"}
-                        </TableCell>
-                        <TableCell>{`${XAF.format(el.priceProposed ?? 0)} x(${el.quantity})`}</TableCell>
-                        <TableCell>{XAF.format(lineReduction)}</TableCell>
-                        <TableCell>{XAF.format(lineTVA)}</TableCell>
-                        <TableCell>{XAF.format(lineIsIr)}</TableCell>
-                        <TableCell>
-                          {XAF.format(
-                            lineBase - lineReduction + lineTVA - lineIsIr,
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
             </div>
-            <div className="col-span-full flex flex-col items-end gap-1.5">
-              <div className="flex items-center gap-2">
-                <span className="text-text-secondary">{"Total Réduction"}</span>
-                <span className="font-semibold">
-                  {XAF.format(totals.totalReduction)}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-text-secondary">{"Total HT"}</span>
-                <span className="font-semibold">
-                  {XAF.format(totals.totalBase - totals.totalReduction)}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-text-secondary">{"Total TVA"}</span>
-                <span className="font-semibold">
-                  {XAF.format(totals.totalTVA)}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-text-secondary">{"Total Is/Ir"}</span>
-                <span className="font-semibold">
-                  {XAF.format(totals.totalIsIR)}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <span className="text-text-secondary">{"Total TTC"}</span>
-                <span className="rounded-md bg-primary-100 px-3 py-1.5 font-semibold text-primary-700">
-                  {XAF.format(
-                    totals.totalBase -
-                      totals.totalReduction +
-                      totals.totalTVA -
-                      totals.totalIsIR,
-                  )}
-                </span>
-              </div>
-            </div>
-          </ViewGrid>
-        </DrawerBody>
+            <span className={cn("text-body", COLS.qty)}>{el.quantity}</span>
+            <span className={cn("text-body", COLS.price)}>
+              {formatNumber(el.priceProposed ?? 0)}
+            </span>
+            <span className={cn("text-body", COLS.reduction)}>
+              {el.reduction ? rate(el.reduction) : "—"}
+            </span>
+            <span className={cn("text-body", COLS.tva)}>
+              {rate(el.tva ?? 0)}
+            </span>
+            <span className={cn("text-body", COLS.total)}>
+              {formatNumber(ht)}
+            </span>
+          </div>
+        ))}
+      </div>
 
-        <DrawerFooter pinned>
-          <DrawerClose asChild>
-            <Button variant="outline">{"Fermer"}</Button>
-          </DrawerClose>
-        </DrawerFooter>
-      </DrawerContent>
-    </Drawer>
+      {/* Totaux */}
+      <div className="flex flex-col items-end gap-3 text-body">
+        {totals.reduction > 0 && (
+          <TotalRow label="Total réductions" value={`− ${formatNumber(totals.reduction)} XAF`} />
+        )}
+        <TotalRow label="Total HT" value={`${formatNumber(totals.ht)} XAF`} />
+        <TotalRow label="TVA" value={`${formatNumber(totals.tva)} XAF`} />
+        <TotalRow label="Total TTC" value={`${formatNumber(ttc)} XAF`} />
+        {totals.isIr > 0 && (
+          <TotalRow
+            label={`IS/IR retenu à la source (${rate(isIrRate)})`}
+            value={`− ${formatNumber(totals.isIr)} XAF`}
+          />
+        )}
+        <div className="flex w-full max-w-[380px] gap-4 rounded-lg bg-surface-muted px-3 py-2 text-body-strong text-text-primary">
+          <span className="min-w-0 flex-1">{"Net à payer au fournisseur"}</span>
+          <span className="whitespace-nowrap">{`${formatNumber(net)} XAF`}</span>
+        </div>
+      </div>
+
+      {/* Pièce jointe */}
+      <ViewField label="Pièce jointe" wide>
+        {proofs.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {proofs.map((proof, index) => {
+              const name = proof.split("/").pop() ?? proof;
+              const ext = name.includes(".")
+                ? name.split(".").pop()?.toUpperCase()
+                : undefined;
+              return (
+                <ViewFile
+                  key={index}
+                  name={name}
+                  meta={ext}
+                  href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <p className="italic">{"Aucune pièce jointe"}</p>
+        )}
+      </ViewField>
+    </ViewDrawer>
+  );
+}
+
+function TotalRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="flex w-full max-w-[380px] gap-4 px-3">
+      <span className="min-w-0 flex-1 text-text-secondary">{label}</span>
+      <span className="whitespace-nowrap text-body-medium text-text-primary">
+        {value}
+      </span>
+    </div>
   );
 }

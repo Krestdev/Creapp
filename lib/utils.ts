@@ -243,6 +243,22 @@ export function isPastDeadline(deadline: Date | string): boolean {
   return deadlineDay < today;
 }
 
+/**
+ * Identifiant de la personne qui réceptionne un besoin. `beneficiary` vaut
+ * « me » ou l'id de l'utilisateur (chaîne) ; sinon on se rabat sur `benef`
+ * (charge utile) ou `beficiaryList` (ce que renvoie l'API).
+ */
+export function receiverIdOf(request: {
+  beneficiary?: string;
+  benef?: number[];
+  beficiaryList?: { id: number }[] | null;
+}): number | undefined {
+  if (request.beneficiary === "me") return undefined;
+  const fromField = Number(request.beneficiary);
+  if (request.beneficiary && !isNaN(fromField)) return fromField;
+  return request.benef?.[0] ?? request.beficiaryList?.[0]?.id;
+}
+
 export function totalAmountPurchase(payload: BonsCommande): number {
   if (!payload.devi?.element) return 0;
   return payload.devi.element

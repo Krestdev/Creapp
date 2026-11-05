@@ -1,14 +1,16 @@
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   getClearingInstrument,
   getTransactionTypeBadge,
@@ -125,12 +127,14 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle className="uppercase">{`Transfert - ${transaction.label}`}</DialogTitle>
-          <DialogDescription>{"Détails de la transaction"}</DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Transfert"}</DrawerEyebrow>
+          <DrawerTitle>{transaction.label}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées à la transaction"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
 
         <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
           {/** Référence */}
@@ -479,13 +483,15 @@ function ViewTransaction({ open, openChange, transaction, users }: Props) {
           </div>
         </div>
 
-        <DialogFooter>
-          <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
             <Button variant="outline">{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

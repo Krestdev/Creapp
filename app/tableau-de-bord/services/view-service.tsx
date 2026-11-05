@@ -1,14 +1,16 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Service, User } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale/fr";
@@ -29,14 +31,14 @@ interface Props {
 
 function ViewService({ open, openChange, service }: Props) {
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{`Service - ${service.label}`}</DialogTitle>
-          <DialogDescription>
-            {service.description ?? "Service sans description"}
-          </DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Service"}</DrawerEyebrow>
+          <DrawerTitle>{service.label}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées au service"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
         {/**Name */}
         <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
           <div className="view-group">
@@ -119,13 +121,15 @@ function ViewService({ open, openChange, service }: Props) {
             </div>
           </div>
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
             <Button variant={"outline"}>Fermer</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

@@ -2,14 +2,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { queryKeys } from "@/lib/query-keys";
 import {
   getPaymentPriorityBadge,
@@ -78,16 +80,14 @@ function ViewPurchase({ open, openChange, purchaseOrder }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>
-            {`Bon de commande - ${purchaseOrder.provider.name}`}
-          </DialogTitle>
-          <DialogDescription>
-            {"Informations relatives aux bons de commande"}
-          </DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent className="sm:max-w-3xl">
+        <DrawerHeader>
+          <DrawerEyebrow>{"Bon de commande"}</DrawerEyebrow>
+          <DrawerTitle>{purchaseOrder.provider.name}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées au bon de commande"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
 
         <div className="grid grid-cols-1 @min-[520px]/dialog:grid-cols-2 gap-3">
           <div className="view-group">
@@ -290,13 +290,15 @@ function ViewPurchase({ open, openChange, purchaseOrder }: Props) {
             </div>
           </div>
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
             <Button variant={"outline"}>{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

@@ -520,7 +520,7 @@ export function ProviderTable({ data }: ProvidersTableProps) {
       </div>
 
       {/* Reste du code inchangé */}
-      <div className="rounded-md border">
+      <div className="overflow-hidden rounded-xl border border-border-default bg-surface">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

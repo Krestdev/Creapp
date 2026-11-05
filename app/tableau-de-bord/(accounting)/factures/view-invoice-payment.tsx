@@ -2,14 +2,16 @@
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { cn, XAF } from "@/lib/utils";
 import { Invoice, PAY_STATUS, PaymentRequest } from "@/types/types";
 import { VariantProps } from "class-variance-authority";
@@ -73,12 +75,14 @@ function ViewInvoicePayment({ invoice, open, openChange }: Props) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{`Facture - ${invoice.title}`}</DialogTitle>
-          <DialogDescription>{`Paiements de la facture de ${purchase?.devi.commandRequest.title ?? invoice.commandId}`}</DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Facture"}</DrawerEyebrow>
+          <DrawerTitle>{invoice.title}</DrawerTitle>
+          <DrawerDescription>{"Consultez les paiements associés à la facture"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
         <div className="grid gap-2.5">
           {!invoice.payment || invoice.payment.length === 0 ? (
             <div className="px-3 py-2 rounded-sm text-gray-600 text-sm">
@@ -110,13 +114,15 @@ function ViewInvoicePayment({ invoice, open, openChange }: Props) {
             ))
           )}
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
             <Button variant={"outline"}>{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

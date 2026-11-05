@@ -1,5 +1,5 @@
 "use client";
-import { ViewDialog, ViewGrid, ViewGroup } from "@/components/ds/view-dialog";
+import { ViewDrawer, ViewGrid, ViewGroup } from "@/components/ds/view-drawer";
 import { Badge } from "@/components/ui/badge";
 import { XAF } from "@/lib/utils";
 import { commandRqstQ } from "@/queries/commandRqstModule";
@@ -88,11 +88,12 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
   const approved = data.status === "APPROVED";
 
   return (
-    <ViewDialog
+    <ViewDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title={`Bon de commande - ${devisTitle ?? ""}`}
-      description="Informations relatives au bon de commande"
+      eyebrow="Bon de commande"
+      title={devisTitle ?? ""}
+      description="Consultez les informations associées au bon de commande"
     >
       <ViewGrid>
         <ViewGroup icon={CircleDollarSign} label="Montant total">
@@ -132,6 +133,6 @@ export function DetailBC({ open, onOpenChange, data }: DetailBCProps) {
           </p>
         </ViewGroup>
       </ViewGrid>
-    </ViewDialog>
+    </ViewDrawer>
   );
 }

@@ -14,18 +14,13 @@ import {
   useReactTable,
   type VisibilityState,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  AsteriskIcon,
-  Ellipsis,
-  Eye,
-  Settings2,
-} from "lucide-react";
+import { AsteriskIcon, Eye, EllipsisVertical } from "lucide-react";
 import * as React from "react";
 
 import Empty from "@/components/base/empty";
 import { Pagination } from "@/components/base/pagination";
-import { Badge, badgeVariants } from "@/components/ui/badge";
+import { FilterButton, FilterSearch } from "@/components/ds/filter-bar";
+import { UserAvatar } from "@/components/ds/user-avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -34,7 +29,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
 import {
   Sheet,
   SheetContent,
@@ -51,18 +45,22 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getRequestTypeBadge, subText, XAF } from "@/lib/utils";
+import { formatNumber } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import {
   Category,
   ProjectT,
-  REQUEST_STATUS,
   RequestModelT,
   RequestType,
   User,
 } from "@/types/types";
-import { VariantProps } from "class-variance-authority";
-import { format } from "date-fns";
-import { fr } from "date-fns/locale";
+import {
+  REQUEST_COLUMN_CLASS,
+  RequestCell,
+  RequestStatusPill,
+  RequestTypePill,
+  requestRowClass,
+} from "@/components/besoin/request-table-ui";
 import Filters, { RequestFiltersProps } from "./filters";
 // TEMPORAIRE : à retirer avec le bouton "Modifier la date" ci-dessous.
 import EditDueDateTemp from "./edit-due-date-temp";
@@ -78,6 +76,17 @@ interface Props {
   paginationOptions: Pick<PaginationOptions, "onPaginationChange" | "rowCount">;
   filters: RequestFiltersProps;
 }
+
+const COLUMN_LABELS: Record<string, string> = {
+  besoin: "Besoin",
+  userId: "Demandeur",
+  type: "Type",
+  projectId: "Projet",
+  categoryId: "Catégorie",
+  amount: "Montant (XAF)",
+  createdAt: "Date d'émission",
+  state: "Statut",
+};
 
 export function RequestsTable({
   data,
@@ -115,79 +124,25 @@ export function RequestsTable({
   // TEMPORAIRE : à retirer avec le bouton "Modifier la date" ci-dessous.
   const [editDate, setEditDate] = React.useState(false);
 
-  // Fonction sécurisée pour obtenir la configuration du statut
-  const getStatusBadge = (
-    status: RequestModelT["state"],
-  ): {
-    label: string;
-    variant: VariantProps<typeof badgeVariants>["variant"];
-    className?: HTMLButtonElement["className"];
-  } => {
-    const label =
-      status === "DISCARDED"
-        ? "Annulé"
-        : REQUEST_STATUS.find((s) => s.value === status)?.name ?? status;
-    switch (status) {
-      case "cancel":
-      case "DISCARDED":
-        return { label, variant: "outline" };
-      case "pending":
-        return {
-          label,
-          variant: "amber",
-          className: "bg-amber-50 hover:bg-amber-100",
-        };
-      case "rejected":
-        return {
-          label,
-          variant: "destructive",
-          className: "bg-red-50 hover:bg-red-100",
-        };
-      case "store":
-        return {
-          label,
-          variant: "blue",
-          className: "bg-blue-50 hover:bg-blue-100",
-        };
-      case "validated":
-        return {
-          label,
-          variant: "success",
-          className: "bg-green-50 hover:bg-green-100",
-        };
-    }
-  };
+  const advancedCount = [
+    filters.customFilters.user,
+    filters.customFilters.category,
+    filters.customFilters.project,
+    filters.customFilters.status,
+    filters.customFilters.type,
+  ].filter((v) => v !== "all").length +
+    (filters.customFilters.date ? 1 : 0);
+
+  const submitSearch = () =>
+    filters.setCustomFilters({ ...filters.customFilters, search: searchText });
 
   // Define columns
   const columns: ColumnDef<RequestModelT>[] = [
     {
-      accessorKey: "ref",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Références"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => row.getValue("ref"),
-    },
-    {
+      id: "besoin",
       accessorKey: "label",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Titres"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
+      enableHiding: false,
+      header: () => "Besoin",
       cell: ({ row }) => {
         const original = row.original;
         const modifier = original.requestOlds?.find(
@@ -201,207 +156,127 @@ export function RequestsTable({
             modifier.quantity !== original.quantity ||
             modifier.unit !== original.unit;
         return (
-          <div className="flex items-center gap-1.5 uppercase">
-            {!!modified && (
-              <span className="bg-amber-600 border border-amber-200 text-white flex items-center justify-center size-5 rounded-sm text-xs">
-                <AsteriskIcon size={16} />
+          <RequestCell
+            reference={original.ref}
+            label={original.label}
+            marker={
+              !!modified && (
+                <span
+                  title="Besoin modifié"
+                  className="flex size-5 shrink-0 items-center justify-center rounded-sm border border-amber-200 bg-amber-600 text-white"
+                >
+                  <AsteriskIcon size={14} />
+                </span>
+              )
+            }
+          />
+        );
+      },
+    },
+    {
+      accessorKey: "userId",
+      header: () => "Demandeur",
+      cell: ({ row }) => {
+        const author = users.find((u) => u.id === row.original.userId);
+        const name = author
+          ? `${author.firstName} ${author.lastName}`
+          : `${row.original.user?.firstName ?? "--"} ${row.original.user?.lastName ?? ""}`.trim();
+        return (
+          <div className="flex items-center gap-2">
+            <UserAvatar name={name} size="sm" />
+            <div className="flex min-w-0 flex-col">
+              <span className="truncate text-body-medium text-text-primary">
+                {name}
               </span>
-            )}
-            <p className="first-letter:uppercase lowercase">
-              {subText({ text: original.label })}
-            </p>
+              {author?.service?.label && (
+                <span className="truncate text-caption text-text-tertiary">
+                  {author.service.label}
+                </span>
+              )}
+            </div>
           </div>
         );
       },
     },
     {
       accessorKey: "type",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Type"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original;
-        const type = getRequestTypeBadge({
-          type: value.type,
-          requestTypes: requestTypes,
-        });
-        return <Badge variant={type.variant}>{type.label}</Badge>;
-      },
-    },
-    {
-      accessorKey: "userId",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Initié par"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        return (
-          <p className="normal-case">
-            {subText({
-              text: `${row.original.user?.firstName ?? "--"}`,
-              length: 21,
-            })}
-          </p>
-        );
-      },
+      header: () => "Type",
+      cell: ({ row }) => (
+        <RequestTypePill type={row.original.type} requestTypes={requestTypes} />
+      ),
     },
     {
       accessorKey: "projectId",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Projets"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
+      header: () => "Projet",
       cell: ({ row }) => {
         const projectId = row.original.projectId;
         const project = projects.find((proj) => proj.id === Number(projectId));
-        const title = projectId
-          ? (project?.label ?? projectId.toString())
-          : "--";
         return (
-          <p className="first-letter:uppercase lowercase">
-            {subText({ text: title, length: 21 })}
-          </p>
+          <span className="line-clamp-1 text-body text-text-secondary">
+            {projectId ? (project?.label ?? projectId.toString()) : "--"}
+          </span>
         );
       },
     },
     {
       accessorKey: "categoryId",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Catégories"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const categoryId = row.getValue("categoryId") as string;
-        const getCategoryName = (id: number) => {
-          return categories.find((x) => x.id === id)?.label || id;
-        };
-        const category = getCategoryName(Number(categoryId));
-        return (
-          <p className="first-letter:uppercase lowercase">
-            {subText({ text: category.toString(), length: 21 })}
-          </p>
-        );
-      },
+      header: () => "Catégorie",
+      cell: ({ row }) => (
+        <span className="line-clamp-1 text-body text-text-secondary">
+          {categories.find((x) => x.id === Number(row.original.categoryId))
+            ?.label ?? "--"}
+        </span>
+      ),
     },
     {
       accessorKey: "amount",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead cursor-pointer flex items-center"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Montant"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
+      header: () => <span className="block text-right">{"Montant (XAF)"}</span>,
       cell: ({ row }) => {
         const value = row.original;
         const amount =
           value.type !== "facilitation"
-            ? !!value.amount
-              ? XAF.format(value.amount)
-              : "Aucun"
-            : XAF.format(
-                value.benFac?.list?.reduce(
-                  (acc, item) => acc + item.amount,
-                  0,
-                ) || 0,
+            ? value.amount
+            : value.benFac?.list?.reduce(
+                (acc, item) => acc + item.amount,
+                0,
               );
         return (
-          <p
-            className={cn(
-              "normal-case",
-              amount === "N/A" ? "text-muted-foreground" : "font-medium",
-            )}
-          >
-            {amount}
-          </p>
+          <span className="block text-right text-body whitespace-nowrap text-text-secondary">
+            {amount ? formatNumber(amount) : "—"}
+          </span>
         );
       },
     },
     {
       accessorKey: "createdAt",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Date d'émission"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
+      header: () => "Date d'émission",
       cell: ({ row }) => (
-        <p className="normal-case">
-          {format(new Date(row.getValue("createdAt")), "PP", { locale: fr })}
-        </p>
+        <span className="text-body whitespace-nowrap text-text-secondary">
+          {new Date(row.getValue("createdAt")).toLocaleDateString("fr-FR")}
+        </span>
       ),
     },
     {
       accessorKey: "state",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Statuts"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const status = row.original.state;
-        const { label, variant } = getStatusBadge(status);
-
-        return <Badge variant={variant}>{label}</Badge>;
-      },
+      header: () => "Statut",
+      cell: ({ row }) => <RequestStatusPill state={row.original.state} />,
     },
     {
       id: "actions",
       enableHiding: false,
-      header: () => <span className="tablehead">{"Actions"}</span>,
+      header: () => <span className="block text-right">{"Actions"}</span>,
       cell: ({ row }) => {
         const item = row.original;
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
-              <Ellipsis />
+            <DropdownMenuTrigger
+              aria-label={`Actions pour ${item.ref}`}
+              className="size-8 h-8 w-8 cursor-pointer justify-center gap-0 border-0 bg-transparent p-0 text-text-secondary hover:bg-hover hover:text-text-primary data-[state=open]:bg-hover [&_svg]:size-[18px] [&_svg]:text-current"
+            >
+              <EllipsisVertical />
             </DropdownMenuTrigger>
-            <DropdownMenuContent>
+            <DropdownMenuContent align="end">
               <DropdownMenuItem
                 onClick={() => {
                   setSelectedItem(item);
@@ -453,17 +328,14 @@ export function RequestsTable({
   });
 
   return (
-    <div className="content">
-      <div className="flex flex-wrap justify-between gap-4 items-center">
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Input
-            placeholder="titre ou référence"
-            name="search"
-            type="search"
+          <FilterSearch
             value={searchText}
-            onChange={(event) => {
-              setSearchText(event.target.value);
-              if (event.target.value === "") {
+            onChange={(value) => {
+              setSearchText(value);
+              if (value === "") {
                 filters.setCustomFilters({
                   ...filters.customFilters,
                   search: "",
@@ -471,32 +343,16 @@ export function RequestsTable({
               }
             }}
             onKeyDown={(event) => {
-              if (event.key === "Enter") {
-                filters.setCustomFilters({
-                  ...filters.customFilters,
-                  search: searchText,
-                });
-              }
+              if (event.key === "Enter") submitSearch();
             }}
-            className="w-full sm:w-[250px] h-9"
+            placeholder="Rechercher un besoin, un demandeur…"
           />
-          <Button
-            onClick={() => {
-              filters.setCustomFilters({
-                ...filters.customFilters,
-                search: searchText,
-              });
-            }}
-            className="h-9"
-          >
+          <Button variant="primary" onClick={submitSearch}>
             {"Rechercher"}
           </Button>
           <Sheet>
-            <SheetTrigger asChild className="w-fit">
-              <Button variant={"outline"}>
-                <Settings2 />
-                {"Filtres"}
-              </Button>
+            <SheetTrigger asChild>
+              <FilterButton count={advancedCount} />
             </SheetTrigger>
             <SheetContent className="px-3">
               <SheetHeader>
@@ -534,102 +390,91 @@ export function RequestsTable({
             {table
               .getAllColumns()
               .filter((column) => column.getCanHide())
-              .map((column) => {
-                return (
-                  <DropdownMenuCheckboxItem
-                    key={column.id}
-                    className="capitalize"
-                    checked={column.getIsVisible()}
-                    onCheckedChange={(value) =>
-                      column.toggleVisibility(!!value)
-                    }
-                  >
-                    {column.id === "ref"
-                      ? "Références"
-                      : column.id === "label"
-                        ? "Titres"
-                        : column.id === "type"
-                          ? "Type"
-                          : column.id === "state"
-                            ? "Statuts"
-                            : column.id === "projectId"
-                              ? "Projets"
-                              : column.id === "categoryId"
-                                ? "Catégories"
-                                : column.id === "userId"
-                                  ? "Initié par"
-                                  : column.id === "createdAt"
-                                    ? "Date d'émission"
-                                    : column.id === "amount"
-                                      ? "Montant"
-                                      : column.id}
-                  </DropdownMenuCheckboxItem>
-                );
-              })}
+              .map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {COLUMN_LABELS[column.id] ?? column.id}
+                </DropdownMenuCheckboxItem>
+              ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
       {/* Table */}
       {table.getRowModel().rows?.length > 0 ? (
-        <div className="rounded-md border">
-          <Table>
+        <div className="overflow-hidden rounded-xl border border-border-default bg-surface">
+          <Table className="min-w-[1240px]">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    // if (header.column.)
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </TableHead>
-                    );
-                  })}
+                <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        header.column.id === "besoin" &&
+                          cn("pl-5", REQUEST_COLUMN_CLASS),
+                        (header.column.id === "projectId" ||
+                          header.column.id === "categoryId") &&
+                          "min-w-[170px]",
+                        header.column.id === "actions" && "pr-5",
+                      )}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  ))}
                 </TableRow>
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows.map((row) => {
-                const status = row.original.state;
-                const { className } = getStatusBadge(status);
-
-                return (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className={cn(className)}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                );
-              })}
+              {table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className={requestRowClass(row.original.state)}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        "py-3 whitespace-normal normal-case",
+                        cell.column.id === "besoin" && "pl-5",
+                        cell.column.id === "actions" && "pr-5 text-right",
+                      )}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
+          <Pagination
+            table={table}
+            noun="besoins"
+            className="border-t border-border-default"
+          />
         </div>
       ) : (
         <Empty message={"Aucun besoin enregistré"} />
       )}
 
-      {/* Pagination */}
-      {table.getRowModel().rows?.length > 0 && <Pagination table={table} />}
       {selectedItem && (
         <ViewRequest
           open={view}
           openChange={setView}
           users={users}
           reqId={selectedItem.id}
-          requestTypes={requestTypes}
         />
       )}
       {/* TEMPORAIRE : à retirer avec le bouton "Modifier la date" ci-dessus. */}

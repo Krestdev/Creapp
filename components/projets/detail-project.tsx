@@ -1,6 +1,6 @@
 "use client";
 
-import { ViewDialog, ViewGrid, ViewGroup } from "@/components/ds/view-dialog";
+import { ViewDrawer, ViewGrid, ViewGroup } from "@/components/ds/view-drawer";
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { XAF } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
@@ -79,11 +79,12 @@ export function DetailProject({
   const statusBadge = getStatusBadge(data.status);
 
   return (
-    <ViewDialog
+    <ViewDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title={`Projet - ${data.label}`}
-      description="Détail du projet"
+      eyebrow="Projet"
+      title={data.label}
+      description="Consultez les informations associées au projet"
     >
       <ViewGrid>
         <ViewGroup icon={Hash} label="Référence">
@@ -130,6 +131,6 @@ export function DetailProject({
           </p>
         </ViewGroup>
       </ViewGrid>
-    </ViewDialog>
+    </ViewDrawer>
   );
 }

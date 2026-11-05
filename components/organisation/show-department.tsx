@@ -1,5 +1,5 @@
 "use client";
-import { ViewDialog, ViewGrid, ViewGroup } from "@/components/ds/view-dialog";
+import { ViewDrawer, ViewGrid, ViewGroup } from "@/components/ds/view-drawer";
 import { Badge } from "@/components/ui/badge";
 import { DepartmentT } from "@/types/types";
 import { format } from "date-fns";
@@ -68,11 +68,12 @@ export function ShowDepartment({
   const roleCounts = countRoles();
 
   return (
-    <ViewDialog
+    <ViewDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title={`Département - ${data?.label || "Non spécifié"}`}
-      description="Informations détaillées du département"
+      eyebrow="Département"
+      title={data?.label || "Non spécifié"}
+      description="Consultez les informations associées au département"
     >
       <ViewGrid>
         <ViewGroup icon={Hash} label="Nom du département">
@@ -164,6 +165,6 @@ export function ShowDepartment({
           )}
         </ViewGroup>
       </ViewGrid>
-    </ViewDialog>
+    </ViewDrawer>
   );
 }

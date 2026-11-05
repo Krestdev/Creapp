@@ -1,13 +1,15 @@
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { BonsCommande } from "@/types/types";
 import React from "react";
 
@@ -48,16 +50,14 @@ function viewSignedPurchase({
   };
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{`Bon de commande signé - ${
-            purchaseOrder.devi.commandRequest.title
-          }`}</DialogTitle>
-          <DialogDescription>
-            {"Prévisualiation du Bon de commande signé"}
-          </DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent className="sm:max-w-3xl">
+        <DrawerHeader>
+          <DrawerEyebrow>{"Bon de commande signé"}</DrawerEyebrow>
+          <DrawerTitle>{purchaseOrder.devi.commandRequest.title}</DrawerTitle>
+          <DrawerDescription>{"Prévisualisez le bon de commande signé"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
 
         {/* pdf here */}
         <iframe
@@ -65,7 +65,9 @@ function viewSignedPurchase({
           className="w-full h-[60vh]"
         />
 
-        <DialogFooter>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
           <Button
             variant={"primary"}
             onClick={() =>
@@ -74,12 +76,12 @@ function viewSignedPurchase({
           >
             {"Télécharger"}
           </Button>
-          <DialogClose asChild>
+          <DrawerClose asChild>
             <Button variant={"outline"}>{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

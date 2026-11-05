@@ -25,14 +25,16 @@ import React from "react";
 import { Badge, badgeVariants } from "../ui/badge";
 import { Button } from "../ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "../ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 
 interface Props {
   payment: PaymentRequest;
@@ -68,14 +70,14 @@ function DetailPaiement({ payment, open, openChange }: Props) {
   });
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>
-            {`${payment.title} [${XAF.format(payment.price)}]`}
-          </DialogTitle>
-          <DialogDescription>{`Paiement de la facture ${payment.reference}`}</DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Paiement"}</DrawerEyebrow>
+          <DrawerTitle>{`${payment.title} [${XAF.format(payment.price)}]`}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées au paiement"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
         {/**Reference */}
         <div className="view-group">
           <span className="view-icon">
@@ -234,13 +236,15 @@ function DetailPaiement({ payment, open, openChange }: Props) {
             </p>
           </div>
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
             <Button variant={"outline"}>{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

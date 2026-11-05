@@ -12,18 +12,7 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  AlertCircle,
-  ArrowUpDown,
-  Ban,
-  CheckCircle,
-  Clock,
-  Ellipsis,
-  Eye,
-  LucideBan,
-  LucidePen,
-  XCircle,
-} from "lucide-react";
+import { EllipsisVertical, Eye, LucideBan, LucidePen } from "lucide-react";
 import * as React from "react";
 
 import Empty from "@/components/base/empty";
@@ -35,9 +24,16 @@ import EditTypeSpecial from "@/components/besoin/EditTypeSpecial";
 import UpdateRequest from "@/components/besoin/UpdateRequest";
 import UpdateRequestFac from "@/components/besoin/UpdateRequestFac";
 import UpdateRHRequest from "@/components/besoin/UpdateRequestRH";
+import {
+  REQUEST_COLUMN_CLASS,
+  RequestCell,
+  RequestStatusPill,
+  RequestTypePill,
+  requestRowClass,
+  requestStatusLabel,
+} from "@/components/besoin/request-table-ui";
 import { ModifiedLegend } from "@/components/legends";
 import { ModalWarning } from "@/components/modals/modal-warning";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -56,7 +52,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { cn, getRequestTypeBadge, subText } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import {
@@ -76,39 +72,6 @@ import EditApproRequest from "./edit-appro-request";
 import EditGasRequest from "./edit-gas-request";
 import EditTaxesRequest from "./edit-taxes-request";
 import EditTransportRequest from "./edit-transport-request";
-
-const statusConfig = {
-  pending: {
-    label: "Pending",
-    icon: Clock,
-    badgeClassName: "bg-amber-100 text-amber-600 border border-amber-200",
-    rowClassName: "bg-yellow-50 hover:bg-yellow-100 dark:bg-yellow-950/20",
-  },
-  validated: {
-    label: "Validated",
-    icon: CheckCircle,
-    badgeClassName: "bg-green-100 text-green-600 border border-green-200",
-    rowClassName: "bg-green-50 dark:bg-green-950/20 dark:hover:bg-green-950/30",
-  },
-  rejected: {
-    label: "Rejected",
-    icon: XCircle,
-    badgeClassName: "bg-red-100 text-red-600 border border-red-200",
-    rowClassName: "bg-red-50 dark:bg-red-950/20 dark:hover:bg-red-950/30",
-  },
-  store: {
-    label: "Store",
-    icon: AlertCircle,
-    badgeClassName: "bg-blue-100 text-blue-600 border border-blue-200 ",
-    rowClassName: "bg-blue-50 dark:bg-blue-950/20 dark:hover:bg-blue-950/30",
-  },
-  cancel: {
-    label: "Cancel",
-    icon: Ban,
-    badgeClassName: "bg-gray-100 text-gray-600 border border-gray-200",
-    rowClassName: "bg-gray-50 dark:bg-gray-950/20 dark:hover:bg-gray-950/30",
-  },
-};
 
 interface Props {
   data: Array<RequestModelT>;
@@ -191,31 +154,6 @@ export function TableMyRequests({
     }
   };
 
-  // Fonction sécurisée pour obtenir la configuration du statut
-  const getStatusConfig = (status: string) => {
-    const config = statusConfig[status as keyof typeof statusConfig];
-    return (
-      config || {
-        label: status,
-        icon: AlertCircle,
-        badgeClassName: "bg-gray-200 text-gray-500 outline outline-gray-600",
-        rowClassName: "bg-gray-50 dark:bg-gray-950/20",
-      }
-    );
-  };
-
-  const getTranslatedLabel = (label: string) => {
-    const translations: Record<string, string> = {
-      Pending: "En attente",
-      Validated: "Approuvé",
-      Rejected: "Refusé",
-      "In Review": "En révision",
-      Cancel: "Annulé",
-      Store: "Déstocké",
-    };
-    return translations[label] || label;
-  };
-
   const getProjectName = (projectId: string) => {
     const project = projects.find((proj) => proj.id === Number(projectId));
     return project?.label || projectId;
@@ -224,33 +162,10 @@ export function TableMyRequests({
   // Define columns
   const columns: ColumnDef<RequestModelT>[] = [
     {
-      accessorKey: "ref",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Références"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => row.getValue("ref"),
-    },
-    {
+      id: "besoin",
       accessorKey: "label",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Titres"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
+      enableHiding: false,
+      header: () => "Besoin",
       cell: ({ row }) => {
         const original = row.original;
         const modifier = original.requestOlds?.find((r) => r.id !== user?.id);
@@ -262,138 +177,72 @@ export function TableMyRequests({
             modifier.quantity !== original.quantity ||
             modifier.unit !== original.unit;
         return (
-          <div className="flex items-center gap-1.5">
-            {!!modified && <ModifiedLegend />}
-            <p className="first-letter:uppercase!">
-              {subText({ text: row.getValue("label"), length: 21 })}
-            </p>
-          </div>
+          <RequestCell
+            reference={original.ref}
+            label={original.label}
+            marker={!!modified && <ModifiedLegend />}
+          />
         );
       },
     },
     {
       accessorKey: "type",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Type"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const value = row.original;
-        const type = getRequestTypeBadge({
-          type: value.type,
-          requestTypes: requestTypes,
-        });
-        return <Badge variant={type.variant}>{type.label}</Badge>;
-      },
+      header: () => "Type",
+      cell: ({ row }) => (
+        <RequestTypePill type={row.original.type} requestTypes={requestTypes} />
+      ),
     },
     {
       accessorKey: "projectId",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Projets"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
+      header: () => "Projet",
       cell: ({ row }) => {
         const projectId = row.original.projectId;
-        const project = projects.find((proj) => proj.id === Number(projectId));
-        const title = projectId
-          ? (project?.label ?? projectId.toString())
-          : "--";
-        return subText({ text: title, length: 21 });
+        return (
+          <span className="line-clamp-1 text-body text-text-secondary">
+            {projectId ? getProjectName(String(projectId)) : "--"}
+          </span>
+        );
       },
     },
     {
       accessorKey: "categoryId",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Catégories"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const categoryId = row.getValue("categoryId") as string;
-        const getCategoryName = (id: number) => {
-          return categories.find((x) => x.id === id)?.label || id;
-        };
-        const category = getCategoryName(Number(categoryId));
-        return subText({ text: category.toString(), length: 21 });
-      },
+      header: () => "Catégorie",
+      cell: ({ row }) => (
+        <span className="line-clamp-1 text-body text-text-secondary">
+          {categories.find((x) => x.id === Number(row.original.categoryId))
+            ?.label ?? "--"}
+        </span>
+      ),
     },
     {
       accessorKey: "createdAt",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Date d'émission"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
+      header: () => "Date d'émission",
       cell: ({ row }) => (
-        <p className="normal-case">
+        <span className="text-body whitespace-nowrap text-text-secondary">
           {format(new Date(row.getValue("createdAt")), "PP", { locale: fr })}
-        </p>
+        </span>
       ),
     },
     {
       accessorKey: "state",
-      header: ({ column }) => {
-        return (
-          <span
-            className="tablehead"
-            onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          >
-            {"Statuts"}
-            <ArrowUpDown />
-          </span>
-        );
-      },
-      cell: ({ row }) => {
-        const status = row.getValue("state") as string;
-        const config = getStatusConfig(status);
-        const Icon = config.icon;
-
-        return (
-          <Badge className={cn("gap-1", config.badgeClassName)}>
-            <Icon size={12} />
-            {getTranslatedLabel(config.label)}
-          </Badge>
-        );
-      },
+      header: () => "Statut",
+      cell: ({ row }) => <RequestStatusPill state={row.original.state} />,
     },
     {
       id: "actions",
       enableHiding: false,
-      header: () => <span className="tablehead">{"Actions"}</span>,
+      header: () => <span className="block text-right">{"Actions"}</span>,
       cell: ({ row }) => {
         const item = row.original;
 
         return (
-          <div className="flex items-center gap-2">
+          <div className="flex items-center justify-end gap-2">
             <DropdownMenu>
-              <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
-                <Ellipsis />
+              <DropdownMenuTrigger
+                aria-label={`Actions pour ${item.ref}`}
+                className="size-8 h-8 w-8 cursor-pointer justify-center gap-0 border-0 bg-transparent p-0 text-text-secondary hover:bg-hover hover:text-text-primary data-[state=open]:bg-hover [&_svg]:size-[18px] [&_svg]:text-current"
+              >
+                <EllipsisVertical />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
                 <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
@@ -526,16 +375,13 @@ export function TableMyRequests({
       if (categoryName.includes(searchValue)) return true;
 
       // 5. Recherche dans le statut
-      const statusConfig = getStatusConfig(item.state || "");
-      const statusLabel = getTranslatedLabel(statusConfig.label).toLowerCase();
-      if (statusLabel.includes(searchValue)) return true;
+      if (requestStatusLabel(item.state).toLowerCase().includes(searchValue))
+        return true;
 
       // 6. Recherche dans le type
-      const typeBadge = getRequestTypeBadge({
-        type: item.type,
-        requestTypes: requestTypes,
-      });
-      if (typeBadge.label.toLowerCase().includes(searchValue)) return true;
+      const typeLabel =
+        requestTypes.find((t) => t.type === item.type)?.label ?? item.type;
+      if (typeLabel.toLowerCase().includes(searchValue)) return true;
 
       // 7. Recherche dans la date (formatée)
       const formattedDate = format(new Date(item.createdAt), "PP", {
@@ -555,8 +401,8 @@ export function TableMyRequests({
   });
 
   return (
-    <div className="content">
-      <div className="flex flex-wrap justify-between gap-4 items-center">
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         {filters}
         {/* Colonne de visibilité */}
         <DropdownMenu>
@@ -577,21 +423,17 @@ export function TableMyRequests({
                       column.toggleVisibility(!!value)
                     }
                   >
-                    {column.id === "ref"
-                      ? "Références"
-                      : column.id === "label"
-                        ? "Titres"
-                        : column.id === "type"
-                          ? "Type"
-                          : column.id === "state"
-                            ? "Statuts"
-                            : column.id === "projectId"
-                              ? "Projets"
-                              : column.id === "categoryId"
-                                ? "Catégories"
-                                : column.id === "createdAt"
-                                  ? "Date d'émission"
-                                  : column.id}
+                    {column.id === "type"
+                      ? "Type"
+                      : column.id === "state"
+                        ? "Statut"
+                        : column.id === "projectId"
+                          ? "Projet"
+                          : column.id === "categoryId"
+                            ? "Catégorie"
+                            : column.id === "createdAt"
+                              ? "Date d'émission"
+                              : column.id}
                   </DropdownMenuCheckboxItem>
                 );
               })}
@@ -600,57 +442,66 @@ export function TableMyRequests({
       </div>
       {/* Table */}
       {table.getRowModel().rows?.length > 0 ? (
-        <div className="rounded-md border">
-          <Table>
+        <div className="overflow-hidden rounded-xl border border-border-default bg-surface">
+          <Table className="min-w-[960px]">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id}>
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </TableHead>
-                    );
-                  })}
+                <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        header.column.id === "besoin" &&
+                          cn("pl-5", REQUEST_COLUMN_CLASS),
+                        header.column.id === "actions" && "pr-5",
+                      )}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  ))}
                 </TableRow>
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows.map((row) => {
-                const status = row.original.state;
-                const config = getStatusConfig(status);
-
-                return (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className={cn(config.rowClassName)}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                );
-              })}
+              {table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className={requestRowClass(row.original.state)}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        "py-3 whitespace-normal normal-case",
+                        cell.column.id === "besoin" && "pl-5",
+                        cell.column.id === "actions" && "pr-5 text-right",
+                      )}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
+          <Pagination
+            table={table}
+            noun="besoins"
+            className="border-t border-border-default"
+          />
         </div>
       ) : (
         <Empty message={"Aucun besoin enregistré"} />
       )}
-
-      {/* Pagination */}
-      {table.getRowModel().rows?.length > 0 && <Pagination table={table} />}
 
       {/* Modals existants */}
       {selectedItem && (

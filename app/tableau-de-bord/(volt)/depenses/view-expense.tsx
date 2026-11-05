@@ -1,14 +1,16 @@
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   Progress,
   ProgressLabel,
@@ -205,17 +207,15 @@ function ViewExpense({
   const signers = signataires?.user;
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent className="sm:max-w-3xl">
         {/* Header avec fond */}
-        <DialogHeader>
-          <DialogTitle>
-            {`Ticket - ${payment.title || "Sans titre"}`}
-          </DialogTitle>
-          <DialogDescription>
-            {"Informations relatives au ticket"}
-          </DialogDescription>
-        </DialogHeader>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Ticket"}</DrawerEyebrow>
+          <DrawerTitle>{payment.title || "Sans titre"}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées au ticket"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
 
         {/* Contenu scrollable */}
         <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
@@ -815,13 +815,15 @@ function ViewExpense({
         </div>
 
         {/* Footer */}
-        <DialogFooter>
-          <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
             <Button variant="outline">{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

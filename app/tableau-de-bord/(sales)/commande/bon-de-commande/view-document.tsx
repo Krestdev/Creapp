@@ -1,14 +1,16 @@
 "use client";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { BonsCommande, User } from "@/types/types";
 import React from "react";
 import { BonDeCommandePDF } from "./BonDeCommandePDF";
@@ -25,23 +27,23 @@ function ViewDocument({ open, openChange, purchaseOrder }: Props) {
   // const isRejected = purchaseOrder.status === "REJECTED";
 
   return (
-    <Dialog open={open} onOpenChange={openChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>
-            {`Bon de commande - ${purchaseOrder.provider.name}`}
-          </DialogTitle>
-          <DialogDescription>
-            {"Prévisualisation du Bon de commande"}
-          </DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={openChange}>
+      <DrawerContent className="sm:max-w-3xl">
+        <DrawerHeader>
+          <DrawerEyebrow>{"Bon de commande"}</DrawerEyebrow>
+          <DrawerTitle>{purchaseOrder.provider.name}</DrawerTitle>
+          <DrawerDescription>{"Prévisualisez le bon de commande"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
 
         <div className="flex-1 pb-[68px] bg-white">
           <BonDeCommandePDF doc={purchaseOrder} />
         </div>
 
         {/* pdf here */}
-        <DialogFooter className="shrink-0 sticky z-10 w-full bottom-0">
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
           {/* <PDFDownloadLink
               document={<BonDocument doc={purchaseOrder} />}
               fileName={`BonDeCommande_${purchaseOrder.reference}.pdf`}
@@ -52,12 +54,12 @@ function ViewDocument({ open, openChange, purchaseOrder }: Props) {
                 </Button>
               )}
             </PDFDownloadLink> */}
-          <DialogClose asChild>
+          <DrawerClose asChild>
             <Button variant={"outline"}>{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

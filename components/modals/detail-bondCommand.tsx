@@ -1,5 +1,5 @@
 "use client";
-import { ViewDialog, ViewGrid, ViewGroup } from "@/components/ds/view-dialog";
+import { ViewDrawer, ViewGrid, ViewGroup } from "@/components/ds/view-drawer";
 import {
   Table,
   TableBody,
@@ -37,11 +37,12 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
   if (!data) return null;
 
   return (
-    <ViewDialog
+    <ViewDrawer
       open={open}
       onOpenChange={onOpenChange}
-      title={`Demande de cotation - ${data.title}`}
-      description="Informations relatives à la demande de cotation"
+      eyebrow="Demande de cotation"
+      title={data.title}
+      description="Consultez les informations associées à la demande de cotation"
       footer={<DownloadButton data={data} />}
     >
       <ViewGrid>
@@ -98,6 +99,6 @@ export function DetailOrder({ open, onOpenChange, data }: DetailOrderProps) {
           </div>
         </ViewGroup>
       </ViewGrid>
-    </ViewDialog>
+    </ViewDrawer>
   );
 }

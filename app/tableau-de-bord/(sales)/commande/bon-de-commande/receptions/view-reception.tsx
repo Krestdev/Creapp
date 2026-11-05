@@ -1,20 +1,22 @@
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import {
   CommandRequestT,
   Quotation,
   Reception,
   RECEPTION_STATUS,
 } from "@/types/types";
-import { DialogTitle } from "@radix-ui/react-dialog";
 import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -71,14 +73,14 @@ function ViewReception({
   const cmdReqs = cmdReqst.find((c) => c.id === devi?.commandRequestId);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{`Réception - ${cmdReqs?.title ?? "Non défini"}`}</DialogTitle>
-          <DialogDescription>
-            {"Réception du bon de commande"}
-          </DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Réception"}</DrawerEyebrow>
+          <DrawerTitle>{cmdReqs?.title ?? "Non défini"}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées à la réception"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
         <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
           <div className="view-group">
             <span className="view-icon">
@@ -246,13 +248,15 @@ function ViewReception({
             </div>
           </div>
         </div>
-        <DialogFooter>
-          <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
             <Button variant={"outline"}>{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }
 

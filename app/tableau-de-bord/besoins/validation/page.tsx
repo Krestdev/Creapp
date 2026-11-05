@@ -19,6 +19,7 @@ import { requestQ } from "@/queries/requestModule";
 import { requestTypeQ } from "@/queries/requestType";
 import { DateFilter } from "@/types/types";
 import { useQuery } from "@tanstack/react-query";
+import { ClipboardList, Clock } from "lucide-react";
 import React from "react";
 import { ApprovalFiltersProps } from "./filters";
 
@@ -44,17 +45,6 @@ const Page = () => {
   // const { tab, search, ...otherFilters } = customFilters;
 
   const { filters, setFilters } = useFilters();
-
-  const tabs = [
-    {
-      id: "pending",
-      title: "En attente",
-    },
-    {
-      id: "processed",
-      title: "Traités",
-    },
-  ];
 
   const resetAllFilters = () => {
     setCustomFilters({
@@ -146,6 +136,19 @@ const Page = () => {
     queryFn: purchaseQ.getAll,
   });
 
+  // Le compteur de l'onglet « En attente » vient des statistiques (Figma · Tab).
+  const tabs = [
+    {
+      id: "pending",
+      title: "En attente",
+      badge: requestStatsData.data?.data.awaiting,
+    },
+    {
+      id: "processed",
+      title: "Traités",
+    },
+  ];
+
   if (
     projectsData.isPending ||
     usersData.isPending ||
@@ -190,8 +193,9 @@ const Page = () => {
       title: "En attente de validation",
       value: requestStatsData.data.data.awaiting,
       variant: "primary",
+      Icon: ClipboardList,
       more: {
-        title: "Total recus",
+        title: "Total reçus",
         value: requestStatsData.data.data.total,
       },
     },
@@ -199,6 +203,7 @@ const Page = () => {
       title: "Besoins approuvés",
       value: requestStatsData.data.data.validated,
       variant: "default",
+      Icon: Clock,
       more: {
         title: "Besoins rejetés",
         value: requestStatsData.data.data.rejected,

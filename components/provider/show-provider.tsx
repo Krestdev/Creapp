@@ -2,14 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Provider } from "@/types/types";
 import { format } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -33,14 +35,14 @@ interface DetailBCProps {
 
 export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle className="uppercase">{`Fournisseur - ${data?.name}`}</DialogTitle>
-          <DialogDescription>
-            {"Informations relatives au fournisseur"}
-          </DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Fournisseur"}</DrawerEyebrow>
+          <DrawerTitle>{data?.name}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées au fournisseur"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
         <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
           {/**Provider Name */}
           <div className="view-group">
@@ -266,12 +268,14 @@ export function ShowProvider({ open, onOpenChange, data }: DetailBCProps) {
           <div className="flex-1 flex flex-col gap-3"></div>
         </div>
         {/* Footer buttons */}
-        <DialogFooter>
-          <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
             <Button variant="outline">{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

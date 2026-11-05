@@ -3,14 +3,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { queryKeys } from "@/lib/query-keys";
 import { XAF } from "@/lib/utils";
 import { userQ } from "@/queries/baseModule";
@@ -195,17 +197,17 @@ export function DetailTicket({
   // };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="sm:max-w-3xl">
         {/* Header avec fond bordeaux - FIXE */}
-        <DialogHeader>
-          <DialogTitle>{"Ticket" + " - " + data?.title}</DialogTitle>
-          <DialogDescription>
-            {page === 1
-              ? `Détail du ticket`
-              : `Justificatif du ticket ${data?.title}`}
-          </DialogDescription>
-        </DialogHeader>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Ticket"}</DrawerEyebrow>
+          <DrawerTitle>{data?.title}</DrawerTitle>
+          <DrawerDescription>
+            {page === 1 ? `Consultez les informations associées au ticket` : `Justificatif du ticket ${data?.title}`}
+          </DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
         {getPayment.isLoading ? (
           <Skeleton className="w-full h-20" />
         ) : getPayment.isError ? (
@@ -625,15 +627,17 @@ export function DetailTicket({
             )}
 
             {/* Boutons du footer - FIXE */}
-            <DialogFooter>
+            <DrawerFooter pinned>
               {page === 2 && file && <DownloadFile file={file} />}
-              <DialogClose asChild>
+              <DrawerClose asChild>
                 <Button variant="outline">{"Fermer"}</Button>
-              </DialogClose>
-            </DialogFooter>
+              </DrawerClose>
+            </DrawerFooter>
           </>
         )}
-      </DialogContent>
-    </Dialog>
+      
+        </DrawerBody>
+        </DrawerContent>
+    </Drawer>
   );
 }

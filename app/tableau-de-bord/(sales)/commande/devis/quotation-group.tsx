@@ -12,24 +12,16 @@ import {
   getSortedRowModel,
   useReactTable,
 } from "@tanstack/react-table";
-import {
-  ArrowUpDown,
-  Check,
-  ChevronDown,
-  Ellipsis,
-  Eye,
-  Settings2,
-} from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import * as React from "react";
 
-import { Badge } from "@/components/ui/badge";
+import { FilterButton, FilterSearch } from "@/components/ds/filter-bar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
@@ -45,7 +37,6 @@ import {
 } from "@/components/ui/table";
 
 import { Pagination } from "@/components/base/pagination";
-import { badgeVariants } from "@/components/ui/badge";
 import {
   Sheet,
   SheetContent,
@@ -56,7 +47,8 @@ import {
 } from "@/components/ui/sheet";
 import { TabBar } from "@/components/base/TabBar";
 import { groupQuotationsByCommandRequest } from "@/lib/quotation-functions";
-import { subText } from "@/lib/utils";
+import { formatNumber } from "@/lib/format";
+import { cn, getQuotationAmount } from "@/lib/utils";
 import {
   CommandRequestT,
   Provider,
@@ -65,11 +57,9 @@ import {
   QuotationGroupStatus,
   QuotationGroup as QuotationGroupT,
 } from "@/types/types";
-import { VariantProps } from "class-variance-authority";
 import { format } from "date-fns";
-import { fr } from "date-fns/locale";
 import { useRouter } from "next/navigation";
-import { DevisGroup } from "./DevisGroup";
+import { DevisGroup, getGroupStatusLabel } from "./DevisGroup";
 
 interface QuotationGroupTableProps {
   providers: Array<Provider>;
@@ -77,24 +67,33 @@ interface QuotationGroupTableProps {
   quotations: Array<Quotation>;
 }
 
-const getGroupStatusLabel = (
-  status: QuotationGroupStatus,
-): {
-  label: string;
-  variant: VariantProps<typeof badgeVariants>["variant"];
-} => {
-  switch (status) {
-    case "NOT_PROCESSED":
-      return { label: "Non traité", variant: "destructive" };
-    case "IN_PROGRESS":
-      return { label: "En cours", variant: "amber" };
-    case "PROCESSED":
-      return { label: "Traité", variant: "success" };
-    case "CANCELLED":
-      return { label: "Annulé", variant: "outline" };
-    default:
-      return { label: "Inconnu", variant: "outline" };
-  }
+type GroupTab = "attente" | "traite";
+
+/** Une cotation non traitée ou en cours reste à approuver ; traitée ou annulée, elle est close. */
+const inTab = (item: QuotationGroup, tab: GroupTab) =>
+  tab === "attente"
+    ? item.status === "NOT_PROCESSED" || item.status === "IN_PROGRESS"
+    : item.status === "PROCESSED" || item.status === "CANCELLED";
+
+/** Fourchette de montants des devis d'une demande : « 24 000 - 29 000 » ou un seul montant. */
+const amountRange = (group: QuotationGroup, providers: Provider[]) => {
+  const totals = group.quotations
+    .map((q) => Math.round(getQuotationAmount(q, providers)))
+    .filter((n) => n > 0);
+  if (!totals.length) return "—";
+  const min = Math.min(...totals);
+  const max = Math.max(...totals);
+  return min === max
+    ? formatNumber(min)
+    : `${formatNumber(min)} - ${formatNumber(max)}`;
+};
+
+/** Largeurs fixes des colonnes secondaires (Figma · Approbation devis). */
+const COLUMN_CLASS: Record<string, string> = {
+  amount: "w-[180px]",
+  createdAt: "w-[170px]",
+  status: "w-[120px]",
+  actions: "w-[200px]",
 };
 
 export function QuotationGroupTable({
@@ -109,17 +108,15 @@ export function QuotationGroupTable({
     [],
   );
   const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({
-      createdAt: false,
-    });
+    React.useState<VisibilityState>({});
   const [rowSelection, setRowSelection] = React.useState({});
+  // La recherche s'applique au clic sur « Rechercher » (ou Entrée), pas à la frappe.
+  const [searchInput, setSearchInput] = React.useState("");
   const [globalFilter, setGlobalFilter] = React.useState("");
   const router = useRouter();
 
   // ─── Tab (drives the status filter) ──────────────────────────────────────
-  const [selectedTab, setSelectedTab] = React.useState<
-    "non_traite" | "en_cours" | "traite" | "annule"
-  >("non_traite");
+  const [selectedTab, setSelectedTab] = React.useState<GroupTab>("attente");
 
   // Filtres spécifiques
   const [providerFilter, setProviderFilter] = React.useState<string>("all");
@@ -168,128 +165,102 @@ export function QuotationGroupTable({
 
   // ─── Tab-filtered data (table only — statistics ignore the tab) ───────────
   const tabFilteredData = React.useMemo(() => {
-    return filteredData.filter((item) => {
-      switch (selectedTab) {
-        case "non_traite":
-          return item.status === "NOT_PROCESSED";
-        case "en_cours":
-          return item.status === "IN_PROGRESS";
-        case "traite":
-          return item.status === "PROCESSED";
-        case "annule":
-          return item.status === "CANCELLED";
-      }
-    });
+    return filteredData.filter((item) => inTab(item, selectedTab));
   }, [filteredData, selectedTab]);
 
   const columns: ColumnDef<QuotationGroupT>[] = [
     {
       id: "commandRequest",
       accessorFn: (row) => row.commandRequest.reference,
-      header: ({ column }) => (
-        <span
-          className="tablehead"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {"Demande de cotation"}
-          <ArrowUpDown />
-        </span>
-      ),
+      header: () => "Demande de cotation",
       cell: ({ row }) => {
         const group = row.original;
+        const count = group.providers.length;
         return (
-          <p>
-            {subText({ text: group.commandRequest.title, length: 21 })} -{" "}
-            <span className="text-red-500">
+          <div className="flex min-w-0 flex-col gap-0.5">
+            <span className="text-caption text-brand">
               {group.commandRequest.reference}
             </span>
-          </p>
-        );
-      },
-    },
-    {
-      id: "providers",
-      accessorFn: (row) => row.providers.map((p) => p.name).join(", "),
-      header: ({ column }) => (
-        <span
-          className="tablehead"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          {"Fournisseurs"}
-          <ArrowUpDown />
-        </span>
-      ),
-      cell: ({ row }) => {
-        const group = row.original;
-        return (
-          <div className="flex flex-wrap gap-1">
-            {group.providers.map((provider) => (
-              <Badge key={provider.id} variant="outline" className="text-xs">
-                {provider.name}
-              </Badge>
-            ))}
+            <span className="text-body-medium text-text-primary">
+              {group.commandRequest.title}
+            </span>
+            <span className="text-caption text-text-tertiary">
+              {`${count} Fournisseur${count > 1 ? "s" : ""}`}
+            </span>
           </div>
         );
       },
     },
     {
-      accessorKey: "status",
-      header: () => <span className="tablehead">{"Statut"}</span>,
-      cell: ({ row }) => {
-        const value = row.getValue("status") as QuotationGroupStatus;
-        const { label, variant } = getGroupStatusLabel(value);
-        return <Badge variant={variant}>{label}</Badge>;
-      },
+      id: "amount",
+      accessorFn: (row) => amountRange(row, providers),
+      header: () => "Montant (XAF)",
+      cell: ({ row }) => (
+        <span className="text-body-medium whitespace-nowrap text-text-primary">
+          {amountRange(row.original, providers)}
+        </span>
+      ),
     },
     {
-      accessorKey: "createdAt",
-      header: () => <span className="tablehead">{"Mis à jour le"}</span>,
+      id: "createdAt",
+      accessorFn: (row) => row.commandRequest.createdAt,
+      header: () => "Initié le",
+      cell: ({ row }) => (
+        <span className="text-body whitespace-nowrap text-text-secondary">
+          {format(new Date(row.original.commandRequest.createdAt), "dd/MM/yyyy")}
+        </span>
+      ),
+    },
+    {
+      accessorKey: "status",
+      header: () => "Statut",
       cell: ({ row }) => {
+        const { label, pill } = getGroupStatusLabel(
+          row.getValue("status") as QuotationGroupStatus,
+        );
         return (
-          <p className="normal-case">
-            {format(row.getValue("createdAt"), "dd/MM/yyyy, p", { locale: fr })}
-          </p>
+          <span
+            className={cn(
+              "inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-label font-semibold whitespace-nowrap",
+              pill,
+            )}
+          >
+            {label}
+          </span>
         );
       },
     },
     {
       id: "actions",
-      header: () => <span className="tablehead">{"Actions"}</span>,
+      header: () => <span className="block text-right">{"Actions"}</span>,
       enableHiding: false,
       cell: ({ row }) => {
         const group = row.original;
-
+        const closed =
+          group.status === "PROCESSED" || group.status === "CANCELLED";
         return (
-          <DropdownMenu>
-            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
-              <Ellipsis />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuLabel>{"Actions du groupe"}</DropdownMenuLabel>
-              <DropdownMenuItem
-                onClick={() => {
-                  setSelectedItem(group);
-                  setOpenView(true);
-                }}
-                className="cursor-pointer"
-              >
-                <Eye />
-                {"Voir"}
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                disabled={
-                  group.status === "PROCESSED" || group.status === "CANCELLED"
-                }
+          <div className="flex items-center justify-end gap-1.5">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setSelectedItem(group);
+                setOpenView(true);
+              }}
+            >
+              {"Ouvrir"}
+            </Button>
+            {!closed && (
+              <Button
+                size="sm"
                 onClick={() =>
                   router.push(`./valider/${group.commandRequest.id}`)
                 }
-                className="cursor-pointer"
               >
-                <Check />
-                {"Traiter"}
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+                {"Comparer"}
+              </Button>
+            )}
+          </div>
         );
       },
     },
@@ -334,7 +305,10 @@ export function QuotationGroupTable({
     },
   });
 
+  const applySearch = () => setGlobalFilter(searchInput.trim());
+
   const resetAllFilters = () => {
+    setSearchInput("");
     setGlobalFilter("");
     setProviderFilter("all");
     setCommandRequestFilter("all");
@@ -344,59 +318,62 @@ export function QuotationGroupTable({
     setCommandRequestSearch("");
   };
 
-  const tabs = [
-    {
-      id: "non_traite",
-      title: "Non traité",
-      badge: data.filter((d) => d.status === "NOT_PROCESSED").length,
-    },
-    {
-      id: "en_cours",
-      title: "En cours",
-      badge: data.filter((d) => d.status === "IN_PROGRESS").length,
-    },
-    {
-      id: "traite",
-      title: "Traité",
-    },
-    {
-      id: "annule",
-      title: "Annulé",
-      badge: data.filter((d) => d.status === "CANCELLED").length,
-    },
-  ];
+  // Le compteur n'est affiché que sur l'onglet actif (Figma · Tab).
+  const tabs = (
+    [
+      { id: "attente", title: "En attente" },
+      { id: "traite", title: "Traités" },
+    ] as const
+  ).map((t) => ({
+    ...t,
+    badge:
+      t.id === selectedTab
+        ? filteredData.filter((d) => inTab(d, t.id)).length
+        : undefined,
+  }));
+
+  const advancedCount =
+    (providerFilter !== "all" ? 1 : 0) +
+    (commandRequestFilter !== "all" ? 1 : 0) +
+    (statusFilter !== "all" ? 1 : 0);
 
   return (
-    <div className="w-full space-y-4">
+    <div className="flex w-full flex-col gap-5">
       <TabBar
         tabs={tabs}
         setSelectedTab={setSelectedTab}
         selectedTab={selectedTab}
       />
       {/* BARRE DE FILTRES */}
-      <div className="flex flex-wrap items-center justify-between gap-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-2">
-          <Input
-            id="searchGroup"
-            type="search"
-            placeholder="Référence, titre, fournisseur..."
-            value={globalFilter ?? ""}
-            onChange={(e) => setGlobalFilter(e.target.value)}
+          <FilterSearch
+            value={searchInput}
+            onChange={(value) => {
+              setSearchInput(value);
+              // Champ vidé : on retire aussitôt le filtre de recherche.
+              if (value === "") setGlobalFilter("");
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") applySearch();
+            }}
+            placeholder="Référence, titre, fournisseur"
           />
+          <Button type="button" onClick={applySearch}>
+            {"Rechercher"}
+          </Button>
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="outline">
-                <Settings2 />
-                {"Filtres"}
-              </Button>
+              <FilterButton count={advancedCount} />
             </SheetTrigger>
-            <SheetContent className="px-3 overflow-y-auto">
+            <SheetContent className="overflow-y-auto">
               <SheetHeader>
                 <SheetTitle>{"Filtres"}</SheetTitle>
                 <SheetDescription>
                   {"Configurer les filtres pour affiner vos données"}
                 </SheetDescription>
               </SheetHeader>
+              <div className="grid gap-5 px-5">
               {/* Filtre par fournisseur */}
               <div className="grid gap-2">
                 <Label>{"Fournisseur"}</Label>
@@ -640,32 +617,9 @@ export function QuotationGroupTable({
               >
                 {"Réinitialiser les filtres"}
               </Button>
+              </div>
             </SheetContent>
           </Sheet>
-
-          {/* Afficher les filtres actifs */}
-          {(providerFilter !== "all" ||
-            statusFilter !== "all" ||
-            globalFilter) && (
-            <div className="flex items-center gap-2 text-sm text-muted-foreground">
-              <span>{"Filtres actifs:"}</span>
-              {providerFilter !== "all" && (
-                <Badge variant="outline">
-                  {`Fournisseur: ${providers.find((p) => p.id.toString() === providerFilter)?.name}`}
-                </Badge>
-              )}
-              {statusFilter !== "all" && (
-                <Badge variant="default" className="font-normal">
-                  {`Statut: ${getGroupStatusLabel(statusFilter).label}`}
-                </Badge>
-              )}
-              {globalFilter && (
-                <Badge variant="outline" className="font-normal">
-                  {`Recherche: "${globalFilter}"`}
-                </Badge>
-              )}
-            </div>
-          )}
         </div>
 
         {/* Menu colonnes */}
@@ -684,10 +638,9 @@ export function QuotationGroupTable({
                 let columnName = column.id;
                 if (column.id === "commandRequest")
                   columnName = "Demande de cotation";
-                else if (column.id === "providers") columnName = "Fournisseurs";
+                else if (column.id === "amount") columnName = "Montant (XAF)";
                 else if (column.id === "status") columnName = "Statut";
-                else if (column.id === "createdAt")
-                  columnName = "Date de création";
+                else if (column.id === "createdAt") columnName = "Initié le";
 
                 return (
                   <DropdownMenuCheckboxItem
@@ -706,13 +659,20 @@ export function QuotationGroupTable({
       </div>
 
       {/* TABLEAU */}
-      <div className="rounded-md border">
-        <Table>
+      <div className="overflow-hidden rounded-xl border border-border-default bg-surface">
+        <Table className="min-w-[900px]">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} className="hover:bg-transparent">
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
+                  <TableHead
+                    key={header.id}
+                    className={cn(
+                      COLUMN_CLASS[header.column.id],
+                      header.column.id === "commandRequest" && "pl-5",
+                      header.column.id === "actions" && "pr-5",
+                    )}
+                  >
                     {header.isPlaceholder
                       ? null
                       : flexRender(
@@ -730,10 +690,16 @@ export function QuotationGroupTable({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="hover:bg-muted/50"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        "py-3 whitespace-normal normal-case",
+                        cell.column.id === "commandRequest" && "pl-5",
+                        cell.column.id === "actions" && "pr-5",
+                      )}
+                    >
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -769,8 +735,12 @@ export function QuotationGroupTable({
             )}
           </TableBody>
         </Table>
+        <Pagination
+          table={table}
+          noun="cotations"
+          className="border-t border-border-default"
+        />
       </div>
-      <Pagination table={table} />
       <DevisGroup
         open={openView}
         onOpenChange={setOpenView}

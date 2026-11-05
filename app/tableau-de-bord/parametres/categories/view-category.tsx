@@ -3,14 +3,16 @@
 import AvatarText from "@/components/avatar-text";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { Category, User } from "@/types/types";
 import {
   ListChecksIcon,
@@ -33,14 +35,14 @@ export function ViewCategory({
   users,
 }: ShowCategoryProps) {
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{`Catégorie - ${category.label}`}</DialogTitle>
-          <DialogDescription>
-            {"Informations détaillées de la catégorie"}
-          </DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Catégorie"}</DrawerEyebrow>
+          <DrawerTitle>{category.label}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées à la catégorie"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
         {/* Title */}
         <div className="view-group">
           <span className="view-icon">
@@ -126,12 +128,14 @@ export function ViewCategory({
           </div>
         </div>
         {/* Footer */}
-        <DialogFooter>
-          <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
             <Button variant="outline">{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

@@ -546,7 +546,7 @@ html[data-module="creap"] {
 
 @layer components {
   .tablehead {
-    @apply w-full text-sm px-2 text-gray-600 has-[>svg]:cursor-pointer inline-flex gap-2 items-center justify-between [&_svg]:size-3 sticky top-0 z-10;
+    @apply inline-flex w-full items-center justify-between gap-1.5 has-[>svg]:cursor-pointer [&_svg]:size-3;
   }
 
   .content {
@@ -557,16 +557,31 @@ html[data-module="creap"] {
     @apply w-full h-9 inline-flex items-center justify-center gap-2 border border-input bg-white text-sm font-medium [&_svg]:size-5 rounded-md transition-colors duration-150 hover:bg-gray-50 cursor-pointer disabled:opacity-50 disabled:hover:bg-transparent disabled:cursor-not-allowed;
   }
 
+  /* Fiche « voir » (Figma · tiroir Devis / Besoin) : libellé gris en 12 px au-dessus
+     de la valeur en 14 px medium, sans pastille d'icône. */
   .view-group {
-    @apply w-full flex gap-2 items-start justify-start text-sm;
+    @apply flex w-full min-w-0 flex-col items-start gap-0.5 text-body text-text-primary [overflow-wrap:anywhere];
   }
 
   .view-group-title {
-    @apply text-gray-600
+    @apply text-caption text-text-tertiary;
   }
 
   .view-icon {
-    @apply size-10 rounded-full bg-gray-200 text-foreground flex items-center justify-center shrink-0;
+    @apply hidden;
+  }
+
+  .view-group .font-semibold {
+    @apply font-medium;
+  }
+
+  /* Référence : texte bleu, plus de pastille. */
+  .view-group .bg-primary-100.w-fit {
+    @apply bg-transparent! px-0! rounded-none!;
+  }
+
+  .view-group .bg-primary-100.w-fit p {
+    @apply text-body-medium! text-text-link!;
   }
 
   .form-3xl {

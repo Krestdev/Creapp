@@ -17,16 +17,14 @@ import {
   type VisibilityState,
 } from "@tanstack/react-table";
 import {
-  ArrowUpDown,
   CheckCheck,
   Circle,
-  Ellipsis,
+  EllipsisVertical,
   Eye,
   FolderUp,
   LoaderIcon,
   LucideBan,
   LucideCreditCard,
-  Settings2,
 } from "lucide-react";
 import * as React from "react";
 
@@ -34,6 +32,15 @@ import TransportApprobation from "@/app/tableau-de-bord/besoins/transport-approb
 import ApprovalFilters, {
   ApprovalFiltersProps,
 } from "@/app/tableau-de-bord/besoins/validation/filters";
+import {
+  REQUEST_COLUMN_CLASS,
+  RequestCell,
+  RequestStatusPill,
+  RequestTypePill,
+  requestRowClass,
+} from "@/components/besoin/request-table-ui";
+import { FilterButton } from "@/components/ds/filter-bar";
+import { UserAvatar } from "@/components/ds/user-avatar";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -51,14 +58,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import {
-  cn,
-  getRequestStatusBadge,
-  getRequestTypeBadge,
-  getUserName,
-  subText,
-  XAF,
-} from "@/lib/utils";
+import { formatNumber } from "@/lib/format";
+import { cn, getUserName } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import { requestQ } from "@/queries/requestModule";
 import {
@@ -83,7 +84,6 @@ import BesoinLastValSettle from "../modals/BesoinLastValSettle";
 import BesoinRHLastVal from "../modals/BesoinRHLastVal";
 import UpdatePaymentMethod from "../modals/UpdatePaymentMethod";
 import { ValidationModal } from "../modals/ValidationModal";
-import { Badge } from "../ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -106,6 +106,18 @@ import Empty from "./empty";
 import { Pagination } from "./pagination";
 import { TabBar, TabProps } from "./TabBar";
 import Link from "next/link";
+
+const COLUMN_LABELS: Record<string, string> = {
+  userId: "Émetteur",
+  beneficiary: "Bénéficiaires",
+  type: "Type",
+  projectId: "Projet",
+  categoryId: "Catégorie",
+  amount: "Montant (XAF)",
+  createdAt: "Date d'émission",
+  state: "Statut",
+  validationProgress: "Validation",
+};
 
 interface DataTableProps {
   data: RequestModelT[];
@@ -491,255 +503,199 @@ export function DataVal({
   const columns: ColumnDef<RequestModelT>[] = React.useMemo(() => {
     const baseColumns: ColumnDef<RequestModelT>[] = [];
 
+    /** Bénéficiaires du besoin : nom (+ service) ou pile d'avatars. */
+    const beneficiariesOf = (item: RequestModelT) => {
+      const user = (id: number) => usersData.find((u) => u.id === id);
+      const asPerson = (u?: User, fallback?: string) => ({
+        name: u ? `${u.firstName} ${u.lastName}` : (fallback ?? "--"),
+        service: u?.service?.label,
+      });
+      const beneficiary = item.beneficiary ?? "";
+      if (beneficiary.toLowerCase() === "me")
+        return [asPerson(user(item.userId))];
+      if (beneficiary.length > 0)
+        return [asPerson(user(Number(beneficiary)), beneficiary)];
+      if (item.type?.toLowerCase().includes("facili"))
+        return (item.benFac?.list ?? []).map((li) => ({
+          name: li.name,
+          service: undefined as string | undefined,
+        }));
+      return (item.beficiaryList ?? []).map((u) => ({
+        name: `${u.firstName} ${u.lastName}`,
+        service: undefined as string | undefined,
+      }));
+    };
+
     baseColumns.push(
       {
+        id: "besoin",
         accessorKey: "label",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead cursor-pointer flex items-center"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Titres"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
+        enableHiding: false,
+        header: () => "Besoin",
         cell: ({ row }) => (
-          <p className="max-w-[200px] truncate">{row.getValue("label")}</p>
+          <RequestCell
+            reference={row.original.ref}
+            label={row.original.label}
+          />
         ),
       },
       {
         accessorKey: "type",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Type"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
+        header: () => "Type",
+        cell: ({ row }) => (
+          <RequestTypePill
+            type={row.original.type}
+            requestTypes={requestTypeData}
+          />
+        ),
+      },
+      {
+        accessorKey: "userId",
+        header: () => "Émetteur",
         cell: ({ row }) => {
-          const value = row.original;
-          const type = getRequestTypeBadge({
-            type: value.type,
-            requestTypes: requestTypeData,
-          });
-          return <Badge variant={type.variant}>{type.label}</Badge>;
+          const author = usersData.find((u) => u.id === row.original.userId);
+          const name = getUserName(usersData, row.original.userId) ?? "--";
+          return (
+            <div className="flex items-center gap-2">
+              <UserAvatar name={name} size="sm" />
+              <div className="flex min-w-0 flex-col">
+                <span className="truncate text-body-medium text-text-primary">
+                  {name}
+                </span>
+                {author?.service?.label && (
+                  <span className="truncate text-caption text-text-tertiary">
+                    {author.service.label}
+                  </span>
+                )}
+              </div>
+            </div>
+          );
         },
       },
       {
-        accessorKey: "amount",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead cursor-pointer flex items-center"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Montant"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
+        accessorKey: "beneficiary",
+        header: () => "Bénéficiaires",
         cell: ({ row }) => {
-          const value = row.original;
-          const amount =
-            value.type !== "facilitation"
-              ? !!value.amount
-                ? XAF.format(value.amount)
-                : "Aucun"
-              : XAF.format(
-                  value.benFac?.list?.reduce(
-                    (acc, item) => acc + item.amount,
-                    0,
-                  ) || 0,
-                );
+          const people = beneficiariesOf(row.original);
+          if (people.length === 0)
+            return (
+              <span className="text-body text-text-tertiary">{"Aucun"}</span>
+            );
+          if (people.length === 1)
+            return (
+              <div className="flex items-center gap-2">
+                <UserAvatar name={people[0].name} size="sm" />
+                <div className="flex min-w-0 flex-col">
+                  <span className="truncate text-body-medium text-text-primary">
+                    {people[0].name}
+                  </span>
+                  {people[0].service && (
+                    <span className="truncate text-caption text-text-tertiary">
+                      {people[0].service}
+                    </span>
+                  )}
+                </div>
+              </div>
+            );
           return (
-            <p
-              className={cn(
-                "normal-case",
-                amount === "N/A" ? "text-muted-foreground" : "font-medium",
-              )}
+            <div
+              className="flex items-center"
+              title={people.map((p) => p.name).join(", ")}
             >
-              {amount}
-            </p>
+              {people.slice(0, 3).map((p, i) => (
+                <UserAvatar
+                  key={i}
+                  name={p.name}
+                  size="sm"
+                  className={cn(i > 0 && "-ml-1")}
+                />
+              ))}
+              {people.length > 3 && (
+                <span className="ml-1.5 text-caption text-text-tertiary">
+                  {"+"}
+                  {people.length - 3}
+                </span>
+              )}
+            </div>
           );
         },
       },
       {
         accessorKey: "projectId",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead cursor-pointer flex items-center"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Projets"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
+        header: () => "Projet",
         cell: ({ row }) => {
-          const projectId = row.getValue("projectId");
-          const projectName = projectId
-            ? getProjectName(projectId as string)
-            : "N/A";
+          const projectId = row.original.projectId;
           return (
-            <p
-              className={cn(
-                "normal-case",
-                projectName === "N/A"
-                  ? "text-muted-foreground"
-                  : "first-letter:uppercase lowercase",
-              )}
-            >
-              {subText({ text: projectName, length: 21 })}
-            </p>
+            <span className="line-clamp-1 text-body text-text-secondary">
+              {projectId ? getProjectName(String(projectId)) : "--"}
+            </span>
           );
         },
       },
       {
         accessorKey: "categoryId",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead cursor-pointer flex items-center"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Catégories"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const categoryName = getCategoryName(row.getValue("categoryId"));
-          // const validationInfo = getValidationInfo(row.original);
-
-          return categoryName;
-        },
+        header: () => "Catégorie",
+        cell: ({ row }) => (
+          <span className="line-clamp-1 text-body text-text-secondary">
+            {getCategoryName(String(row.original.categoryId))}
+          </span>
+        ),
       },
       {
-        accessorKey: "userId",
-        header: ({ column }) => {
+        accessorKey: "amount",
+        header: () => (
+          <span className="block text-right">{"Montant (XAF)"}</span>
+        ),
+        cell: ({ row }) => {
+          const value = row.original;
+          const amount =
+            value.type !== "facilitation"
+              ? value.amount
+              : value.benFac?.list?.reduce(
+                  (acc, item) => acc + item.amount,
+                  0,
+                );
           return (
-            <span
-              className="tablehead cursor-pointer flex items-center"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Émetteurs"}
-              <ArrowUpDown />
+            <span className="block text-right text-body whitespace-nowrap text-text-secondary">
+              {amount ? formatNumber(amount) : "—"}
             </span>
           );
         },
-        cell: ({ row }) => (
-          <p className="normal-case">
-            {getUserName(usersData, row.getValue("userId"))}
-          </p>
-        ),
       },
       {
         accessorKey: "createdAt",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead cursor-pointer flex items-center"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Date d'émission"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
+        header: () => "Date d'émission",
         cell: ({ row }) => (
-          <p className="normal-case">
+          <span className="text-body whitespace-nowrap text-text-secondary">
             {format(new Date(row.getValue("createdAt")), "dd/MM/yyyy", {
               locale: fr,
             })}
-          </p>
+          </span>
         ),
-      },
-      {
-        accessorKey: "beneficiary",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead cursor-pointer flex items-center"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Bénéficiaires"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const item = row.original;
-          const list = row.original.beficiaryList;
-          const beneficiary = row.original.beneficiary;
-          return (
-            <p className="max-w-[200px] truncate normal-case">
-              {beneficiary.toLocaleLowerCase() === "me"
-                ? getUserName(usersData, item.userId)
-                : beneficiary.length > 0
-                  ? getUserName(usersData, Number(beneficiary))
-                  : item.type?.toLocaleLowerCase().includes("facili")
-                    ? item.benFac?.list
-                        .map((li) => li.name)
-                        .join(", ")
-                        .substring(0, 21)
-                    : !!list && list.length > 0
-                      ? list
-                          .map((u) => u.firstName.concat(" ", u.lastName))
-                          .join(", ")
-                          .substring(0, 21)
-                      : "Aucun bénéficiaire"}
-            </p>
-          );
-        },
       },
     );
 
     if (tab === "pending") {
       baseColumns.push({
         id: "validationProgress",
-        header: () => <span className="tablehead">{"Validation"}</span>,
+        header: () => "Validation",
         cell: ({ row }: { row: Row<RequestModelT> }) => {
           const validationInfo = getValidationInfo(row.original);
-
           if (!validationInfo.totalValidators) return null;
-
           return (
-            <div className="flex items-center gap-2">
-              <div className="flex-1">
-                <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
-                  <div
-                    className={`h-full ${row.original.state === "rejected" ? "bg-red-500" : "bg-blue-500"} rounded-full transition-all duration-300`}
-                    style={{ width: `${validationInfo.progress}%` }}
-                  />
-                </div>
-                <div className="text-xs text-gray-500 text-center mt-1">
-                  {validationInfo.validatedCount}/
-                  {validationInfo.totalValidators}
-                </div>
+            <div className="flex w-28 flex-col gap-1">
+              <div className="h-1.5 overflow-hidden rounded-full bg-surface-muted">
+                <div
+                  className="h-full rounded-full bg-brand transition-all duration-300"
+                  style={{ width: `${validationInfo.progress}%` }}
+                />
               </div>
+              <span className="text-caption text-text-tertiary">
+                {validationInfo.validatedCount}
+                {"/"}
+                {validationInfo.totalValidators}
+                {" validations"}
+              </span>
             </div>
           );
         },
@@ -747,39 +703,17 @@ export function DataVal({
     }
 
     if (tab === "processed") {
-      baseColumns.splice(3, 0, {
+      baseColumns.push({
         accessorKey: "state",
-        header: ({ column }) => {
-          return (
-            <span
-              className="tablehead cursor-pointer flex items-center"
-              onClick={() =>
-                column.toggleSorting(column.getIsSorted() === "asc")
-              }
-            >
-              {"Statuts"}
-              <ArrowUpDown />
-            </span>
-          );
-        },
-        cell: ({ row }) => {
-          const state = getRequestStatusBadge(row.getValue("state"));
-          const Icon = state.icon;
-
-          return (
-            <Badge variant={state.variant} className="text-xs">
-              {Icon && <Icon />}
-              {state.label}
-            </Badge>
-          );
-        },
+        header: () => "Statut",
+        cell: ({ row }) => <RequestStatusPill state={row.original.state} />,
       });
     }
 
     baseColumns.push({
       accessorKey: "actions",
       enableHiding: false,
-      header: () => <span className="tablehead">{"Actions"}</span>,
+      header: () => <span className="block text-right">{"Actions"}</span>,
       cell: ({ row }) => {
         const item = row.original;
 
@@ -788,8 +722,11 @@ export function DataVal({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
-              <Ellipsis />
+            <DropdownMenuTrigger
+              aria-label={`Actions pour ${item.ref}`}
+              className="ml-auto flex size-8 h-8 w-8 cursor-pointer items-center justify-center gap-0 border-0 bg-transparent p-0 text-text-secondary hover:bg-hover hover:text-text-primary data-[state=open]:bg-hover [&_svg]:size-[18px] [&_svg]:text-current"
+            >
+              <EllipsisVertical />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuSeparator />
@@ -909,6 +846,14 @@ export function DataVal({
   });
 
   const selectedCount = Object.keys(rowSelection).length;
+  const advancedCount =
+    [
+      filters.customFilters.user,
+      filters.customFilters.category,
+      filters.customFilters.project,
+      filters.customFilters.status,
+      filters.customFilters.type,
+    ].filter((v) => v !== "all").length + (filters.customFilters.date ? 1 : 0);
 
   const groupSelectionSummary = (
     <div className="flex items-center gap-2 rounded-md border border-status-info-border bg-status-info-bg px-3 py-2 text-body-medium text-status-info-fg">
@@ -919,91 +864,58 @@ export function DataVal({
   const canValidateSelected = selectedCount > 0 && isCheckable;
 
   return (
-    <div className="content">
-      <div className="flex flex-wrap gap-4 items-center justify-between">
-        <div className="flex items-center gap-2 flex-wrap">
-          <TabBar
-            tabs={tabs.tabs}
-            setSelectedTab={tabs.setSelectedTab}
-            selectedTab={tabs.selectedTab}
-            className="w-fit"
-          />
-          <Sheet>
-            <SheetTrigger asChild className="w-fit">
-              <Button variant={"outline"}>
-                <Settings2 />
-                {"Filtres"}
-              </Button>
-            </SheetTrigger>
-            <SheetContent className="px-3">
-              <SheetHeader>
-                <SheetTitle>{"Filtres"}</SheetTitle>
-                <SheetDescription>
-                  {"Configurer les filtres pour affiner les données"}
-                </SheetDescription>
-              </SheetHeader>
-              <ApprovalFilters
-                customFilters={filters.customFilters}
-                setCustomFilters={filters.setCustomFilters}
-                isCustomDateModalOpen={filters.isCustomDateModalOpen}
-                setIsCustomDateModalOpen={filters.setIsCustomDateModalOpen}
-                uniqueCategories={filters.uniqueCategories}
-                uniqueProjects={filters.uniqueProjects}
-                requestTypes={filters.requestTypes}
-                setDateFilter={filters.setDateFilter}
-                resetAllFilters={filters.resetAllFilters}
-                users={filters.users}
-              />
-            </SheetContent>
-          </Sheet>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline">{"Colonnes"}</Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              {table
-                .getAllColumns()
-                .filter((column) => column.getCanHide())
-                .map((column) => {
-                  return (
-                    <DropdownMenuCheckboxItem
-                      key={column.id}
-                      className="capitalize"
-                      checked={column.getIsVisible()}
-                      onCheckedChange={(value) =>
-                        column.toggleVisibility(!!value)
-                      }
-                    >
-                      {column.id === "select"
-                        ? "Sélection"
-                        : column.id === "label"
-                          ? "Titres"
-                          : column.id === "projectId"
-                            ? "Projets"
-                            : column.id === "categoryId"
-                              ? "Catégories"
-                              : column.id === "userId"
-                                ? "Émetteurs"
-                                : column.id === "beneficiary"
-                                  ? "Bénéficiaires"
-                                  : column.id === "createdAt"
-                                    ? "Date d'émission"
-                                    : column.id === "state"
-                                      ? "Statuts"
-                                      : column.id === "validationProgress"
-                                        ? "Validation"
-                                        : column.id === "amount"
-                                          ? "Montant"
-                                          : column.id}
-                    </DropdownMenuCheckboxItem>
-                  );
-                })}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <Sheet>
+          <SheetTrigger asChild>
+            <FilterButton count={advancedCount} />
+          </SheetTrigger>
+          <SheetContent className="px-3">
+            <SheetHeader>
+              <SheetTitle>{"Filtres"}</SheetTitle>
+              <SheetDescription>
+                {"Configurer les filtres pour affiner les données"}
+              </SheetDescription>
+            </SheetHeader>
+            <ApprovalFilters
+              customFilters={filters.customFilters}
+              setCustomFilters={filters.setCustomFilters}
+              isCustomDateModalOpen={filters.isCustomDateModalOpen}
+              setIsCustomDateModalOpen={filters.setIsCustomDateModalOpen}
+              uniqueCategories={filters.uniqueCategories}
+              uniqueProjects={filters.uniqueProjects}
+              requestTypes={filters.requestTypes}
+              setDateFilter={filters.setDateFilter}
+              resetAllFilters={filters.resetAllFilters}
+              users={filters.users}
+            />
+          </SheetContent>
+        </Sheet>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline">{"Colonnes"}</Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {table
+              .getAllColumns()
+              .filter((column) => column.getCanHide())
+              .map((column) => (
+                <DropdownMenuCheckboxItem
+                  key={column.id}
+                  checked={column.getIsVisible()}
+                  onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                >
+                  {COLUMN_LABELS[column.id] ?? column.id}
+                </DropdownMenuCheckboxItem>
+              ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
+      <TabBar
+        tabs={tabs.tabs}
+        setSelectedTab={tabs.setSelectedTab}
+        selectedTab={tabs.selectedTab}
+      />
       {isCheckable && selectedCount > 1 && (
         <div className="flex items-center gap-2 pb-4">
           <Button
@@ -1029,68 +941,69 @@ export function DataVal({
         </div>
       )}
       {data.length > 0 ? (
-        <div className="rounded-md border overflow-auto">
-          <Table>
+        <div className="overflow-hidden rounded-xl border border-border-default bg-surface">
+          <Table className="min-w-[1240px]">
             <TableHeader>
               {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id} className="bg-gray-50">
-                  {headerGroup.headers.map((header) => {
-                    return (
-                      <TableHead key={header.id} className="">
-                        {header.isPlaceholder
-                          ? null
-                          : flexRender(
-                              header.column.columnDef.header,
-                              header.getContext(),
-                            )}
-                      </TableHead>
-                    );
-                  })}
+                <TableRow key={headerGroup.id} className="hover:bg-transparent">
+                  {headerGroup.headers.map((header) => (
+                    <TableHead
+                      key={header.id}
+                      className={cn(
+                        header.column.id === "besoin" &&
+                          cn("pl-5", REQUEST_COLUMN_CLASS),
+                        (header.column.id === "projectId" ||
+                          header.column.id === "categoryId") &&
+                          "min-w-[170px]",
+                        header.column.id === "actions" && "pr-5",
+                      )}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(
+                            header.column.columnDef.header,
+                            header.getContext(),
+                          )}
+                    </TableHead>
+                  ))}
                 </TableRow>
               ))}
             </TableHeader>
             <TableBody>
-              {table.getRowModel().rows.map((row) => {
-                const validationInfo = getValidationInfo(row.original);
-                const statusConfig = getRequestStatusBadge(row.original.state);
-                const isSelected = row.getIsSelected();
-
-                return (
-                  <TableRow
-                    key={row.id}
-                    data-state={isSelected && "selected"}
-                    className={cn(
-                      "hover:bg-gray-50",
-                      statusConfig.className,
-                      validationInfo.userPosition && "border-l-4",
-                      validationInfo.userPosition === 1 && "border-l-blue-400",
-                      validationInfo.userPosition === 2 && "border-l-green-400",
-                      validationInfo.userPosition === 3 && "border-l-red-400",
-                      validationInfo.isLastValidator && "border-l-red-400",
-                      isSelected &&
-                        isCheckable &&
-                        "bg-blue-50 hover:bg-blue-100",
-                    )}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                );
-              })}
+              {table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  className={requestRowClass(row.original.state)}
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell
+                      key={cell.id}
+                      className={cn(
+                        "py-3 whitespace-normal normal-case",
+                        cell.column.id === "besoin" && "pl-5",
+                        cell.column.id === "actions" && "pr-5",
+                      )}
+                    >
+                      {flexRender(
+                        cell.column.columnDef.cell,
+                        cell.getContext(),
+                      )}
+                    </TableCell>
+                  ))}
+                </TableRow>
+              ))}
             </TableBody>
           </Table>
+          <Pagination
+            table={table}
+            noun="besoins"
+            className="border-t border-border-default"
+          />
         </div>
       ) : (
         <Empty message={empty} />
       )}
-
-      {data.length > 0 && <Pagination table={table} />}
 
       {/* Dialog pour les actions de groupe */}
       {isCheckable &&

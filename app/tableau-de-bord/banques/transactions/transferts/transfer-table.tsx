@@ -18,10 +18,10 @@ import {
   CheckCircleIcon,
   ChevronDown,
   ClipboardPenIcon,
-  Ellipsis,
   Eye,
   Pencil,
   Settings2,
+  EllipsisVertical,
 } from "lucide-react";
 import * as React from "react";
 
@@ -481,8 +481,8 @@ function TransferTable({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger className="h-fit border-0 cursor-pointer [&_svg]:text-gray-900 rounded-none shadow-none">
-              <Ellipsis />
+            <DropdownMenuTrigger aria-label="Actions" className="flex size-8 h-8 w-8 cursor-pointer items-center justify-center gap-0 border-0 bg-transparent p-0 text-text-secondary shadow-none hover:bg-hover hover:text-text-primary data-[state=open]:bg-hover [&_svg]:size-[18px] [&_svg]:text-current">
+              <EllipsisVertical />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>{"Actions"}</DropdownMenuLabel>
@@ -840,7 +840,7 @@ function TransferTable({
         </DropdownMenu>
       </div>
       <h3>{`Transferts (${data.length})`}</h3>
-      <div className="rounded-md border">
+      <div className="overflow-hidden rounded-xl border border-border-default bg-surface">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (

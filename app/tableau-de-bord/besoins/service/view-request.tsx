@@ -3,14 +3,16 @@
 import { Badge, badgeVariants } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { cn, XAF } from "@/lib/utils";
 import { useStore } from "@/providers/datastore";
 import {
@@ -171,12 +173,14 @@ export function DetailBesoin({
   const modifier = users.find((u) => u.id === oldestRequest?.id);
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>{`Besoin - ${data.label}`}</DialogTitle>
-          <DialogDescription>{"Détails du besoin"}</DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Besoin"}</DrawerEyebrow>
+          <DrawerTitle>{data.label}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées au besoin"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
 
         {/* Contenu scrollable */}
         <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
@@ -686,12 +690,14 @@ export function DetailBesoin({
           />
         </div>
         {/* Boutons du footer - fixe en bas */}
-        <DialogFooter>
-          <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+          <DrawerClose asChild>
             <Button variant="outline">{"Fermer"}</Button>
-          </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+          </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

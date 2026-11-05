@@ -1,14 +1,16 @@
 "use client";
 
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { cn } from "@/lib/utils";
 import { Vehicle } from "@/types/types";
 import { format } from "date-fns";
@@ -56,16 +58,14 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
        RENDER
     ========================= */
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>
-            {`Véhicule - ${vehicleData.mark} ${vehicleData.label}`}
-          </DialogTitle>
-          <DialogDescription>
-            {"Informations complètes sur le véhicule"}
-          </DialogDescription>
-        </DialogHeader>
+    <Drawer open={open} onOpenChange={setOpen}>
+      <DrawerContent>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Véhicule"}</DrawerEyebrow>
+          <DrawerTitle>{`${vehicleData.mark} ${vehicleData.label}`}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées au véhicule"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
 
         <div className="grid grid-cols-1 gap-3 @min-[520px]/dialog:grid-cols-2">
           {/*Image */}
@@ -189,16 +189,16 @@ export default function ShowCar({ open, setOpen, vehicleData }: ShowCarProps) {
             )}
           </div>
 
-          {/* CLOSE BUTTON */}
-          <DialogFooter>
-            <DialogClose asChild>
+        </div>
+        </DrawerBody>
+        <DrawerFooter pinned>
+            <DrawerClose asChild>
               <Button variant="outline" onClick={() => setOpen(false)}>
                 {"Fermer"}
               </Button>
-            </DialogClose>
-          </DialogFooter>
-        </div>
-      </DialogContent>
-    </Dialog>
+            </DrawerClose>
+          </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

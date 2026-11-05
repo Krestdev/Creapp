@@ -3,14 +3,16 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
-  Dialog,
-  DialogClose,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+  Drawer,
+  DrawerBody,
+  DrawerClose,
+  DrawerContent,
+  DrawerDescription,
+  DrawerEyebrow,
+  DrawerFooter,
+  DrawerHeader,
+  DrawerTitle,
+} from "@/components/ui/drawer";
 import { TranslateRole } from "@/lib/utils";
 import { User } from "@/types/types";
 import { format } from "date-fns";
@@ -37,17 +39,15 @@ export function ShowUser({ open, onOpenChange, user }: ShowUserProps) {
   if (!user) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-3xl">
+    <Drawer open={open} onOpenChange={onOpenChange}>
+      <DrawerContent className="sm:max-w-3xl">
         {/* Header */}
-        <DialogHeader>
-          <DialogTitle>
-            {"Utilisateur - " + user.lastName + " " + user.firstName}
-          </DialogTitle>
-          <DialogDescription>
-            {"Détails du compte utilisateur"}
-          </DialogDescription>
-        </DialogHeader>
+        <DrawerHeader>
+          <DrawerEyebrow>{"Utilisateur"}</DrawerEyebrow>
+          <DrawerTitle>{user.lastName + " " + user.firstName}</DrawerTitle>
+          <DrawerDescription>{"Consultez les informations associées à l'utilisateur"}</DrawerDescription>
+        </DrawerHeader>
+        <DrawerBody className="flex flex-col gap-3 [&>*]:shrink-0">
           {/* TABLEAU DES INFORMATIONS */}
           <div className="border border-gray-200 rounded-lg overflow-hidden">
             {/* ROW 1: Email & Status */}
@@ -151,16 +151,18 @@ export function ShowUser({ open, onOpenChange, user }: ShowUserProps) {
           </div>
 
         {/* Footer buttons */}
-        <DialogFooter>
-            <DialogClose asChild>
+        
+        </DrawerBody>
+        <DrawerFooter pinned>
+            <DrawerClose asChild>
               <Button
                 variant="outline"
               >
                 {"Fermer"}
               </Button>
-            </DialogClose>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+            </DrawerClose>
+        </DrawerFooter>
+      </DrawerContent>
+    </Drawer>
   );
 }

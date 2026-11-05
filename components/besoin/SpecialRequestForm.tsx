@@ -149,7 +149,7 @@ export default function SpecialRequestForm({ categories }: Props) {
       state: "pending",
       priority: "medium",
       categoryId: values.categoryId,
-      benef: Array(Number(values.beneficiaireId)),
+      benef: [Number(values.beneficiaireId)],
       paytype: values.paytype,
       proof: undefined,
     };

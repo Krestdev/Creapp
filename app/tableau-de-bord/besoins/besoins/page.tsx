@@ -3,6 +3,7 @@ import {
   StatisticCard,
   StatisticProps,
 } from "@/components/base/TitleValueCard";
+import { ClipboardList, Clock, ShoppingCart } from "lucide-react";
 import ErrorPage from "@/components/error-page";
 import LoadingPage from "@/components/loading-page";
 import PageTitle from "@/components/pageTitle";
@@ -216,24 +217,27 @@ function Page() {
         title: "En attente de validation",
         value: stats?.data.awaiting || 0,
         variant: "secondary",
+        Icon: ClipboardList,
         more: {
           title: "Besoins rejetés",
           value: stats?.data.rejected || 0,
         },
       },
       {
-        title: "Besoins émis",
+        title: "Soumis",
         value: stats?.data.sent || 0,
         variant: "primary",
+        Icon: Clock,
         more: {
           title: "Besoins approuvés",
           value: stats?.data.validated || 0,
         },
       },
       {
-        title: "Besoins Déstockés",
+        title: "Déstockés",
         value: stats?.data.fromStore || 0,
         variant: "default",
+        Icon: ShoppingCart,
         more: {
           title: "Besoins annulés",
           value: stats?.data.cancelled || 0,
@@ -244,9 +248,9 @@ function Page() {
       <div className="content">
         <PageTitle
           title="Tous les besoins"
-          subtitle="Accedez à l'ensemble des besoins emis sur l'application."
+          subtitle="Vue de tous les besoins émis sur l'application"
         />
-        <div className="grid-stats-4">
+        <div className="grid grid-cols-1 gap-4 @min-[640px]:grid-cols-3">
           {Statistics.map((statistic, id) => (
             <StatisticCard key={id} {...statistic} />
           ))}

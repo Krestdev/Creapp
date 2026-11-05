@@ -1,33 +1,18 @@
 "use client";
 
-import { DownloadFile } from "@/components/base/downLoadFile";
-import { Badge, badgeVariants } from "@/components/ui/badge";
+import {
+  ViewDrawer,
+  ViewField,
+  ViewFile,
+  ViewGrid,
+} from "@/components/ds/view-drawer";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  QuotationElement,
-  QuotationGroup,
-  QuotationGroupStatus,
-  QuotationStatus,
-} from "@/types/types";
-import { VariantProps } from "class-variance-authority";
-import {
-  LucideChevronRight,
-  LucideClipboardList,
-  LucideFile,
-  LucideFileText,
-  LucideHash,
-  LucideUserRound,
-} from "lucide-react";
-import Link from "next/link";
-import React from "react";
+import { formatNumber } from "@/lib/format";
+import { cn, getQuotationAmount } from "@/lib/utils";
+import { QuotationGroup, QuotationGroupStatus } from "@/types/types";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { useRouter } from "next/navigation";
 
 interface DetailModalProps {
   open: boolean;
@@ -35,256 +20,207 @@ interface DetailModalProps {
   devis: QuotationGroup | null;
 }
 
-// Statut du groupe (affiché en haut de la modale)
-const GROUP_STATUS_STYLES: Record<
-  QuotationGroupStatus,
-  { label: string; bg: string; text: string }
-> = {
-  NOT_PROCESSED: {
-    label: "Non traité",
-    bg: "bg-gray-100",
-    text: "text-gray-700",
-  },
-  IN_PROGRESS: {
-    label: "En cours",
-    bg: "bg-blue-100",
-    text: "text-blue-700",
-  },
-  PROCESSED: {
-    label: "Traité",
-    bg: "bg-green-100",
-    text: "text-green-700",
-  },
-  CANCELLED: {
-    label: "Annulé",
-    bg: "bg-red-100",
-    text: "text-red-700",
-  },
-};
+const STATUS_PILL: Record<QuotationGroupStatus, { label: string; pill: string }> =
+  {
+    NOT_PROCESSED: {
+      label: "Non traité",
+      pill: "border-status-warning-border bg-status-warning-bg text-status-warning-fg",
+    },
+    IN_PROGRESS: {
+      label: "En cours",
+      pill: "border-status-info-border bg-status-info-bg text-status-info-fg",
+    },
+    PROCESSED: {
+      label: "Traité",
+      pill: "border-status-success-border bg-status-success-bg text-status-success-fg",
+    },
+    CANCELLED: {
+      label: "Annulé",
+      pill: "border-status-neutral-border bg-status-neutral-bg text-status-neutral-fg",
+    },
+  };
 
-// Statut d'un devis individuel (une ligne de "Devis associés")
-const getDevisStatus = (
-  status: QuotationStatus | undefined,
-  elements: Array<QuotationElement> = [],
-): {
-  label: string;
-  variant: VariantProps<typeof badgeVariants>["variant"];
-} => {
-  // Un devis encore "PENDING" dont tous les éléments ont été annulés est
-  // en réalité annulé, même si son statut n'a pas été mis à jour.
-  if (
-    status === "PENDING" &&
-    elements.length > 0 &&
-    elements.every((el) => el.status === "DISCARDED")
-  ) {
-    return { label: "Annulé", variant: "outline" };
-  }
+/** Libellé et pastille du statut d'une demande de cotation (liste et tiroir). */
+export const getGroupStatusLabel = (status: QuotationGroupStatus) =>
+  STATUS_PILL[status] ?? { label: "Inconnu", pill: STATUS_PILL.CANCELLED.pill };
 
-  switch (status) {
-    case "PENDING":
-      return { label: "En attente", variant: "amber" };
-    case "APPROVED":
-      return { label: "Approuvé", variant: "success" };
-    case "REJECTED":
-      return { label: "Rejeté", variant: "destructive" };
-    case "SUBMITTED":
-      return { label: "Soumis", variant: "primary" };
-    case "CANCELLED":
-      return { label: "Annulé", variant: "outline" };
-    default:
-      return { label: "Statut inconnu", variant: "outline" };
+/** Colonnes de la table des éléments (Figma · Approbation devis - voir). */
+const QTY_COL = "w-24 text-right";
+
+const formatDate = (value?: string | Date, withTime = false) => {
+  if (!value) return "Non spécifié";
+  try {
+    return format(
+      new Date(value),
+      withTime ? "dd MMMM yyyy 'à' HH:mm" : "dd MMMM yyyy",
+      { locale: fr },
+    );
+  } catch {
+    return "Date invalide";
   }
 };
 
 export function DevisGroup({ open, onOpenChange, devis }: DetailModalProps) {
-  const [page, setPage] = React.useState(1);
-  const [file, setFile] = React.useState<string | File | undefined>(undefined);
-  const [selectedProvider, setSelectedProvider] = React.useState<string>("");
+  const router = useRouter();
+  if (!devis) return null;
 
-  const groupStatus = devis?.status
-    ? GROUP_STATUS_STYLES[devis.status]
-    : undefined;
+  const { commandRequest, providers, quotations } = devis;
+  const status = getGroupStatusLabel(devis.status);
+  const closed = devis.status === "PROCESSED" || devis.status === "CANCELLED";
+  const besoins = commandRequest.besoins ?? [];
 
-  // const handleViewQuotation = (
-  //   proof: string | File | undefined,
-  //   providerName: string,
-  // ) => {
-  //   setFile(proof);
-  //   setSelectedProvider(providerName);
-  //   setPage(2);
-  // };
+  // Montant proposé par chaque fournisseur (devis annulés ou rejetés exclus).
+  const providerTotals = providers.map((provider) => {
+    const total = quotations
+      .filter(
+        (q) =>
+          q.providerId === provider.id &&
+          q.status !== "CANCELLED" &&
+          q.status !== "REJECTED",
+      )
+      .reduce((sum, q) => sum + getQuotationAmount(q, providers), 0);
+    return { provider, total: Math.round(total) };
+  });
+
+  const proofs = quotations.flatMap((q) =>
+    typeof q.proof === "string"
+      ? q.proof
+          .split(";")
+          .filter((x) => !!x)
+          .map((proof) => ({ proof, id: q.id }))
+      : [],
+  );
 
   return (
-    <Dialog
+    <ViewDrawer
       open={open}
-      onOpenChange={(isOpen) => {
-        onOpenChange(isOpen);
-        if (!isOpen) {
-          setPage(1);
-          setFile(undefined);
-          setSelectedProvider("");
-        }
-      }}
+      onOpenChange={onOpenChange}
+      eyebrow="Devis à comparer"
+      title={commandRequest.title || "Sans titre"}
+      description="Consultez les informations associées aux devis"
+      primaryAction={
+        !closed && (
+          <Button
+            onClick={() => router.push(`./valider/${commandRequest.id}`)}
+          >
+            {"Comparer"}
+          </Button>
+        )
+      }
     >
-      <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
-          <DialogTitle>
-            {`Devis - ${devis?.commandRequest.title || "Sans titre"}`}
-          </DialogTitle>
-          <DialogDescription>
-            {page === 1
-              ? "Détail du devis"
-              : `Justificatif - ${selectedProvider}`}
-          </DialogDescription>
-        </DialogHeader>
+      <ViewGrid>
+        <ViewField label="Référence">
+          <p className="text-body-medium text-text-link">
+            {commandRequest.reference}
+          </p>
+        </ViewField>
+        <ViewField label="Statut">
+          <span
+            className={cn(
+              "inline-flex w-fit items-center rounded-full border px-2 py-1 text-label font-semibold whitespace-nowrap",
+              status.pill,
+            )}
+          >
+            {status.label}
+          </span>
+        </ViewField>
+        <ViewField label="Date limite">
+          <p className="font-semibold">{formatDate(commandRequest.dueDate)}</p>
+        </ViewField>
+        <ViewField label="Créé le">
+          <p className="font-semibold">
+            {formatDate(commandRequest.createdAt, true)}
+          </p>
+        </ViewField>
+        <ViewField label="Modifié le">
+          <p className="font-semibold">
+            {formatDate(
+              commandRequest.updatedAt ?? commandRequest.createdAt,
+              true,
+            )}
+          </p>
+        </ViewField>
+      </ViewGrid>
 
-        {/* Content */}
-        <div>
-          <div className="flex gap-3">
-            <div className="w-full flex flex-col gap-4 py-3">
-              {/* Référence / Statut */}
-              <div className="view-group group hover:bg-muted/30 transition-all duration-200 p-2 -m-2 rounded-lg">
-                <span className="view-icon">
-                  <LucideHash className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                </span>
-                <div className="flex flex-col flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">Statut</p>
-                  <div className="w-fit">
-                    <div
-                      className={`${groupStatus?.bg ?? "bg-gray-100"} ${
-                        groupStatus?.text ?? "text-gray-700"
-                      } flex items-center justify-center px-3 py-1 rounded-full`}
-                    >
-                      <p className="text-sm font-medium">
-                        {groupStatus?.label ?? "N/A"}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+      {/* Éléments */}
+      <ViewField label="Éléments" wide>
+        <div className="overflow-hidden rounded-[10px] border border-border-default">
+          <div className="flex items-center gap-2 bg-surface-muted px-3 py-2 text-overline text-text-tertiary uppercase">
+            <span className="min-w-0 flex-1">{"Besoins"}</span>
+            <span className="min-w-0 flex-1">{"Description"}</span>
+            <span className={QTY_COL}>{"Quantité"}</span>
+          </div>
+          {besoins.length === 0 && (
+            <p className="border-t border-border-default px-3 py-4 text-body text-text-secondary">
+              {"Aucun élément"}
+            </p>
+          )}
+          {besoins.map((besoin) => (
+            <div
+              key={besoin.id}
+              className="flex items-center gap-2 border-t border-border-default px-3 py-[11px]"
+            >
+              <div className="flex min-w-0 flex-1 flex-col gap-[3px]">
+                <p className="truncate text-caption text-text-secondary">
+                  {besoin.ref}
+                </p>
+                <p className="text-body-medium text-text-primary">
+                  {besoin.label}
+                </p>
               </div>
-
-              {/* Demande de quotation */}
-              <div className="view-group group hover:bg-muted/30 transition-all duration-200 p-2 -m-2 rounded-lg">
-                <span className="view-icon">
-                  <LucideFile className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                </span>
-                <div className="flex flex-col flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    Demande de quotation
-                  </p>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <p className="text-sm font-semibold uppercase">
-                      {devis?.commandRequest.title}
-                    </p>
-                    <Badge variant="outline" className="text-xs font-mono">
-                      {devis?.commandRequest.reference}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-
-              {/* Fournisseur */}
-              <div className="view-group group hover:bg-muted/30 transition-all duration-200 p-2 -m-2 rounded-lg">
-                <span className="view-icon">
-                  <LucideUserRound className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-                </span>
-                <div className="flex flex-col flex-1">
-                  <p className="text-sm text-muted-foreground mb-1">
-                    Fournisseurs
-                  </p>
-                  <div className="flex flex-wrap gap-2">
-                    {devis?.providers.map((provider) => (
-                      <Badge
-                        key={provider.id}
-                        variant="secondary"
-                        className="text-xs font-medium"
-                      >
-                        {provider.name}
-                      </Badge>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* Devis associés */}
-              <div className="view-group group transition-all duration-200 p-2 -m-2 rounded-lg">
-                <span className="view-icon">
-                  <LucideClipboardList className="h-5 w-5 text-muted-foreground transition-colors" />
-                </span>
-                <div className="flex flex-col flex-1">
-                  <p className="text-sm text-muted-foreground mb-2">
-                    Devis associés
-                  </p>
-                  <div className="space-y-2">
-                    {devis?.quotations.map((devi, index) => {
-                      const provider = devis.providers.find(
-                        (x) => x.id === devi.providerId,
-                      );
-                      const hasProof = !!devi?.proof;
-                      const devisStatus = getDevisStatus(
-                        devi?.status,
-                        devi?.element,
-                      );
-
-                      return (
-                        <Link
-                          key={index}
-                          href={`${process.env.NEXT_PUBLIC_API}/${devi?.proof}`}
-                          target="_blank"
-                          className="w-full h-auto p-3 flex flex-row items-center justify-between gap-3 hover:bg-muted/50 transition-all duration-200 rounded-lg"
-                        >
-                          <div className="flex items-center gap-3 flex-1 min-w-0">
-                            {hasProof ? (
-                              <div className="shrink-0 h-10 w-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                                <LucideFileText className="h-5 w-5 text-primary" />
-                              </div>
-                            ) : (
-                              <div className="shrink-0 h-10 w-10 bg-muted rounded-lg flex items-center justify-center">
-                                <LucideFileText className="h-5 w-5 text-muted-foreground" />
-                              </div>
-                            )}
-                            <div className="flex-1 text-left">
-                              <div className="flex items-center gap-2 flex-wrap">
-                                <p className="text-sm font-medium">
-                                  {provider?.name || "Fournisseur inconnu"}
-                                </p>
-                                <Badge
-                                  variant={devisStatus.variant}
-                                  className="text-xs"
-                                >
-                                  {devisStatus.label}
-                                </Badge>
-                              </div>
-                              {hasProof && (
-                                <p className="text-xs text-muted-foreground mt-1">
-                                  Cliquez pour visualiser
-                                </p>
-                              )}
-                            </div>
-                          </div>
-                          {hasProof && (
-                            <LucideChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors shrink-0" />
-                          )}
-                        </Link>
-                      );
-                    })}
-                  </div>
-                </div>
-              </div>
+              <p className="min-w-0 flex-1 text-body text-text-primary">
+                {besoin.description || "—"}
+              </p>
+              <p className={cn("text-body text-text-primary", QTY_COL)}>
+                {`${besoin.quantity} ${besoin.unit ?? ""}`.trim()}
+              </p>
             </div>
-          </div>
+          ))}
         </div>
+      </ViewField>
 
-        {/* Footer modernisé */}
-        <DialogFooter>
-          <div className="flex items-center gap-3 w-full justify-end">
-            {page === 2 && file && <DownloadFile file={file} />}
-            <Button onClick={() => onOpenChange(false)} variant="outline">
-              Fermer
-            </Button>
+      {/* Fournisseurs */}
+      <ViewField label="Fournisseurs" wide>
+        {providerTotals.length === 0 && (
+          <p className="italic">{"Aucun fournisseur"}</p>
+        )}
+        {providerTotals.map(({ provider, total }) => (
+          <div key={provider.id} className="flex items-start gap-1.5 py-1">
+            <span className="text-body-medium whitespace-nowrap text-text-primary">
+              {provider.name}
+            </span>
+            {total > 0 && (
+              <span className="min-w-0 flex-1 text-body text-brand">
+                {`${formatNumber(total)} FCFA`}
+              </span>
+            )}
           </div>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+        ))}
+      </ViewField>
+
+      {/* Pièces jointes */}
+      <ViewField label="Pièces jointes" wide>
+        {proofs.length > 0 ? (
+          <div className="flex flex-col gap-2">
+            {proofs.map(({ proof, id }, index) => {
+              const name = proof.split("/").pop() ?? proof;
+              const ext = name.includes(".")
+                ? name.split(".").pop()?.toUpperCase()
+                : undefined;
+              return (
+                <ViewFile
+                  key={`${id}-${index}`}
+                  name={name}
+                  meta={ext}
+                  href={`${process.env.NEXT_PUBLIC_API}/${proof}`}
+                />
+              );
+            })}
+          </div>
+        ) : (
+          <p className="italic">{"Aucune pièce jointe"}</p>
+        )}
+      </ViewField>
+    </ViewDrawer>
   );
 }

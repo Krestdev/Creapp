@@ -707,7 +707,7 @@ export default function CreateCotation({ requests, users, categories }: Props) {
             <Button
               type="submit"
               variant="primary"
-              disabled={createCommand.isPending}
+              disabled={createCommand.isPending || selected.length === 0}
               isLoading={createCommand.isPending}
             >
               <PlusIcon aria-hidden />
