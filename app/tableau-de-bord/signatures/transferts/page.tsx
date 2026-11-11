@@ -131,7 +131,9 @@ function Page() {
           />
         </div>
         <SignTransfers
-          data={data?.data?.transactions ?? []}
+          data={
+            data?.data?.transactions.filter((x) => x.status === "PENDING") ?? []
+          }
           banks={getBanks.data.data}
           paymentMethods={getPayType.data.data}
           users={getUsers.data.data}

@@ -742,13 +742,16 @@ function ViewExpense({
                             </p>} */}
                         {isSigned && signer ? (
                           <p className="text-sm text-green-600">{"Signé"}</p>
-                        ) : signataires.mode === "BOTH" ? (
+                        ) : signataires.mode === "BOTH" ||
+                          !payment.signer?.length ? (
+                          // Mode « un dans la liste » : tant que personne n'a signé,
+                          // chacun peut encore le faire.
                           <p className="text-sm text-gray-600">
                             {"En attente de signature"}
                           </p>
                         ) : (
                           <p className="text-sm text-gray-600">
-                            {"Ne peux plus signer"}
+                            {"Ne peut plus signer"}
                           </p>
                         )}
                       </div>
@@ -791,9 +794,13 @@ function ViewExpense({
                         <p className="text-sm text-gray-600">{tx.reason}</p>
                       )}
                       <p className="text-xs text-muted-foreground">
-                        {format(new Date(tx.updatedAt), "dd MMMM yyyy à kk:mm", {
-                          locale: fr,
-                        })}
+                        {format(
+                          new Date(tx.updatedAt),
+                          "dd MMMM yyyy à kk:mm",
+                          {
+                            locale: fr,
+                          },
+                        )}
                       </p>
                     </div>
                   ))}
